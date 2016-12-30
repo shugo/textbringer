@@ -19,7 +19,7 @@ module TextBringer
     end
 
     def get_string(n)
-      if @point >= @gap_start || @point + n <= @gap_start
+      if @point > @gap_start || @point + n <= @gap_start
         @contents[user_to_gap(@point), n]
       else
         len = @gap_start - @point

@@ -132,4 +132,12 @@ How are you?
 I'm fine
 EOF
   end
+
+  def test_get_string
+    buffer = Buffer.new
+    buffer.insert("12345\n12345\n")
+    buffer.backward_char("12345\n".size)
+    buffer.insert("12345\n")
+    assert_equal("1", buffer.get_string(1))
+  end
 end
