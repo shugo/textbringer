@@ -1,0 +1,27 @@
+#!/usr/bin/env ruby
+
+require "text_bringer"
+
+Curses.init_screen
+Curses.noecho
+Curses.raw
+begin
+  buffer = TextBringer::Buffer.new
+  window = TextBringer::Window.new(buffer)
+  while c = window.getch
+    case c
+    when ?\e.ord
+      exit
+    when Curses::KEY_LEFT
+      buffer.backward_char
+    when Curses::KEY_RIGHT
+      buffer.forward_char
+    when String
+      buffer.insert(c)
+    end
+    window.redisplay
+  end
+ensure
+  Curses.echo
+  Curses.noraw
+end
