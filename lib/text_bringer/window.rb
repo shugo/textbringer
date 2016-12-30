@@ -30,7 +30,7 @@ module TextBringer
         @window.setpos(0, 0)
         while !@buffer.end_of_buffer? &&
             @window.cury < @window.maxy ||
-            (@window.cury == @window.maxy && @window.curx < @window.maxy)
+            (@window.cury == @window.maxy && @window.curx < @window.maxx)
           if @buffer.point_at_mark?(saved)
             y, x = @window.cury, @window.curx
           end
