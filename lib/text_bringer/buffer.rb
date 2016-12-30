@@ -47,7 +47,7 @@ module TextBringer
     def forward_char(n = 1)
       new_point = @point + n
       if new_point < 0 || new_point > size
-        raise ArgumentError, "out of bounds"
+        raise RangeError, "out of buffer"
       end
       @point = new_point
     end

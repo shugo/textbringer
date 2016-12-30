@@ -4,6 +4,26 @@ require "text_bringer/buffer"
 class TestBuffer < Test::Unit::TestCase
   include TextBringer
 
+  def test_forward_char
+    buffer = Buffer.new
+    buffer.insert("abc")
+    buffer.beginning_of_buffer
+    buffer.forward_char
+    assert_equal(1, buffer.point)
+    buffer.forward_char(2)
+    assert_equal(3, buffer.point)
+    assert_raise(RangeError) do
+      buffer.forward_char
+    end
+    buffer.forward_char(-1)
+    assert_equal(2, buffer.point)
+    buffer.forward_char(-2)
+    assert_equal(0, buffer.point)
+    assert_raise(RangeError) do
+      buffer.forward_char(-1)
+    end
+  end
+
   def test_delete_char_forward
     buffer = Buffer.new
     buffer.insert("abc")
