@@ -88,6 +88,10 @@ module TextBringer
       @point = size
     end
 
+    def end_of_buffer?
+      @point == size
+    end
+
     def find_first_in_forward(s)
       gpos = user_to_gap(@point)
       while gpos = @contents.index(s, gpos)
@@ -99,12 +103,13 @@ module TextBringer
       end_of_buffer
     end
 
-    def find_first_in_backward(s)
-      gpos = user_to_gap(@point)
-      while gpos = @contents.rindex(s, gpos)
-        if pos = gap_to_user(gpos + s.size)
-          return @point = pos
+    def find_first_in_backward(chars)
+      pos = @point - 1
+      while pos >= 0
+        if chars.include?(@contents[user_to_gap(pos)])
+          return @point = pos + 1
         end
+        pos -= 1
       end
       beginning_of_buffer
     end
