@@ -7,32 +7,32 @@ module TextBringer
     GAP_SIZE = 256
 
     def initialize
-      @buf = String.new
+      @contents = String.new
       @point = 0
       @gap_start = 0
       @gap_end = 0
     end
 
     def to_s
-      @buf.dup.tap { |s|
+      @contents.dup.tap { |s|
         s[@gap_start...@gap_end] = ""
       }
     end
 
     def size
-      @buf.size - gap_size
+      @contents.size - gap_size
     end
 
     def insert(s)
       adjust_gap(s.size)
-      @buf[@point, s.size] = s
+      @contents[@point, s.size] = s
       @point = @gap_start += s.size
     end
 
     def delete_char(n = 1)
       adjust_gap
       if n > 0
-        if @gap_end + n > @buf.size
+        if @gap_end + n > @contents.size
           raise RangeError, "out of buffer"
         end
         @gap_end += n
@@ -69,19 +69,19 @@ module TextBringer
     def adjust_gap(min_size = 0)
       if @gap_start < @point
         len = user_to_gap(@point) - @gap_end
-        @buf[@gap_start, len] = @buf[@gap_end, len]
+        @contents[@gap_start, len] = @contents[@gap_end, len]
         @gap_start += len
         @gap_end += len
       elsif @gap_start > @point
         len = @gap_start - @point
-        @buf[@gap_end - len, len] = @buf[@point, len]
+        @contents[@gap_end - len, len] = @contents[@point, len]
         @gap_start -= len
         @gap_end -= len
       end
       if gap_size < min_size
         new_gap_size = GAP_SIZE + min_size
         extended_size = new_gap_size - gap_size
-        @buf[@gap_end, extended_size] = "\0" * extended_size
+        @contents[@gap_end, extended_size] = "\0" * extended_size
         @gap_end += extended_size
       end
     end
