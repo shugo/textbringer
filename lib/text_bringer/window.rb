@@ -36,6 +36,9 @@ module TextBringer
           @window << @buffer.get_string(1)
           @buffer.forward_char
         end
+        if @buffer.point_at_mark?(saved)
+          y, x = @window.cury, @window.curx
+        end
         @window.setpos(y, x)
         @window.refresh
       ensure
