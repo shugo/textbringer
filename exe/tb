@@ -9,6 +9,9 @@ begin
   buffer = TextBringer::Buffer.new
   window = TextBringer::Window.new(buffer, Curses.lines - 1, Curses.cols, 0, 0)
   status_window = Curses::Window.new(1, Curses.cols, Curses.lines - 1, 0)
+  status_window << "Quit by ESC"
+  status_window.refresh
+  window.redisplay
   while c = window.getch
     status_window.clear
     begin
