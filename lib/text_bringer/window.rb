@@ -33,11 +33,20 @@ module TextBringer
           if @buffer.point_at_mark?(saved)
             y, x = @window.cury, @window.curx
           end
-          @window << @buffer.get_string(1)
+          c = @buffer.get_string(1)
+          if c == "\n"
+            @window.clrtoeol
+          end
+          @window << c
           @buffer.forward_char
         end
         if @buffer.point_at_mark?(saved)
           y, x = @window.cury, @window.curx
+        end
+        loop do
+          @window.clrtoeol
+          break if @window.cury == @window.maxy - 1
+          @window.setpos(@window.cury + 1, 0)
         end
         @window.setpos(y, x)
         @window.refresh
@@ -54,12 +63,16 @@ module TextBringer
       new_start_loc = nil
       begin
         @buffer.find_first_in_backward("\n")
+        if @buffer.point_before_mark?(@top_of_window)
+          @buffer.mark_to_point(@top_of_window)
+          return
+        end
         count = 0
         while count < @num_lines
           break if @buffer.point_at_mark?(@top_of_window)
           break if @buffer.point == 0
           if count >= @point_lines
-            new_start_loc = count
+            new_start_loc = @buffer.point
           end
           @buffer.backward_char
           @buffer.find_first_in_backward("\n")

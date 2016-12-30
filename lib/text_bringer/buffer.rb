@@ -125,7 +125,7 @@ module TextBringer
     end
 
     def mark_to_point(mark)
-      @mark.location = @point
+      mark.location = @point
     end
 
     def point_at_mark?(mark)
