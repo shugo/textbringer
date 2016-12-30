@@ -31,7 +31,11 @@ module TextBringer
 
     def delete_char(n = 1)
       adjust_gap
-      @gap_end += n
+      if n > 0
+        @gap_end += n
+      elsif n < 0
+        @point = @gap_start -= 1
+      end
     end
 
     def forward_char(n = 1)
