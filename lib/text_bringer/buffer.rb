@@ -32,8 +32,14 @@ module TextBringer
     def delete_char(n = 1)
       adjust_gap
       if n > 0
+        if @gap_end + n > @buf.size
+          raise RangeError, "out of buffer"
+        end
         @gap_end += n
       elsif n < 0
+        if @gap_start + n < 0
+          raise RangeError, "out of buffer"
+        end
         @point = @gap_start -= 1
       end
     end
