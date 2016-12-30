@@ -7,18 +7,29 @@ Curses.noecho
 Curses.raw
 begin
   buffer = TextBringer::Buffer.new
-  window = TextBringer::Window.new(buffer)
+  window = TextBringer::Window.new(buffer, Curses.lines - 1, Curses.cols, 0, 0)
+  status_window = Curses::Window.new(1, Curses.cols, Curses.lines - 1, 0)
   while c = window.getch
-    case c
-    when ?\e.ord
-      exit
-    when Curses::KEY_LEFT
-      buffer.backward_char
-    when Curses::KEY_RIGHT
-      buffer.forward_char
-    when String
-      buffer.insert(c)
+    status_window.clear
+    begin
+      case c
+      when ?\e.ord
+        exit
+      when Curses::KEY_LEFT
+        buffer.backward_char
+      when Curses::KEY_RIGHT
+        buffer.forward_char
+      when String
+        buffer.insert(c)
+      when ?\n.ord
+        buffer.insert(?\n)
+      else
+        buffer.insert("<KEY:" + c.inspect + ">")
+      end
+    rescue
+      status_window << $!.to_s.chomp
     end
+    status_window.refresh
     window.redisplay
   end
 ensure

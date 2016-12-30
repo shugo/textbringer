@@ -3,12 +3,12 @@ require "curses"
 
 module TextBringer
   class Window
-    def initialize(buffer)
+    def initialize(buffer, num_lines, num_cols, y, x)
       @buffer = buffer
-      @num_lines = Curses.lines
-      @num_columns = Curses.cols
+      @num_lines = num_lines
+      @num_columns = num_cols
       @point_lines = @num_lines / 2
-      @window = Curses::Window.new(@num_lines, @num_columns, 0, 0)
+      @window = Curses::Window.new(@num_lines, @num_columns, y, x)
       @window.keypad = true
       @window.scrollok(false)
       @top_of_window = @buffer.new_mark
