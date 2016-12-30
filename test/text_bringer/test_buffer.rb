@@ -87,18 +87,49 @@ class TestBuffer < Test::Unit::TestCase
 
   def test_editing
     buffer = Buffer.new
-    buffer.insert("hello world\n")
+    buffer.insert("Hello world\n")
     buffer.insert("I'm shugo\n")
     buffer.beginning_of_buffer
-    buffer.delete_char(5)
-    buffer.insert("goodbye")
+    buffer.delete_char("Hello".size)
+    buffer.insert("Goodbye")
+    assert_equal(<<EOF, buffer.to_s)
+Goodbye world
+I'm shugo
+EOF
     buffer.end_of_buffer
     buffer.backward_char
-    buffer.delete_char(-5)
+    buffer.delete_char(-"shugo".size)
     buffer.insert("tired")
     assert_equal(<<EOF, buffer.to_s)
-goodbye world
+Goodbye world
 I'm tired
+EOF
+    buffer.end_of_buffer
+    buffer.insert("How are you?\n")
+    assert_equal(<<EOF, buffer.to_s)
+Goodbye world
+I'm tired
+How are you?
+EOF
+    buffer.backward_char("How are you?\n".size)
+    buffer.delete_char(-"I'm tired\n".size)
+    assert_equal(<<EOF, buffer.to_s)
+Goodbye world
+How are you?
+EOF
+    buffer.beginning_of_buffer
+    buffer.delete_char("Goodbye".size)
+    buffer.insert("Hello")
+    assert_equal(<<EOF, buffer.to_s)
+Hello world
+How are you?
+EOF
+    buffer.end_of_buffer
+    buffer.insert("I'm fine\n")
+    assert_equal(<<EOF, buffer.to_s)
+Hello world
+How are you?
+I'm fine
 EOF
   end
 end

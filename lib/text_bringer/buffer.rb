@@ -67,16 +67,35 @@ module TextBringer
     private
 
     def adjust_gap(min_size = 0)
-      return if @point == @gap_start && gap_size >= min_size
-      @buf[@gap_start...@gap_end] = ""
-      @gap_start = @point
-      new_gap_size = GAP_SIZE + min_size
-      @gap_end = @gap_start + new_gap_size
-      @buf[@gap_start, 0] = "\0" * new_gap_size
+      if @gap_start < @point
+        len = user_to_gap(@point) - @gap_end
+        @buf[@gap_start, len] = @buf[@gap_end, len]
+        @gap_start += len
+        @gap_end += len
+      elsif @gap_start > @point
+        len = @gap_start - @point
+        @buf[@gap_end - len, len] = @buf[@point, len]
+        @gap_start -= len
+        @gap_end -= len
+      end
+      if gap_size < min_size
+        new_gap_size = GAP_SIZE + min_size
+        extended_size = new_gap_size - gap_size
+        @buf[@gap_end, extended_size] = "\0" * extended_size
+        @gap_end += extended_size
+      end
     end
 
     def gap_size
       @gap_end - @gap_start
+    end
+
+    def user_to_gap(location)
+      if location <= @gap_start
+        location
+      else
+        gap_size + location 
+      end
     end
   end
 end
