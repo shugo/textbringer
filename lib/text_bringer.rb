@@ -1,5 +1,3 @@
 require "text_bringer/version"
-
-module TextBringer
-  # Your code goes here...
-end
+require "text_bringer/buffer"
+require "text_bringer/window"
