@@ -58,12 +58,15 @@ module TextBringer
         while count < @num_lines
           break if @buffer.point_at_mark?(@top_of_window)
           break if @buffer.point == 0
-          if count == @point_lines
+          if count >= @point_lines
             new_start_loc = count
           end
           @buffer.backward_char
           @buffer.find_first_in_backward("\n")
           count += 1
+        end
+        if count >= @num_lines
+          @top_of_window.location = new_start_loc
         end
       ensure
         @buffer.point_to_mark(saved)
