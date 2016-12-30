@@ -26,6 +26,7 @@ module TextBringer
         framer
         y = x = 0
         @buffer.point_to_mark(@top_of_window)
+        @window.erase
         @window.setpos(0, 0)
         while !@buffer.end_of_buffer? &&
             @window.cury < @window.maxy ||
@@ -42,11 +43,6 @@ module TextBringer
         end
         if @buffer.point_at_mark?(saved)
           y, x = @window.cury, @window.curx
-        end
-        loop do
-          @window.clrtoeol
-          break if @window.cury == @window.maxy - 1
-          @window.setpos(@window.cury + 1, 0)
         end
         @window.setpos(y, x)
         @window.refresh
