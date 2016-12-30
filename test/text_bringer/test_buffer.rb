@@ -37,9 +37,9 @@ class TestBuffer < Test::Unit::TestCase
     buffer = Buffer.new
     buffer.insert("abc")
     buffer.backward_char(1)
-    buffer.delete_char(-1)
-    assert_equal("ac", buffer.to_s)
-    assert_equal(1, buffer.point)
+    buffer.delete_char(-2)
+    assert_equal("c", buffer.to_s)
+    assert_equal(0, buffer.point)
   end
 
   def test_delete_char_at_eob
@@ -83,5 +83,22 @@ class TestBuffer < Test::Unit::TestCase
     end
     assert_equal("abc", buffer.to_s)
     assert_equal(2, buffer.point)
+  end
+
+  def test_editing
+    buffer = Buffer.new
+    buffer.insert("hello world\n")
+    buffer.insert("I'm shugo\n")
+    buffer.beginning_of_buffer
+    buffer.delete_char(5)
+    buffer.insert("goodbye")
+    buffer.end_of_buffer
+    buffer.backward_char
+    buffer.delete_char(-5)
+    buffer.insert("tired")
+    assert_equal(<<EOF, buffer.to_s)
+goodbye world
+I'm tired
+EOF
   end
 end

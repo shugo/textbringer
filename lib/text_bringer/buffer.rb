@@ -40,7 +40,7 @@ module TextBringer
         if @gap_start + n < 0
           raise RangeError, "out of buffer"
         end
-        @point = @gap_start -= 1
+        @point = @gap_start += n
       end
     end
 
