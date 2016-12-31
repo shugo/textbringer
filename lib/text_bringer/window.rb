@@ -1,5 +1,6 @@
 require "text_bringer/buffer"
 require "curses"
+require "unicode/display_width"
 
 module TextBringer
   class Window
@@ -59,7 +60,7 @@ module TextBringer
       saved = @buffer.new_mark
       new_start_loc = nil
       begin
-        count = (@buffer.point - @buffer.find_first_in_backward("\n")) / @num_columns
+        count = beginning_of_line
         if @buffer.point_before_mark?(@top_of_window)
           @buffer.mark_to_point(@top_of_window)
           return
@@ -71,7 +72,7 @@ module TextBringer
             new_start_loc = @buffer.point
           end
           @buffer.backward_char
-          count += (@buffer.point - @buffer.find_first_in_backward("\n")) / @num_columns + 1
+          count += beginning_of_line + 1
         end
         if count >= @num_lines
           @top_of_window.location = new_start_loc
@@ -80,6 +81,13 @@ module TextBringer
         @buffer.point_to_mark(saved)
         saved.delete
       end
+    end
+
+    def beginning_of_line
+      e = @buffer.point
+      @buffer.find_first_in_backward("\n")
+      s = @buffer[@buffer.point...e]
+      s.display_width / @num_columns # TODO: should calculate more correctly
     end
   end
 end
