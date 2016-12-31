@@ -4,12 +4,9 @@ require "unicode/display_width"
 
 module TextBringer
   class Window
-    def initialize(buffer, num_lines, num_cols, y, x)
+    def initialize(buffer, num_lines, num_columns, y, x)
       @buffer = buffer
-      @num_lines = num_lines
-      @num_columns = num_cols
-      @point_lines = @num_lines / 2
-      @window = Curses::Window.new(@num_lines, @num_columns, y, x)
+      @window = Curses::Window.new(num_lines, num_columns, y, x)
       @window.keypad = true
       @window.scrollok(false)
       @top_of_window = @buffer.new_mark
@@ -65,16 +62,16 @@ module TextBringer
           @buffer.mark_to_point(@top_of_window)
           return
         end
-        while count < @num_lines
+        while count < @window.maxy
           break if @buffer.point_at_mark?(@top_of_window)
           break if @buffer.point == 0
-          if count >= @point_lines
+          if count >= @window.maxy / 2
             new_start_loc = @buffer.point
           end
           @buffer.backward_char
           count += beginning_of_line + 1
         end
-        if count >= @num_lines
+        if count >= @window.maxy
           @top_of_window.location = new_start_loc
         end
       ensure
@@ -87,7 +84,7 @@ module TextBringer
       e = @buffer.point
       @buffer.find_first_in_backward("\n")
       s = @buffer[@buffer.point...e]
-      s.display_width / @num_columns # TODO: should calculate more correctly
+      s.display_width / @window.maxx # TODO: should calculate more correctly
     end
   end
 end
