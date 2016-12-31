@@ -28,17 +28,18 @@ module TextBringer
         @buffer.point_to_mark(@top_of_window)
         @window.erase
         @window.setpos(0, 0)
-        while !@buffer.end_of_buffer? &&
-            @window.cury < @window.maxy ||
-            (@window.cury == @window.maxy && @window.curx < @window.maxx)
+        while !@buffer.end_of_buffer?
           if @buffer.point_at_mark?(saved)
             y, x = @window.cury, @window.curx
           end
           c = @buffer.get_string(1)
           if c == "\n"
             @window.clrtoeol
+            break if @window.cury == @window.maxy - 1
           end
           @window << c
+          break if @window.cury == @window.maxy - 1 &&
+            @window.curx == @window.maxx - 1
           @buffer.forward_char
         end
         if @buffer.point_at_mark?(saved)
@@ -58,12 +59,11 @@ module TextBringer
       saved = @buffer.new_mark
       new_start_loc = nil
       begin
-        @buffer.find_first_in_backward("\n")
+        count = (@buffer.point - @buffer.find_first_in_backward("\n")) / @num_columns
         if @buffer.point_before_mark?(@top_of_window)
           @buffer.mark_to_point(@top_of_window)
           return
         end
-        count = 0
         while count < @num_lines
           break if @buffer.point_at_mark?(@top_of_window)
           break if @buffer.point == 0
@@ -71,8 +71,7 @@ module TextBringer
             new_start_loc = @buffer.point
           end
           @buffer.backward_char
-          @buffer.find_first_in_backward("\n")
-          count += 1
+          count += (@buffer.point - @buffer.find_first_in_backward("\n")) / @num_columns + 1
         end
         if count >= @num_lines
           @top_of_window.location = new_start_loc
