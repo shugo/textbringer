@@ -35,11 +35,13 @@ module TextBringer
     end
 
     def substring(s, e)
+      gs = user_to_gap(s)
+      ge = user_to_gap(e)
       if s > @gap_start || e <= @gap_start
-        @contents[user_to_gap(s)...e]
+        @contents[gs...ge]
       else
         len = @gap_start - s
-        @contents[user_to_gap(s), len] + @contents[@gap_end, e - s - len]
+        @contents[gs, len] + @contents[@gap_end, ge - gs - len]
       end
     end
 
