@@ -140,4 +140,15 @@ EOF
     buffer.insert("12345\n")
     assert_equal("1", buffer.get_string(1))
   end
+
+  def test_aref
+    buffer = Buffer.new
+    buffer.insert("12345\n12345\n")
+    buffer.backward_char("12345\n".size)
+    buffer.insert("12345\n")
+    assert_equal("1", buffer[buffer.point])
+    assert_equal("123", buffer[buffer.point, 3])
+    assert_equal("1234", buffer[buffer.point .. buffer.point + 3])
+    assert_equal("123", buffer[buffer.point ... buffer.point + 3])
+  end
 end

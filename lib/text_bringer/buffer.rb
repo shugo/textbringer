@@ -19,11 +19,27 @@ module TextBringer
     end
 
     def get_string(n)
-      if @point > @gap_start || @point + n <= @gap_start
-        @contents[user_to_gap(@point), n]
+      substring(@point, @point + n)
+    end
+
+    def [](start, len = nil)
+      case start
+      when Integer
+        substring(start, start + (len || 1))
+      when Range
+        substring(start.first, start.last + (start.exclude_end? ? 0 : 1))
       else
-        len = @gap_start - @point
-        @contents[user_to_gap(@point), len] + @contents[@gap_end, n - len]
+        raise TypeError,
+          "wrong type argument #{n.class} (expected Integer or Array)"
+      end
+    end
+
+    def substring(s, e)
+      if s > @gap_start || e <= @gap_start
+        @contents[user_to_gap(s)...e]
+      else
+        len = @gap_start - s
+        @contents[user_to_gap(s), len] + @contents[@gap_end, e - s - len]
       end
     end
 
