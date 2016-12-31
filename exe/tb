@@ -27,7 +27,13 @@ begin
       when ?\n.ord
         buffer.insert(?\n)
       else
-        buffer.insert("<KEY:" + c.inspect + ">")
+        if c < 128
+          buffer.insert(c.chr)
+        elsif c < 256
+          buffer.insert([c, window.getch, window.getch].pack("C*").force_encoding("utf-8"))
+        else
+          status_window << "KEY:#{c.inspect}"
+        end
       end
     rescue
       status_window << $!.to_s.chomp
