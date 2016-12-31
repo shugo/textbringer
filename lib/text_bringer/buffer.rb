@@ -41,7 +41,7 @@ module TextBringer
         @contents[gs...ge]
       else
         len = @gap_start - s
-        @contents[gs, len] + @contents[@gap_end, ge - gs - len]
+        @contents[gs, len] + @contents[@gap_end, e - s - len]
       end
     end
 
