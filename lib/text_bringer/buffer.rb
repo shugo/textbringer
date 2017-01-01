@@ -89,6 +89,10 @@ module TextBringer
       @column = nil
     end
 
+    def backward_delete_char(n = 1)
+      delete_char(-n)
+    end
+
     def forward_char(n = 1)
       new_point = @point + n
       if new_point < 0 || new_point > size

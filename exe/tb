@@ -22,14 +22,18 @@ begin
       case c
       when ?\e.ord
         exit
-      when Curses::KEY_LEFT
-        buffer.backward_char
       when Curses::KEY_RIGHT
         buffer.forward_char
-      when Curses::KEY_UP
-        buffer.previous_line
+      when Curses::KEY_LEFT
+        buffer.backward_char
       when Curses::KEY_DOWN
         buffer.next_line
+      when Curses::KEY_UP
+        buffer.previous_line
+      when Curses::KEY_DC
+        buffer.delete_char
+      when Curses::KEY_BACKSPACE
+        buffer.backward_delete_char
       when String
         buffer.insert(c)
       when ?\n.ord
