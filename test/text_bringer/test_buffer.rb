@@ -175,6 +175,22 @@ EOF
     assert_equal(38, buffer.point)
   end
 
+  def test_next_line_multibyte
+    buffer = Buffer.new
+    buffer.insert(<<EOF)
+0123456789
+あいうえお
+aかきくけこ
+EOF
+    buffer.beginning_of_buffer
+    buffer.forward_char(4)
+    assert_equal(4, buffer.point)
+    buffer.next_line
+    assert_equal(13, buffer.point)
+    buffer.next_line
+    assert_equal(20, buffer.point)
+  end
+
   def test_previous_line
     buffer = Buffer.new
     buffer.insert(<<EOF)

@@ -116,12 +116,11 @@ module TextBringer
       end
       find_first_in_forward("\n")
       forward_char
-      count = 0
+      s = @point
       while !end_of_buffer? &&
           get_string(1) != "\n" &&
-          count < column
+          substring(s, @point).display_width < column
         forward_char
-        count += 1
       end
       @column = column
     end
@@ -137,12 +136,11 @@ module TextBringer
       find_first_in_backward("\n")
       backward_char
       find_first_in_backward("\n")
-      count = 0
+      s = @point
       while !end_of_buffer? &&
           get_string(1) != "\n" &&
-          count < column
+          substring(s, @point).display_width < column
         forward_char
-        count += 1
       end
       @column = column
     end
