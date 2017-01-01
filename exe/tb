@@ -16,6 +16,7 @@ begin
   status_message = status_window << "Quit by ESC"
   status_window.refresh
   window.redisplay
+  key_sequence = []
   while c = window.getch
     if status_message
       status_window.erase
@@ -46,7 +47,12 @@ begin
         if c < 128
           buffer.insert(c.chr)
         elsif c < 256
-          buffer.insert([c, window.getch, window.getch].pack("C*").force_encoding("utf-8"))
+          key_sequence << c
+          s = key_sequence.pack("C*").force_encoding("utf-8")
+          if s.valid_encoding?
+            buffer.insert(s)
+            key_sequence = []
+          end
         else
           status_message = status_window << "KEY:#{c.inspect}"
           status_window.refresh
