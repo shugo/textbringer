@@ -22,6 +22,10 @@ begin
         buffer.backward_char
       when Curses::KEY_RIGHT
         buffer.forward_char
+      when Curses::KEY_UP
+        buffer.previous_line
+      when Curses::KEY_DOWN
+        buffer.next_line
       when String
         buffer.insert(c)
       when ?\n.ord
@@ -37,6 +41,9 @@ begin
       end
     rescue
       status_window << $!.to_s.chomp
+      STDERR.puts $!.class
+      STDERR.puts $!
+      STDERR.puts $!.backtrace
     end
     status_window.refresh
     window.redisplay

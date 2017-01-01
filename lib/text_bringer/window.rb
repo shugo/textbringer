@@ -19,8 +19,7 @@ module TextBringer
     end
 
     def redisplay
-      saved = @buffer.new_mark
-      begin
+      @buffer.save_point do |saved|
         framer
         y = x = 0
         @buffer.point_to_mark(@top_of_window)
@@ -45,18 +44,14 @@ module TextBringer
         end
         @window.setpos(y, x)
         @window.refresh
-      ensure
-        @buffer.point_to_mark(saved)
-        saved.delete
       end
     end
 
     private
 
     def framer
-      saved = @buffer.new_mark
-      new_start_loc = nil
-      begin
+      @buffer.save_point do |saved|
+        new_start_loc = nil
         count = beginning_of_line
         if @buffer.point_before_mark?(@top_of_window)
           @buffer.mark_to_point(@top_of_window)
@@ -74,9 +69,6 @@ module TextBringer
         if count >= @window.maxy
           @top_of_window.location = new_start_loc
         end
-      ensure
-        @buffer.point_to_mark(saved)
-        saved.delete
       end
     end
 

@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "unicode/display_width"
+
 module TextBringer
   class Buffer
     attr_reader :point, :marks
@@ -12,6 +14,7 @@ module TextBringer
       @gap_start = 0
       @gap_end = 0
       @marks = []
+      @column = nil
     end
 
     def to_s
@@ -35,13 +38,11 @@ module TextBringer
     end
 
     def substring(s, e)
-      gs = user_to_gap(s)
-      ge = user_to_gap(e)
       if s > @gap_start || e <= @gap_start
-        @contents[gs...ge]
+        @contents[user_to_gap(s)...user_to_gap(e)]
       else
         len = @gap_start - s
-        @contents[gs, len] + @contents[@gap_end, e - s - len]
+        @contents[user_to_gap(s), len] + @contents[@gap_end, e - s - len]
       end
     end
 
@@ -59,6 +60,7 @@ module TextBringer
         end
       end
       @point = @gap_start += size
+      @column = nil
     end
 
     def delete_char(n = 1)
@@ -84,6 +86,7 @@ module TextBringer
         end
         @point = @gap_start += n
       end
+      @column = nil
     end
 
     def forward_char(n = 1)
@@ -92,10 +95,31 @@ module TextBringer
         raise RangeError, "out of buffer"
       end
       @point = new_point
+      @column = nil
     end
 
     def backward_char(n = 1)
       forward_char(-n)
+    end
+
+    def next_line
+      if @column
+        column = @column
+      else
+        prev_point = @point
+        find_first_in_backward("\n")
+        column = substring(@point, prev_point).display_width
+      end
+      find_first_in_forward("\n")
+      forward_char
+      count = 0
+      while !end_of_buffer? &&
+          get_string(1) != "\n" &&
+          count < column
+        forward_char
+        count += 1
+      end
+      @column = column
     end
 
     def beginning_of_buffer
@@ -110,13 +134,13 @@ module TextBringer
       @point == size
     end
 
-    def find_first_in_forward(s)
-      gpos = user_to_gap(@point)
-      while gpos = @contents.index(s, gpos)
-        if pos = gap_to_user(gpos)
+    def find_first_in_forward(chars)
+      pos = @point
+      while pos < size
+        if chars.include?(@contents[user_to_gap(pos)])
           return @point = pos
         end
-        gpos += s.size
+        pos += 1
       end
       end_of_buffer
     end
@@ -160,6 +184,18 @@ module TextBringer
 
     def swap_point_and_mark(mark)
       @point, mark.location = mark.location, @point
+    end
+
+    def save_point
+      saved = new_mark
+      column = @column
+      begin
+        yield(saved)
+      ensure
+        point_to_mark(saved)
+        saved.delete
+        @column = column
+      end
     end
 
     private

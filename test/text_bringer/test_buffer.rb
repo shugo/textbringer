@@ -151,4 +151,27 @@ EOF
     assert_equal("1234", buffer[buffer.point .. buffer.point + 3])
     assert_equal("123", buffer[buffer.point ... buffer.point + 3])
   end
+
+  def test_next_line
+    buffer = Buffer.new
+    buffer.insert(<<EOF)
+hello world
+0123456789
+
+hello world
+0123456789
+EOF
+    buffer.beginning_of_buffer
+    buffer.forward_char(3)
+    assert_equal(3, buffer.point)
+    buffer.next_line
+    assert_equal(15, buffer.point)
+    buffer.next_line
+    assert_equal(23, buffer.point)
+    buffer.next_line
+    assert_equal(27, buffer.point)
+    buffer.backward_char
+    buffer.next_line
+    assert_equal(38, buffer.point)
+  end
 end
