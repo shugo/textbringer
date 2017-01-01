@@ -4,18 +4,6 @@ A text editor.
 
 ## Installation
 
-Add this line to your application's Gemfile:
-
-```ruby
-gem 'text_bringer'
-```
-
-And then execute:
-
-    $ bundle
-
-Or install it yourself as:
-
     $ gem install text_bringer
 
 ## Usage
