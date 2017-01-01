@@ -20,7 +20,9 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+    $ tb
+
+You can quit the editor by ESC.
 
 ## Development
 
