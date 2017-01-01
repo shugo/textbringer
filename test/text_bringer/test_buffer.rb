@@ -174,4 +174,27 @@ EOF
     buffer.next_line
     assert_equal(38, buffer.point)
   end
+
+  def test_previous_line
+    buffer = Buffer.new
+    buffer.insert(<<EOF)
+hello world
+0123456789
+
+hello world
+0123456789
+EOF
+    buffer.previous_line
+    buffer.forward_char(3)
+    assert_equal(39, buffer.point)
+    buffer.previous_line
+    assert_equal(27, buffer.point)
+    buffer.previous_line
+    assert_equal(23, buffer.point)
+    buffer.previous_line
+    assert_equal(15, buffer.point)
+    buffer.backward_char
+    buffer.previous_line
+    assert_equal(2, buffer.point)
+  end
 end

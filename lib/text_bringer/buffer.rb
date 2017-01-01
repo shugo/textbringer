@@ -122,6 +122,27 @@ module TextBringer
       @column = column
     end
 
+    def previous_line
+      if @column
+        column = @column
+      else
+        prev_point = @point
+        find_first_in_backward("\n")
+        column = substring(@point, prev_point).display_width
+      end
+      find_first_in_backward("\n")
+      backward_char
+      find_first_in_backward("\n")
+      count = 0
+      while !end_of_buffer? &&
+          get_string(1) != "\n" &&
+          count < column
+        forward_char
+        count += 1
+      end
+      @column = column
+    end
+
     def beginning_of_buffer
       @point = 0
     end
