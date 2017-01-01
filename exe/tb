@@ -13,11 +13,15 @@ begin
   end
   window = TextBringer::Window.new(buffer, Curses.lines - 1, Curses.cols, 0, 0)
   status_window = Curses::Window.new(1, Curses.cols, Curses.lines - 1, 0)
-  status_window << "Quit by ESC"
+  status_message = status_window << "Quit by ESC"
   status_window.refresh
   window.redisplay
   while c = window.getch
-    status_window.clear
+    if status_message
+      status_window.erase
+      status_window.refresh
+      status_message = nil
+    end
     begin
       case c
       when ?\e.ord
@@ -44,16 +48,18 @@ begin
         elsif c < 256
           buffer.insert([c, window.getch, window.getch].pack("C*").force_encoding("utf-8"))
         else
-          status_window << "KEY:#{c.inspect}"
+          status_message = status_window << "KEY:#{c.inspect}"
+          status_window.refresh
         end
       end
     rescue
-      status_window << $!.to_s.chomp
-      STDERR.puts $!.class
-      STDERR.puts $!
-      STDERR.puts $!.backtrace
+      status_message = status_window << $!.to_s.chomp
+      status_window.refresh
+#      STDERR.puts $!.class
+#      STDERR.puts $!
+#      STDERR.puts $!.backtrace
+      error = $!
     end
-    status_window.refresh
     window.redisplay
   end
 ensure
