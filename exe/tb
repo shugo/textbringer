@@ -7,6 +7,10 @@ Curses.noecho
 Curses.raw
 begin
   buffer = TextBringer::Buffer.new
+  if ARGV.size > 0
+    buffer.insert(File.read(ARGV[0]))
+    buffer.beginning_of_buffer
+  end
   window = TextBringer::Window.new(buffer, Curses.lines - 1, Curses.cols, 0, 0)
   status_window = Curses::Window.new(1, Curses.cols, Curses.lines - 1, 0)
   status_window << "Quit by ESC"
