@@ -104,20 +104,20 @@ module TextBringer
         cmd = key_binding(@key_sequence)
         begin
           if cmd.respond_to?(:call)
+            @key_sequence.clear
             cmd.call
-            @key_sequence = []
           else
             if @key_sequence.all? { |c| 0x80 <= c && c <= 0xff }
               s = @key_sequence.pack("C*").force_encoding("utf-8")
               if s.valid_encoding?
+                @key_sequence.clear
                 @buffer.insert(s)
-                @key_sequence = []
               end
             elsif cmd.nil?
               keys = @key_sequence.map { |c| Curses.keyname(c) }.join(" ")
+              @key_sequence.clear
               @status_message = @status_window << "#{keys} is undefined"
               @status_window.noutrefresh
-              @key_sequence = []
             end
           end
         rescue => e
