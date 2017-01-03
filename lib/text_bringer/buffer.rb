@@ -179,6 +179,14 @@ module TextBringer
       beginning_of_buffer
     end
 
+    def beginning_of_line
+      find_first_in_backward("\n")
+    end
+
+    def end_of_line
+      find_first_in_forward("\n")
+    end
+
     def new_mark
       Mark.new(self, @point).tap { |m|
         @marks << m

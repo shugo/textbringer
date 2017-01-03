@@ -35,10 +35,14 @@ begin
         buffer.next_line
       when Curses::KEY_UP, ?\C-p.ord
         buffer.previous_line
-      when Curses::KEY_DC, ?\C-d
+      when Curses::KEY_DC, ?\C-d.ord
         buffer.delete_char
-      when Curses::KEY_BACKSPACE, ?\C-h
+      when Curses::KEY_BACKSPACE, ?\C-h.ord
         buffer.backward_delete_char
+      when ?\C-a.ord
+        buffer.beginning_of_line
+      when ?\C-e.ord
+        buffer.end_of_line
       when String
         buffer.insert(c)
       when ?\n.ord

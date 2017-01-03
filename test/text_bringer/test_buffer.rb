@@ -213,4 +213,35 @@ EOF
     buffer.previous_line
     assert_equal(2, buffer.point)
   end
+
+  def test_beginning_of_line
+    buffer = Buffer.new
+    buffer.insert(<<EOF)
+hello world
+0123456789
+EOF
+    buffer.beginning_of_buffer
+    buffer.forward_char(3)
+    buffer.beginning_of_line
+    assert_equal(0, buffer.point)
+    buffer.next_line
+    buffer.forward_char(3)
+    buffer.beginning_of_line
+    assert_equal(12, buffer.point)
+  end
+
+  def test_end_of_line
+    buffer = Buffer.new
+    buffer.insert(<<EOF.chomp)
+hello world
+0123456789
+EOF
+    buffer.beginning_of_buffer
+    buffer.forward_char(3)
+    buffer.end_of_line
+    assert_equal(11, buffer.point)
+    buffer.forward_char(3)
+    buffer.end_of_line
+    assert_equal(22, buffer.point)
+  end
 end
