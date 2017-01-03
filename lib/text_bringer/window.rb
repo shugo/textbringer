@@ -45,7 +45,7 @@ module TextBringer
           y, x = @window.cury, @window.curx
         end
         @window.setpos(y, x)
-        @window.refresh
+        @window.noutrefresh
       end
     end
 

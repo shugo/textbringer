@@ -27,8 +27,9 @@ module TextBringer
                                           Curses.lines - 1, Curses.cols, 0, 0)
         @status_window = Curses::Window.new(1, Curses.cols, Curses.lines - 1, 0)
         @status_message = @status_window << "Quit by C-x C-c"
-        @status_window.refresh
+        @status_window.noutrefresh
         @window.redisplay
+        Curses.doupdate
         command_loop
       ensure
         Curses.echo
@@ -91,11 +92,12 @@ module TextBringer
       while c = @window.getch
         if c == Curses::KEY_RESIZE
           @window.redisplay
+          Curses.doupdate
           next
         end
         if @status_message
           @status_window.erase
-          @status_window.refresh
+          @status_window.noutrefresh
           @status_message = nil
         end
         @key_sequence << c.ord
@@ -114,15 +116,16 @@ module TextBringer
             elsif cmd.nil?
               keys = @key_sequence.map { |c| Curses.keyname(c) }.join(" ")
               @status_message = @status_window << "#{keys} is undefined"
-              @status_window.refresh
+              @status_window.noutrefresh
               @key_sequence = []
             end
           end
         rescue => e
           @status_message = @status_window << e.to_s.chomp
-          @status_window.refresh
+          @status_window.noutrefresh
         end
         @window.redisplay
+        Curses.doupdate
       end
     end
   end
