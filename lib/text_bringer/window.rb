@@ -31,7 +31,7 @@ module TextBringer
           if @buffer.point_at_mark?(saved)
             y, x = @window.cury, @window.curx
           end
-          c = @buffer.get_string(1)
+          c = @buffer.char_after
           if c == "\n"
             @window.clrtoeol
             break if @window.cury == @window.maxy - 1
@@ -76,8 +76,8 @@ module TextBringer
 
     def beginning_of_line
       e = @buffer.point
-      @buffer.find_first_in_backward("\n")
-      s = @buffer[@buffer.point...e]
+      @buffer.beginning_of_line
+      s = @buffer.substring(@buffer.point, e)
       s.display_width / @window.maxx # TODO: should calculate more correctly
     end
   end

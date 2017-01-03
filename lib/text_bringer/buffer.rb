@@ -8,6 +8,17 @@ module TextBringer
 
     GAP_SIZE = 256
 
+    UTF8_CHAR_LEN = Hash.new(1)
+    for c in 0xc0..0xdf
+      UTF8_CHAR_LEN[c.chr] = 2
+    end
+    for c in 0xe0..0xef
+      UTF8_CHAR_LEN[c.chr] = 3
+    end
+    for c in 0xf0..0xf4
+      UTF8_CHAR_LEN[c.chr] = 4
+    end
+
     def initialize
       @contents = String.new
       @point = 0
@@ -21,39 +32,35 @@ module TextBringer
       @contents[0...@gap_start] + @contents[@gap_end..-1]
     end
 
-    def get_string(n)
-      substring(@point, @point + n)
-    end
-
-    def [](start, len = nil)
-      case start
-      when Integer
-        substring(start, start + (len || 1))
-      when Range
-        substring(start.first, start.last + (start.exclude_end? ? 0 : 1))
-      else
-        raise TypeError,
-          "wrong type argument #{n.class} (expected Integer or Array)"
-      end
-    end
-
     def substring(s, e)
       if s > @gap_start || e <= @gap_start
         @contents[user_to_gap(s)...user_to_gap(e)]
       else
         len = @gap_start - s
         @contents[user_to_gap(s), len] + @contents[@gap_end, e - s - len]
+      end.force_encoding(Encoding::UTF_8)
+    end
+
+    def byte_after(location = @point)
+      if location < @gap_start
+        @contents.byteslice(location)
+      else
+        @contents.byteslice(location + gap_size)
       end
     end
 
-    def size
-      @contents.size - gap_size
+    def char_after(location = @point)
+      substring(location, location + UTF8_CHAR_LEN[byte_after(location)])
+    end
+
+    def bytesize
+      @contents.bytesize - gap_size
     end
 
     def insert(s)
-      size = s.size
+      size = s.bytesize
       adjust_gap(size)
-      @contents[@point, size] = s
+      @contents[@point, size] = s.b
       @marks.each do |m|
         if m.location > @point
           m.location += size
@@ -94,11 +101,29 @@ module TextBringer
     end
 
     def forward_char(n = 1)
-      new_point = @point + n
-      if new_point < 0 || new_point > size
-        raise RangeError, "out of buffer"
+      location = @point
+      if n >= 0
+        i = n
+        while i > 0
+          raise RangeError, "out of buffer" if end_of_buffer?
+          b = byte_after(location)
+          location += UTF8_CHAR_LEN[b]
+          raise RangeError, "out of buffer" if location > bytesize
+          i -= 1
+        end
+      else
+        i = -n
+        while i > 0
+          location -= 1
+          raise RangeError, "out of buffer" if location < 0
+          while /[\x80-\xbf]/n =~ byte_after(location)
+            location -= 1
+            raise RangeError, "out of buffer" if location < 0
+          end
+          i -= 1
+        end
       end
-      @point = new_point
+      @point = location
       @column = nil
     end
 
@@ -111,14 +136,14 @@ module TextBringer
         column = @column
       else
         prev_point = @point
-        find_first_in_backward("\n")
+        beginning_of_line
         column = substring(@point, prev_point).display_width
       end
-      find_first_in_forward("\n")
+      end_of_line
       forward_char
       s = @point
       while !end_of_buffer? &&
-          get_string(1) != "\n" &&
+          byte_after != "\n" &&
           substring(s, @point).display_width < column
         forward_char
       end
@@ -130,15 +155,15 @@ module TextBringer
         column = @column
       else
         prev_point = @point
-        find_first_in_backward("\n")
+        beginning_of_line
         column = substring(@point, prev_point).display_width
       end
-      find_first_in_backward("\n")
+      beginning_of_line
       backward_char
-      find_first_in_backward("\n")
+      beginning_of_line
       s = @point
       while !end_of_buffer? &&
-          get_string(1) != "\n" &&
+          byte_after != "\n" &&
           substring(s, @point).display_width < column
         forward_char
       end
@@ -149,42 +174,32 @@ module TextBringer
       @point = 0
     end
 
+    def beginning_of_buffer?
+      @point == 0
+    end
+
     def end_of_buffer
-      @point = size
+      @point = bytesize
     end
 
     def end_of_buffer?
-      @point == size
-    end
-
-    def find_first_in_forward(chars)
-      pos = @point
-      while pos < size
-        if chars.include?(@contents[user_to_gap(pos)])
-          return @point = pos
-        end
-        pos += 1
-      end
-      end_of_buffer
-    end
-
-    def find_first_in_backward(chars)
-      pos = @point - 1
-      while pos >= 0
-        if chars.include?(@contents[user_to_gap(pos)])
-          return @point = pos + 1
-        end
-        pos -= 1
-      end
-      beginning_of_buffer
+      @point == bytesize
     end
 
     def beginning_of_line
-      find_first_in_backward("\n")
+      while !beginning_of_buffer? &&
+          byte_after(@point - 1) != "\n"
+        backward_char
+      end
+      @point
     end
 
     def end_of_line
-      find_first_in_forward("\n")
+      while !end_of_buffer? &&
+          byte_after(@point) != "\n"
+        forward_char
+      end
+      @point
     end
 
     def new_mark

@@ -133,23 +133,24 @@ I'm fine
 EOF
   end
 
-  def test_get_string
+  def test_substring
     buffer = Buffer.new
     buffer.insert("12345\n12345\n")
     buffer.backward_char("12345\n".size)
     buffer.insert("12345\n")
-    assert_equal("1", buffer.get_string(1))
+    assert_equal("1", buffer.substring(buffer.point, buffer.point + 1))
+    assert_equal("123", buffer.substring(buffer.point, buffer.point + 3))
   end
 
-  def test_aref
+  def test_char_after
     buffer = Buffer.new
-    buffer.insert("12345\n12345\n")
-    buffer.backward_char("12345\n".size)
-    buffer.insert("12345\n")
-    assert_equal("1", buffer[buffer.point])
-    assert_equal("123", buffer[buffer.point, 3])
-    assert_equal("1234", buffer[buffer.point .. buffer.point + 3])
-    assert_equal("123", buffer[buffer.point ... buffer.point + 3])
+    buffer.insert("12345\nあいうえお\n")
+    buffer.beginning_of_buffer
+    assert_equal("1", buffer.char_after)
+    buffer.next_line
+    assert_equal("あ", buffer.char_after)
+    buffer.forward_char
+    assert_equal("い", buffer.char_after)
   end
 
   def test_next_line
@@ -186,9 +187,9 @@ EOF
     buffer.forward_char(4)
     assert_equal(4, buffer.point)
     buffer.next_line
-    assert_equal(13, buffer.point)
+    assert_equal(17, buffer.point)
     buffer.next_line
-    assert_equal(20, buffer.point)
+    assert_equal(34, buffer.point)
   end
 
   def test_previous_line

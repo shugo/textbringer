@@ -57,7 +57,10 @@ module TextBringer
     end
 
     def key_binding(key_sequence)
-      key_sequence.inject(@key_map) { |map, key| map[key] }
+      key_sequence.inject(@key_map) { |map, key|
+        return nil if map.nil?
+        map[key]
+      }
     end
 
     def setup_keys
