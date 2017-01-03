@@ -104,7 +104,7 @@ module TextBringer
                 @buffer.insert(s)
                 @key_sequence = []
               end
-            elsif key_binding(@key_sequence).nil?
+            elsif cmd.nil?
               keys = @key_sequence.map { |c| Curses.keyname(c) }.join(" ")
               @status_message = @status_window << "#{keys} is undefined"
               @status_window.refresh
