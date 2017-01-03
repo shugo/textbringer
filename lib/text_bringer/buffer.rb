@@ -29,7 +29,8 @@ module TextBringer
     end
 
     def to_s
-      @contents[0...@gap_start] + @contents[@gap_end..-1]
+      (@contents[0...@gap_start] +
+       @contents[@gap_end..-1]).force_encoding(Encoding::UTF_8)
     end
 
     def substring(s, e)

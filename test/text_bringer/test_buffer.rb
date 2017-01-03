@@ -133,6 +133,13 @@ I'm fine
 EOF
   end
 
+  def test_to_s
+    buffer = Buffer.new
+    buffer.insert("あいうえお")
+    s = buffer.to_s
+    assert_equal("あいうえお", s)
+  end
+
   def test_substring
     buffer = Buffer.new
     buffer.insert("12345\n12345\n")
