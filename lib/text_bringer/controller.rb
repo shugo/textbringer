@@ -69,6 +69,8 @@ module TextBringer
       set_key(?\C-h) { @buffer.backward_delete_char }
       set_key(?\C-a) { @buffer.beginning_of_line }
       set_key(?\C-e) { @buffer.end_of_line }
+      set_key("\e<") { @buffer.beginning_of_buffer }
+      set_key("\e>") { @buffer.end_of_buffer }
       (0x20..0x7e).each do |c|
         set_key(c) { @buffer.insert(c.chr) }
       end
@@ -89,11 +91,13 @@ module TextBringer
             cmd.call
             @key_sequence = []
           else
-            if @key_sequence.all? { |c| 0x80 <= c && c <= 0xff } &&
-                (s = @key_sequence.pack("C*").force_encoding("utf-8")).valid_encoding?
-              @buffer.insert(s)
-              @key_sequence = []
-            elsif @key_sequence[0] != ?\C-x.ord || @key_sequence.size > 1
+            if @key_sequence.all? { |c| 0x80 <= c && c <= 0xff }
+              s = @key_sequence.pack("C*").force_encoding("utf-8")
+              if s.valid_encoding?
+                @buffer.insert(s)
+                @key_sequence = []
+              end
+            elsif @key_sequence.size > 1
               keys = @key_sequence.map { |c| Curses.keyname(c) }.join(" ")
               @status_message = @status_window << "#{keys} is undefined"
               @status_window.refresh
