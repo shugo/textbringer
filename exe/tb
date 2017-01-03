@@ -27,17 +27,17 @@ begin
       case c
       when ?\e.ord
         exit
-      when Curses::KEY_RIGHT
+      when Curses::KEY_RIGHT, ?\C-f.ord
         buffer.forward_char
-      when Curses::KEY_LEFT
+      when Curses::KEY_LEFT, ?\C-b.ord
         buffer.backward_char
-      when Curses::KEY_DOWN
+      when Curses::KEY_DOWN, ?\C-n.ord
         buffer.next_line
-      when Curses::KEY_UP
+      when Curses::KEY_UP, ?\C-p.ord
         buffer.previous_line
-      when Curses::KEY_DC
+      when Curses::KEY_DC, ?\C-d
         buffer.delete_char
-      when Curses::KEY_BACKSPACE
+      when Curses::KEY_BACKSPACE, ?\C-h
         buffer.backward_delete_char
       when String
         buffer.insert(c)
