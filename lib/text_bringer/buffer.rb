@@ -9,14 +9,14 @@ module TextBringer
     GAP_SIZE = 256
 
     UTF8_CHAR_LEN = Hash.new(1)
-    for c in 0xc0..0xdf
-      UTF8_CHAR_LEN[c.chr] = 2
-    end
-    for c in 0xe0..0xef
-      UTF8_CHAR_LEN[c.chr] = 3
-    end
-    for c in 0xf0..0xf4
-      UTF8_CHAR_LEN[c.chr] = 4
+    [
+      [0xc0..0xdf, 2],
+      [0xe0..0xef, 3],
+      [0xf0..0xf4, 4]
+    ].each do |range, len|
+      range.each do |c|
+        UTF8_CHAR_LEN[c.chr] = len
+      end
     end
 
     def initialize
