@@ -62,9 +62,7 @@ module TextBringer
         while count < @window.maxy
           break if @buffer.point_at_mark?(@top_of_window)
           break if @buffer.point == 0
-          if count >= @window.maxy / 2
-            new_start_loc = @buffer.point
-          end
+          new_start_loc = @buffer.point
           @buffer.backward_char
           count += beginning_of_line + 1
         end
