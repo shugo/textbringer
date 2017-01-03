@@ -10,7 +10,7 @@ A text editor.
 
     $ tb
 
-You can quit the editor by ESC.
+You can quit the editor by C-x C-c.
 
 ## Development
 
