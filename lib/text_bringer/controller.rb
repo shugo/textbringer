@@ -86,6 +86,10 @@ module TextBringer
 
     def command_loop
       while c = @window.getch
+        if c == Curses::KEY_RESIZE
+          @window.redisplay
+          next
+        end
         if @status_message
           @status_window.erase
           @status_window.refresh
