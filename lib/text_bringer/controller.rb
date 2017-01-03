@@ -86,15 +86,16 @@ module TextBringer
         set_key(c) { @buffer.insert(c.chr) }
       end
       set_key(?\n) { @buffer.insert("\n") }
+      set_key(Curses::KEY_RESIZE) {
+        @window.resize(Curses.lines - 1, Curses.cols)
+        @status_window.move(Curses.lines - 1, 0)
+        @status_window.resize(1, Curses.cols)
+        @status_window.noutrefresh
+      }
     end
 
     def command_loop
       while c = @window.getch
-        if c == Curses::KEY_RESIZE
-          @window.redisplay
-          Curses.doupdate
-          next
-        end
         if @status_message
           @status_window.erase
           @status_window.noutrefresh

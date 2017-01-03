@@ -49,6 +49,10 @@ module TextBringer
       end
     end
 
+    def resize(num_lines, num_columns)
+      @window.resize(num_lines, num_columns)
+    end
+
     private
 
     def framer
