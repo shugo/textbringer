@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "text_bringer/buffer"
 require "curses"
 require "unicode/display_width"
