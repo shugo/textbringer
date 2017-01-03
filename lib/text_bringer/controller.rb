@@ -38,8 +38,11 @@ module TextBringer
 
     private
 
-    def set_key(key, &block)
-      @key_map[kbd(key)] = block
+    def set_key(key, &command)
+      *ks, k = kbd(key)
+      ks.inject(@key_map) { |map, key|
+        map[key] ||= {}
+      }[k] = command
     end
 
     def kbd(key)
@@ -51,6 +54,10 @@ module TextBringer
       else
         raise TypeError, "invalid key type #{key.class}"
       end
+    end
+
+    def key_binding(key_sequence)
+      key_sequence.inject(@key_map) { |map, key| map[key] }
     end
 
     def setup_keys
@@ -85,9 +92,9 @@ module TextBringer
           @status_message = nil
         end
         @key_sequence << c.ord
-        cmd = @key_map[@key_sequence]
+        cmd = key_binding(@key_sequence)
         begin
-          if cmd
+          if cmd.respond_to?(:call)
             cmd.call
             @key_sequence = []
           else
@@ -97,7 +104,7 @@ module TextBringer
                 @buffer.insert(s)
                 @key_sequence = []
               end
-            elsif @key_sequence.size > 1
+            elsif key_binding(@key_sequence).nil?
               keys = @key_sequence.map { |c| Curses.keyname(c) }.join(" ")
               @status_message = @status_window << "#{keys} is undefined"
               @status_window.refresh
