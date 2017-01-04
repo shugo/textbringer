@@ -281,4 +281,63 @@ EOF
     buffer.end_of_line
     assert_equal(22, buffer.point)
   end
+
+  def test_copy_region
+    buffer = Buffer.new
+    buffer.insert(<<EOF)
+0123456789
+abcdefg
+あいうえお
+かきくけこ
+EOF
+    buffer.beginning_of_buffer
+    buffer.next_line
+    buffer.set_mark
+    buffer.next_line
+    buffer.copy_region
+    assert_equal("abcdefg\n", KILL_RING.last)
+    assert_equal(<<EOF, buffer.to_s)
+0123456789
+abcdefg
+あいうえお
+かきくけこ
+EOF
+    buffer.next_line
+    buffer.copy_region
+    assert_equal("abcdefg\nあいうえお\n", KILL_RING.last)
+    assert_equal(<<EOF, buffer.to_s)
+0123456789
+abcdefg
+あいうえお
+かきくけこ
+EOF
+  end
+
+  def test_kill_region
+    buffer = Buffer.new
+    buffer.insert(<<EOF)
+0123456789
+abcdefg
+あいうえお
+かきくけこ
+EOF
+    buffer.beginning_of_buffer
+    buffer.next_line
+    buffer.set_mark
+    buffer.next_line
+    buffer.kill_region
+    assert_equal("abcdefg\n", KILL_RING.last)
+    assert_equal(<<EOF, buffer.to_s)
+0123456789
+あいうえお
+かきくけこ
+EOF
+    buffer.next_line
+    buffer.kill_region
+    assert_equal("あいうえお\n", KILL_RING.last)
+    assert_equal(<<EOF, buffer.to_s)
+0123456789
+かきくけこ
+EOF
+  end
 end
