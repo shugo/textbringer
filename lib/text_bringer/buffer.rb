@@ -82,6 +82,7 @@ module TextBringer
     def bytesize
       @contents.bytesize - gap_size
     end
+    alias size bytesize
 
     def insert(s)
       size = s.bytesize

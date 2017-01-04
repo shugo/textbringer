@@ -49,6 +49,10 @@ module TextBringer
       end
     end
 
+    def move(y, x)
+      @window.move(y, x)
+    end
+
     def resize(num_lines, num_columns)
       @window.resize(num_lines, num_columns)
     end
