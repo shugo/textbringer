@@ -96,6 +96,18 @@ module TextBringer
       @column = nil
     end
 
+    def newline
+      indentation = save_point { |saved|
+        beginning_of_line
+        s = @point
+        while /[ \t]/ =~ char_after
+          forward_char
+        end
+        substring(s, @point)
+      }
+      insert("\n" + indentation)
+    end
+
     def delete_char(n = 1)
       adjust_gap
       pos = get_pos(@point, n)

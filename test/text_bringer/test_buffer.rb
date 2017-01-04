@@ -14,6 +14,16 @@ class TestBuffer < Test::Unit::TestCase
     assert_equal("123#{s}abc", buffer.to_s)
   end
 
+  def test_newline
+    buffer = Buffer.new("abc")
+    buffer.end_of_buffer
+    buffer.newline
+    assert_equal("abc\n", buffer.to_s)
+    buffer.insert("   foo")
+    buffer.newline
+    assert_equal("abc\n   foo\n   ", buffer.to_s)
+  end
+
   def test_delete_char
     buffer = Buffer.new("123abcあいうえお")
     buffer.forward_char(3)

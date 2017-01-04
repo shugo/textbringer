@@ -93,7 +93,7 @@ module TextBringer
       (0x20..0x7e).each do |c|
         set_key(c) { @buffer.insert(c.chr) }
       end
-      set_key(?\n) { @buffer.insert("\n") }
+      set_key(?\n) { @buffer.newline }
       set_key(?\t) { @buffer.insert("\t") }
       set_key("\C- ") { @buffer.set_mark }
       set_key("\ew") { @buffer.copy_region }
