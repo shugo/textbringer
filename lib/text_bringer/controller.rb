@@ -118,7 +118,7 @@ module TextBringer
       return if s.nil?
       begin
         @echo_area.show(eval(s).inspect)
-      rescue => e
+      rescue Exception => e
         @echo_area.show("#{e.class}: #{e}")
       end
     end
