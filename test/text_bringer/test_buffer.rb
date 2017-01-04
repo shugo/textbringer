@@ -15,6 +15,24 @@ class TestBuffer < Test::Unit::TestCase
     assert_equal("123#{s}abc", buffer.to_s)
   end
 
+  def test_delete_char
+    buffer = Buffer.new
+    buffer.insert("123abcあいうえお")
+    buffer.beginning_of_buffer
+    buffer.forward_char(3)
+    buffer.delete_char
+    assert_equal("123bcあいうえお", buffer.to_s)
+    buffer.delete_char(2)
+    assert_equal("123あいうえお", buffer.to_s)
+    buffer.delete_char
+    assert_equal("123いうえお", buffer.to_s)
+    buffer.delete_char(-2)
+    assert_equal("1いうえお", buffer.to_s)
+    buffer.forward_char(3)
+    buffer.delete_char(-2)
+    assert_equal("1いお", buffer.to_s)
+  end
+
   def test_forward_char
     buffer = Buffer.new
     buffer.insert("abc")

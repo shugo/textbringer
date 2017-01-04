@@ -74,26 +74,21 @@ module TextBringer
 
     def delete_char(n = 1)
       adjust_gap
+      pos = get_pos(@point, n)
       if n > 0
-        if @gap_end + n > @contents.size
-          raise RangeError, "out of buffer"
-        end
-        @gap_end += n
+        @gap_end += pos - @point
         @marks.each do |m|
           if m.location > @point
-            m.location -= n
+            m.location -= pos - @point
           end
         end
       elsif n < 0
-        if @gap_start + n < 0
-          raise RangeError, "out of buffer"
-        end
         @marks.each do |m|
           if m.location > @point
-            m.location += n
+            m.location += pos - @point
           end
         end
-        @point = @gap_start += n
+        @point = @gap_start = pos
       end
       @column = nil
     end
@@ -103,29 +98,7 @@ module TextBringer
     end
 
     def forward_char(n = 1)
-      location = @point
-      if n >= 0
-        i = n
-        while i > 0
-          raise RangeError, "out of buffer" if end_of_buffer?
-          b = byte_after(location)
-          location += UTF8_CHAR_LEN[b]
-          raise RangeError, "out of buffer" if location > bytesize
-          i -= 1
-        end
-      else
-        i = -n
-        while i > 0
-          location -= 1
-          raise RangeError, "out of buffer" if location < 0
-          while /[\x80-\xbf]/n =~ byte_after(location)
-            location -= 1
-            raise RangeError, "out of buffer" if location < 0
-          end
-          i -= 1
-        end
-      end
-      @point = location
+      @point = get_pos(@point, n)
       @column = nil
     end
 
@@ -305,6 +278,31 @@ module TextBringer
       else
         nil
       end
+    end
+
+    def get_pos(pos, offset)
+      if offset >= 0
+        i = offset
+        while i > 0
+          raise RangeError, "out of buffer" if end_of_buffer?
+          b = byte_after(pos)
+          pos += UTF8_CHAR_LEN[b]
+          raise RangeError, "out of buffer" if pos > bytesize
+          i -= 1
+        end
+      else
+        i = -offset
+        while i > 0
+          pos -= 1
+          raise RangeError, "out of buffer" if pos < 0
+          while /[\x80-\xbf]/n =~ byte_after(pos)
+            pos -= 1
+            raise RangeError, "out of buffer" if pos < 0
+          end
+          i -= 1
+        end
+      end
+      pos
     end
   end
 
