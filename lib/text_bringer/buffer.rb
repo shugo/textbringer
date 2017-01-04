@@ -4,7 +4,7 @@ require "unicode/display_width"
 
 module TextBringer
   class Buffer
-    attr_reader :file_encoding, :point, :marks
+    attr_reader :filename, :file_encoding, :file_format, :point, :marks
 
     GAP_SIZE = 256
 
@@ -29,6 +29,18 @@ module TextBringer
       @contents = s.encode(Encoding::UTF_8).force_encoding(Encoding::ASCII_8BIT)
       @filename = filename
       @file_encoding = file_encoding
+      case @contents
+      when /(?<!\r)\n/ 
+        @file_format = :unix
+      when /\r(?!\n)/
+        @file_format = :mac
+        @contents.gsub!(/\r/, "\n")
+      when /\r\n/
+        @file_format = :dos
+        @contents.gsub!(/\r/, "")
+      else
+        @file_format = :unix
+      end
       @point = 0
       @gap_start = 0
       @gap_end = 0
@@ -50,7 +62,14 @@ module TextBringer
       if @filename.nil?
         raise "filename is not set"
       end
-      File.write(@filename, to_s, encoding: @file_encoding)
+      s = to_s
+      case @file_format
+      when :dos
+        s.gsub!(/\n/, "\r\n")
+      when :mac
+        s.gsub!(/\n/, "\r")
+      end
+      File.write(@filename, s, encoding: @file_encoding)
     end
 
     def to_s

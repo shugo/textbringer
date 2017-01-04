@@ -437,4 +437,60 @@ EOF
 EOF
     end
   end
+
+  def test_save_dos
+    Tempfile.create do |f|
+      f.print(<<EOF.gsub(/\n/, "\r\n").encode(Encoding::Windows_31J))
+こんにちは
+EOF
+      f.close
+      buffer = Buffer.open(f.path)
+      assert_equal(Encoding::Windows_31J, buffer.file_encoding)
+      assert_equal("こんにちは\n", buffer.to_s)
+      buffer.end_of_buffer
+      buffer.insert("さようなら\n")
+      buffer.save
+      assert_equal(<<EOF.gsub(/\n/, "\r\n").encode(Encoding::Windows_31J), File.read(f.path, encoding: Encoding::Windows_31J))
+こんにちは
+さようなら
+EOF
+    end
+  end
+
+  def test_save_mac
+    Tempfile.create do |f|
+      f.print(<<EOF.gsub(/\n/, "\r").encode(Encoding::Windows_31J))
+こんにちは
+EOF
+      f.close
+      buffer = Buffer.open(f.path)
+      assert_equal(Encoding::Windows_31J, buffer.file_encoding)
+      assert_equal("こんにちは\n", buffer.to_s)
+      buffer.end_of_buffer
+      buffer.insert("さようなら\n")
+      buffer.save
+      assert_equal(<<EOF.gsub(/\n/, "\r").encode(Encoding::Windows_31J), File.read(f.path, encoding: Encoding::Windows_31J))
+こんにちは
+さようなら
+EOF
+    end
+  end
+
+  def test_file_format
+    buffer = Buffer.new("foo")
+    assert_equal(:unix, buffer.file_format)
+    assert_equal("foo", buffer.to_s)
+
+    buffer = Buffer.new("foo\nbar\r\n")
+    assert_equal(:unix, buffer.file_format)
+    assert_equal("foo\nbar\r\n", buffer.to_s)
+
+    buffer = Buffer.new("foo\r\nbar\r\n")
+    assert_equal(:dos, buffer.file_format)
+    assert_equal("foo\nbar\n", buffer.to_s)
+
+    buffer = Buffer.new("foo\rbar\r")
+    assert_equal(:mac, buffer.file_format)
+    assert_equal("foo\nbar\n", buffer.to_s)
+  end
 end
