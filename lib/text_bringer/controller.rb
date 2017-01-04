@@ -10,7 +10,7 @@ module TextBringer
       @buffer = nil
       @window = nil
       @key_sequence =[]
-      @key_map = {}
+      @global_key_map = {}
       setup_keys
     end
 
@@ -40,9 +40,9 @@ module TextBringer
 
     private
 
-    def set_key(key, &command)
+    def set_key(key_map, key, &command)
       *ks, k = kbd(key)
-      ks.inject(@key_map) { |map, key|
+      ks.inject(key_map) { |map, key|
         map[key] ||= {}
       }[k] = command
     end
@@ -58,48 +58,48 @@ module TextBringer
       end
     end
 
-    def key_binding(key_sequence)
-      key_sequence.inject(@key_map) { |map, key|
+    def key_binding(key_map, key_sequence)
+      key_sequence.inject(key_map) { |map, key|
         return nil if map.nil?
         map[key]
       }
     end
 
     def setup_keys
-      set_key(Curses::KEY_RESIZE) {
+      set_key(@global_key_map, Curses::KEY_RESIZE) {
         @window.resize(Curses.lines - 1, Curses.cols)
         @status_window.move(Curses.lines - 1, 0)
         @status_window.resize(1, Curses.cols)
         @status_window.noutrefresh
       }
-      set_key("\C-x\C-c") { exit }
-      set_key("\C-x\C-s") { @buffer.save }
-      set_key(Curses::KEY_RIGHT) { @buffer.forward_char }
-      set_key(?\C-f) { @buffer.forward_char }
-      set_key(Curses::KEY_LEFT) { @buffer.backward_char }
-      set_key(?\C-b) { @buffer.backward_char }
-      set_key(Curses::KEY_DOWN) { @buffer.next_line }
-      set_key(?\C-n) { @buffer.next_line }
-      set_key(Curses::KEY_UP) { @buffer.previous_line }
-      set_key(?\C-p) { @buffer.previous_line }
-      set_key(Curses::KEY_DC) { @buffer.delete_char }
-      set_key(?\C-d) { @buffer.delete_char }
-      set_key(Curses::KEY_BACKSPACE) { @buffer.backward_delete_char }
-      set_key(?\C-h) { @buffer.backward_delete_char }
-      set_key(?\C-a) { @buffer.beginning_of_line }
-      set_key(?\C-e) { @buffer.end_of_line }
-      set_key("\e<") { @buffer.beginning_of_buffer }
-      set_key("\e>") { @buffer.end_of_buffer }
+      set_key(@global_key_map, "\C-x\C-c") { exit }
+      set_key(@global_key_map, "\C-x\C-s") { @buffer.save }
+      set_key(@global_key_map, Curses::KEY_RIGHT) { @buffer.forward_char }
+      set_key(@global_key_map, ?\C-f) { @buffer.forward_char }
+      set_key(@global_key_map, Curses::KEY_LEFT) { @buffer.backward_char }
+      set_key(@global_key_map, ?\C-b) { @buffer.backward_char }
+      set_key(@global_key_map, Curses::KEY_DOWN) { @buffer.next_line }
+      set_key(@global_key_map, ?\C-n) { @buffer.next_line }
+      set_key(@global_key_map, Curses::KEY_UP) { @buffer.previous_line }
+      set_key(@global_key_map, ?\C-p) { @buffer.previous_line }
+      set_key(@global_key_map, Curses::KEY_DC) { @buffer.delete_char }
+      set_key(@global_key_map, ?\C-d) { @buffer.delete_char }
+      set_key(@global_key_map, Curses::KEY_BACKSPACE) { @buffer.backward_delete_char }
+      set_key(@global_key_map, ?\C-h) { @buffer.backward_delete_char }
+      set_key(@global_key_map, ?\C-a) { @buffer.beginning_of_line }
+      set_key(@global_key_map, ?\C-e) { @buffer.end_of_line }
+      set_key(@global_key_map, "\e<") { @buffer.beginning_of_buffer }
+      set_key(@global_key_map, "\e>") { @buffer.end_of_buffer }
       (0x20..0x7e).each do |c|
-        set_key(c) { @buffer.insert(c.chr) }
+        set_key(@global_key_map, c) { @buffer.insert(c.chr) }
       end
-      set_key(?\n) { @buffer.newline }
-      set_key(?\t) { @buffer.insert("\t") }
-      set_key("\C- ") { @buffer.set_mark }
-      set_key("\ew") { @buffer.copy_region }
-      set_key("\C-w") { @buffer.kill_region }
-      set_key("\C-k") { @buffer.kill_line }
-      set_key("\C-y") { @buffer.yank }
+      set_key(@global_key_map, ?\n) { @buffer.newline }
+      set_key(@global_key_map, ?\t) { @buffer.insert("\t") }
+      set_key(@global_key_map, "\C- ") { @buffer.set_mark }
+      set_key(@global_key_map, "\ew") { @buffer.copy_region }
+      set_key(@global_key_map, "\C-w") { @buffer.kill_region }
+      set_key(@global_key_map, "\C-k") { @buffer.kill_line }
+      set_key(@global_key_map, "\C-y") { @buffer.yank }
     end
 
     def command_loop
@@ -110,7 +110,7 @@ module TextBringer
           @status_message = nil
         end
         @key_sequence << c.ord
-        cmd = key_binding(@key_sequence)
+        cmd = key_binding(@global_key_map, @key_sequence)
         begin
           if cmd.respond_to?(:call)
             @key_sequence.clear
