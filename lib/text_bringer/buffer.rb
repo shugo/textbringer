@@ -253,6 +253,20 @@ module TextBringer
       end
     end
 
+    def kill_line
+      save_point do |saved|
+        if end_of_buffer?
+          raise RangeError, "end of buffer"
+        end
+        if char_after == ?\n
+          forward_char
+        else
+          end_of_line
+        end
+        kill_region(saved.location, @point)
+      end
+    end
+
     def yank
       insert(KILL_RING.last)
     end

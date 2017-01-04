@@ -340,4 +340,38 @@ EOF
 かきくけこ
 EOF
   end
+
+  def test_kill_line
+    buffer = Buffer.new
+    buffer.insert(<<EOF)
+0123456789
+abcdefg
+あいうえお
+かきくけこ
+EOF
+    buffer.beginning_of_buffer
+    buffer.next_line
+    buffer.kill_line
+    assert_equal("abcdefg", KILL_RING.last)
+    assert_equal(<<EOF, buffer.to_s)
+0123456789
+
+あいうえお
+かきくけこ
+EOF
+    buffer.kill_line
+    assert_equal("\n", KILL_RING.last)
+    assert_equal(<<EOF, buffer.to_s)
+0123456789
+あいうえお
+かきくけこ
+EOF
+    buffer.kill_line
+    assert_equal("あいうえお", KILL_RING.last)
+    assert_equal(<<EOF, buffer.to_s)
+0123456789
+
+かきくけこ
+EOF
+  end
 end

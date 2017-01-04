@@ -96,6 +96,7 @@ module TextBringer
       set_key("\C- ") { @buffer.set_mark }
       set_key("\ew") { @buffer.copy_region }
       set_key("\C-w") { @buffer.kill_region }
+      set_key("\C-k") { @buffer.kill_line }
       set_key("\C-y") { @buffer.yank }
     end
 
