@@ -130,7 +130,7 @@ module TextBringer
         @current_buffer = @minibuffer
         @current_buffer.delete_region(0, @current_buffer.size)
         @current_window = @echo_area
-        @echo_area.show(prompt)
+        @echo_area.prompt = prompt
         @echo_area.redisplay
         Curses.doupdate
         result = if catch(:minibuffer_exit) { command_loop }
@@ -138,7 +138,6 @@ module TextBringer
                  else
                    nil
                  end
-        @minibuffer.delete_region(0, @current_buffer.size)
         @echo_area.clear
         @echo_area.redisplay
         Curses.doupdate
@@ -151,9 +150,7 @@ module TextBringer
 
     def command_loop
       while c = @current_window.getch
-        if @current_window != @echo_area
-          @echo_area.clear
-        end
+        @echo_area.clear_message
         @key_sequence << c.ord
         cmd = key_binding(@buffer_local_maps[@current_buffer], @key_sequence)
         begin

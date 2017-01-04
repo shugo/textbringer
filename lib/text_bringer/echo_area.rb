@@ -4,13 +4,22 @@ require "text_bringer/window"
 
 module TextBringer
   class EchoArea < Window
+    attr_accessor :prompt
+
     def initialize(*args)
       super
-      @message = ""
+      @message = nil
+      @prompt = ""
     end
 
     def clear
-      @message = ""
+      @buffer.delete_region(0, @buffer.size)
+      @message = nil
+      @prompt = ""
+    end
+
+    def clear_message
+      @message = nil
     end
 
     def show(message)
@@ -21,23 +30,27 @@ module TextBringer
       @buffer.save_point do |saved|
         @window.erase
         @window.setpos(0, 0)
-        @window << @message
-        @buffer.beginning_of_line
-        while !@buffer.end_of_buffer?
+        if @message
+          @window << @message
+        else
+          @window << @prompt
+          @buffer.beginning_of_line
+          while !@buffer.end_of_buffer?
+            if @buffer.point_at_mark?(saved)
+              y, x = @window.cury, @window.curx
+            end
+            c = @buffer.char_after
+            if c == "\n"
+              break
+            end
+            @window << c
+            @buffer.forward_char
+          end
           if @buffer.point_at_mark?(saved)
             y, x = @window.cury, @window.curx
           end
-          c = @buffer.char_after
-          if c == "\n"
-            break
-          end
-          @window << c
-          @buffer.forward_char
+          @window.setpos(y, x)
         end
-        if @buffer.point_at_mark?(saved)
-          y, x = @window.cury, @window.curx
-        end
-        @window.setpos(y, x)
         @window.noutrefresh
       end
     end
