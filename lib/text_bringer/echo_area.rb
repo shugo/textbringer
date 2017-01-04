@@ -43,7 +43,7 @@ module TextBringer
             if c == "\n"
               break
             end
-            @window << c
+            @window << escape(c)
             @buffer.forward_char
           end
           if @buffer.point_at_mark?(saved)

@@ -36,7 +36,7 @@ module TextBringer
             @window.clrtoeol
             break if @window.cury == @window.maxy - 1
           end
-          @window << c
+          @window << escape(c)
           break if @window.cury == @window.maxy - 1 &&
             @window.curx == @window.maxx - 1
           @buffer.forward_char
@@ -78,6 +78,12 @@ module TextBringer
           @top_of_window.location = new_start_loc
         end
       end
+    end
+
+    def escape(s)
+      s.gsub(/[\0-\b\v-\x1f]/) { |c|
+        "^" + (c.ord ^ 0x40).chr
+      }
     end
 
     def beginning_of_line
