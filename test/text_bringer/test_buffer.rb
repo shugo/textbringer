@@ -4,6 +4,17 @@ require "text_bringer/buffer"
 class TestBuffer < Test::Unit::TestCase
   include TextBringer
 
+  def test_insert
+    buffer = Buffer.new
+    buffer.insert("abc")
+    buffer.beginning_of_buffer
+    buffer.insert("123")
+    assert_equal("123abc", buffer.to_s)
+    s = "x" * (Buffer::GAP_SIZE + 1)
+    buffer.insert(s)
+    assert_equal("123#{s}abc", buffer.to_s)
+  end
+
   def test_forward_char
     buffer = Buffer.new
     buffer.insert("abc")

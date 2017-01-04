@@ -280,7 +280,7 @@ module TextBringer
       if gap_size < min_size
         new_gap_size = GAP_SIZE + min_size
         extended_size = new_gap_size - gap_size
-        @contents[@gap_end, extended_size] = "\0" * extended_size
+        @contents[@gap_end, 0] = "\0" * extended_size
         @gap_end += extended_size
       end
     end
