@@ -65,6 +65,12 @@ module TextBringer
     end
 
     def setup_keys
+      set_key(Curses::KEY_RESIZE) {
+        @window.resize(Curses.lines - 1, Curses.cols)
+        @status_window.move(Curses.lines - 1, 0)
+        @status_window.resize(1, Curses.cols)
+        @status_window.noutrefresh
+      }
       set_key("\C-x\C-c") { exit }
       set_key(Curses::KEY_RIGHT) { @buffer.forward_char }
       set_key(?\C-f) { @buffer.forward_char }
@@ -86,12 +92,9 @@ module TextBringer
         set_key(c) { @buffer.insert(c.chr) }
       end
       set_key(?\n) { @buffer.insert("\n") }
-      set_key(Curses::KEY_RESIZE) {
-        @window.resize(Curses.lines - 1, Curses.cols)
-        @status_window.move(Curses.lines - 1, 0)
-        @status_window.resize(1, Curses.cols)
-        @status_window.noutrefresh
-      }
+      set_key("\C- ") { @buffer.set_mark }
+      set_key("\ew") { @buffer.kill_ring_save }
+      set_key("\C-y") { @buffer.yank }
     end
 
     def command_loop

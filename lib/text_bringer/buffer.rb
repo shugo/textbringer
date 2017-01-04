@@ -25,6 +25,7 @@ module TextBringer
       @gap_start = 0
       @gap_end = 0
       @marks = []
+      @mark = nil
       @column = nil
     end
 
@@ -245,6 +246,23 @@ module TextBringer
       end
     end
 
+    def mark
+      @mark&.location
+    end
+
+    def set_mark(pos = @point)
+      @mark ||= new_mark
+      @mark.location = pos
+    end
+
+    def kill_ring_save(s = @point, e = mark)
+      KILL_RING.push(s <= e ? substring(s, e) : substring(e, s))
+    end
+
+    def yank
+      insert(KILL_RING.last)
+    end
+
     private
 
     def adjust_gap(min_size = 0)
@@ -302,4 +320,27 @@ module TextBringer
       @buffer.marks.delete(self)
     end
   end
+
+  class KillRing
+    def initialize(max = 30)
+      @max = max
+      @ring = []
+    end
+
+    def push(str)
+      if @ring.size == @max
+        @ring.unshift
+      end
+      @ring.push(str)
+    end
+
+    def last
+      if @ring.empty?
+        raise "Kill ring is empty"
+      end
+      @ring.last
+    end
+  end
+
+  KILL_RING = KillRing.new
 end
