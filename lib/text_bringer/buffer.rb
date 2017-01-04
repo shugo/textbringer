@@ -4,7 +4,7 @@ require "unicode/display_width"
 
 module TextBringer
   class Buffer
-    attr_reader :point, :marks
+    attr_reader :file_encoding, :point, :marks
 
     GAP_SIZE = 256
 
@@ -19,8 +19,9 @@ module TextBringer
       end
     end
 
-    def initialize
-      @contents = String.new
+    def initialize(s = "", file_encoding: Encoding::UTF_8)
+      @contents = s.encode(Encoding::UTF_8).force_encoding(Encoding::ASCII_8BIT)
+      @file_encoding = file_encoding
       @point = 0
       @gap_start = 0
       @gap_end = 0

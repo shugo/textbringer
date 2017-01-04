@@ -5,9 +5,7 @@ class TestBuffer < Test::Unit::TestCase
   include TextBringer
 
   def test_insert
-    buffer = Buffer.new
-    buffer.insert("abc")
-    buffer.beginning_of_buffer
+    buffer = Buffer.new("abc")
     buffer.insert("123")
     assert_equal("123abc", buffer.to_s)
     s = "x" * (Buffer::GAP_SIZE + 1)
@@ -16,9 +14,7 @@ class TestBuffer < Test::Unit::TestCase
   end
 
   def test_delete_char
-    buffer = Buffer.new
-    buffer.insert("123abcあいうえお")
-    buffer.beginning_of_buffer
+    buffer = Buffer.new("123abcあいうえお")
     buffer.forward_char(3)
     buffer.delete_char
     assert_equal("123bcあいうえお", buffer.to_s)
@@ -34,9 +30,7 @@ class TestBuffer < Test::Unit::TestCase
   end
 
   def test_forward_char
-    buffer = Buffer.new
-    buffer.insert("abc")
-    buffer.beginning_of_buffer
+    buffer = Buffer.new("abc")
     buffer.forward_char
     assert_equal(1, buffer.point)
     buffer.forward_char(2)
@@ -54,8 +48,8 @@ class TestBuffer < Test::Unit::TestCase
   end
 
   def test_delete_char_forward
-    buffer = Buffer.new
-    buffer.insert("abc")
+    buffer = Buffer.new("abc")
+    buffer.end_of_buffer
     buffer.backward_char(1)
     buffer.delete_char
     assert_equal("ab", buffer.to_s)
@@ -63,8 +57,8 @@ class TestBuffer < Test::Unit::TestCase
   end
 
   def test_delete_char_backward
-    buffer = Buffer.new
-    buffer.insert("abc")
+    buffer = Buffer.new("abc")
+    buffer.end_of_buffer
     buffer.backward_char(1)
     buffer.delete_char(-2)
     assert_equal("c", buffer.to_s)
@@ -72,8 +66,8 @@ class TestBuffer < Test::Unit::TestCase
   end
 
   def test_delete_char_at_eob
-    buffer = Buffer.new
-    buffer.insert("abc")
+    buffer = Buffer.new("abc")
+    buffer.end_of_buffer
     assert_raise(RangeError) do
       buffer.delete_char
     end
@@ -82,9 +76,8 @@ class TestBuffer < Test::Unit::TestCase
   end
 
   def test_delete_char_over_eob
-    buffer = Buffer.new
-    buffer.insert("abc")
-    buffer.backward_char(2)
+    buffer = Buffer.new("abc")
+    buffer.forward_char(1)
     assert_raise(RangeError) do
       buffer.delete_char(3)
     end
@@ -93,9 +86,7 @@ class TestBuffer < Test::Unit::TestCase
   end
 
   def test_delete_char_at_bob
-    buffer = Buffer.new
-    buffer.insert("abc")
-    buffer.beginning_of_buffer
+    buffer = Buffer.new("abc")
     assert_raise(RangeError) do
       buffer.delete_char(-1)
     end
@@ -104,8 +95,8 @@ class TestBuffer < Test::Unit::TestCase
   end
 
   def test_delete_char_over_bob
-    buffer = Buffer.new
-    buffer.insert("abc")
+    buffer = Buffer.new("abc")
+    buffer.end_of_buffer
     buffer.backward_char(1)
     assert_raise(RangeError) do
       buffer.delete_char(-3)
@@ -115,10 +106,10 @@ class TestBuffer < Test::Unit::TestCase
   end
 
   def test_editing
-    buffer = Buffer.new
-    buffer.insert("Hello world\n")
-    buffer.insert("I'm shugo\n")
-    buffer.beginning_of_buffer
+    buffer = Buffer.new(<<EOF)
+Hello world
+I'm shugo
+EOF
     buffer.delete_char("Hello".size)
     buffer.insert("Goodbye")
     assert_equal(<<EOF, buffer.to_s)
@@ -163,8 +154,7 @@ EOF
   end
 
   def test_to_s
-    buffer = Buffer.new
-    buffer.insert("あいうえお")
+    buffer = Buffer.new("あいうえお")
     s = buffer.to_s
     assert_equal("あいうえお", s)
   end
@@ -190,15 +180,13 @@ EOF
   end
 
   def test_next_line
-    buffer = Buffer.new
-    buffer.insert(<<EOF)
+    buffer = Buffer.new(<<EOF)
 hello world
 0123456789
 
 hello world
 0123456789
 EOF
-    buffer.beginning_of_buffer
     buffer.forward_char(3)
     assert_equal(3, buffer.point)
     buffer.next_line
@@ -213,13 +201,11 @@ EOF
   end
 
   def test_next_line_multibyte
-    buffer = Buffer.new
-    buffer.insert(<<EOF)
+    buffer = Buffer.new(<<EOF)
 0123456789
 あいうえお
 aかきくけこ
 EOF
-    buffer.beginning_of_buffer
     buffer.forward_char(4)
     assert_equal(4, buffer.point)
     buffer.next_line
@@ -229,14 +215,14 @@ EOF
   end
 
   def test_previous_line
-    buffer = Buffer.new
-    buffer.insert(<<EOF)
+    buffer = Buffer.new(<<EOF)
 hello world
 0123456789
 
 hello world
 0123456789
 EOF
+    buffer.end_of_buffer
     buffer.previous_line
     buffer.forward_char(3)
     assert_equal(39, buffer.point)
@@ -252,12 +238,10 @@ EOF
   end
 
   def test_beginning_of_line
-    buffer = Buffer.new
-    buffer.insert(<<EOF)
+    buffer = Buffer.new(<<EOF)
 hello world
 0123456789
 EOF
-    buffer.beginning_of_buffer
     buffer.forward_char(3)
     buffer.beginning_of_line
     assert_equal(0, buffer.point)
@@ -268,12 +252,10 @@ EOF
   end
 
   def test_end_of_line
-    buffer = Buffer.new
-    buffer.insert(<<EOF.chomp)
+    buffer = Buffer.new(<<EOF.chomp)
 hello world
 0123456789
 EOF
-    buffer.beginning_of_buffer
     buffer.forward_char(3)
     buffer.end_of_line
     assert_equal(11, buffer.point)
@@ -283,14 +265,12 @@ EOF
   end
 
   def test_copy_region
-    buffer = Buffer.new
-    buffer.insert(<<EOF)
+    buffer = Buffer.new(<<EOF)
 0123456789
 abcdefg
 あいうえお
 かきくけこ
 EOF
-    buffer.beginning_of_buffer
     buffer.next_line
     buffer.set_mark
     buffer.next_line
@@ -314,14 +294,12 @@ EOF
   end
 
   def test_kill_region
-    buffer = Buffer.new
-    buffer.insert(<<EOF)
+    buffer = Buffer.new(<<EOF)
 0123456789
 abcdefg
 あいうえお
 かきくけこ
 EOF
-    buffer.beginning_of_buffer
     buffer.next_line
     buffer.set_mark
     buffer.next_line
@@ -342,14 +320,12 @@ EOF
   end
 
   def test_kill_line
-    buffer = Buffer.new
-    buffer.insert(<<EOF)
+    buffer = Buffer.new(<<EOF)
 0123456789
 abcdefg
 あいうえお
 かきくけこ
 EOF
-    buffer.beginning_of_buffer
     buffer.next_line
     buffer.kill_line
     assert_equal("abcdefg", KILL_RING.last)
