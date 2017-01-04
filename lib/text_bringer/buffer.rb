@@ -228,8 +228,29 @@ module TextBringer
       @mark.location = pos
     end
 
-    def kill_ring_save(s = @point, e = mark)
+    def copy_region(s = @point, e = mark)
       KILL_RING.push(s <= e ? substring(s, e) : substring(e, s))
+    end
+
+    def kill_region(s = @point, e = mark)
+      copy_region(s, e)
+      delete_region(s, e)
+    end
+
+    def delete_region(s = @point, e = mark)
+      save_point do
+        if s > e
+          s, e = e, s
+        end
+        @point = s
+        adjust_gap
+        @gap_end += e - s
+        @marks.each do |m|
+          if m.location > @point
+            m.location -= e - s
+          end
+        end
+      end
     end
 
     def yank

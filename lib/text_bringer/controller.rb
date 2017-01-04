@@ -93,7 +93,8 @@ module TextBringer
       end
       set_key(?\n) { @buffer.insert("\n") }
       set_key("\C- ") { @buffer.set_mark }
-      set_key("\ew") { @buffer.kill_ring_save }
+      set_key("\ew") { @buffer.copy_region }
+      set_key("\C-w") { @buffer.kill_region }
       set_key("\C-y") { @buffer.yank }
     end
 
