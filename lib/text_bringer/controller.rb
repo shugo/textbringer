@@ -7,7 +7,7 @@ require "curses"
 module TextBringer
   class Controller
     def initialize
-      @buffer = TextBringer::Buffer.new
+      @buffer = nil
       @window = nil
       @key_sequence =[]
       @key_map = {}
@@ -16,8 +16,9 @@ module TextBringer
 
     def start(args)
       if args.size > 0
-        @buffer.insert(File.read(args[0]))
-        @buffer.beginning_of_buffer
+        @buffer = Buffer.open(args[0])
+      else
+        @buffer = Buffer.new
       end
       Curses.init_screen
       Curses.noecho
@@ -72,6 +73,7 @@ module TextBringer
         @status_window.noutrefresh
       }
       set_key("\C-x\C-c") { exit }
+      set_key("\C-x\C-s") { @buffer.save }
       set_key(Curses::KEY_RIGHT) { @buffer.forward_char }
       set_key(?\C-f) { @buffer.forward_char }
       set_key(Curses::KEY_LEFT) { @buffer.backward_char }

@@ -1,4 +1,5 @@
 require "test/unit"
+require "tempfile"
 require "text_bringer/buffer"
 
 class TestBuffer < Test::Unit::TestCase
@@ -349,5 +350,81 @@ EOF
 
 かきくけこ
 EOF
+  end
+
+  def test_save_ascii_only
+    Tempfile.create do |f|
+      f.print(<<EOF)
+hello world
+EOF
+      f.close
+      buffer = Buffer.open(f.path)
+      assert_equal(Encoding::UTF_8, buffer.file_encoding)
+      assert_equal("hello world\n", buffer.to_s)
+      buffer.end_of_buffer
+      buffer.insert("goodbye\n")
+      buffer.save
+      assert_equal(<<EOF, File.read(f.path))
+hello world
+goodbye
+EOF
+    end
+  end
+
+  def test_save_utf8
+    Tempfile.create do |f|
+      f.print(<<EOF)
+こんにちは
+EOF
+      f.close
+      buffer = Buffer.open(f.path)
+      assert_equal(Encoding::UTF_8, buffer.file_encoding)
+      assert_equal("こんにちは\n", buffer.to_s)
+      buffer.end_of_buffer
+      buffer.insert("さようなら\n")
+      buffer.save
+      assert_equal(<<EOF, File.read(f.path))
+こんにちは
+さようなら
+EOF
+    end
+  end
+
+  def test_save_euc_jp
+    Tempfile.create do |f|
+      f.print(<<EOF.encode(Encoding::EUC_JP))
+こんにちは
+EOF
+      f.close
+      buffer = Buffer.open(f.path)
+      assert_equal(Encoding::EUC_JP, buffer.file_encoding)
+      assert_equal("こんにちは\n", buffer.to_s)
+      buffer.end_of_buffer
+      buffer.insert("さようなら\n")
+      buffer.save
+      assert_equal(<<EOF.encode(Encoding::EUC_JP), File.read(f.path, encoding: Encoding::EUC_JP))
+こんにちは
+さようなら
+EOF
+    end
+  end
+
+  def test_save_windows31j
+    Tempfile.create do |f|
+      f.print(<<EOF.encode(Encoding::Windows_31J))
+こんにちは
+EOF
+      f.close
+      buffer = Buffer.open(f.path)
+      assert_equal(Encoding::Windows_31J, buffer.file_encoding)
+      assert_equal("こんにちは\n", buffer.to_s)
+      buffer.end_of_buffer
+      buffer.insert("さようなら\n")
+      buffer.save
+      assert_equal(<<EOF.encode(Encoding::Windows_31J), File.read(f.path, encoding: Encoding::Windows_31J))
+こんにちは
+さようなら
+EOF
+    end
   end
 end

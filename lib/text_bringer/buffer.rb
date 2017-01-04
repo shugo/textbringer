@@ -19,8 +19,15 @@ module TextBringer
       end
     end
 
-    def initialize(s = "", file_encoding: Encoding::UTF_8)
+    @@auto_detect_encodings = [
+      Encoding::UTF_8,
+      Encoding::EUC_JP,
+      Encoding::Windows_31J
+    ]
+
+    def initialize(s = "", filename: nil, file_encoding: Encoding::UTF_8)
       @contents = s.encode(Encoding::UTF_8).force_encoding(Encoding::ASCII_8BIT)
+      @filename = filename
       @file_encoding = file_encoding
       @point = 0
       @gap_start = 0
@@ -28,6 +35,22 @@ module TextBringer
       @marks = []
       @mark = nil
       @column = nil
+    end
+
+    def self.open(filename)
+      s = File.read(filename)
+      enc = @@auto_detect_encodings.find { |e|
+        s.force_encoding(e)
+        s.valid_encoding?
+      }
+      Buffer.new(s, filename: filename, file_encoding: enc)
+    end
+
+    def save
+      if @filename.nil?
+        raise "filename is not set"
+      end
+      File.write(@filename, to_s, encoding: @file_encoding)
     end
 
     def to_s
