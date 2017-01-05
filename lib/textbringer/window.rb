@@ -32,7 +32,8 @@ module Textbringer
 
     def initialize(buffer, num_lines, num_columns, y, x)
       @buffer = buffer
-      @window = Curses::Window.new(num_lines, num_columns, y, x)
+      @window = Curses::Window.new(num_lines - 1, num_columns, y, x)
+      @mode_line = Curses::Window.new(1, num_columns, y + num_lines - 1, x)
       @window.keypad = true
       @window.scrollok(false)
       @top_of_window = @buffer.new_mark
@@ -42,11 +43,29 @@ module Textbringer
       redisplay
     end
 
+    def lines
+      @window.maxy
+    end
+
+    def columns
+      @window.maxx
+    end
+
     def getch
       @window.getch
     end
 
     def redisplay
+      @mode_line.erase
+      @mode_line.setpos(0, 0)
+      @mode_line.attron(Curses::A_REVERSE)
+      @mode_line << File.basename(@buffer.filename || "Untitled")
+      @mode_line << " "
+      @mode_line << "[#{@buffer.file_encoding.name}]"
+      @mode_line << "[#{@buffer.file_format}]"
+      @mode_line << " " * (@mode_line.maxx - @mode_line.curx)
+      @mode_line.attroff(Curses::A_REVERSE)
+      @mode_line.noutrefresh
       @buffer.save_point do |saved|
         framer
         y = x = 0
@@ -60,11 +79,11 @@ module Textbringer
           c = @buffer.char_after
           if c == "\n"
             @window.clrtoeol
-            break if @window.cury == @window.maxy - 1
+            break if @window.cury == lines - 1
           end
           @window << escape(c)
-          break if @window.cury == @window.maxy - 1 &&
-            @window.curx == @window.maxx - 1
+          break if @window.cury == lines - 1 &&
+            @window.curx == columns - 1
           @buffer.forward_char
         end
         @buffer.mark_to_point(@bottom_of_window)
@@ -108,14 +127,14 @@ module Textbringer
           @buffer.mark_to_point(@top_of_window)
           return
         end
-        while count < @window.maxy
+        while count < lines
           break if @buffer.point_at_mark?(@top_of_window)
           break if @buffer.point == 0
           new_start_loc = @buffer.point
           @buffer.backward_char
           count += beginning_of_line + 1
         end
-        if count >= @window.maxy
+        if count >= lines
           @top_of_window.location = new_start_loc
         end
       end
@@ -131,7 +150,7 @@ module Textbringer
       e = @buffer.point
       @buffer.beginning_of_line
       s = @buffer.substring(@buffer.point, e)
-      s.display_width / @window.maxx # TODO: should calculate more correctly
+      s.display_width / columns # TODO: should calculate more correctly
     end
   end
 end
