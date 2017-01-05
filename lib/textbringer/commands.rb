@@ -76,7 +76,7 @@ module Textbringer
 
     define_command(:execute_command) do
       cmd = read_from_minibuffer("M-x ")&.strip&.intern
-      return if cmd.nil?
+      next if cmd.nil?
       unless Commands.list.include?(cmd)
         raise "undefined command: #{cmd}"
       end
@@ -89,7 +89,7 @@ module Textbringer
 
     define_command(:eval_expression) do
       s = read_from_minibuffer("Eval: ")
-      return if s.nil?
+      next if s.nil?
       begin
         message(eval(s).inspect)
       rescue Exception => e
