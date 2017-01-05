@@ -48,6 +48,8 @@ module Textbringer
       @marks = []
       @mark = nil
       @column = nil
+      @undo_stack = []
+      @undoing = false
     end
 
     def self.open(filename)
@@ -120,6 +122,7 @@ module Textbringer
     end
 
     def insert(s)
+      pos = @point
       size = s.bytesize
       adjust_gap(size)
       @contents[@point, size] = s.b
@@ -129,6 +132,7 @@ module Textbringer
         end
       end
       @point = @gap_start += size
+      @undo_stack.push(InsertAction.new(self, pos, s)) unless @undoing
       @column = nil
     end
 
@@ -150,21 +154,30 @@ module Textbringer
 
     def delete_char(n = 1)
       adjust_gap
+      s = @point
       pos = get_pos(@point, n)
       if n > 0
+        str = substring(s, pos)
         @gap_end += pos - @point
         @marks.each do |m|
           if m.location > @point
             m.location -= pos - @point
           end
         end
+        unless @undoing
+          @undo_stack.push(DeleteAction.new(self, s, s, str))
+        end
       elsif n < 0
+        str = substring(pos, s)
         @marks.each do |m|
           if m.location > @point
             m.location += pos - @point
           end
         end
         @point = @gap_start = pos
+        unless @undoing
+          @undo_stack.push(DeleteAction.new(self, s, pos, str))
+        end
       end
       @column = nil
     end
@@ -320,9 +333,11 @@ module Textbringer
 
     def delete_region(s = @point, e = mark)
       save_point do
+        old_pos = @point
         if s > e
           s, e = e, s
         end
+        str = substring(s, e)
         @point = s
         adjust_gap
         @gap_end += e - s
@@ -330,6 +345,9 @@ module Textbringer
           if m.location > @point
             m.location -= e - s
           end
+        end
+        unless @undoing
+          @undo_stack.push(DeleteAction.new(self, old_pos, s, str)) 
         end
       end
     end
@@ -350,6 +368,19 @@ module Textbringer
 
     def yank
       insert(KILL_RING.last)
+    end
+
+    def undo
+      if @undo_stack.empty?
+        raise "No further undo information"
+      end
+      action = @undo_stack.pop
+      @undoing = true
+      begin
+        action.undo
+      ensure
+        @undoing = false
+      end
     end
 
     private
@@ -457,4 +488,32 @@ module Textbringer
   end
 
   KILL_RING = KillRing.new
+
+  class InsertAction
+    def initialize(buffer, location, string)
+      @buffer = buffer
+      @location = location
+      @string = string
+    end
+
+    def undo
+      @buffer.goto_char(@location)
+      @buffer.delete_char(@string.size)
+    end
+  end
+
+  class DeleteAction
+    def initialize(buffer, location, insert_location, string)
+      @buffer = buffer
+      @location = location
+      @insert_location = insert_location
+      @string = string
+    end
+
+    def undo
+      @buffer.goto_char(@insert_location)
+      @buffer.insert(@string)
+      @buffer.goto_char(@location)
+    end
+  end
 end
