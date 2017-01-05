@@ -3,11 +3,15 @@
 require "textbringer/buffer"
 require "textbringer/window"
 require "textbringer/echo_area"
+require "textbringer/commands"
 require "curses"
 
 module Textbringer
   class Controller
+    include Commands
+
     def initialize
+      super
       @buffer = nil
       @minibuffer = Buffer.new
       @current_buffer = nil
@@ -15,6 +19,7 @@ module Textbringer
       @current_window = nil
       @echo_area = nil
       @key_sequence =[]
+      @last_key = nil
       @global_map = {}
       @minibuffer_local_map = {}
       @buffer_local_maps = Hash.new(@global_map)
@@ -45,11 +50,13 @@ module Textbringer
 
     private
 
-    def set_key(key_map, key, &command)
+    def set_key(key_map, key, command = nil, &block)
       *ks, k = kbd(key)
+      
+      block ||= Proc.new { send(command) }
       ks.inject(key_map) { |map, key|
         map[key] ||= {}
-      }[k] = command
+      }[k] = block
     end
 
     def kbd(key)
@@ -70,6 +77,10 @@ module Textbringer
       }
     end
 
+    def last_key
+      @last_key
+    end
+
     def setup_keys
       [@global_map, @minibuffer_local_map].each do |map|
         set_key(map, Curses::KEY_RESIZE) {
@@ -77,50 +88,45 @@ module Textbringer
           @echo_area.move(Curses.lines - 1, 0)
           @echo_area.resize(1, Curses.cols)
         }
-        set_key(map, Curses::KEY_RIGHT) { @current_buffer.forward_char }
-        set_key(map, ?\C-f) { @current_buffer.forward_char }
-        set_key(map, Curses::KEY_LEFT) { @current_buffer.backward_char }
-        set_key(map, ?\C-b) { @current_buffer.backward_char }
-        set_key(map, Curses::KEY_DOWN) { @current_buffer.next_line }
-        set_key(map, ?\C-n) { @current_buffer.next_line }
-        set_key(map, Curses::KEY_UP) { @current_buffer.previous_line }
-        set_key(map, ?\C-p) { @current_buffer.previous_line }
-        set_key(map, Curses::KEY_DC) { @current_buffer.delete_char }
-        set_key(map, ?\C-d) { @current_buffer.delete_char }
-        set_key(map, Curses::KEY_BACKSPACE) { @current_buffer.backward_delete_char }
-        set_key(map, ?\C-h) { @current_buffer.backward_delete_char }
-        set_key(map, ?\C-a) { @current_buffer.beginning_of_line }
-        set_key(map, ?\C-e) { @current_buffer.end_of_line }
-        set_key(map, "\e<") { @current_buffer.beginning_of_buffer }
-        set_key(map, "\e>") { @current_buffer.end_of_buffer }
+        set_key(map, Curses::KEY_RIGHT, :forward_char)
+        set_key(map, ?\C-f, :forward_char)
+        set_key(map, Curses::KEY_LEFT, :backward_char)
+        set_key(map, ?\C-b, :backward_char)
+        set_key(map, Curses::KEY_DOWN, :next_line)
+        set_key(map, ?\C-n, :next_line)
+        set_key(map, Curses::KEY_UP, :previous_line)
+        set_key(map, ?\C-p, :previous_line)
+        set_key(map, Curses::KEY_DC, :delete_char)
+        set_key(map, ?\C-d, :delete_char)
+        set_key(map, Curses::KEY_BACKSPACE, :backward_delete_char)
+        set_key(map, ?\C-h, :backward_delete_char)
+        set_key(map, ?\C-a, :beginning_of_line)
+        set_key(map, ?\C-e, :end_of_line)
+        set_key(map, "\e<", :beginning_of_buffer)
+        set_key(map, "\e>", :end_of_buffer)
         (0x20..0x7e).each do |c|
-          set_key(map, c) { @current_buffer.insert(c.chr) }
+          set_key(map, c, :self_insert)
         end
-        set_key(map, ?\t) { @current_buffer.insert("\t") }
-        set_key(map, "\C- ") { @current_buffer.set_mark }
-        set_key(map, "\ew") { @current_buffer.copy_region }
-        set_key(map, ?\C-w) { @current_buffer.kill_region }
-        set_key(map, ?\C-k) { @current_buffer.kill_line }
-        set_key(map, ?\C-y) { @current_buffer.yank }
+        set_key(map, ?\t, :self_insert)
+        set_key(map, "\C- ", :set_mark)
+        set_key(map, "\ew", :copy_region)
+        set_key(map, ?\C-w, :kill_region)
+        set_key(map, ?\C-k, :kill_line)
+        set_key(map, ?\C-y, :yank)
       end
 
-      set_key(@global_map, ?\n) { @current_buffer.newline }
+      set_key(@global_map, ?\n, :newline)
       set_key(@global_map, "\C-x\C-c") { exit }
-      set_key(@global_map, "\C-x\C-s") { @current_buffer.save }
-      set_key(@global_map, "\e:") { eval_expresssion }
+      set_key(@global_map, "\C-x\C-s", :save)
+      set_key(@global_map, "\ex", :execute_command)
+      set_key(@global_map, "\e:", :eval_expression)
 
       set_key(@minibuffer_local_map, ?\n) { throw(:minibuffer_exit, true) }
       set_key(@minibuffer_local_map, ?\C-g) { throw(:minibuffer_exit, false) }
     end
 
-    def eval_expresssion
-      s = read_from_minibuffer("Eval: ")
-      return if s.nil?
-      begin
-        @echo_area.show(eval(s).inspect)
-      rescue Exception => e
-        @echo_area.show("#{e.class}: #{e}")
-      end
+    def message(msg)
+      @echo_area.show(msg)
     end
 
     def read_from_minibuffer(prompt)
@@ -151,7 +157,8 @@ module Textbringer
     def command_loop
       while c = @current_window.getch
         @echo_area.clear_message
-        @key_sequence << c.ord
+        @last_key = c.ord
+        @key_sequence << @last_key
         cmd = key_binding(@buffer_local_maps[@current_buffer], @key_sequence)
         begin
           if cmd.respond_to?(:call)
