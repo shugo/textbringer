@@ -284,12 +284,17 @@ module Textbringer
       @mark.location = pos
     end
 
-    def copy_region(s = @point, e = mark)
-      KILL_RING.push(s <= e ? substring(s, e) : substring(e, s))
+    def copy_region(s = @point, e = mark, append = false)
+      str = s <= e ? substring(s, e) : substring(e, s)
+      if append && KILL_RING.last
+        KILL_RING.last.concat(str)
+      else
+        KILL_RING.push(str)
+      end
     end
 
-    def kill_region(s = @point, e = mark)
-      copy_region(s, e)
+    def kill_region(s = @point, e = mark, append = false)
+      copy_region(s, e, append)
       delete_region(s, e)
     end
 
@@ -309,7 +314,7 @@ module Textbringer
       end
     end
 
-    def kill_line
+    def kill_line(append = false)
       save_point do |saved|
         if end_of_buffer?
           raise RangeError, "end of buffer"
@@ -319,7 +324,7 @@ module Textbringer
         else
           end_of_line
         end
-        kill_region(saved.location, @point)
+        kill_region(saved.location, @point, append)
       end
     end
 

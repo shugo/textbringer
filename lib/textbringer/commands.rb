@@ -39,7 +39,6 @@ module Textbringer
       :set_mark,
       :copy_region,
       :kill_region,
-      :kill_line,
       :yank,
       :newline,
       :save,
@@ -52,6 +51,11 @@ module Textbringer
 
     define_command(:self_insert) do
       @current_buffer.insert(last_key.chr)
+    end
+
+    define_command(:kill_line) do
+      @current_buffer.kill_line(@last_command == :kill_region)
+      @this_command = :kill_region
     end
 
     define_command(:execute_command) do
