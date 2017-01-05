@@ -124,7 +124,11 @@ module Textbringer
         while /[ \t]/ =~ char_after
           forward_char
         end
-        substring(s, @point)
+        str = substring(s, @point)
+        if end_of_buffer? || char_after == "\n"
+          delete_region(s, @point)
+        end
+        str
       }
       insert("\n" + indentation)
     end

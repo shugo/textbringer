@@ -22,6 +22,12 @@ class TestBuffer < Test::Unit::TestCase
     buffer.insert("   foo")
     buffer.newline
     assert_equal("abc\n   foo\n   ", buffer.to_s)
+    buffer.newline
+    assert_equal("abc\n   foo\n\n   ", buffer.to_s)
+    buffer.insert("\n")
+    buffer.backward_char
+    buffer.newline
+    assert_equal("abc\n   foo\n\n\n   \n", buffer.to_s)
   end
 
   def test_delete_char
