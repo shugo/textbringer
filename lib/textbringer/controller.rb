@@ -112,6 +112,7 @@ module Textbringer
         set_key(map, ?\C-k, :kill_line)
         set_key(map, ?\C-y, :yank)
         set_key(map, ?\C-_, :undo)
+        set_key(map, "\C-x\C-_", :redo)
       end
 
       set_key(@global_map, ?\n, :newline)

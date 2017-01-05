@@ -42,7 +42,8 @@ module Textbringer
       :yank,
       :newline,
       :delete_region,
-      :undo
+      :undo,
+      :redo
     ].each do |name|
       define_command(name) do
         @current_buffer.send(name)

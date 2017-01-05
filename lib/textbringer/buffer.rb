@@ -49,6 +49,7 @@ module Textbringer
       @mark = nil
       @column = nil
       @undo_stack = []
+      @redo_stack = []
       @undoing = false
     end
 
@@ -138,6 +139,7 @@ module Textbringer
         else
           @undo_stack.push(InsertAction.new(self, pos, s))
         end
+        @redo_stack.clear
       end
       @column = nil
     end
@@ -172,6 +174,7 @@ module Textbringer
         end
         unless @undoing
           @undo_stack.push(DeleteAction.new(self, s, s, str))
+          @redo_stack.clear
         end
       elsif n < 0
         str = substring(pos, s)
@@ -183,6 +186,7 @@ module Textbringer
         @point = @gap_start = pos
         unless @undoing
           @undo_stack.push(DeleteAction.new(self, s, pos, str))
+          @redo_stack.clear
         end
       end
       @column = nil
@@ -384,6 +388,21 @@ module Textbringer
       @undoing = true
       begin
         action.undo
+        @redo_stack.push(action)
+      ensure
+        @undoing = false
+      end
+    end
+
+    def redo
+      if @redo_stack.empty?
+        raise "No further undo information"
+      end
+      action = @redo_stack.pop
+      @undoing = true
+      begin
+        action.redo
+        @undo_stack.push(action)
       ensure
         @undoing = false
       end
@@ -507,6 +526,11 @@ module Textbringer
       @buffer.delete_char(@string.size)
     end
 
+    def redo
+      @buffer.goto_char(@location)
+      @buffer.insert(@string)
+    end
+
     def merge(s)
       @string.concat(s)
     end
@@ -524,6 +548,11 @@ module Textbringer
       @buffer.goto_char(@insert_location)
       @buffer.insert(@string)
       @buffer.goto_char(@location)
+    end
+
+    def redo
+      @buffer.goto_char(@insert_location)
+      @buffer.delete_char(@string.size)
     end
   end
 end
