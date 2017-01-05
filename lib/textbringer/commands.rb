@@ -4,7 +4,8 @@ module Textbringer
   module Commands
     @list = []
 
-    def initialize
+    def initialize(*args)
+      super
       @this_command = nil
       @last_command = nil
     end
