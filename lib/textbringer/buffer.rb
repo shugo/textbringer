@@ -104,6 +104,21 @@ module Textbringer
     end
     alias size bytesize
 
+    def point_min
+      0
+    end
+
+    def point_max
+      bytesize
+    end
+
+    def goto_char(pos)
+      if pos < 0 || pos > size
+        raise RangeError, "out of buffer"
+      end
+      @point = pos
+    end
+
     def insert(s)
       size = s.bytesize
       adjust_gap(size)
