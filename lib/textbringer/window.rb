@@ -37,6 +37,8 @@ module Textbringer
       @window.scrollok(false)
       @top_of_window = @buffer.new_mark
       @top_of_window.location = 0
+      @bottom_of_window = @buffer.new_mark
+      @bottom_of_window.location = 0
       redisplay
     end
 
@@ -65,6 +67,7 @@ module Textbringer
             @window.curx == @window.maxx - 1
           @buffer.forward_char
         end
+        @buffer.mark_to_point(@bottom_of_window)
         if @buffer.point_at_mark?(saved)
           y, x = @window.cury, @window.curx
         end
@@ -79,6 +82,20 @@ module Textbringer
 
     def resize(num_lines, num_columns)
       @window.resize(num_lines, num_columns)
+    end
+
+    def scroll_up
+      @buffer.point_to_mark(@bottom_of_window)
+      @buffer.previous_line
+      @buffer.beginning_of_line
+      @buffer.mark_to_point(@top_of_window)
+    end
+
+    def scroll_down
+      @buffer.point_to_mark(@top_of_window)
+      @buffer.next_line
+      @buffer.beginning_of_line
+      @top_of_window.location = 0
     end
 
     private

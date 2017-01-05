@@ -57,6 +57,14 @@ module Textbringer
       @this_command = :kill_region
     end
 
+    define_command(:scroll_up) do
+      @current_window.scroll_up
+    end
+
+    define_command(:scroll_down) do
+      @current_window.scroll_down
+    end
+
     define_command(:save_buffer) do
       if @current_buffer.filename.nil?
         @current_buffer.filename = read_from_minibuffer("Filename: ")

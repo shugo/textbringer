@@ -112,6 +112,8 @@ module Textbringer
       end
 
       set_key(@global_map, ?\n, :newline)
+      set_key(@global_map, "\C-v", :scroll_up)
+      set_key(@global_map, "\ev", :scroll_down)
       set_key(@global_map, "\C-x\C-c") { exit }
       set_key(@global_map, "\C-x\C-s", :save_buffer)
       set_key(@global_map, "\ex", :execute_command)
