@@ -6,6 +6,30 @@ require "unicode/display_width"
 
 module Textbringer
   class Window
+    def self.start
+      Curses.init_screen
+      Curses.noecho
+      Curses.raw
+      begin
+        yield
+      ensure
+        Curses.echo
+        Curses.noraw
+      end
+    end
+
+    def self.update
+      Curses.doupdate
+    end
+
+    def self.lines
+      Curses.lines
+    end
+
+    def self.columns
+      Curses.cols
+    end
+
     def initialize(buffer, num_lines, num_columns, y, x)
       @buffer = buffer
       @window = Curses::Window.new(num_lines, num_columns, y, x)

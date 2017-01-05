@@ -3,11 +3,12 @@
 require "textbringer/buffer"
 require "textbringer/window"
 require "textbringer/echo_area"
+require "textbringer/keys"
 require "textbringer/commands"
-require "curses"
 
 module Textbringer
   class Controller
+    include Keys
     include Commands
 
     def initialize
@@ -29,22 +30,17 @@ module Textbringer
 
     def start(args)
       @current_buffer = @buffer = args[0] ? Buffer.open(args[0]) : Buffer.new
-      Curses.init_screen
-      Curses.noecho
-      Curses.raw
-      begin
+      Window.start do
         @current_window = @window =
-          Textbringer::Window.new(@buffer, Curses.lines - 1, Curses.cols, 0, 0)
-        @echo_area = Textbringer::EchoArea.new(@minibuffer, 1, Curses.cols,
-                                               Curses.lines - 1, 0)
+          Textbringer::Window.new(@buffer,
+                                  Window.lines - 1, Window.columns, 0, 0)
+        @echo_area = Textbringer::EchoArea.new(@minibuffer, 1, Window.columns,
+                                               Window.lines - 1, 0)
         @echo_area.show("Quit by C-x C-c")
         @echo_area.redisplay
         @window.redisplay
-        Curses.doupdate
+        Window.update
         command_loop
-      ensure
-        Curses.echo
-        Curses.noraw
       end
     end
 
@@ -83,22 +79,22 @@ module Textbringer
 
     def setup_keys
       [@global_map, @minibuffer_local_map].each do |map|
-        set_key(map, Curses::KEY_RESIZE) {
-          @window.resize(Curses.lines - 1, Curses.cols)
-          @echo_area.move(Curses.lines - 1, 0)
-          @echo_area.resize(1, Curses.cols)
+        set_key(map, KEY_RESIZE) {
+          @window.resize(Window.lines - 1, Window.columns)
+          @echo_area.move(Window.lines - 1, 0)
+          @echo_area.resize(1, Window.columns)
         }
-        set_key(map, Curses::KEY_RIGHT, :forward_char)
+        set_key(map, KEY_RIGHT, :forward_char)
         set_key(map, ?\C-f, :forward_char)
-        set_key(map, Curses::KEY_LEFT, :backward_char)
+        set_key(map, KEY_LEFT, :backward_char)
         set_key(map, ?\C-b, :backward_char)
-        set_key(map, Curses::KEY_DOWN, :next_line)
+        set_key(map, KEY_DOWN, :next_line)
         set_key(map, ?\C-n, :next_line)
-        set_key(map, Curses::KEY_UP, :previous_line)
+        set_key(map, KEY_UP, :previous_line)
         set_key(map, ?\C-p, :previous_line)
-        set_key(map, Curses::KEY_DC, :delete_char)
+        set_key(map, KEY_DC, :delete_char)
         set_key(map, ?\C-d, :delete_char)
-        set_key(map, Curses::KEY_BACKSPACE, :backward_delete_char)
+        set_key(map, KEY_BACKSPACE, :backward_delete_char)
         set_key(map, ?\C-h, :backward_delete_char)
         set_key(map, ?\C-a, :beginning_of_line)
         set_key(map, ?\C-e, :end_of_line)
@@ -138,7 +134,7 @@ module Textbringer
         @current_window = @echo_area
         @echo_area.prompt = prompt
         @echo_area.redisplay
-        Curses.doupdate
+        Window.update
         result = if catch(:minibuffer_exit) { command_loop }
                    @minibuffer.to_s.chomp
                  else
@@ -146,7 +142,7 @@ module Textbringer
                  end
         @echo_area.clear
         @echo_area.redisplay
-        Curses.doupdate
+        Window.update
         result
       ensure
         @current_buffer = buffer
@@ -172,7 +168,7 @@ module Textbringer
                 @current_buffer.insert(s)
               end
             elsif cmd.nil?
-              keys = @key_sequence.map { |c| Curses.keyname(c) }.join(" ")
+              keys = @key_sequence.map { |c| key_name(c) }.join(" ")
               @key_sequence.clear
               @echo_area.show("#{keys} is undefined")
             end
@@ -184,7 +180,7 @@ module Textbringer
           @echo_area.redisplay
         end
         @current_window.redisplay
-        Curses.doupdate
+        Window.update
       end
     end
   end
