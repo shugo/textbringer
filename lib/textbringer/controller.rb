@@ -19,7 +19,7 @@ module Textbringer
       @window = nil
       @current_window = nil
       @echo_area = nil
-      @key_sequence =[]
+      @key_sequence = []
       @last_key = nil
       @global_map = {}
       @minibuffer_local_map = {}
@@ -97,7 +97,9 @@ module Textbringer
         set_key(map, KEY_BACKSPACE, :backward_delete_char)
         set_key(map, ?\C-h, :backward_delete_char)
         set_key(map, ?\C-a, :beginning_of_line)
+        set_key(map, KEY_HOME, :beginning_of_line)
         set_key(map, ?\C-e, :end_of_line)
+        set_key(map, KEY_END, :end_of_line)
         set_key(map, "\e<", :beginning_of_buffer)
         set_key(map, "\e>", :end_of_buffer)
         (0x20..0x7e).each do |c|
@@ -113,7 +115,9 @@ module Textbringer
 
       set_key(@global_map, ?\n, :newline)
       set_key(@global_map, "\C-v", :scroll_up)
+      set_key(@global_map, KEY_NPAGE, :scroll_up)
       set_key(@global_map, "\ev", :scroll_down)
+      set_key(@global_map, KEY_PPAGE, :scroll_down)
       set_key(@global_map, "\C-x\C-c") { exit }
       set_key(@global_map, "\C-x\C-s", :save_buffer)
       set_key(@global_map, "\ex", :execute_command)
