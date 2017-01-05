@@ -2,7 +2,7 @@
 
 require "unicode/display_width"
 
-module TextBringer
+module Textbringer
   class Buffer
     attr_reader :filename, :file_encoding, :file_format, :point, :marks
 

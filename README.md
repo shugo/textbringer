@@ -1,10 +1,10 @@
-# TextBringer
+# Textbringer
 
 A text editor.
 
 ## Installation
 
-    $ gem install text_bringer
+    $ gem install textbringer
 
 ## Usage
 
@@ -20,7 +20,7 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/shugo/text_bringer.
+Bug reports and pull requests are welcome on GitHub at https://github.com/shugo/textbringer.
 
 
 ## License

@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-require "text_bringer"
+require "textbringer"
 
-controller = TextBringer::Controller.new
+controller = Textbringer::Controller.new
 controller.start(ARGV)

@@ -1,9 +1,9 @@
 require "test/unit"
 require "tempfile"
-require "text_bringer/buffer"
+require "textbringer/buffer"
 
 class TestBuffer < Test::Unit::TestCase
-  include TextBringer
+  include Textbringer
 
   def test_insert
     buffer = Buffer.new("abc")

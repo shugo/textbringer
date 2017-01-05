@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
-require "text_bringer/buffer"
-require "text_bringer/window"
-require "text_bringer/echo_area"
+require "textbringer/buffer"
+require "textbringer/window"
+require "textbringer/echo_area"
 require "curses"
 
-module TextBringer
+module Textbringer
   class Controller
     def initialize
       @buffer = nil
@@ -29,8 +29,8 @@ module TextBringer
       Curses.raw
       begin
         @current_window = @window =
-          TextBringer::Window.new(@buffer, Curses.lines - 1, Curses.cols, 0, 0)
-        @echo_area = TextBringer::EchoArea.new(@minibuffer, 1, Curses.cols,
+          Textbringer::Window.new(@buffer, Curses.lines - 1, Curses.cols, 0, 0)
+        @echo_area = Textbringer::EchoArea.new(@minibuffer, 1, Curses.cols,
                                                Curses.lines - 1, 0)
         @echo_area.show("Quit by C-x C-c")
         @echo_area.redisplay

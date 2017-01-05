@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require "text_bringer/buffer"
+require "textbringer/buffer"
 require "curses"
 require "unicode/display_width"
 
-module TextBringer
+module Textbringer
   class Window
     def initialize(buffer, num_lines, num_columns, y, x)
       @buffer = buffer

@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require "text_bringer/window"
+require "textbringer/window"
 
-module TextBringer
+module Textbringer
   class EchoArea < Window
     attr_accessor :prompt
 

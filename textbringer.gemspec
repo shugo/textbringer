@@ -1,17 +1,17 @@
 # coding: utf-8
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require 'text_bringer/version'
+require 'textbringer/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = "text_bringer"
-  spec.version       = TextBringer::VERSION
+  spec.name          = "textbringer"
+  spec.version       = Textbringer::VERSION
   spec.authors       = ["Shugo Maeda"]
   spec.email         = ["shugo@ruby-lang.org"]
 
   spec.summary       = "A text editor"
-  spec.description   = "text_bringer is a text editor."
-  spec.homepage      = "https://github.com/shugo/text_bringer"
+  spec.description   = "textbringer is a text editor."
+  spec.homepage      = "https://github.com/shugo/textbringer"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/}) }

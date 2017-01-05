@@ -1,0 +1,5 @@
+require "textbringer/version"
+require "textbringer/buffer"
+require "textbringer/window"
+require "textbringer/echo_area"
+require "textbringer/controller"

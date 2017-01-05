@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    text_bringer (0.1.0)
+    textbringer (0.1.0)
       curses
       unicode-display_width
 
@@ -22,7 +22,7 @@ DEPENDENCIES
   bundler (~> 1.11)
   rake (~> 10.0)
   test-unit
-  text_bringer!
+  textbringer!
 
 BUNDLED WITH
    1.11.2

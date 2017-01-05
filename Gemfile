@@ -1,4 +1,4 @@
 source 'https://rubygems.org'
 
-# Specify your gem's dependencies in text_bringer.gemspec
+# Specify your gem's dependencies in textbringer.gemspec
 gemspec
