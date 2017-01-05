@@ -121,7 +121,7 @@ module Textbringer
       @point = pos
     end
 
-    def insert(s)
+    def insert(s, merge_undo = false)
       pos = @point
       size = s.bytesize
       adjust_gap(size)
@@ -132,7 +132,13 @@ module Textbringer
         end
       end
       @point = @gap_start += size
-      @undo_stack.push(InsertAction.new(self, pos, s)) unless @undoing
+      unless @undoing
+        if merge_undo && @undo_stack.last.is_a?(InsertAction)
+          @undo_stack.last.merge(s)
+        else
+          @undo_stack.push(InsertAction.new(self, pos, s))
+        end
+      end
       @column = nil
     end
 
@@ -499,6 +505,10 @@ module Textbringer
     def undo
       @buffer.goto_char(@location)
       @buffer.delete_char(@string.size)
+    end
+
+    def merge(s)
+      @string.concat(s)
     end
   end
 

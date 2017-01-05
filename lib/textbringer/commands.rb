@@ -50,7 +50,7 @@ module Textbringer
     end
 
     define_command(:self_insert) do
-      @current_buffer.insert(last_key.chr)
+      @current_buffer.insert(last_key.chr, @last_command == :self_insert)
     end
 
     define_command(:kill_line) do
