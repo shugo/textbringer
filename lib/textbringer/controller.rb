@@ -173,7 +173,8 @@ module Textbringer
               s = @key_sequence.pack("C*").force_encoding("utf-8")
               if s.valid_encoding?
                 @key_sequence.clear
-                @current_buffer.insert(s)
+                @current_buffer.insert(s, @last_command == :self_insert)
+                @last_command = :self_insert
               end
             elsif cmd.nil?
               keys = @key_sequence.map { |c| key_name(c) }.join(" ")
