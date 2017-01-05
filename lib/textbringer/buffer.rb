@@ -4,7 +4,8 @@ require "unicode/display_width"
 
 module Textbringer
   class Buffer
-    attr_reader :filename, :file_encoding, :file_format, :point, :marks
+    attr_accessor :filename, :file_encoding, :file_format
+    attr_reader :point, :marks
 
     GAP_SIZE = 256
 

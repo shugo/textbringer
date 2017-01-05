@@ -113,7 +113,7 @@ module Textbringer
 
       set_key(@global_map, ?\n, :newline)
       set_key(@global_map, "\C-x\C-c") { exit }
-      set_key(@global_map, "\C-x\C-s", :save)
+      set_key(@global_map, "\C-x\C-s", :save_buffer)
       set_key(@global_map, "\ex", :execute_command)
       set_key(@global_map, "\e:", :eval_expression)
 

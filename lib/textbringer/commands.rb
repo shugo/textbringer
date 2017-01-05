@@ -41,7 +41,6 @@ module Textbringer
       :kill_region,
       :yank,
       :newline,
-      :save,
       :delete_region
     ].each do |name|
       define_command(name) do
@@ -58,12 +57,20 @@ module Textbringer
       @this_command = :kill_region
     end
 
+    define_command(:save_buffer) do
+      if @current_buffer.filename.nil?
+        @current_buffer.filename = read_from_minibuffer("Filename: ")
+        next if @current_buffer.filename.nil?
+      end
+      @current_buffer.save
+      message("Wrote #{@current_buffer.filename}")
+    end
+
     define_command(:execute_command) do
       cmd = read_from_minibuffer("M-x ")&.strip&.intern
       return if cmd.nil?
       unless Commands.list.include?(cmd)
-        message("undefined command: #{cmd}")
-        next
+        raise "undefined command: #{cmd}"
       end
       begin
         send(cmd)
