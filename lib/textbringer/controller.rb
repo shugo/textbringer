@@ -40,10 +40,15 @@ module Textbringer
         @echo_area = Textbringer::EchoArea.new(1, Window.columns,
                                                Window.lines - 1, 0)
         @echo_area.buffer = @minibuffer
-        @echo_area.show("Quit by C-x C-c")
+        @echo_area.show("Type C-x C-c to exit Textbringer")
         @echo_area.redisplay
         @window.redisplay
         Window.update
+        trap(:CONT) do
+          @echo_area.redisplay(true)
+          @window.redisplay(true)
+          Window.update
+        end
         command_loop
       end
     end

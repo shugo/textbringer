@@ -89,6 +89,15 @@ module Textbringer
       @current_window.scroll_down
     end
 
+    define_command(:exit_textbringer) do |status = 0|
+      exit(status)
+    end
+
+    define_command(:suspend_textbringer) do
+      Ncurses.endwin
+      Process.kill(:STOP, $$)
+    end
+
     def new_buffer_name(file_name)
       name = File.basename(file_name)
       if @buffers.find { |buffer| buffer.name == name }
@@ -149,7 +158,7 @@ module Textbringer
     define_command(:execute_command) do
       |cmd = read_command_name("M-x ").strip.intern|
       unless Commands.list.include?(cmd)
-        raise "undefined command: #{cmd}"
+        raise "Undefined command: #{cmd}"
       end
       begin
         send(cmd)

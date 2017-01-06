@@ -26,10 +26,14 @@ module Textbringer
       @message = message
     end
 
-    def redisplay
+    def redisplay(clear = false)
       return if @buffer.nil?
       @buffer.save_point do |saved|
-        @window.erase
+        if clear
+          @window.clear
+        else
+          @window.erase
+        end
         @window.move(0, 0)
         if @message
           @window.addstr @message
