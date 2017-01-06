@@ -39,8 +39,6 @@ module Textbringer
       end
     end
 
-    private
-
     def last_key
       @last_key
     end
@@ -59,22 +57,18 @@ module Textbringer
         @echo_area.prompt = prompt
         @echo_area.redisplay
         Window.update
-        result = if catch(:minibuffer_exit) { command_loop }
-                   @minibuffer.to_s.chomp
-                 else
-                   nil
-                 end
+        catch(:minibuffer_exit) { command_loop(false) }
+        @minibuffer.to_s.chomp
+      ensure
         @echo_area.clear
         @echo_area.redisplay
         Window.update
-        result
-      ensure
         @current_buffer = buffer
         @current_window = window
       end
     end
 
-    def command_loop
+    def command_loop(catch_keyboard_quit = true)
       while c = @current_window.getch
         @echo_area.clear_message
         @last_key = c.ord
@@ -99,6 +93,9 @@ module Textbringer
             end
           end
         rescue => e
+          if !catch_keyboard_quit && e.is_a?(KeyboardQuit)
+            raise
+          end
           @echo_area.show(e.to_s.chomp)
         end
         if @current_window != @echo_area

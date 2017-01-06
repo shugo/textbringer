@@ -99,5 +99,16 @@ module Textbringer
         message("#{e.class}: #{e}")
       end
     end
+
+    define_command(:exit_minibuffer) do
+      throw :minibuffer_exit
+    end
+
+    define_command(:keyboard_quit) do
+      raise KeyboardQuit, "Quit"
+    end
+  end
+
+  class KeyboardQuit < StandardError
   end
 end

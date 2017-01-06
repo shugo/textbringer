@@ -57,8 +57,8 @@ module Textbringer
       define_key(@global_map, "\ex", :execute_command)
       define_key(@global_map, "\e:", :eval_expression)
 
-      define_key(@minibuffer_local_map, ?\n) { throw(:minibuffer_exit, true) }
-      define_key(@minibuffer_local_map, ?\C-g) { throw(:minibuffer_exit, false) }
+      define_key(@minibuffer_local_map, ?\n, :exit_minibuffer)
+      define_key(@minibuffer_local_map, ?\C-g, :keyboard_quit)
     end
 
     Curses.constants.grep(/\AKEY_/) do |name|
