@@ -51,6 +51,7 @@ module Textbringer
       @marks = []
       @mark = nil
       @column = nil
+      @yank_start = new_mark
       @undo_stack = []
       @redo_stack = []
       @undoing = false
@@ -361,8 +362,8 @@ module Textbringer
 
     def copy_region(s = @point, e = mark, append = false)
       str = s <= e ? substring(s, e) : substring(e, s)
-      if append && KILL_RING.last
-        KILL_RING.last.concat(str)
+      if append && !KILL_RING.empty?
+        KILL_RING.current.concat(str)
       else
         KILL_RING.push(str)
       end
@@ -418,8 +419,18 @@ module Textbringer
       end
     end
 
+    def insert_for_yank(s)
+      mark_to_point(@yank_start)
+      insert(s)
+    end
+
     def yank
-      insert(KILL_RING.last)
+      insert_for_yank(KILL_RING.current)
+    end
+
+    def yank_pop
+      delete_region(@yank_start.location, @point)
+      insert_for_yank(KILL_RING.current(1))
     end
 
     def undo
@@ -551,20 +562,34 @@ module Textbringer
     def initialize(max = 30)
       @max = max
       @ring = []
+      @current = -1
     end
 
     def push(str)
-      if @ring.size == @max
-        @ring.unshift
+      @current += 1
+      if @ring.size < @max
+        @ring.insert(@current, str)
+      else
+        if @current == @max
+          @current = 0
+        end
+        @ring[@current] = str
       end
-      @ring.push(str)
     end
 
-    def last
+    def current(n = 0)
       if @ring.empty?
         raise "Kill ring is empty"
       end
-      @ring.last
+      @current -= n
+      if @current < 0
+        @current += @ring.size
+      end
+      @ring[@current]
+    end
+
+    def empty?
+      @ring.empty?
     end
   end
 

@@ -46,6 +46,7 @@ module Textbringer
         define_key(map, ?\C-k, :kill_line)
         define_key(map, "\ed", :kill_word)
         define_key(map, ?\C-y, :yank)
+        define_key(map, "\ey", :yank_pop)
         define_key(map, ?\C-_, :undo)
         define_key(map, "\C-x\C-_", :redo)
       end

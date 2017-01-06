@@ -331,7 +331,7 @@ EOF
     buffer.set_mark
     buffer.next_line
     buffer.copy_region
-    assert_equal("abcdefg\n", KILL_RING.last)
+    assert_equal("abcdefg\n", KILL_RING.current)
     assert_equal(<<EOF, buffer.to_s)
 0123456789
 abcdefg
@@ -340,7 +340,7 @@ abcdefg
 EOF
     buffer.next_line
     buffer.copy_region
-    assert_equal("abcdefg\nあいうえお\n", KILL_RING.last)
+    assert_equal("abcdefg\nあいうえお\n", KILL_RING.current)
     assert_equal(<<EOF, buffer.to_s)
 0123456789
 abcdefg
@@ -360,7 +360,7 @@ EOF
     buffer.set_mark
     buffer.next_line
     buffer.kill_region
-    assert_equal("abcdefg\n", KILL_RING.last)
+    assert_equal("abcdefg\n", KILL_RING.current)
     assert_equal(<<EOF, buffer.to_s)
 0123456789
 あいうえお
@@ -368,7 +368,7 @@ EOF
 EOF
     buffer.next_line
     buffer.kill_region
-    assert_equal("あいうえお\n", KILL_RING.last)
+    assert_equal("あいうえお\n", KILL_RING.current)
     assert_equal(<<EOF, buffer.to_s)
 0123456789
 かきくけこ
@@ -384,7 +384,7 @@ abcdefg
 EOF
     buffer.next_line
     buffer.kill_line
-    assert_equal("abcdefg", KILL_RING.last)
+    assert_equal("abcdefg", KILL_RING.current)
     assert_equal(<<EOF, buffer.to_s)
 0123456789
 
@@ -392,14 +392,14 @@ EOF
 かきくけこ
 EOF
     buffer.kill_line
-    assert_equal("\n", KILL_RING.last)
+    assert_equal("\n", KILL_RING.current)
     assert_equal(<<EOF, buffer.to_s)
 0123456789
 あいうえお
 かきくけこ
 EOF
     buffer.kill_line
-    assert_equal("あいうえお", KILL_RING.last)
+    assert_equal("あいうえお", KILL_RING.current)
     assert_equal(<<EOF, buffer.to_s)
 0123456789
 
@@ -413,15 +413,15 @@ hello world
 あいうえお
 EOF
     buffer.kill_word
-    assert_equal("hello", KILL_RING.last)
+    assert_equal("hello", KILL_RING.current)
     assert_equal(<<EOF, buffer.to_s)
-world
+ world
 あいうえお
 EOF
     buffer.end_of_line
     buffer.kill_word
-    assert_equal("あいうえお", KILL_RING.last)
-    assert_equal("world", buffer.to_s)
+    assert_equal("\nあいうえお", KILL_RING.current)
+    assert_equal(" world\n", buffer.to_s)
   end
 
   def test_save_ascii_only

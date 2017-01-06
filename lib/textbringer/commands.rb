@@ -67,6 +67,14 @@ module Textbringer
       @this_command = :kill_region
     end
 
+    define_command(:yank_pop) do
+      if @last_command != :yank
+        raise "Previous command was not a yank"
+      end
+      @current_buffer.yank_pop
+      @this_command = :yank
+    end
+
     define_command(:re_search_forward) do
       |s = read_from_minibuffer("RE search: ")|
       @current_buffer.re_search_forward(s)
