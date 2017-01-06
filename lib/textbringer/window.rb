@@ -169,7 +169,8 @@ module Textbringer
       e = @buffer.point
       @buffer.beginning_of_line
       s = @buffer.substring(@buffer.point, e)
-      s.display_width / columns # TODO: should calculate more correctly
+      # TODO: should calculate more correctly
+      Unicode::DisplayWidth.of(s, 2) / columns
     end
   end
 end

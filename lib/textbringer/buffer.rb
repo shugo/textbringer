@@ -215,14 +215,14 @@ module Textbringer
       else
         prev_point = @point
         beginning_of_line
-        column = substring(@point, prev_point).display_width
+        column = Unicode::DisplayWidth.of(substring(@point, prev_point), 2)
       end
       end_of_line
       forward_char
       s = @point
       while !end_of_buffer? &&
           byte_after != "\n" &&
-          substring(s, @point).display_width < column
+          Unicode::DisplayWidth.of(substring(s, @point), 2) < column
         forward_char
       end
       @column = column
@@ -234,7 +234,7 @@ module Textbringer
       else
         prev_point = @point
         beginning_of_line
-        column = substring(@point, prev_point).display_width
+        column = Unicode::DisplayWidth.of(substring(@point, prev_point), 2)
       end
       beginning_of_line
       backward_char
@@ -242,7 +242,7 @@ module Textbringer
       s = @point
       while !end_of_buffer? &&
           byte_after != "\n" &&
-          substring(s, @point).display_width < column
+          Unicode::DisplayWidth.of(substring(s, @point), 2) < column
         forward_char
       end
       @column = column
