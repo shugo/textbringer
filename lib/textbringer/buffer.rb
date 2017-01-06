@@ -352,7 +352,10 @@ module Textbringer
     end
 
     def mark
-      @mark&.location
+      if @mark.nil?
+        raise "The mark is not set"
+      end
+      @mark.location
     end
 
     def set_mark(pos = @point)
