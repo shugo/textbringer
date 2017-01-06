@@ -400,7 +400,7 @@ module Textbringer
 
     def redo
       if @redo_stack.empty?
-        raise "No further undo information"
+        raise "No further redo information"
       end
       action = @redo_stack.pop
       @undoing = true
