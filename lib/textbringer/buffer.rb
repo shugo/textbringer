@@ -123,6 +123,7 @@ module Textbringer
       if pos < 0 || pos > size
         raise RangeError, "Out of buffer"
       end
+      @column = nil
       @point = pos
     end
 
@@ -207,6 +208,33 @@ module Textbringer
 
     def backward_char(n = 1)
       forward_char(-n)
+    end
+
+    def forward_word(n = 1)
+      n.times do
+        while !end_of_buffer? && /\p{Letter}|\p{Number}/ !~ char_after
+          forward_char
+        end
+        while !end_of_buffer? && /\p{Letter}|\p{Number}/ =~ char_after
+          forward_char
+        end
+      end
+    end
+
+    def backward_word(n = 1)
+      n.times do
+        break if beginning_of_buffer?
+        backward_char
+        while !beginning_of_buffer? && /\p{Letter}|\p{Number}/ !~ char_after
+          backward_char
+        end
+        while !beginning_of_buffer? && /\p{Letter}|\p{Number}/ =~ char_after
+          backward_char
+        end
+        if /\p{Letter}|\p{Number}/ !~ char_after
+          forward_char
+        end
+      end
     end
 
     def next_line
@@ -369,13 +397,23 @@ module Textbringer
     def kill_line(append = false)
       save_point do |saved|
         if end_of_buffer?
-          raise RangeError, "end of buffer"
+          raise RangeError, "End of buffer"
         end
         if char_after == ?\n
           forward_char
         else
           end_of_line
         end
+        kill_region(saved.location, @point, append)
+      end
+    end
+
+    def kill_word(append = false)
+      save_point do |saved|
+        if end_of_buffer?
+          raise RangeError, "End of buffer"
+        end
+        forward_word
         kill_region(saved.location, @point, append)
       end
     end

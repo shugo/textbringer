@@ -29,6 +29,8 @@ module Textbringer
     [
       :forward_char,
       :backward_char,
+      :forward_word,
+      :backward_word,
       :next_line,
       :previous_line,
       :delete_char,
@@ -57,6 +59,11 @@ module Textbringer
 
     define_command(:kill_line) do
       @current_buffer.kill_line(@last_command == :kill_region)
+      @this_command = :kill_region
+    end
+
+    define_command(:kill_word) do
+      @current_buffer.kill_word(@last_command == :kill_region)
       @this_command = :kill_region
     end
 

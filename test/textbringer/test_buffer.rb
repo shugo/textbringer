@@ -122,6 +122,45 @@ class TestBuffer < Test::Unit::TestCase
     assert_equal(2, buffer.point)
   end
 
+  def test_forward_word
+    buffer = Buffer.new(<<EOF)
+hello world
+good_bye
+EOF
+    buffer.forward_word
+    assert_equal(5, buffer.point)
+    buffer.forward_word
+    assert_equal(11, buffer.point)
+    buffer.forward_word
+    assert_equal(16, buffer.point)
+    buffer.forward_word
+    assert_equal(20, buffer.point)
+    buffer.beginning_of_buffer
+    buffer.forward_word(2)
+    assert_equal(11, buffer.point)
+  end
+
+  def test_backward_word
+    buffer = Buffer.new(<<EOF)
+hello world
+good_bye
+
+
+EOF
+    buffer.end_of_buffer
+    buffer.backward_word
+    assert_equal(17, buffer.point)
+    buffer.backward_word
+    assert_equal(12, buffer.point)
+    buffer.backward_word
+    assert_equal(6, buffer.point)
+    buffer.backward_word
+    assert_equal(0, buffer.point)
+    buffer.end_of_buffer
+    buffer.backward_word(2)
+    assert_equal(12, buffer.point)
+  end
+
   def test_editing
     buffer = Buffer.new(<<EOF)
 Hello world
@@ -366,6 +405,23 @@ EOF
 
 かきくけこ
 EOF
+  end
+
+  def test_kill_word
+    buffer = Buffer.new(<<EOF)
+hello world
+あいうえお
+EOF
+    buffer.kill_word
+    assert_equal("hello", KILL_RING.last)
+    assert_equal(<<EOF, buffer.to_s)
+world
+あいうえお
+EOF
+    buffer.end_of_line
+    buffer.kill_word
+    assert_equal("あいうえお", KILL_RING.last)
+    assert_equal("world", buffer.to_s)
   end
 
   def test_save_ascii_only
