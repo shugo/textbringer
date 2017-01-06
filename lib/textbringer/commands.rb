@@ -15,10 +15,10 @@ module Textbringer
     end
 
     def self.define_command(name, &block)
-      define_method(name) do
+      define_method(name) do |*args|
         @this_command = nil
         begin
-          instance_eval(&block)
+          instance_exec(*args, &block)
         ensure
           @last_command = @this_command || name
         end
@@ -69,7 +69,7 @@ module Textbringer
     end
 
     define_command(:find_file) do
-      file_name = read_file_name("Find file: ")
+      |file_name = read_file_name("Find file: ")|
       buffer = @buffers.find { |buffer| buffer.file_name == file_name }
       if buffer.nil?
         name = File.basename(file_name)
@@ -87,7 +87,7 @@ module Textbringer
     end
 
     define_command(:switch_to_buffer) do
-      buffer_name = read_buffer("Switch to buffer: ")
+      |buffer_name = read_buffer("Switch to buffer: ")|
       buffer = @buffers.find { |buffer| buffer.name == buffer_name }
       if buffer
         @current_window.buffer = @current_buffer = buffer
@@ -106,8 +106,7 @@ module Textbringer
     end
 
     define_command(:execute_command) do
-      cmd = read_from_minibuffer("M-x ")&.strip&.intern
-      next if cmd.nil?
+      |cmd = read_from_minibuffer("M-x ").strip.intern|
       unless Commands.list.include?(cmd)
         raise "undefined command: #{cmd}"
       end
@@ -119,8 +118,7 @@ module Textbringer
     end
 
     define_command(:eval_expression) do
-      s = read_from_minibuffer("Eval: ")
-      next if s.nil?
+      |s = read_from_minibuffer("Eval: ")|
       begin
         message(eval(s).inspect)
       rescue Exception => e
