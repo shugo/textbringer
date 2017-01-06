@@ -121,7 +121,7 @@ module Textbringer
 
     def goto_char(pos)
       if pos < 0 || pos > size
-        raise RangeError, "out of buffer"
+        raise RangeError, "Out of buffer"
       end
       @point = pos
     end
@@ -460,20 +460,20 @@ module Textbringer
       if offset >= 0
         i = offset
         while i > 0
-          raise RangeError, "out of buffer" if end_of_buffer?
+          raise RangeError, "Out of buffer" if end_of_buffer?
           b = byte_after(pos)
           pos += UTF8_CHAR_LEN[b]
-          raise RangeError, "out of buffer" if pos > bytesize
+          raise RangeError, "Out of buffer" if pos > bytesize
           i -= 1
         end
       else
         i = -offset
         while i > 0
           pos -= 1
-          raise RangeError, "out of buffer" if pos < 0
+          raise RangeError, "Out of buffer" if pos < 0
           while /[\x80-\xbf]/n =~ byte_after(pos)
             pos -= 1
-            raise RangeError, "out of buffer" if pos < 0
+            raise RangeError, "Out of buffer" if pos < 0
           end
           i -= 1
         end
