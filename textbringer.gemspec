@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
   spec.email         = ["shugo@ruby-lang.org"]
 
   spec.summary       = "A text editor"
-  spec.description   = "textbringer is a text editor."
+  spec.description   = "Textbringer is a member of a demon race that takes on the form of a text editor."
   spec.homepage      = "https://github.com/shugo/textbringer"
   spec.license       = "MIT"
 
