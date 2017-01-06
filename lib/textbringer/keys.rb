@@ -11,11 +11,7 @@ module Textbringer
       @buffer_local_maps = Hash.new(@global_map)
       @buffer_local_maps[@minibuffer] = @minibuffer_local_map
       [@global_map, @minibuffer_local_map].each do |map|
-        define_key(map, KEY_RESIZE) {
-          @window.resize(Window.lines - 1, Window.columns)
-          @echo_area.move(Window.lines - 1, 0)
-          @echo_area.resize(1, Window.columns)
-        }
+        define_key(map, KEY_RESIZE, :resize_window)
         define_key(map, KEY_RIGHT, :forward_char)
         define_key(map, ?\C-f, :forward_char)
         define_key(map, KEY_LEFT, :backward_char)

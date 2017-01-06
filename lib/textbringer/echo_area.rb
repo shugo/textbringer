@@ -59,5 +59,19 @@ module Textbringer
     def redraw
       @window.redrawwin
     end
+
+    def move(y, x)
+      @window.mvwin(y, x)
+    end
+
+    def resize(num_lines, num_columns)
+      @window.resize(num_lines, num_columns)
+    end
+
+    private
+
+    def initialize_window(num_lines, num_columns, y, x)
+      @window = Ncurses::WINDOW.new(num_lines, num_columns, y, x)
+    end
   end
 end

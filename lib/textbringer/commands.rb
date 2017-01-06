@@ -80,6 +80,12 @@ module Textbringer
       |s = read_from_minibuffer("RE search: ")|
       @current_buffer.re_search_forward(s)
     end
+          
+    define_command(:resize_window) do
+      @window.resize(Window.lines - 1, Window.columns)
+      @echo_area.move(Window.lines - 1, 0)
+      @echo_area.resize(1, Window.columns)
+    end
 
     define_command(:scroll_up) do
       @current_window.scroll_up

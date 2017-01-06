@@ -34,8 +34,7 @@ module Textbringer
     attr_reader :buffer
 
     def initialize(num_lines, num_columns, y, x)
-      @window = Ncurses::WINDOW.new(num_lines - 1, num_columns, y, x)
-      @mode_line = Ncurses::WINDOW.new(1, num_columns, y + num_lines - 1, x)
+      initialize_window(num_lines, num_columns, y, x)
       @window.keypad(true)
       @window.scrollok(false)
       @buffer = nil
@@ -107,14 +106,14 @@ module Textbringer
     end
 
     def move(y, x)
-      @window.move(y, x)
-      @mode_line.move(y + @window.maxy, x)
+      @window.mvwin(y, x)
+      @mode_line.mvwin(y + @window.getmaxy, x)
     end
 
     def resize(num_lines, num_columns)
       @window.resize(num_lines - 1, num_columns)
-      @mode_line.move(@window.begy + num_lines - 1, @window.begx)
-      @mode_line.resize(1, @window.maxx)
+      @mode_line.mvwin(@window.getbegy + num_lines - 1, @window.getbegx)
+      @mode_line.resize(1, num_columns)
     end
 
     def scroll_up
@@ -132,6 +131,11 @@ module Textbringer
     end
 
     private
+
+    def initialize_window(num_lines, num_columns, y, x)
+      @window = Ncurses::WINDOW.new(num_lines - 1, num_columns, y, x)
+      @mode_line = Ncurses::WINDOW.new(1, num_columns, y + num_lines - 1, x)
+    end
 
     def framer
       @buffer.save_point do |saved|
