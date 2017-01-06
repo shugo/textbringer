@@ -1,0 +1,12 @@
+sudo: false
+language: ruby
+rvm:
+- 2.3.3
+- 2.4.0
+cache: bundler
+script:
+- bundle exec rake test
+notifications:
+  email:
+    on_success: never
+    on_failure: always
