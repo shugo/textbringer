@@ -101,6 +101,23 @@ module Textbringer
       read_from_minibuffer(prompt, completion_proc: f)
     end
 
+    def read_buffer(prompt)
+      f = ->(s) {
+        names = @buffers.map(&:name).select { |i| i.start_with?(s) }
+        if names.size > 0
+          x, *xs = names
+          x.size.downto(1).lazy.map { |i|
+            x[0, i]
+          }.find { |i|
+            xs.all? { |j| j.start_with?(i) }
+          }
+        else
+          nil
+        end
+      }
+      read_from_minibuffer(prompt, completion_proc: f)
+    end
+
     def command_loop(catch_keyboard_quit = true)
       while c = @current_window.getch
         @echo_area.clear_message

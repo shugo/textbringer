@@ -86,6 +86,16 @@ module Textbringer
       @current_window.buffer = @current_buffer = buffer
     end
 
+    define_command(:switch_to_buffer) do
+      buffer_name = read_buffer("Switch to buffer: ")
+      buffer = @buffers.find { |buffer| buffer.name == buffer_name }
+      if buffer
+        @current_window.buffer = @current_buffer = buffer
+      else
+        message("No such buffer")
+      end
+    end
+
     define_command(:save_buffer) do
       if @current_buffer.file_name.nil?
         @current_buffer.file_name = read_from_minibuffer("Filename: ")
