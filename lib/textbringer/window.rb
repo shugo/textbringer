@@ -102,10 +102,13 @@ module Textbringer
 
     def move(y, x)
       @window.move(y, x)
+      @mode_line.move(y + @window.maxy, x)
     end
 
     def resize(num_lines, num_columns)
-      @window.resize(num_lines, num_columns)
+      @window.resize(num_lines - 1, num_columns)
+      @mode_line.move(@window.begy + num_lines - 1, @window.begx)
+      @mode_line.resize(1, @window.maxx)
     end
 
     def scroll_up
