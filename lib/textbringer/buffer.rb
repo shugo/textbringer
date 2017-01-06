@@ -475,6 +475,20 @@ module Textbringer
       goto_char(gap_to_user(Regexp.last_match.end(0)))
     end
 
+    def transpose_chars
+      if end_of_buffer? || char_after == "\n"
+        backward_char
+      end
+      if beginning_of_buffer?
+        raise RangeError, "Beginning of buffer"
+      end
+      backward_char
+      c = char_after
+      delete_char
+      forward_char
+      insert(c)
+    end
+
     private
 
     def adjust_gap(min_size = 0)

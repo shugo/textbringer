@@ -49,6 +49,7 @@ module Textbringer
         define_key(map, "\ey", :yank_pop)
         define_key(map, ?\C-_, :undo)
         define_key(map, "\C-x\C-_", :redo)
+        define_key(map, "\C-t", :transpose_chars)
       end
 
       define_key(@global_map, ?\n, :newline)

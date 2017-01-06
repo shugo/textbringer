@@ -46,7 +46,8 @@ module Textbringer
       :newline,
       :delete_region,
       :undo,
-      :redo
+      :redo,
+      :transpose_chars
     ].each do |name|
       define_command(name) do
         @current_buffer.send(name)

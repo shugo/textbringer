@@ -573,4 +573,33 @@ EOF
     assert_equal(55, buffer.re_search_forward("あいうえお"))
     assert_equal(55, buffer.point)
   end
+
+  def test_transpose_chars
+    buffer = Buffer.new(<<EOF)
+hello world
+あいうえお
+EOF
+    buffer.beginning_of_buffer
+    buffer.forward_char
+    buffer.transpose_chars
+    buffer = Buffer.new(<<EOF)
+hello world
+いあうえお
+EOF
+    buffer.end_of_buffer
+    buffer.transpose_chars
+    buffer = Buffer.new(<<EOF.chop)
+hello world
+いあうえ
+お
+EOF
+    buffer.beginning_of_buffer
+    buffer.end_of_line
+    buffer.transpose_chars
+    buffer = Buffer.new(<<EOF.chop)
+hello wordl
+いあうえ
+お
+EOF
+  end
 end
