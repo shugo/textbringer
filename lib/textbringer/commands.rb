@@ -88,7 +88,9 @@ module Textbringer
 
     define_command(:switch_to_buffer) do
       |buffer_name = read_buffer("Switch to buffer: ")|
-      buffer = @buffers.find { |buffer| buffer.name == buffer_name }
+      i = @buffers.index { |buffer| buffer.name == buffer_name }
+      buffer = @buffers.delete_at(i)
+      @buffers.push(buffer)
       if buffer
         @current_window.buffer = @current_buffer = buffer
       else

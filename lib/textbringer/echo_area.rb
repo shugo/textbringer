@@ -27,6 +27,7 @@ module Textbringer
     end
 
     def redisplay
+      return if @buffer.nil?
       @buffer.save_point do |saved|
         @window.erase
         @window.setpos(0, 0)

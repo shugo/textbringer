@@ -25,19 +25,21 @@ module Textbringer
     end
 
     def start(args)
-      @current_buffer = 
-        if args[0]
-          Buffer.open(args[0])
-        else
-          Buffer.new(name: "Untitled")
-        end
-      @buffers.push(@current_buffer)
       Window.start do
         @current_window = @window =
-          Textbringer::Window.new(@current_buffer,
-                                  Window.lines - 1, Window.columns, 0, 0)
-        @echo_area = Textbringer::EchoArea.new(@minibuffer, 1, Window.columns,
+          Textbringer::Window.new(Window.lines - 1, Window.columns, 0, 0)
+        if args.size > 0
+          args.reverse_each do |arg|
+            find_file(arg)
+          end
+        else
+          @current_buffer = Buffer.new(name: "Untitled")
+          @buffers.push(@current_buffer)
+          @current_window.buffer = @current_buffer
+        end
+        @echo_area = Textbringer::EchoArea.new(1, Window.columns,
                                                Window.lines - 1, 0)
+        @echo_area.buffer = @minibuffer
         @echo_area.show("Quit by C-x C-c")
         @echo_area.redisplay
         @window.redisplay
@@ -115,7 +117,18 @@ module Textbringer
           nil
         end
       }
-      read_from_minibuffer(prompt, completion_proc: f)
+      if @buffers.size > 1
+        default = @buffers[-2].name
+        prompt = prompt.sub(/:/, "(default #{default}):")
+      else
+        default = nil
+      end
+      name = read_from_minibuffer(prompt, completion_proc: f)
+      if default && name.empty?
+        default
+      else
+        name
+      end
     end
 
     def command_loop(catch_keyboard_quit = true)

@@ -32,7 +32,7 @@ module Textbringer
 
     attr_reader :buffer
 
-    def initialize(buffer, num_lines, num_columns, y, x)
+    def initialize(num_lines, num_columns, y, x)
       @window = Curses::Window.new(num_lines - 1, num_columns, y, x)
       @mode_line = Curses::Window.new(1, num_columns, y + num_lines - 1, x)
       @window.keypad = true
@@ -42,8 +42,6 @@ module Textbringer
       @top_of_windows = {}
       @bottom_of_window = nil
       @bottom_of_windows = {}
-      self.buffer = buffer
-      redisplay
     end
 
     def buffer=(buffer)
@@ -71,6 +69,7 @@ module Textbringer
     end
 
     def redisplay
+      return if @buffer.nil?
       redisplay_mode_line
       @buffer.save_point do |saved|
         framer
