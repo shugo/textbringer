@@ -83,18 +83,22 @@ module Textbringer
         buffer = Buffer.open(file_name, name: name)
         @buffers.push(buffer)
       end
-      @current_window.buffer = @current_buffer = buffer
+      switch_to_buffer(buffer)
     end
 
     define_command(:switch_to_buffer) do
       |buffer_name = read_buffer("Switch to buffer: ")|
-      i = @buffers.index { |buffer| buffer.name == buffer_name }
-      buffer = @buffers.delete_at(i)
-      @buffers.push(buffer)
+      if buffer_name.is_a?(Buffer)
+        buffer = buffer_name
+      else
+        buffer = @buffers.find { |i| i.name == buffer_name }
+      end
       if buffer
+        @buffers.delete(buffer)
+        @buffers.push(buffer)
         @current_window.buffer = @current_buffer = buffer
       else
-        message("No such buffer")
+        message("No such buffer: #{buffer_name}")
       end
     end
 
