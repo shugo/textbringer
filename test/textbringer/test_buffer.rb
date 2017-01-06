@@ -425,7 +425,7 @@ EOF
   end
 
   def test_save_ascii_only
-    Tempfile.create do |f|
+    Tempfile.create("test_buffer") do |f|
       f.print(<<EOF)
 hello world
 EOF
@@ -444,7 +444,7 @@ EOF
   end
 
   def test_save_utf8
-    Tempfile.create do |f|
+    Tempfile.create("test_buffer") do |f|
       f.print(<<EOF)
 こんにちは
 EOF
@@ -463,7 +463,7 @@ EOF
   end
 
   def test_save_euc_jp
-    Tempfile.create do |f|
+    Tempfile.create("test_buffer") do |f|
       f.print(<<EOF.encode(Encoding::EUC_JP))
 こんにちは
 EOF
@@ -482,7 +482,7 @@ EOF
   end
 
   def test_save_windows31j
-    Tempfile.create do |f|
+    Tempfile.create("test_buffer") do |f|
       f.print(<<EOF.encode(Encoding::Windows_31J))
 こんにちは
 EOF
@@ -501,7 +501,7 @@ EOF
   end
 
   def test_save_dos
-    Tempfile.create do |f|
+    Tempfile.create("test_buffer") do |f|
       f.print(<<EOF.gsub(/\n/, "\r\n").encode(Encoding::Windows_31J))
 こんにちは
 EOF
@@ -520,7 +520,7 @@ EOF
   end
 
   def test_save_mac
-    Tempfile.create do |f|
+    Tempfile.create("test_buffer") do |f|
       f.print(<<EOF.gsub(/\n/, "\r").encode(Encoding::Windows_31J))
 こんにちは
 EOF
