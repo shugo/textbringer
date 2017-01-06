@@ -12,8 +12,9 @@ module Textbringer
     include Keys
 
     def initialize
-      @buffer = nil
+      @buffers = []
       @minibuffer = Buffer.new
+      @minibuffer_completion_proc = nil
       @current_buffer = nil
       @window = nil
       @current_window = nil
@@ -24,10 +25,16 @@ module Textbringer
     end
 
     def start(args)
-      @current_buffer = @buffer = args[0] ? Buffer.open(args[0]) : Buffer.new
+      @current_buffer = 
+        if args[0]
+          Buffer.open(args[0])
+        else
+          Buffer.new(name: "Untitled")
+        end
+      @buffers.push(@current_buffer)
       Window.start do
         @current_window = @window =
-          Textbringer::Window.new(@buffer,
+          Textbringer::Window.new(@current_buffer,
                                   Window.lines - 1, Window.columns, 0, 0)
         @echo_area = Textbringer::EchoArea.new(@minibuffer, 1, Window.columns,
                                                Window.lines - 1, 0)
@@ -47,9 +54,11 @@ module Textbringer
       @echo_area.show(msg)
     end
 
-    def read_from_minibuffer(prompt)
+    def read_from_minibuffer(prompt, completion_proc: nil)
       buffer = @current_buffer
       window = @current_window
+      old_completion_proc = @minibuffer_completion_proc
+      @minibuffer_completion_proc = completion_proc
       begin
         @current_buffer = @minibuffer
         @current_buffer.delete_region(0, @current_buffer.size)
@@ -65,7 +74,31 @@ module Textbringer
         Window.update
         @current_buffer = buffer
         @current_window = window
+        @minibuffer_completion_proc = old_completion_proc
       end
+    end
+
+    def read_file_name(prompt)
+      f = ->(s) {
+        files = Dir.glob(s + "*")
+        if files.size > 0
+          x, *xs = files
+          file = x.size.downto(1).lazy.map { |i|
+            x[0, i]
+          }.find { |i|
+            xs.all? { |j| j.start_with?(i) }
+          }
+          if file && files.size == 1 &&
+             File.directory?(file) && !file.end_with?(?/)
+            file + "/"
+          else
+            file
+          end
+        else
+          nil
+        end
+      }
+      read_from_minibuffer(prompt, completion_proc: f)
     end
 
     def command_loop(catch_keyboard_quit = true)

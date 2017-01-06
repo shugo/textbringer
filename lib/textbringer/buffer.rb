@@ -4,7 +4,7 @@ require "unicode/display_width"
 
 module Textbringer
   class Buffer
-    attr_accessor :filename, :file_encoding, :file_format
+    attr_accessor :name, :file_name, :file_encoding, :file_format
     attr_reader :point, :marks
 
     GAP_SIZE = 256
@@ -26,9 +26,12 @@ module Textbringer
       Encoding::Windows_31J
     ]
 
-    def initialize(s = "", filename: nil, file_encoding: Encoding::UTF_8)
-      @contents = s.encode(Encoding::UTF_8).force_encoding(Encoding::ASCII_8BIT)
-      @filename = filename
+    def initialize(s = "", name: nil,
+                   file_name: nil, file_encoding: Encoding::UTF_8)
+      @contents = s.encode(Encoding::UTF_8)
+      @contents.force_encoding(Encoding::ASCII_8BIT)
+      @name = name
+      @file_name = file_name
       @file_encoding = file_encoding
       case @contents
       when /(?<!\r)\n/ 
@@ -53,18 +56,19 @@ module Textbringer
       @undoing = false
     end
 
-    def self.open(filename)
-      s = File.read(filename)
+    def self.open(file_name, name: File.basename(file_name))
+      s = File.read(file_name)
       enc = @@auto_detect_encodings.find { |e|
         s.force_encoding(e)
         s.valid_encoding?
       }
-      Buffer.new(s, filename: filename, file_encoding: enc)
+      Buffer.new(s, name: name,
+                 file_name: file_name, file_encoding: enc)
     end
 
     def save
-      if @filename.nil?
-        raise "filename is not set"
+      if @file_name.nil?
+        raise "file name is not set"
       end
       s = to_s
       case @file_format
@@ -73,7 +77,7 @@ module Textbringer
       when :mac
         s.gsub!(/\n/, "\r")
       end
-      File.write(@filename, s, encoding: @file_encoding)
+      File.write(@file_name, s, encoding: @file_encoding)
     end
 
     def to_s

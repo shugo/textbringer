@@ -68,13 +68,31 @@ module Textbringer
       @current_window.scroll_down
     end
 
+    define_command(:find_file) do
+      file_name = read_file_name("Find file: ")
+      buffer = @buffers.find { |buffer| buffer.file_name == file_name }
+      if buffer.nil?
+        name = File.basename(file_name)
+        if @buffers.find { |buffer| buffer.name == name }
+          name = (2..Float::INFINITY).lazy.map { |i|
+            "#{name}<#{i}>"
+          }.find { |i|
+            @buffers.all? { |buffer| buffer.name != i }
+          }
+        end
+        buffer = Buffer.open(file_name, name: name)
+        @buffers.push(buffer)
+      end
+      @current_window.buffer = @current_buffer = buffer
+    end
+
     define_command(:save_buffer) do
-      if @current_buffer.filename.nil?
-        @current_buffer.filename = read_from_minibuffer("Filename: ")
-        next if @current_buffer.filename.nil?
+      if @current_buffer.file_name.nil?
+        @current_buffer.file_name = read_from_minibuffer("Filename: ")
+        next if @current_buffer.file_name.nil?
       end
       @current_buffer.save
-      message("Wrote #{@current_buffer.filename}")
+      message("Wrote #{@current_buffer.file_name}")
     end
 
     define_command(:execute_command) do
@@ -102,6 +120,17 @@ module Textbringer
 
     define_command(:exit_minibuffer) do
       throw :minibuffer_exit
+    end
+
+    define_command(:complete_minibuffer) do
+      if @minibuffer_completion_proc
+        s = @minibuffer_completion_proc.call(@minibuffer.to_s)
+        if s
+          @minibuffer.delete_region(@minibuffer.point_min,
+                                    @minibuffer.point_max)
+          @minibuffer.insert(s)
+        end
+      end
     end
 
     define_command(:keyboard_quit) do

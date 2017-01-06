@@ -30,17 +30,32 @@ module Textbringer
       Curses.cols
     end
 
+    attr_reader :buffer
+
     def initialize(buffer, num_lines, num_columns, y, x)
-      @buffer = buffer
       @window = Curses::Window.new(num_lines - 1, num_columns, y, x)
       @mode_line = Curses::Window.new(1, num_columns, y + num_lines - 1, x)
       @window.keypad = true
       @window.scrollok(false)
-      @top_of_window = @buffer.new_mark
-      @top_of_window.location = 0
-      @bottom_of_window = @buffer.new_mark
-      @bottom_of_window.location = 0
+      @buffer = nil
+      @top_of_window = nil
+      @top_of_windows = {}
+      @bottom_of_window = nil
+      @bottom_of_windows = {}
+      self.buffer = buffer
       redisplay
+    end
+
+    def buffer=(buffer)
+      if @top_of_window
+        @top_of_window.delete
+      end
+      if @bottom_of_window
+        @bottom_of_window.delete
+      end
+      @buffer = buffer
+      @top_of_window = @top_of_windows[@buffer] ||= @buffer.new_mark
+      @bottom_of_window = @bottom_of_windows[@buffer] ||= @buffer.new_mark
     end
 
     def lines
@@ -59,7 +74,7 @@ module Textbringer
       @mode_line.erase
       @mode_line.setpos(0, 0)
       @mode_line.attron(Curses::A_REVERSE)
-      @mode_line << File.basename(@buffer.filename || "Untitled")
+      @mode_line << File.basename(@buffer.name)
       @mode_line << " "
       @mode_line << "[#{@buffer.file_encoding.name}]"
       @mode_line << "[#{@buffer.file_format}]"

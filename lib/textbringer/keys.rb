@@ -53,11 +53,13 @@ module Textbringer
       define_key(@global_map, "\ev", :scroll_down)
       define_key(@global_map, KEY_PPAGE, :scroll_down)
       define_key(@global_map, "\C-x\C-c") { exit }
+      define_key(@global_map, "\C-x\C-f", :find_file)
       define_key(@global_map, "\C-x\C-s", :save_buffer)
       define_key(@global_map, "\ex", :execute_command)
       define_key(@global_map, "\e:", :eval_expression)
 
       define_key(@minibuffer_local_map, ?\n, :exit_minibuffer)
+      define_key(@minibuffer_local_map, ?\t, :complete_minibuffer)
       define_key(@minibuffer_local_map, ?\C-g, :keyboard_quit)
     end
 
