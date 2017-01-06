@@ -472,7 +472,11 @@ module Textbringer
           raise "Search failed"
         end
       end
-      goto_char(gap_to_user(Regexp.last_match.end(0)))
+      m = Regexp.last_match
+      if /[\x80-\xbf]/n =~ @contents[m.end(0)]
+        raise "Search failed"
+      end
+      goto_char(gap_to_user(m.end(0)))
     end
 
     def transpose_chars
