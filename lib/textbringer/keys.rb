@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "curses"
+require "ncursesw"
 
 module Textbringer
   module Keys
@@ -70,12 +70,12 @@ module Textbringer
       define_key(@minibuffer_local_map, ?\C-g, :keyboard_quit)
     end
 
-    Curses.constants.grep(/\AKEY_/) do |name|
-      const_set(name, Curses.const_get(name))
+    Ncurses.constants.grep(/\AKEY_/) do |name|
+      const_set(name, Ncurses.const_get(name))
     end
 
     def key_name(key)
-      Curses.keyname(key)
+      Ncurses.keyname(key)
     end
 
     def define_key(key_map, key, command = nil, &block)

@@ -145,7 +145,7 @@ module Textbringer
     def command_loop(catch_keyboard_quit = true)
       while c = @current_window.getch
         @echo_area.clear_message
-        @last_key = c.ord
+        @last_key = c
         @key_sequence << @last_key
         cmd = key_binding(@buffer_local_maps[@current_buffer], @key_sequence)
         begin
