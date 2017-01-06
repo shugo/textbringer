@@ -69,18 +69,14 @@ module Textbringer
       @window.getch
     end
 
-    def redisplay(clear = true)
+    def redisplay
       return if @buffer.nil?
-      redisplay_mode_line(clear)
+      redisplay_mode_line
       @buffer.save_point do |saved|
         framer
         y = x = 0
         @buffer.point_to_mark(@top_of_window)
-        if clear
-          @window.clear
-        else
-          @window.erase
-        end
+        @window.erase
         @window.move(0, 0)
         while !@buffer.end_of_buffer?
           if @buffer.point_at_mark?(saved)
@@ -103,6 +99,11 @@ module Textbringer
         @window.move(y, x)
         @window.noutrefresh
       end
+    end
+    
+    def redraw
+      @window.redrawwin
+      @mode_line.redrawwin
     end
 
     def move(y, x)
@@ -153,12 +154,8 @@ module Textbringer
       end
     end
 
-    def redisplay_mode_line(clear = false)
-      if clear
-        @mode_line.clear
-      else
-        @mode_line.erase
-      end
+    def redisplay_mode_line
+      @mode_line.erase
       @mode_line.move(0, 0)
       @mode_line.attron(Ncurses::A_REVERSE)
       @mode_line.addstr(File.basename(@buffer.name))

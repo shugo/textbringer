@@ -45,8 +45,8 @@ module Textbringer
         @window.redisplay
         Window.update
         trap(:CONT) do
-          @echo_area.redisplay(true)
-          @window.redisplay(true)
+          @echo_area.redraw
+          @window.redraw
           Window.update
         end
         command_loop
