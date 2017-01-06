@@ -1,6 +1,7 @@
 # Textbringer
 
-A text editor.
+Textbringer is a member of a demon race that takes on the form of a text
+editor.
 
 ## Installation
 
