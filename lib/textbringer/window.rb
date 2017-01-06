@@ -71,16 +71,7 @@ module Textbringer
     end
 
     def redisplay
-      @mode_line.erase
-      @mode_line.setpos(0, 0)
-      @mode_line.attron(Curses::A_REVERSE)
-      @mode_line << File.basename(@buffer.name)
-      @mode_line << " "
-      @mode_line << "[#{@buffer.file_encoding.name}]"
-      @mode_line << "[#{@buffer.file_format}]"
-      @mode_line << " " * (@mode_line.maxx - @mode_line.curx)
-      @mode_line.attroff(Curses::A_REVERSE)
-      @mode_line.noutrefresh
+      redisplay_mode_line
       @buffer.save_point do |saved|
         framer
         y = x = 0
@@ -153,6 +144,19 @@ module Textbringer
           @top_of_window.location = new_start_loc
         end
       end
+    end
+
+    def redisplay_mode_line
+      @mode_line.erase
+      @mode_line.setpos(0, 0)
+      @mode_line.attron(Curses::A_REVERSE)
+      @mode_line << File.basename(@buffer.name)
+      @mode_line << " "
+      @mode_line << "[#{@buffer.file_encoding.name}]"
+      @mode_line << "[#{@buffer.file_format}]"
+      @mode_line << " " * (@mode_line.maxx - @mode_line.curx)
+      @mode_line.attroff(Curses::A_REVERSE)
+      @mode_line.noutrefresh
     end
 
     def escape(s)
