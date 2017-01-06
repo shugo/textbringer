@@ -80,19 +80,23 @@ module Textbringer
       @current_window.scroll_down
     end
 
+    def new_buffer_name(file_name)
+      name = File.basename(file_name)
+      if @buffers.find { |buffer| buffer.name == name }
+        name = (2..Float::INFINITY).lazy.map { |i|
+          "#{name}<#{i}>"
+        }.find { |i|
+          @buffers.all? { |buffer| buffer.name != i }
+        }
+      end
+      name
+    end
+
     define_command(:find_file) do
       |file_name = read_file_name("Find file: ")|
       buffer = @buffers.find { |buffer| buffer.file_name == file_name }
       if buffer.nil?
-        name = File.basename(file_name)
-        if @buffers.find { |buffer| buffer.name == name }
-          name = (2..Float::INFINITY).lazy.map { |i|
-            "#{name}<#{i}>"
-          }.find { |i|
-            @buffers.all? { |buffer| buffer.name != i }
-          }
-        end
-        buffer = Buffer.open(file_name, name: name)
+        buffer = Buffer.open(file_name, name: new_buffer_name(file_name))
         @buffers.push(buffer)
       end
       switch_to_buffer(buffer)
@@ -116,8 +120,18 @@ module Textbringer
 
     define_command(:save_buffer) do
       if @current_buffer.file_name.nil?
-        @current_buffer.file_name = read_from_minibuffer("Filename: ")
+        @current_buffer.file_name = read_from_minibuffer("File to save in: ")
         next if @current_buffer.file_name.nil?
+      end
+      @current_buffer.save
+      message("Wrote #{@current_buffer.file_name}")
+    end
+
+    define_command(:write_file) do
+      |file_name = read_file_name("Write file: ")|
+      @current_buffer.file_name = file_name
+      if File.basename(file_name) != @current_buffer.name
+        @current_buffer.name = new_buffer_name(file_name)
       end
       @current_buffer.save
       message("Wrote #{@current_buffer.file_name}")

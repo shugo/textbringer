@@ -59,6 +59,7 @@ module Textbringer
       define_key(@global_map, "\C-x\C-f", :find_file)
       define_key(@global_map, "\C-xb", :switch_to_buffer)
       define_key(@global_map, "\C-x\C-s", :save_buffer)
+      define_key(@global_map, "\C-x\C-w", :write_file)
       define_key(@global_map, "\ex", :execute_command)
       define_key(@global_map, "\e:", :eval_expression)
 
