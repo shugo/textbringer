@@ -423,7 +423,7 @@ module Textbringer
           raise "Search failed"
         end
       end
-      goto_char(Regexp.last_match.end(0))
+      goto_char(gap_to_user(Regexp.last_match.end(0)))
     end
 
     private
@@ -466,7 +466,7 @@ module Textbringer
       elsif gpos >= @gap_end
         gpos - gap_size
       else
-        nil
+        raise RangeError, "Position is in gap"
       end
     end
 

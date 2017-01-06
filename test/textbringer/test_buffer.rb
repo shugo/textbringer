@@ -510,6 +510,8 @@ EOF
     buffer.beginning_of_buffer
     assert_equal(27, buffer.re_search_forward("あいうえお"))
     assert_equal(27, buffer.point)
+    buffer.insert("foo")
+    buffer.backward_delete_char(3)
     assert_equal(33, buffer.re_search_forward("[a-z]+"))
     assert_equal(33, buffer.point)
     assert_equal(55, buffer.re_search_forward("あいうえお"))
