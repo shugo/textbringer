@@ -30,27 +30,27 @@ module Textbringer
       return if @buffer.nil?
       @buffer.save_point do |saved|
         @window.erase
-        @window.setpos(0, 0)
+        @window.move(0, 0)
         if @message
-          @window << @message
+          @window.addstr @message
         else
-          @window << @prompt
+          @window.addstr @prompt
           @buffer.beginning_of_line
           while !@buffer.end_of_buffer?
             if @buffer.point_at_mark?(saved)
-              y, x = @window.cury, @window.curx
+              y, x = @window.getcury, @window.getcurx
             end
             c = @buffer.char_after
             if c == "\n"
               break
             end
-            @window << escape(c)
+            @window.addstr escape(c)
             @buffer.forward_char
           end
           if @buffer.point_at_mark?(saved)
-            y, x = @window.cury, @window.curx
+            y, x = @window.getcury, @window.getcurx
           end
-          @window.setpos(y, x)
+          @window.move(y, x)
         end
         @window.noutrefresh
       end
