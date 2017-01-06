@@ -33,7 +33,8 @@ module Textbringer
     attr_reader :buffer
 
     def initialize(num_lines, num_columns, y, x)
-      @window = Curses::Window.new(num_lines, num_columns, y, x)
+      @window = Curses::Window.new(num_lines - 1, num_columns, y, x)
+      @mode_line = Curses::Window.new(1, num_columns, y + num_lines - 1, x)
       @window.keypad = true
       @window.scrollok(false)
       @buffer = nil
@@ -56,7 +57,7 @@ module Textbringer
     end
 
     def lines
-      @window.maxy - 1
+      @window.maxy
     end
 
     def columns
@@ -69,6 +70,7 @@ module Textbringer
 
     def redisplay
       return if @buffer.nil?
+      redisplay_mode_line
       @buffer.save_point do |saved|
         framer
         y = x = 0
@@ -93,7 +95,6 @@ module Textbringer
         if @buffer.point_at_mark?(saved)
           y, x = @window.cury, @window.curx
         end
-        redisplay_mode_line
         @window.setpos(y, x)
         @window.noutrefresh
       end
@@ -145,14 +146,16 @@ module Textbringer
     end
 
     def redisplay_mode_line
-      @window.setpos(lines, 0)
-      @window.attron(Curses::A_REVERSE)
-      @window << File.basename(@buffer.name)
-      @window << " "
-      @window << "[#{@buffer.file_encoding.name}]"
-      @window << "[#{@buffer.file_format}]"
-      @window << " " * (columns - @window.curx)
-      @window.attroff(Curses::A_REVERSE)
+      @mode_line.erase
+      @mode_line.setpos(0, 0)
+      @mode_line.attron(Curses::A_REVERSE)
+      @mode_line << File.basename(@buffer.name)
+      @mode_line << " "
+      @mode_line << "[#{@buffer.file_encoding.name}]"
+      @mode_line << "[#{@buffer.file_format}]"
+      @mode_line << " " * (@mode_line.maxx - @mode_line.curx)
+      @mode_line.attroff(Curses::A_REVERSE)
+      @mode_line.noutrefresh
     end
 
     def escape(s)
