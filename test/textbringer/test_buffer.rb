@@ -327,6 +327,9 @@ abcdefg
 あいうえお
 かきくけこ
 EOF
+    assert_raise(RuntimeError) do
+      buffer.copy_region
+    end
     buffer.next_line
     buffer.set_mark
     buffer.next_line
