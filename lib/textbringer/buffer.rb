@@ -405,7 +405,9 @@ module Textbringer
         else
           end_of_line
         end
-        kill_region(saved.location, @point, append)
+        pos = @point
+        point_to_mark(saved)
+        kill_region(@point, pos, append)
       end
     end
 
@@ -415,7 +417,9 @@ module Textbringer
           raise RangeError, "End of buffer"
         end
         forward_word
-        kill_region(saved.location, @point, append)
+        pos = @point
+        point_to_mark(saved)
+        kill_region(@point, pos, append)
       end
     end
 
