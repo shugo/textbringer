@@ -60,6 +60,11 @@ module Textbringer
       @this_command = :kill_region
     end
 
+    define_command(:re_search_forward) do
+      |s = read_from_minibuffer("RE search: ")|
+      @current_buffer.re_search_forward(s)
+    end
+
     define_command(:scroll_up) do
       @current_window.scroll_up
     end
@@ -112,7 +117,7 @@ module Textbringer
     end
 
     define_command(:execute_command) do
-      |cmd = read_from_minibuffer("M-x ").strip.intern|
+      |cmd = read_command_name("M-x ").strip.intern|
       unless Commands.list.include?(cmd)
         raise "undefined command: #{cmd}"
       end

@@ -103,19 +103,23 @@ module Textbringer
       read_from_minibuffer(prompt, completion_proc: f)
     end
 
+    def complete(s, candidates)
+      xs = candidates.select { |i| i.start_with?(s) }
+      if xs.size > 0
+        y, *ys = xs
+        y.size.downto(1).lazy.map { |i|
+          y[0, i]
+        }.find { |i|
+          ys.all? { |j| j.start_with?(i) }
+        }
+      else
+        nil
+      end
+    end
+
     def read_buffer(prompt)
       f = ->(s) {
-        names = @buffers.map(&:name).select { |i| i.start_with?(s) }
-        if names.size > 0
-          x, *xs = names
-          x.size.downto(1).lazy.map { |i|
-            x[0, i]
-          }.find { |i|
-            xs.all? { |j| j.start_with?(i) }
-          }
-        else
-          nil
-        end
+        complete(s, @buffers.map(&:name))
       }
       if @buffers.size > 1
         default = @buffers[-2].name
@@ -129,6 +133,13 @@ module Textbringer
       else
         name
       end
+    end
+
+    def read_command_name(prompt)
+      f = ->(s) {
+        complete(s.tr("-", "_"), Commands.list.map(&:to_s))
+      }
+      read_from_minibuffer(prompt, completion_proc: f)
     end
 
     def command_loop(catch_keyboard_quit = true)

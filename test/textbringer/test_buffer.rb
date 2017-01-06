@@ -499,4 +499,20 @@ EOF
     assert_equal(:mac, buffer.file_format)
     assert_equal("foo\nbar\n", buffer.to_s)
   end
+
+  def test_re_search_forward
+    buffer = Buffer.new(<<EOF)
+hello world
+あいうえお
+hello world
+あいうえお
+EOF
+    buffer.beginning_of_buffer
+    assert_equal(27, buffer.re_search_forward("あいうえお"))
+    assert_equal(27, buffer.point)
+    assert_equal(33, buffer.re_search_forward("[a-z]+"))
+    assert_equal(33, buffer.point)
+    assert_equal(55, buffer.re_search_forward("あいうえお"))
+    assert_equal(55, buffer.point)
+  end
 end

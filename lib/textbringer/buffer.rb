@@ -412,6 +412,20 @@ module Textbringer
       end
     end
 
+    def re_search_forward(s)
+      re = Regexp.new(s.dup.force_encoding(Encoding::ASCII_8BIT))
+      unless @contents.index(re, user_to_gap(@point))
+        raise "Search failed"
+      end
+      m = Regexp.last_match
+      if m.begin(0) < @gap_end && m.end(0) > @gap_start
+        unless @contents.index(re, @gap_end)
+          raise "Search failed"
+        end
+      end
+      goto_char(Regexp.last_match.end(0))
+    end
+
     private
 
     def adjust_gap(min_size = 0)
