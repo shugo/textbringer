@@ -60,7 +60,7 @@ module Textbringer
       @echo_area.show(msg)
     end
 
-    def read_from_minibuffer(prompt, completion_proc: nil)
+    def read_from_minibuffer(prompt, completion_proc: nil, default: nil)
       buffer = @current_buffer
       window = @current_window
       old_completion_proc = @minibuffer_completion_proc
@@ -69,11 +69,19 @@ module Textbringer
         @current_buffer = @minibuffer
         @current_buffer.delete_region(0, @current_buffer.size)
         @current_window = @echo_area
+        if default
+          prompt = prompt.sub(/:/, " (default #{default}):")
+        end
         @echo_area.prompt = prompt
         @echo_area.redisplay
         Window.update
         catch(:minibuffer_exit) { command_loop(false) }
-        @minibuffer.to_s.chomp
+        s = @minibuffer.to_s.chomp
+        if default && s.empty?
+          default
+        else
+          s
+        end
       ensure
         @echo_area.clear
         @echo_area.redisplay
@@ -125,15 +133,7 @@ module Textbringer
       f = ->(s) {
         complete(s, @buffers.map(&:name))
       }
-      if default
-        prompt = prompt.sub(/:/, " (default #{default}):")
-      end
-      name = read_from_minibuffer(prompt, completion_proc: f)
-      if default && name.empty?
-        default
-      else
-        name
-      end
+      read_from_minibuffer(prompt, completion_proc: f, default: default)
     end
 
     def read_command_name(prompt)
