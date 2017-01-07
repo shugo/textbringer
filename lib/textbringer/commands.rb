@@ -172,6 +172,9 @@ module Textbringer
       else
         buffer = @buffers.find { |i| i.name == name }
       end
+      if buffer.modified?
+        next unless yes_or_no?("The last change is not saved; kill anyway?")
+      end
       @buffers.delete(buffer)
       if @buffers.empty?
         @buffers.push(Buffer.new(name: "Untitled"))

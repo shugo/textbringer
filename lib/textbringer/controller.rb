@@ -143,6 +143,20 @@ module Textbringer
       read_from_minibuffer(prompt, completion_proc: f)
     end
 
+    def yes_or_no?(prompt)
+      loop {
+        s = read_from_minibuffer(prompt + " (yes or no) ")
+        case s
+        when "yes"
+          return true
+        when "no"
+          return false
+        else
+          message("Please answer yes or no.")
+        end
+      }
+    end
+
     def command_loop(catch_keyboard_quit = true)
       while c = @current_window.getch
         @echo_area.clear_message
