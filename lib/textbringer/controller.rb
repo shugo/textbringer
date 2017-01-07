@@ -33,9 +33,8 @@ module Textbringer
             find_file(arg)
           end
         else
-          @current_buffer = Buffer.new(name: "Untitled")
-          @buffers.push(@current_buffer)
-          @current_window.buffer = @current_buffer
+          @buffers.push(Buffer.new(name: "Untitled"))
+          switch_to_buffer(@buffers.last)
         end
         @echo_area = Textbringer::EchoArea.new(1, Window.columns,
                                                Window.lines - 1, 0)
@@ -122,15 +121,12 @@ module Textbringer
       end
     end
 
-    def read_buffer(prompt)
+    def read_buffer(prompt, default: @buffers[-2]&.name)
       f = ->(s) {
         complete(s, @buffers.map(&:name))
       }
-      if @buffers.size > 1
-        default = @buffers[-2].name
-        prompt = prompt.sub(/:/, "(default #{default}):")
-      else
-        default = nil
+      if default
+        prompt = prompt.sub(/:/, " (default #{default}):")
       end
       name = read_from_minibuffer(prompt, completion_proc: f)
       if default && name.empty?

@@ -164,6 +164,20 @@ module Textbringer
       message("Wrote #{@current_buffer.file_name}")
     end
 
+    define_command(:kill_buffer) do
+      |name = read_buffer("Kill buffer: ", default: @current_buffer.name)|
+      if name.is_a?(Buffer)
+        buffer = name
+      else
+        buffer = @buffers.find { |i| i.name == name }
+      end
+      @buffers.delete(buffer)
+      if @buffers.empty?
+        @buffers.push(Buffer.new(name: "Untitled"))
+      end
+      switch_to_buffer(@buffers.last)
+    end
+
     define_command(:execute_command) do
       |cmd = read_command_name("M-x ").strip.intern|
       unless Commands.list.include?(cmd)
