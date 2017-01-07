@@ -605,4 +605,136 @@ hello wordl
 お
 EOF
   end
+
+  def test_undo
+    Tempfile.create("test_buffer") do |f|
+      f.print(<<EOF)
+Hello world
+I'm shugo
+EOF
+      f.close
+      buffer = Buffer.open(f.path)
+      assert_equal(false, buffer.modified?)
+      buffer.delete_char("Hello".size)
+      buffer.insert("Goodbye")
+      assert_equal(true, buffer.modified?)
+      assert_equal(<<EOF, buffer.to_s)
+Goodbye world
+I'm shugo
+EOF
+      buffer.end_of_buffer
+      buffer.backward_char
+      buffer.delete_char(-"shugo".size)
+      buffer.insert("tired")
+      assert_equal(<<EOF, buffer.to_s)
+Goodbye world
+I'm tired
+EOF
+      buffer.end_of_buffer
+      buffer.insert("How are you?\n")
+      assert_equal(<<EOF, buffer.to_s)
+Goodbye world
+I'm tired
+How are you?
+EOF
+      buffer.backward_char("How are you?\n".size)
+      buffer.delete_char(-"I'm tired\n".size)
+      assert_equal(<<EOF, buffer.to_s)
+Goodbye world
+How are you?
+EOF
+
+      buffer.undo
+      assert_equal(true, buffer.modified?)
+      assert_equal(<<EOF, buffer.to_s)
+Goodbye world
+I'm tired
+How are you?
+EOF
+      buffer.undo
+      assert_equal(true, buffer.modified?)
+      assert_equal(<<EOF, buffer.to_s)
+Goodbye world
+I'm tired
+EOF
+      2.times { buffer.undo }
+      assert_equal(true, buffer.modified?)
+      assert_equal(<<EOF, buffer.to_s)
+Goodbye world
+I'm shugo
+EOF
+      2.times { buffer.undo }
+      assert_equal(false, buffer.modified?)
+      assert_equal(<<EOF, buffer.to_s)
+Hello world
+I'm shugo
+EOF
+
+      2.times { buffer.redo }
+      assert_equal(true, buffer.modified?)
+      assert_equal(<<EOF, buffer.to_s)
+Goodbye world
+I'm shugo
+EOF
+      2.times { buffer.redo }
+      assert_equal(true, buffer.modified?)
+      assert_equal(<<EOF, buffer.to_s)
+Goodbye world
+I'm tired
+EOF
+
+      buffer.save
+      assert_equal(false, buffer.modified?)
+      2.times { buffer.undo }
+      assert_equal(true, buffer.modified?)
+      assert_equal(<<EOF, buffer.to_s)
+Goodbye world
+I'm shugo
+EOF
+      2.times { buffer.redo }
+      assert_equal(false, buffer.modified?)
+      assert_equal(<<EOF, buffer.to_s)
+Goodbye world
+I'm tired
+EOF
+
+      buffer.end_of_buffer
+      buffer.insert("This is the last line\n")
+      assert_equal(true, buffer.modified?)
+      assert_equal(<<EOF, buffer.to_s)
+Goodbye world
+I'm tired
+This is the last line
+EOF
+
+      buffer.undo
+      assert_equal(false, buffer.modified?)
+      assert_equal(<<EOF, buffer.to_s)
+Goodbye world
+I'm tired
+EOF
+
+      2.times { buffer.undo }
+      assert_equal(true, buffer.modified?)
+      assert_equal(<<EOF, buffer.to_s)
+Goodbye world
+I'm shugo
+EOF
+
+      2.times { buffer.redo }
+      assert_equal(false, buffer.modified?)
+      assert_equal(<<EOF, buffer.to_s)
+Goodbye world
+I'm tired
+EOF
+
+      buffer.redo
+      assert_equal(true, buffer.modified?)
+      assert_equal(<<EOF, buffer.to_s)
+Goodbye world
+I'm tired
+This is the last line
+EOF
+    end
+  end
 end

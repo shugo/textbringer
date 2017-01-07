@@ -452,11 +452,15 @@ module Textbringer
       action = @undo_stack.pop
       @undoing = true
       begin
+        was_modified = @modified
         action.undo
-        @redo_stack.push(action)
         if action.version == @version
           @modified = false
+          action.version = nil
+        elsif !was_modified
+          action.version = @version
         end
+        @redo_stack.push(action)
       ensure
         @undoing = false
       end
@@ -469,11 +473,15 @@ module Textbringer
       action = @redo_stack.pop
       @undoing = true
       begin
+        was_modified = @modified
         action.redo
-        @undo_stack.push(action)
-        if @redo_stack.last && @redo_stack.last.version == @version
+        if action.version == @version
           @modified = false
+          action.version = nil
+        elsif !was_modified
+          action.version = @version
         end
+        @undo_stack.push(action)
       ensure
         @undoing = false
       end
