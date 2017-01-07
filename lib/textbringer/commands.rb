@@ -144,7 +144,7 @@ module Textbringer
 
     define_command(:save_buffer) do
       if @current_buffer.file_name.nil?
-        @current_buffer.file_name = read_from_minibuffer("File to save in: ")
+        @current_buffer.file_name = read_file_name("File to save in: ")
         next if @current_buffer.file_name.nil?
       end
       @current_buffer.save

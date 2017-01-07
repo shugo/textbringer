@@ -56,6 +56,12 @@ module Textbringer
       @undo_stack = []
       @redo_stack = []
       @undoing = false
+      @version = 0
+      @modified = false
+    end
+
+    def modified?
+      @modified
     end
 
     def self.open(file_name, name: File.basename(file_name))
@@ -80,6 +86,8 @@ module Textbringer
         s.gsub!(/\n/, "\r")
       end
       File.write(@file_name, s, encoding: @file_encoding)
+      @version += 1
+      @modified = false
     end
 
     def to_s
@@ -148,6 +156,7 @@ module Textbringer
           push_undo(InsertAction.new(self, pos, s))
         end
       end
+      @modified = true
       @column = nil
     end
 
@@ -180,6 +189,7 @@ module Textbringer
           end
         end
         push_undo(DeleteAction.new(self, s, s, str))
+        @modified = true
       elsif n < 0
         str = substring(pos, s)
         @marks.each do |m|
@@ -189,6 +199,7 @@ module Textbringer
         end
         @point = @gap_start = pos
         push_undo(DeleteAction.new(self, s, pos, str))
+        @modified = true
       end
       @column = nil
     end
@@ -388,6 +399,7 @@ module Textbringer
           end
         end
         push_undo(DeleteAction.new(self, old_pos, s, str)) 
+        @modified = true
       end
     end
 
@@ -442,6 +454,9 @@ module Textbringer
       begin
         action.undo
         @redo_stack.push(action)
+        if action.version == @version
+          @modified = false
+        end
       ensure
         @undoing = false
       end
@@ -456,6 +471,9 @@ module Textbringer
       begin
         action.redo
         @undo_stack.push(action)
+        if @redo_stack.last && @redo_stack.last.version == @version
+          @modified = false
+        end
       ensure
         @undoing = false
       end
@@ -567,6 +585,9 @@ module Textbringer
       if @undo_stack.size >= UNDO_LIMIT
         @undo_stack[0, @undo_stack.size + 1 - UNDO_LIMIT] = []
       end
+      if !modified?
+        action.version = @version
+      end
       @undo_stack.push(action)
       @redo_stack.clear
     end
@@ -622,10 +643,19 @@ module Textbringer
 
   KILL_RING = KillRing.new
 
-  class InsertAction
-    def initialize(buffer, location, string)
+  class UndoableAction
+    attr_accessor :version
+
+    def initialize(buffer, location)
+      @version = nil
       @buffer = buffer
       @location = location
+    end
+  end
+
+  class InsertAction < UndoableAction
+    def initialize(buffer, location, string)
+      super(buffer, location)
       @string = string
     end
 
@@ -644,10 +674,9 @@ module Textbringer
     end
   end
 
-  class DeleteAction
+  class DeleteAction < UndoableAction
     def initialize(buffer, location, insert_location, string)
-      @buffer = buffer
-      @location = location
+      super(buffer, location)
       @insert_location = insert_location
       @string = string
     end
