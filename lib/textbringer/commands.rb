@@ -19,6 +19,10 @@ module Textbringer
       @list << name if !@list.include?(name)
     end
 
+    define_command(:version) do
+      message("Textbringer #{Textbringer::VERSION} (#{RUBY_PLATFORM})")
+    end
+
     [
       :forward_char,
       :backward_char,
@@ -176,6 +180,14 @@ module Textbringer
       |s = read_from_minibuffer("Eval: ")|
       begin
         message(eval(s).inspect)
+      rescue Exception => e
+        message("#{e.class}: #{e}")
+      end
+    end
+
+    define_command(:eval_buffer) do
+      begin
+        message(eval(@current_buffer.to_s, TOPLEVEL_BINDING).inspect)
       rescue Exception => e
         message("#{e.class}: #{e}")
       end
