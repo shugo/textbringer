@@ -8,6 +8,7 @@ module Textbringer
     attr_reader :point, :marks
 
     GAP_SIZE = 256
+    UNDO_LIMIT = 1000
 
     UTF8_CHAR_LEN = Hash.new(1)
     [
@@ -142,10 +143,10 @@ module Textbringer
       unless @undoing
         if merge_undo && @undo_stack.last.is_a?(InsertAction)
           @undo_stack.last.merge(s)
+          @redo_stack.clear
         else
-          @undo_stack.push(InsertAction.new(self, pos, s))
+          push_undo(InsertAction.new(self, pos, s))
         end
-        @redo_stack.clear
       end
       @column = nil
     end
@@ -178,10 +179,7 @@ module Textbringer
             m.location -= pos - @point
           end
         end
-        unless @undoing
-          @undo_stack.push(DeleteAction.new(self, s, s, str))
-          @redo_stack.clear
-        end
+        push_undo(DeleteAction.new(self, s, s, str))
       elsif n < 0
         str = substring(pos, s)
         @marks.each do |m|
@@ -190,10 +188,7 @@ module Textbringer
           end
         end
         @point = @gap_start = pos
-        unless @undoing
-          @undo_stack.push(DeleteAction.new(self, s, pos, str))
-          @redo_stack.clear
-        end
+        push_undo(DeleteAction.new(self, s, pos, str))
       end
       @column = nil
     end
@@ -392,9 +387,7 @@ module Textbringer
             m.location -= e - s
           end
         end
-        unless @undoing
-          @undo_stack.push(DeleteAction.new(self, old_pos, s, str)) 
-        end
+        push_undo(DeleteAction.new(self, old_pos, s, str)) 
       end
     end
 
@@ -567,6 +560,15 @@ module Textbringer
         end
       end
       pos
+    end
+
+    def push_undo(action)
+      return if @undoing
+      if @undo_stack.size >= UNDO_LIMIT
+        @undo_stack[0, @undo_stack.size + 1 - UNDO_LIMIT] = []
+      end
+      @undo_stack.push(action)
+      @redo_stack.clear
     end
   end
 
