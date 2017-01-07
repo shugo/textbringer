@@ -78,10 +78,9 @@ module Textbringer
     def define_key(key_map, key, command = nil, &block)
       *ks, k = kbd(key)
       
-      block ||= Proc.new { send(command) }
       ks.inject(key_map) { |map, key|
         map[key] ||= {}
-      }[k] = block
+      }[k] = command || block
     end
 
     def kbd(key)

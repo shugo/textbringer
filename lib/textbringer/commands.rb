@@ -15,14 +15,7 @@ module Textbringer
     end
 
     def self.define_command(name, &block)
-      define_method(name) do |*args|
-        @this_command = nil
-        begin
-          instance_exec(*args, &block)
-        ensure
-          @last_command = @this_command || name
-        end
-      end
+      define_method(name, &block)
       @list << name if !@list.include?(name)
     end
 
@@ -175,7 +168,7 @@ module Textbringer
       begin
         send(cmd)
       ensure
-        @this_command = @last_command
+        @this_command ||= cmd
       end
     end
 

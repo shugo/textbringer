@@ -154,9 +154,18 @@ module Textbringer
         @key_sequence << @last_key
         cmd = key_binding(@buffer_local_maps[@current_buffer], @key_sequence)
         begin
-          if cmd.respond_to?(:call)
+          if cmd.is_a?(Symbol) || cmd.respond_to?(:call)
             @key_sequence.clear
-            cmd.call
+            @this_command = nil
+            begin
+              if cmd.is_a?(Symbol)
+                send(cmd)
+              else
+                cmd.call
+              end
+            ensure
+              @last_command = @this_command || cmd
+            end
           else
             if @key_sequence.all? { |c| 0x80 <= c && c <= 0xff }
               s = @key_sequence.pack("C*").force_encoding("utf-8")
