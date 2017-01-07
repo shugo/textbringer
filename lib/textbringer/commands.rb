@@ -120,7 +120,13 @@ module Textbringer
       |file_name = read_file_name("Find file: ")|
       buffer = @buffers.find { |buffer| buffer.file_name == file_name }
       if buffer.nil?
-        buffer = Buffer.open(file_name, name: new_buffer_name(file_name))
+        begin
+          buffer = Buffer.open(file_name, name: new_buffer_name(file_name))
+        rescue Errno::ENOENT
+          buffer = Buffer.new(file_name: file_name,
+                              name: new_buffer_name(file_name))
+          message("New file")
+        end
         @buffers.push(buffer)
       end
       switch_to_buffer(buffer)
