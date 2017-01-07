@@ -157,6 +157,20 @@ module Textbringer
       }
     end
 
+    def y_or_n?(prompt)
+      loop {
+        s = read_from_minibuffer(prompt + " (y or n) ")
+        case s
+        when "y"
+          return true
+        when "n"
+          return false
+        else
+          message("Please answer y or n.")
+        end
+      }
+    end
+
     def command_loop(catch_keyboard_quit = true)
       while c = @current_window.getch
         @echo_area.clear_message

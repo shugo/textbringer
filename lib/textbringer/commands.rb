@@ -94,6 +94,9 @@ module Textbringer
     end
 
     define_command(:exit_textbringer) do |status = 0|
+      if @buffers.any?(&:modified?)
+        return unless yes_or_no?("Unsaved buffers exist; exit anyway?")
+      end
       exit(status)
     end
 
