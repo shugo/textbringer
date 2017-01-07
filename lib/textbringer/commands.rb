@@ -20,7 +20,8 @@ module Textbringer
     end
 
     define_command(:version) do
-      message("Textbringer #{Textbringer::VERSION} (#{RUBY_PLATFORM})")
+      message("Textbringer #{Textbringer::VERSION} "\
+              "(ruby #{RUBY_VERSION} [#{RUBY_PLATFORM}])")
     end
 
     [
