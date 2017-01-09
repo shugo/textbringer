@@ -215,11 +215,21 @@ module Textbringer
     end
 
     define_command(:exit_recursive_edit) do
+      if @command_loop_level == 0
+        raise "No recursive edit is in progress"
+      end
       throw :exit, false
     end
 
     define_command(:abort_recursive_edit) do
+      if @command_loop_level == 0
+        raise "No recursive edit is in progress"
+      end
       throw :exit, true
+    end
+
+    define_command(:top_level) do
+      throw :top_level
     end
 
     define_command(:complete_minibuffer) do

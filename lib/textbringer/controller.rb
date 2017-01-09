@@ -22,6 +22,7 @@ module Textbringer
       @echo_area = nil
       @key_sequence = []
       @last_key = nil
+      @command_loop_level = -1
       super
     end
 
@@ -49,7 +50,7 @@ module Textbringer
           @window.redraw
           Window.update
         end
-        command_loop
+        recursive_edit
       end
     end
 
@@ -175,8 +176,16 @@ module Textbringer
       }
     end
 
-    def command_loop
-      catch(:exit) do
+    def redisplay
+      if @current_window != @echo_area
+        @echo_area.redisplay
+      end
+      @current_window.redisplay
+      Window.update
+    end
+
+    def command_loop(tag)
+      catch(tag) do
         while c = @current_window.getch
           @echo_area.clear_message
           @last_key = c
@@ -212,18 +221,26 @@ module Textbringer
           rescue => e
             @echo_area.show(e.to_s.chomp)
           end
-          if @current_window != @echo_area
-            @echo_area.redisplay
-          end
-          @current_window.redisplay
-          Window.update
+          redisplay
         end
       end
     end
 
     def recursive_edit
-      if command_loop
-        raise Quit
+      @command_loop_level += 1
+      begin
+        if @command_loop_level > 0
+          if command_loop(:exit)
+            raise Quit
+          end
+        else
+          loop do
+            command_loop(:top_level)
+            redisplay
+          end
+        end
+      ensure
+        @command_loop_level -= 1
       end
     end
   end
