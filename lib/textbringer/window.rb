@@ -8,7 +8,8 @@ module Textbringer
   class Window
     KEY_NAMES = {}
     Ncurses.constants.grep(/\AKEY_/).each do |name|
-      KEY_NAMES[Ncurses.const_get(name)] = name.slice(/\AKEY_(.*)/, 1).intern
+      KEY_NAMES[Ncurses.const_get(name)] =
+        name.slice(/\AKEY_(.*)/, 1).downcase.intern
     end
 
     def self.start

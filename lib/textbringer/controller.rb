@@ -205,7 +205,9 @@ module Textbringer
                 @last_command = @this_command || cmd
               end
             else
-              if @key_sequence.all? { |c| 0x80 <= c && c <= 0xff }
+              if @key_sequence.all? { |c|
+                c.is_a?(Integer) && 0x80 <= c && c <= 0xff
+              }
                 s = @key_sequence.pack("C*").force_encoding("utf-8")
                 if s.valid_encoding?
                   @key_sequence.clear
