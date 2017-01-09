@@ -45,6 +45,7 @@ module Textbringer
         @echo_area.redisplay
         @window.redisplay
         Window.update
+        load_user_config
         trap(:CONT) do
           @echo_area.redraw
           @window.redraw
@@ -236,6 +237,16 @@ module Textbringer
         end
       ensure
         @command_loop_level -= 1
+      end
+    end
+
+    def load_user_config
+      config_file = File.expand_path("~/.tb")
+      begin
+        load(config_file)
+      rescue LoadError
+      rescue Exception => e
+        message(e.to_s)
       end
     end
   end
