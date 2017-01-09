@@ -53,7 +53,8 @@ module Textbringer
     end
 
     define_command(:self_insert) do
-      @current_buffer.insert(last_key.chr, @last_command == :self_insert)
+      @current_buffer.insert(last_key.chr(Encoding::UTF_8),
+                             @last_command == :self_insert)
     end
 
     define_command(:kill_line) do

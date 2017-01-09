@@ -186,12 +186,13 @@ module Textbringer
 
     def command_loop(tag)
       catch(tag) do
-        while c = @current_window.getch
-          @echo_area.clear_message
-          @last_key = c
-          @key_sequence << @last_key
-          cmd = key_binding(@key_sequence)
+        loop do
           begin
+            c = @current_window.getch
+            @echo_area.clear_message
+            @last_key = c
+            @key_sequence << @last_key
+            cmd = key_binding(@key_sequence)
             if cmd.is_a?(Symbol) || cmd.respond_to?(:call)
               @key_sequence.clear
               @this_command = nil
@@ -205,16 +206,7 @@ module Textbringer
                 @last_command = @this_command || cmd
               end
             else
-              if @key_sequence.all? { |c|
-                c.is_a?(Integer) && 0x80 <= c && c <= 0xff
-              }
-                s = @key_sequence.pack("C*").force_encoding("utf-8")
-                if s.valid_encoding?
-                  @key_sequence.clear
-                  @current_buffer.insert(s, @last_command == :self_insert)
-                  @last_command = :self_insert
-                end
-              elsif cmd.nil?
+              if cmd.nil?
                 keys = @key_sequence.map { |c| key_name(c) }.join(" ")
                 @key_sequence.clear
                 @echo_area.show("#{keys} is undefined")

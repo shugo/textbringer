@@ -35,6 +35,10 @@ module Textbringer
       end
     end
 
+    def handle_undefined_key
+      @map.default_proc = Proc.new { |h, k| yield(k) }
+    end
+
     private
 
     def kbd(key)
@@ -102,6 +106,13 @@ module Textbringer
   GLOBAL_MAP.define_key("\ex", :execute_command)
   GLOBAL_MAP.define_key("\e:", :eval_expression)
   GLOBAL_MAP.define_key(?\C-g, :keyboard_quit)
+  GLOBAL_MAP.handle_undefined_key do |key|
+    if key.is_a?(Integer) && key > 0x80 && key.chr(Encoding::UTF_8)
+      :self_insert
+    else
+      nil
+    end
+  end
 
   MINIBUFFER_LOCAL_MAP = Keymap.new
   MINIBUFFER_LOCAL_MAP.define_key(?\n, :exit_recursive_edit)
@@ -112,7 +123,17 @@ module Textbringer
     def key_name(key)
       case key
       when Integer
-        Ncurses.keyname(key)
+        if key < 0x80
+          s = Ncurses.keyname(key)
+          case s
+          when /\AKEY_(.*)/
+            "<#{$1.downcase}>"
+          else
+            s
+          end
+        else
+          key.chr(Encoding::UTF_8)
+        end
       else
         key.to_s
       end

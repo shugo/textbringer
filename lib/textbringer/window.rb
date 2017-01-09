@@ -12,6 +12,17 @@ module Textbringer
         name.slice(/\AKEY_(.*)/, 1).downcase.intern
     end
 
+    UTF8_CHAR_LEN = Hash.new(1)
+    [
+      [0xc0..0xdf, 2],
+      [0xe0..0xef, 3],
+      [0xf0..0xf4, 4]
+    ].each do |range, len|
+      range.each do |i|
+        UTF8_CHAR_LEN[i] = len
+      end
+    end
+
     def self.start
       Ncurses.initscr
       Ncurses.noecho
@@ -76,7 +87,27 @@ module Textbringer
 
     def getch
       key = @window.getch
-      KEY_NAMES[key] || key
+      if key > 0xff
+        KEY_NAMES[key]
+      else
+        len = UTF8_CHAR_LEN[key]
+        if len == 1
+          key
+        else
+          buf = [key]
+          (len - 1).times do
+            c = @window.getch
+            raise "Malformed UTF-8 input" if c.nil? || c < 0x80 || c > 0xbf
+            buf.push(c)
+          end
+          s = buf.pack("C*").force_encoding(Encoding::UTF_8)
+          if s.valid_encoding?
+            s.ord
+          else
+            raise "Malformed UTF-8 input"
+          end
+        end
+      end
     end
 
     def redisplay
