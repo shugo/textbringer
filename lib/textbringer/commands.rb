@@ -76,8 +76,9 @@ module Textbringer
     end
 
     define_command(:re_search_forward) do
-      |s = read_from_minibuffer("RE search: ")|
+      |s = read_from_minibuffer("RE search: ", default: @last_search_re)|
       @current_buffer.re_search_forward(s)
+      @last_search_re = s
     end
           
     define_command(:resize_window) do
