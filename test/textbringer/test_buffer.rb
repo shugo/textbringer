@@ -573,7 +573,7 @@ EOF
     buffer.backward_delete_char(3)
     assert_equal(33, buffer.re_search_forward("[a-z]+"))
     assert_equal(33, buffer.point)
-    assert_equal(55, buffer.re_search_forward("あいうえお"))
+    assert_equal(55, buffer.re_search_forward("[あ-お]+"))
     assert_equal(55, buffer.point)
   end
 

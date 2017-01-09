@@ -489,22 +489,40 @@ module Textbringer
     end
 
     def re_search_forward(s)
-      re = Regexp.new(s.dup.force_encoding(Encoding::ASCII_8BIT))
-      unless @contents.index(re, user_to_gap(@point))
+      re = Regexp.new(s)
+      b, e = utf8_re_search(@contents, re, user_to_gap(@point))
+      if b.nil?
         raise "Search failed"
       end
-      m = Regexp.last_match
-      if m.begin(0) < @gap_end && m.end(0) > @gap_start
-        unless @contents.index(re, @gap_end)
+      if b < @gap_end && e > @gap_start
+        b, e = utf8_re_search(@contents, re, @gap_end)
+        if b.nil?
           raise "Search failed"
         end
       end
-      m = Regexp.last_match
-      if /[\x80-\xbf]/n =~ @contents[m.end(0)]
+      if /[\x80-\xbf]/n =~ @contents[e]
         raise "Search failed"
       end
-      goto_char(gap_to_user(m.end(0)))
+      goto_char(gap_to_user(e))
     end
+
+    def utf8_re_search(s, re, pos)
+      char_pos = s[0...pos].force_encoding(Encoding::UTF_8).size
+      s.force_encoding(Encoding::UTF_8)
+      begin
+        if s.index(re, char_pos)
+          m = Regexp.last_match
+          b = m.pre_match.bytesize
+          e = b + m.to_s.bytesize
+          [b, e]
+        else
+          nil
+        end
+      ensure
+        s.force_encoding(Encoding::ASCII_8BIT)
+      end
+    end
+    private :utf8_re_search
 
     def transpose_chars
       if end_of_buffer? || char_after == "\n"
