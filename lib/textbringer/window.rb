@@ -36,6 +36,10 @@ module Textbringer
       Ncurses.COLS
     end
 
+    def self.beep
+      Ncurses.beep
+    end
+
     attr_reader :buffer
 
     def initialize(num_lines, num_columns, y, x)

@@ -220,6 +220,7 @@ module Textbringer
             end
           rescue => e
             @echo_area.show(e.to_s.chomp)
+            Window.beep
           end
           redisplay
         end
