@@ -613,6 +613,9 @@ module Textbringer
         else
           nil
         end
+      rescue ArgumentError
+        # invalid byte sequence in UTF-8
+        nil
       ensure
         s.force_encoding(Encoding::ASCII_8BIT)
       end
