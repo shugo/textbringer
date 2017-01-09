@@ -101,11 +101,12 @@ module Textbringer
   GLOBAL_MAP.define_key("\C-xk", :kill_buffer)
   GLOBAL_MAP.define_key("\ex", :execute_command)
   GLOBAL_MAP.define_key("\e:", :eval_expression)
+  GLOBAL_MAP.define_key(?\C-g, :keyboard_quit)
 
   MINIBUFFER_LOCAL_MAP = Keymap.new
-  MINIBUFFER_LOCAL_MAP.define_key(?\n, :exit_minibuffer)
+  MINIBUFFER_LOCAL_MAP.define_key(?\n, :exit_recursive_edit)
   MINIBUFFER_LOCAL_MAP.define_key(?\t, :complete_minibuffer)
-  MINIBUFFER_LOCAL_MAP.define_key(?\C-g, :keyboard_quit)
+  MINIBUFFER_LOCAL_MAP.define_key(?\C-g, :abort_recursive_edit)
 
   module Keys
     def key_name(key)

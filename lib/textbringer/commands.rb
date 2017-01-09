@@ -214,8 +214,12 @@ module Textbringer
       end
     end
 
-    define_command(:exit_minibuffer) do
-      throw :minibuffer_exit
+    define_command(:exit_recursive_edit) do
+      throw :exit, false
+    end
+
+    define_command(:abort_recursive_edit) do
+      throw :exit, true
     end
 
     define_command(:complete_minibuffer) do
@@ -230,10 +234,13 @@ module Textbringer
     end
 
     define_command(:keyboard_quit) do
-      raise KeyboardQuit, "Quit"
+      raise Quit
     end
   end
 
-  class KeyboardQuit < StandardError
+  class Quit < StandardError
+    def initialize
+      super("Quit")
+    end
   end
 end

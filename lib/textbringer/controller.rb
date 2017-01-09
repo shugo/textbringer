@@ -79,7 +79,7 @@ module Textbringer
         @echo_area.prompt = prompt
         @echo_area.redisplay
         Window.update
-        catch(:minibuffer_exit) { command_loop(false) }
+        recursive_edit
         s = @minibuffer.to_s.chomp
         if default && s.empty?
           default
@@ -175,50 +175,55 @@ module Textbringer
       }
     end
 
-    def command_loop(catch_keyboard_quit = true)
-      while c = @current_window.getch
-        @echo_area.clear_message
-        @last_key = c
-        @key_sequence << @last_key
-        cmd = key_binding(@key_sequence)
-        begin
-          if cmd.is_a?(Symbol) || cmd.respond_to?(:call)
-            @key_sequence.clear
-            @this_command = nil
-            begin
-              if cmd.is_a?(Symbol)
-                send(cmd)
-              else
-                cmd.call
-              end
-            ensure
-              @last_command = @this_command || cmd
-            end
-          else
-            if @key_sequence.all? { |c| 0x80 <= c && c <= 0xff }
-              s = @key_sequence.pack("C*").force_encoding("utf-8")
-              if s.valid_encoding?
-                @key_sequence.clear
-                @current_buffer.insert(s, @last_command == :self_insert)
-                @last_command = :self_insert
-              end
-            elsif cmd.nil?
-              keys = @key_sequence.map { |c| key_name(c) }.join(" ")
+    def command_loop
+      catch(:exit) do
+        while c = @current_window.getch
+          @echo_area.clear_message
+          @last_key = c
+          @key_sequence << @last_key
+          cmd = key_binding(@key_sequence)
+          begin
+            if cmd.is_a?(Symbol) || cmd.respond_to?(:call)
               @key_sequence.clear
-              @echo_area.show("#{keys} is undefined")
+              @this_command = nil
+              begin
+                if cmd.is_a?(Symbol)
+                  send(cmd)
+                else
+                  cmd.call
+                end
+              ensure
+                @last_command = @this_command || cmd
+              end
+            else
+              if @key_sequence.all? { |c| 0x80 <= c && c <= 0xff }
+                s = @key_sequence.pack("C*").force_encoding("utf-8")
+                if s.valid_encoding?
+                  @key_sequence.clear
+                  @current_buffer.insert(s, @last_command == :self_insert)
+                  @last_command = :self_insert
+                end
+              elsif cmd.nil?
+                keys = @key_sequence.map { |c| key_name(c) }.join(" ")
+                @key_sequence.clear
+                @echo_area.show("#{keys} is undefined")
+              end
             end
+          rescue => e
+            @echo_area.show(e.to_s.chomp)
           end
-        rescue => e
-          if !catch_keyboard_quit && e.is_a?(KeyboardQuit)
-            raise
+          if @current_window != @echo_area
+            @echo_area.redisplay
           end
-          @echo_area.show(e.to_s.chomp)
+          @current_window.redisplay
+          Window.update
         end
-        if @current_window != @echo_area
-          @echo_area.redisplay
-        end
-        @current_window.redisplay
-        Window.update
+      end
+    end
+
+    def recursive_edit
+      if command_loop
+        raise Quit
       end
     end
   end
