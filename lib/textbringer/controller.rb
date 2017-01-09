@@ -14,6 +14,7 @@ module Textbringer
     def initialize
       @buffers = []
       @minibuffer = Buffer.new
+      @minibuffer.keymap = MINIBUFFER_LOCAL_MAP
       @minibuffer_completion_proc = nil
       @current_buffer = nil
       @window = nil
@@ -61,6 +62,9 @@ module Textbringer
     end
 
     def read_from_minibuffer(prompt, completion_proc: nil, default: nil)
+      if @current_buffer == @minibuffer
+        raise "Command attempted to use minibuffer while in minibuffer"
+      end
       buffer = @current_buffer
       window = @current_window
       old_completion_proc = @minibuffer_completion_proc
@@ -176,7 +180,7 @@ module Textbringer
         @echo_area.clear_message
         @last_key = c
         @key_sequence << @last_key
-        cmd = key_binding(@buffer_local_maps[@current_buffer], @key_sequence)
+        cmd = key_binding(@key_sequence)
         begin
           if cmd.is_a?(Symbol) || cmd.respond_to?(:call)
             @key_sequence.clear

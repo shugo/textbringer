@@ -3,103 +3,123 @@
 require "ncursesw"
 
 module Textbringer
-  module Keys
-    def initialize(*args)
-      super
-      @global_map = {}
-      @minibuffer_local_map = {}
-      @buffer_local_maps = Hash.new(@global_map)
-      @buffer_local_maps[@minibuffer] = @minibuffer_local_map
-      [@global_map, @minibuffer_local_map].each do |map|
-        define_key(map, KEY_RESIZE, :resize_window)
-        define_key(map, KEY_RIGHT, :forward_char)
-        define_key(map, ?\C-f, :forward_char)
-        define_key(map, KEY_LEFT, :backward_char)
-        define_key(map, ?\C-b, :backward_char)
-        define_key(map, "\ef", :forward_word)
-        define_key(map, "\eb", :backward_word)
-        define_key(map, KEY_DOWN, :next_line)
-        define_key(map, ?\C-n, :next_line)
-        define_key(map, KEY_UP, :previous_line)
-        define_key(map, ?\C-p, :previous_line)
-        define_key(map, KEY_DC, :delete_char)
-        define_key(map, ?\C-d, :delete_char)
-        define_key(map, KEY_BACKSPACE, :backward_delete_char)
-        define_key(map, ?\C-h, :backward_delete_char)
-        define_key(map, ?\C-a, :beginning_of_line)
-        define_key(map, KEY_HOME, :beginning_of_line)
-        define_key(map, ?\C-e, :end_of_line)
-        define_key(map, KEY_END, :end_of_line)
-        define_key(map, "\e<", :beginning_of_buffer)
-        define_key(map, "\e>", :end_of_buffer)
-        (0x20..0x7e).each do |c|
-          define_key(map, c, :self_insert)
-        end
-        define_key(map, ?\t, :self_insert)
-        define_key(map, "\C- ", :set_mark)
-        define_key(map, "\ew", :copy_region)
-        define_key(map, ?\C-w, :kill_region)
-        define_key(map, ?\C-k, :kill_line)
-        define_key(map, "\ed", :kill_word)
-        define_key(map, ?\C-y, :yank)
-        define_key(map, "\ey", :yank_pop)
-        define_key(map, ?\C-_, :undo)
-        define_key(map, "\C-x\C-_", :redo)
-        define_key(map, "\C-t", :transpose_chars)
+  class Keymap
+    def initialize
+      @map = {}
+    end
+
+    def define_key(key, command)
+      key_sequence = kbd(key)
+
+      case key_sequence.size
+      when 0
+        raise ArgumentError, "Empty key"
+      when 1
+        @map[key_sequence.first] = command
+      else
+        k, *ks = key_sequence
+        (@map[k] ||= Keymap.new).define_key(ks, command)
       end
+    end
+    alias [] define_key
 
-      define_key(@global_map, ?\n, :newline)
-      define_key(@global_map, "\C-v", :scroll_up)
-      define_key(@global_map, KEY_NPAGE, :scroll_up)
-      define_key(@global_map, "\ev", :scroll_down)
-      define_key(@global_map, KEY_PPAGE, :scroll_down)
-      define_key(@global_map, "\C-x\C-c", :exit_textbringer)
-      define_key(@global_map, "\C-z", :suspend_textbringer)
-      define_key(@global_map, "\C-x\C-f", :find_file)
-      define_key(@global_map, "\C-xb", :switch_to_buffer)
-      define_key(@global_map, "\C-x\C-s", :save_buffer)
-      define_key(@global_map, "\C-x\C-w", :write_file)
-      define_key(@global_map, "\C-xk", :kill_buffer)
-      define_key(@global_map, "\ex", :execute_command)
-      define_key(@global_map, "\e:", :eval_expression)
-
-      define_key(@minibuffer_local_map, ?\n, :exit_minibuffer)
-      define_key(@minibuffer_local_map, ?\t, :complete_minibuffer)
-      define_key(@minibuffer_local_map, ?\C-g, :keyboard_quit)
+    def lookup(key_sequence)
+      case key_sequence.size
+      when 0
+        raise ArgumentError, "Empty key"
+      when 1
+        @map[key_sequence.first]
+      else
+        k, *ks = key_sequence
+        @map[k]&.lookup(ks)
+      end
     end
 
-    Ncurses.constants.grep(/\AKEY_/) do |name|
-      const_set(name, Ncurses.const_get(name))
-    end
-
-    def key_name(key)
-      Ncurses.keyname(key)
-    end
-
-    def define_key(key_map, key, command = nil, &block)
-      *ks, k = kbd(key)
-      
-      ks.inject(key_map) { |map, key|
-        map[key] ||= {}
-      }[k] = command || block
-    end
+    private
 
     def kbd(key)
       case key
-      when Integer
+      when Integer, Symbol
         [key]
       when String
         key.unpack("C*")
+      when Array
+        key
       else
         raise TypeError, "invalid key type #{key.class}"
       end
     end
+  end
 
-    def key_binding(key_map, key_sequence)
-      key_sequence.inject(key_map) { |map, key|
-        return nil if map.nil?
-        map[key]
-      }
+  GLOBAL_MAP = Keymap.new
+  GLOBAL_MAP.define_key(:resize, :resize_window)
+  GLOBAL_MAP.define_key(:right, :forward_char)
+  GLOBAL_MAP.define_key(?\C-f, :forward_char)
+  GLOBAL_MAP.define_key(:left, :backward_char)
+  GLOBAL_MAP.define_key(?\C-b, :backward_char)
+  GLOBAL_MAP.define_key("\ef", :forward_word)
+  GLOBAL_MAP.define_key("\eb", :backward_word)
+  GLOBAL_MAP.define_key(:down, :next_line)
+  GLOBAL_MAP.define_key(?\C-n, :next_line)
+  GLOBAL_MAP.define_key(:up, :previous_line)
+  GLOBAL_MAP.define_key(?\C-p, :previous_line)
+  GLOBAL_MAP.define_key(:dc, :delete_char)
+  GLOBAL_MAP.define_key(?\C-d, :delete_char)
+  GLOBAL_MAP.define_key(:backspace, :backward_delete_char)
+  GLOBAL_MAP.define_key(?\C-h, :backward_delete_char)
+  GLOBAL_MAP.define_key(?\C-a, :beginning_of_line)
+  GLOBAL_MAP.define_key(:home, :beginning_of_line)
+  GLOBAL_MAP.define_key(?\C-e, :end_of_line)
+  GLOBAL_MAP.define_key(:end, :end_of_line)
+  GLOBAL_MAP.define_key("\e<", :beginning_of_buffer)
+  GLOBAL_MAP.define_key("\e>", :end_of_buffer)
+  (0x20..0x7e).each do |c|
+    GLOBAL_MAP.define_key(c, :self_insert)
+  end
+  GLOBAL_MAP.define_key(?\t, :self_insert)
+  GLOBAL_MAP.define_key("\C- ", :set_mark)
+  GLOBAL_MAP.define_key("\ew", :copy_region)
+  GLOBAL_MAP.define_key(?\C-w, :kill_region)
+  GLOBAL_MAP.define_key(?\C-k, :kill_line)
+  GLOBAL_MAP.define_key("\ed", :kill_word)
+  GLOBAL_MAP.define_key(?\C-y, :yank)
+  GLOBAL_MAP.define_key("\ey", :yank_pop)
+  GLOBAL_MAP.define_key(?\C-_, :undo)
+  GLOBAL_MAP.define_key("\C-x\C-_", :redo)
+  GLOBAL_MAP.define_key("\C-t", :transpose_chars)
+  GLOBAL_MAP.define_key(?\n, :newline)
+  GLOBAL_MAP.define_key("\C-v", :scroll_up)
+  GLOBAL_MAP.define_key(:npage, :scroll_up)
+  GLOBAL_MAP.define_key("\ev", :scroll_down)
+  GLOBAL_MAP.define_key(:ppage, :scroll_down)
+  GLOBAL_MAP.define_key("\C-x\C-c", :exit_textbringer)
+  GLOBAL_MAP.define_key("\C-z", :suspend_textbringer)
+  GLOBAL_MAP.define_key("\C-x\C-f", :find_file)
+  GLOBAL_MAP.define_key("\C-xb", :switch_to_buffer)
+  GLOBAL_MAP.define_key("\C-x\C-s", :save_buffer)
+  GLOBAL_MAP.define_key("\C-x\C-w", :write_file)
+  GLOBAL_MAP.define_key("\C-xk", :kill_buffer)
+  GLOBAL_MAP.define_key("\ex", :execute_command)
+  GLOBAL_MAP.define_key("\e:", :eval_expression)
+
+  MINIBUFFER_LOCAL_MAP = Keymap.new
+  MINIBUFFER_LOCAL_MAP.define_key(?\n, :exit_minibuffer)
+  MINIBUFFER_LOCAL_MAP.define_key(?\t, :complete_minibuffer)
+  MINIBUFFER_LOCAL_MAP.define_key(?\C-g, :keyboard_quit)
+
+  module Keys
+    def key_name(key)
+      case key
+      when Integer
+        Ncurses.keyname(key)
+      else
+        key.to_s
+      end
+    end
+
+    def key_binding(key_sequence)
+      @current_buffer.keymap&.lookup(key_sequence) ||
+        GLOBAL_MAP.lookup(key_sequence)
     end
   end
 end

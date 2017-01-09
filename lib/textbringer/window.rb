@@ -6,6 +6,11 @@ require "unicode/display_width"
 
 module Textbringer
   class Window
+    KEY_NAMES = {}
+    Ncurses.constants.grep(/\AKEY_/).each do |name|
+      KEY_NAMES[Ncurses.const_get(name)] = name.slice(/\AKEY_(.*)/, 1).intern
+    end
+
     def self.start
       Ncurses.initscr
       Ncurses.noecho
@@ -65,7 +70,8 @@ module Textbringer
     end
 
     def getch
-      @window.getch
+      key = @window.getch
+      KEY_NAMES[key] || key
     end
 
     def redisplay

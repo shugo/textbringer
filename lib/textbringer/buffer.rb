@@ -4,7 +4,7 @@ require "unicode/display_width"
 
 module Textbringer
   class Buffer
-    attr_accessor :name, :file_name, :file_encoding, :file_format
+    attr_accessor :name, :file_name, :file_encoding, :file_format, :keymap
     attr_reader :point, :marks
 
     GAP_SIZE = 256
@@ -58,6 +58,7 @@ module Textbringer
       @undoing = false
       @version = 0
       @modified = false
+      @keymap = nil
     end
 
     def modified?
