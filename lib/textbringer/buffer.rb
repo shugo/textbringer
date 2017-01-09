@@ -506,24 +506,6 @@ module Textbringer
       goto_char(gap_to_user(e))
     end
 
-    def utf8_re_search(s, re, pos)
-      char_pos = s[0...pos].force_encoding(Encoding::UTF_8).size
-      s.force_encoding(Encoding::UTF_8)
-      begin
-        if s.index(re, char_pos)
-          m = Regexp.last_match
-          b = m.pre_match.bytesize
-          e = b + m.to_s.bytesize
-          [b, e]
-        else
-          nil
-        end
-      ensure
-        s.force_encoding(Encoding::ASCII_8BIT)
-      end
-    end
-    private :utf8_re_search
-
     def transpose_chars
       if end_of_buffer? || char_after == "\n"
         backward_char
@@ -617,6 +599,23 @@ module Textbringer
       end
       @undo_stack.push(action)
       @redo_stack.clear
+    end
+
+    def utf8_re_search(s, re, pos)
+      char_pos = s[0...pos].force_encoding(Encoding::UTF_8).size
+      s.force_encoding(Encoding::UTF_8)
+      begin
+        if s.index(re, char_pos)
+          m = Regexp.last_match
+          b = m.pre_match.bytesize
+          e = b + m.to_s.bytesize
+          [b, e]
+        else
+          nil
+        end
+      ensure
+        s.force_encoding(Encoding::ASCII_8BIT)
+      end
     end
   end
 
