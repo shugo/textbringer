@@ -22,7 +22,7 @@ module Textbringer
       @echo_area = nil
       @key_sequence = []
       @last_key = nil
-      @command_loop_level = -1
+      @recursive_edit_level = 0
       super
     end
 
@@ -51,7 +51,10 @@ module Textbringer
           @window.redraw
           Window.update
         end
-        recursive_edit
+        loop do
+          command_loop(:top_level)
+          redisplay
+        end
       end
     end
 
@@ -185,7 +188,7 @@ module Textbringer
       Window.update
     end
 
-    def command_loop(tag)
+    def command_loop(tag = :exit)
       catch(tag) do
         loop do
           begin
@@ -223,20 +226,13 @@ module Textbringer
     end
 
     def recursive_edit
-      @command_loop_level += 1
+      @recursive_edit_level += 1
       begin
-        if @command_loop_level > 0
-          if command_loop(:exit)
-            raise Quit
-          end
-        else
-          loop do
-            command_loop(:top_level)
-            redisplay
-          end
+        if command_loop
+          raise Quit
         end
       ensure
-        @command_loop_level -= 1
+        @recursive_edit_level -= 1
       end
     end
 
