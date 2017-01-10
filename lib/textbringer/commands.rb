@@ -220,18 +220,18 @@ module Textbringer
       if @recursive_edit_level == 0
         raise "No recursive edit is in progress"
       end
-      throw :exit, false
+      throw RECURSIVE_EDIT_TAG, false
     end
 
     define_command(:abort_recursive_edit) do
       if @recursive_edit_level == 0
         raise "No recursive edit is in progress"
       end
-      throw :exit, true
+      throw RECURSIVE_EDIT_TAG, true
     end
 
     define_command(:top_level) do
-      throw :top_level
+      throw TOP_LEVEL_TAG
     end
 
     define_command(:complete_minibuffer) do

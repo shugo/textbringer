@@ -7,6 +7,9 @@ require "textbringer/commands"
 require "textbringer/keys"
 
 module Textbringer
+  TOP_LEVEL_TAG = Object.new
+  RECURSIVE_EDIT_TAG = Object.new
+
   class Controller
     include Commands
     include Keys
@@ -52,7 +55,7 @@ module Textbringer
           Window.update
         end
         loop do
-          command_loop(:top_level)
+          command_loop(TOP_LEVEL_TAG)
           redisplay
         end
       end
@@ -188,7 +191,7 @@ module Textbringer
       Window.update
     end
 
-    def command_loop(tag = :exit)
+    def command_loop(tag)
       catch(tag) do
         loop do
           begin
@@ -228,7 +231,7 @@ module Textbringer
     def recursive_edit
       @recursive_edit_level += 1
       begin
-        if command_loop
+        if command_loop(RECURSIVE_EDIT_TAG)
           raise Quit
         end
       ensure
