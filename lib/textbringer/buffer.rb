@@ -4,8 +4,10 @@ require "unicode/display_width"
 
 module Textbringer
   class Buffer
-    attr_accessor :name, :file_name, :file_encoding, :file_format, :keymap
-    attr_reader :point, :marks
+    extend Enumerable
+
+    attr_accessor :file_name, :file_encoding, :file_format, :keymap
+    attr_reader :name, :point, :marks
 
     GAP_SIZE = 256
     UNDO_LIMIT = 1000
@@ -27,8 +29,101 @@ module Textbringer
       Encoding::Windows_31J
     ]
 
+    @@table = {}
+    @@list = []
+    @@current = nil
+
+    def self.auto_detect_encodings
+      @@auto_detect_encodings
+    end
+
+    def self.auto_detect_encodings(encodings)
+      @@auto_detect_encodings = encodings
+    end
+
+    def self.add(buffer)
+      @@table[buffer.name] = buffer
+      @@list.unshift(buffer)
+    end
+
+    def self.current
+      @@current
+    end
+
+    def self.current=(buffer)
+      if buffer && buffer.name
+        @@list.delete(buffer)
+        @@list.push(buffer)
+      end
+      @@current = buffer
+    end
+
+    def self.last
+      if @@list.last == @@current
+        @@list[-2]
+      else
+        @@list.last
+      end
+    end
+
+    def self.count
+      @@table.size
+    end
+
+    def self.[](name)
+      @@table[name]
+    end
+
+    def self.names
+      @@table.keys
+    end
+
+    def self.kill_em_all
+      @@table.clear
+      @@list.clear
+      @@current = nil
+      @@last = nil
+    end
+
+    def self.find_file(file_name)
+      buffer = @@table.each_value.find { |buffer|
+        buffer.file_name == file_name
+      }
+      if buffer.nil?
+        name = File.basename(file_name)
+        begin
+          buffer = Buffer.open(file_name, name: new_buffer_name(name))
+          add(buffer)
+        rescue Errno::ENOENT
+          buffer = new_buffer(name, file_name: file_name)
+        end
+      end
+      buffer
+    end
+
+    def self.new_buffer(name, **opts)
+      buffer = Buffer.new(**opts.merge(name: new_buffer_name(name)))
+      add(buffer)
+      buffer
+    end
+
+    def self.new_buffer_name(name)
+      if @@table.key?(name)
+        (2..Float::INFINITY).lazy.map { |i|
+          "#{name}<#{i}>"
+        }.find { |i| !@@table.key?(i) }
+      else
+        name
+      end
+    end
+
+    def self.each(&block)
+      @@table.each_value(&block)
+    end
+
     def initialize(s = "", name: nil,
-                   file_name: nil, file_encoding: Encoding::UTF_8)
+                   file_name: nil, file_encoding: Encoding::UTF_8,
+                   new_file: true)
       @contents = s.encode(Encoding::UTF_8)
       @contents.force_encoding(Encoding::ASCII_8BIT)
       @name = name
@@ -46,6 +141,7 @@ module Textbringer
       else
         @file_format = :unix
       end
+      @new_file = new_file
       @point = 0
       @gap_start = 0
       @gap_end = 0
@@ -61,8 +157,34 @@ module Textbringer
       @keymap = nil
     end
 
+    def name=(name)
+      if @@table[@name] == self
+        @@table.delete(@name)
+        @name = Buffer.new_buffer_name(name)
+        @@table[@name] = self
+      else
+        @name = name
+      end
+    end
+
+    def kill
+      @@table.delete(@name)
+      @@list.delete(self)
+      if @@current == self
+        @@current = nil
+      end
+    end
+
+    def current?
+      @@current == self
+    end
+
     def modified?
       @modified
+    end
+
+    def new_file?
+      @new_file
     end
 
     def self.open(file_name, name: File.basename(file_name))
@@ -72,7 +194,8 @@ module Textbringer
         s.valid_encoding?
       }
       Buffer.new(s, name: name,
-                 file_name: file_name, file_encoding: enc)
+                 file_name: file_name, file_encoding: enc,
+                 new_file: false)
     end
 
     def save
@@ -89,6 +212,7 @@ module Textbringer
       File.write(@file_name, s, encoding: @file_encoding)
       @version += 1
       @modified = false
+      @new_file = false
     end
 
     def to_s

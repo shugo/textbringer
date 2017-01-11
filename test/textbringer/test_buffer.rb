@@ -5,6 +5,10 @@ require "textbringer/buffer"
 class TestBuffer < Test::Unit::TestCase
   include Textbringer
 
+  def teardown
+    Buffer.kill_em_all
+  end
+
   def test_insert
     buffer = Buffer.new("abc")
     buffer.insert("123")
@@ -736,5 +740,65 @@ I'm tired
 This is the last line
 EOF
     end
+  end
+
+  def test_s_new_buffer
+    buffer = Buffer.new_buffer("Untitled")
+    assert_equal("Untitled", buffer.name)
+    assert_equal(1, Buffer.count)
+    assert_equal(buffer, Buffer["Untitled"])
+
+    buffer2 = Buffer.new_buffer("Untitled")
+    assert_equal("Untitled<2>", buffer2.name)
+    assert_equal(2, Buffer.count)
+    assert_equal(buffer2, Buffer["Untitled<2>"])
+  end
+
+  def test_s_find_file
+    Tempfile.create("test_buffer") do |f|
+      f.print("hello world\n")
+      f.close
+
+      buffer = Buffer.find_file(f.path)
+      assert_equal(File.basename(f.path), buffer.name)
+      assert_equal(1, Buffer.count)
+      assert_equal(buffer, Buffer[buffer.name])
+      assert_equal(File.read(f.path), buffer.to_s)
+
+      buffer2 = Buffer.find_file(f.path)
+      assert_equal(buffer, buffer2)
+      assert_equal(1, Buffer.count)
+    end
+  end
+
+  def test_s_last
+    assert_equal(nil, Buffer.last)
+
+    Buffer.current = Buffer.new_buffer("foo")
+    assert_equal("foo", Buffer.current.name)
+    assert_equal(nil, Buffer.last)
+
+    Buffer.current = Buffer.new_buffer("bar")
+    assert_equal("bar", Buffer.current.name)
+    assert_equal("foo", Buffer.last.name)
+
+    Buffer.current = Buffer.new_buffer("baz")
+    assert_equal("baz", Buffer.current.name)
+    assert_equal("bar", Buffer.last.name)
+
+    Buffer.current.kill
+    Buffer.current = Buffer.last
+    assert_equal("bar", Buffer.current.name)
+    assert_equal("foo", Buffer.last.name)
+
+    Buffer.current.kill
+    Buffer.current = Buffer.last
+    assert_equal("foo", Buffer.current.name)
+    assert_equal(nil, Buffer.last)
+
+    Buffer.current.kill
+    Buffer.current = Buffer.last
+    assert_equal(nil, Buffer.current)
+    assert_equal(nil, Buffer.last)
   end
 end

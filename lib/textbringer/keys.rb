@@ -140,7 +140,7 @@ module Textbringer
     end
 
     def key_binding(key_sequence)
-      @current_buffer.keymap&.lookup(key_sequence) ||
+      Buffer.current.keymap&.lookup(key_sequence) ||
         GLOBAL_MAP.lookup(key_sequence)
     end
   end

@@ -204,7 +204,7 @@ module Textbringer
       @mode_line.erase
       @mode_line.move(0, 0)
       @mode_line.attron(Ncurses::A_REVERSE)
-      @mode_line.addstr(File.basename(@buffer.name))
+      @mode_line.addstr(@buffer.name)
       @mode_line.addstr(" ")
       @mode_line.addstr("[+]") if @buffer.modified?
       @mode_line.addstr("[#{@buffer.file_encoding.name}]")

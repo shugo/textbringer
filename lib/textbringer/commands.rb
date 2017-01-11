@@ -48,22 +48,22 @@ module Textbringer
       :transpose_chars
     ].each do |name|
       define_command(name) do
-        @current_buffer.send(name)
+        Buffer.current.send(name)
       end
     end
 
     define_command(:self_insert) do
-      @current_buffer.insert(last_key.chr(Encoding::UTF_8),
+      Buffer.current.insert(last_key.chr(Encoding::UTF_8),
                              @last_command == :self_insert)
     end
 
     define_command(:kill_line) do
-      @current_buffer.kill_line(@last_command == :kill_region)
+      Buffer.current.kill_line(@last_command == :kill_region)
       @this_command = :kill_region
     end
 
     define_command(:kill_word) do
-      @current_buffer.kill_word(@last_command == :kill_region)
+      Buffer.current.kill_word(@last_command == :kill_region)
       @this_command = :kill_region
     end
 
@@ -71,13 +71,13 @@ module Textbringer
       if @last_command != :yank
         raise "Previous command was not a yank"
       end
-      @current_buffer.yank_pop
+      Buffer.current.yank_pop
       @this_command = :yank
     end
 
     define_command(:re_search_forward) do
       |s = read_from_minibuffer("RE search: ", default: @last_search_re)|
-      @current_buffer.re_search_forward(s)
+      Buffer.current.re_search_forward(s)
       @last_search_re = s
     end
           
@@ -96,7 +96,7 @@ module Textbringer
     end
 
     define_command(:exit_textbringer) do |status = 0|
-      if @buffers.any?(&:modified?)
+      if Buffer.any?(&:modified?)
         return unless yes_or_no?("Unsaved buffers exist; exit anyway?")
       end
       exit(status)
@@ -107,30 +107,11 @@ module Textbringer
       Process.kill(:STOP, $$)
     end
 
-    def new_buffer_name(file_name)
-      name = File.basename(file_name)
-      if @buffers.find { |buffer| buffer.name == name }
-        name = (2..Float::INFINITY).lazy.map { |i|
-          "#{name}<#{i}>"
-        }.find { |i|
-          @buffers.all? { |buffer| buffer.name != i }
-        }
-      end
-      name
-    end
-
     define_command(:find_file) do
       |file_name = read_file_name("Find file: ")|
-      buffer = @buffers.find { |buffer| buffer.file_name == file_name }
-      if buffer.nil?
-        begin
-          buffer = Buffer.open(file_name, name: new_buffer_name(file_name))
-        rescue Errno::ENOENT
-          buffer = Buffer.new(file_name: file_name,
-                              name: new_buffer_name(file_name))
-          message("New file")
-        end
-        @buffers.push(buffer)
+      buffer = Buffer.find_file(file_name)
+      if buffer.new_file?
+        message("New file")
       end
       switch_to_buffer(buffer)
     end
@@ -140,51 +121,51 @@ module Textbringer
       if buffer_name.is_a?(Buffer)
         buffer = buffer_name
       else
-        buffer = @buffers.find { |i| i.name == buffer_name }
+        buffer = Buffer[buffer_name]
       end
       if buffer
-        @buffers.delete(buffer)
-        @buffers.push(buffer)
-        @current_window.buffer = @current_buffer = buffer
+        @current_window.buffer = Buffer.current = buffer
       else
         message("No such buffer: #{buffer_name}")
       end
     end
 
     define_command(:save_buffer) do
-      if @current_buffer.file_name.nil?
-        @current_buffer.file_name = read_file_name("File to save in: ")
-        next if @current_buffer.file_name.nil?
+      if Buffer.current.file_name.nil?
+        Buffer.current.file_name = read_file_name("File to save in: ")
+        next if Buffer.current.file_name.nil?
       end
-      @current_buffer.save
-      message("Wrote #{@current_buffer.file_name}")
+      Buffer.current.save
+      message("Wrote #{Buffer.current.file_name}")
     end
 
     define_command(:write_file) do
       |file_name = read_file_name("Write file: ")|
-      @current_buffer.file_name = file_name
-      if File.basename(file_name) != @current_buffer.name
-        @current_buffer.name = new_buffer_name(file_name)
+      Buffer.current.file_name = file_name
+      if File.basename(file_name) != Buffer.current.name
+        Buffer.current.name = File.basename(file_name)
       end
-      @current_buffer.save
-      message("Wrote #{@current_buffer.file_name}")
+      Buffer.current.save
+      message("Wrote #{Buffer.current.file_name}")
     end
 
     define_command(:kill_buffer) do
-      |name = read_buffer("Kill buffer: ", default: @current_buffer.name)|
+      |name = read_buffer("Kill buffer: ", default: Buffer.current.name)|
       if name.is_a?(Buffer)
         buffer = name
       else
-        buffer = @buffers.find { |i| i.name == name }
+        buffer = Buffer[name]
       end
       if buffer.modified?
         next unless yes_or_no?("The last change is not saved; kill anyway?")
       end
-      @buffers.delete(buffer)
-      if @buffers.empty?
-        @buffers.push(Buffer.new(name: "Untitled"))
+      buffer.kill
+      if Buffer.count == 0
+        buffer = Buffer.new_buffer("Untitled")
+        switch_to_buffer(buffer)
+      elsif Buffer.current.nil?
+        switch_to_buffer(Buffer.last)
       end
-      switch_to_buffer(@buffers.last)
     end
 
     define_command(:execute_command) do
@@ -210,7 +191,7 @@ module Textbringer
 
     define_command(:eval_buffer) do
       begin
-        message(eval(@current_buffer.to_s, TOPLEVEL_BINDING).inspect)
+        message(eval(Buffer.current.to_s, TOPLEVEL_BINDING).inspect)
       rescue Exception => e
         message("#{e.class}: #{e}")
       end

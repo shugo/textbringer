@@ -15,11 +15,9 @@ module Textbringer
     include Keys
 
     def initialize
-      @buffers = []
       @minibuffer = Buffer.new
       @minibuffer.keymap = MINIBUFFER_LOCAL_MAP
       @minibuffer_completion_proc = nil
-      @current_buffer = nil
       @window = nil
       @current_window = nil
       @echo_area = nil
@@ -38,8 +36,8 @@ module Textbringer
             find_file(arg)
           end
         else
-          @buffers.push(Buffer.new(name: "Untitled"))
-          switch_to_buffer(@buffers.last)
+          buffer = Buffer.new_buffer("Untitled")
+          switch_to_buffer(buffer)
         end
         @echo_area = Textbringer::EchoArea.new(1, Window.columns,
                                                Window.lines - 1, 0)
@@ -70,16 +68,16 @@ module Textbringer
     end
 
     def read_from_minibuffer(prompt, completion_proc: nil, default: nil)
-      if @current_buffer == @minibuffer
+      if Buffer.current == @minibuffer
         raise "Command attempted to use minibuffer while in minibuffer"
       end
-      buffer = @current_buffer
+      buffer = Buffer.current
       window = @current_window
       old_completion_proc = @minibuffer_completion_proc
       @minibuffer_completion_proc = completion_proc
       begin
-        @current_buffer = @minibuffer
-        @current_buffer.delete_region(0, @current_buffer.size)
+        @minibuffer.delete_region(@minibuffer.point_min, @minibuffer.point_max)
+        Buffer.current = @minibuffer
         @current_window = @echo_area
         if default
           prompt = prompt.sub(/:/, " (default #{default}):")
@@ -98,7 +96,7 @@ module Textbringer
         @echo_area.clear
         @echo_area.redisplay
         Window.update
-        @current_buffer = buffer
+        Buffer.current = buffer
         @current_window = window
         @minibuffer_completion_proc = old_completion_proc
       end
@@ -141,10 +139,8 @@ module Textbringer
       end
     end
 
-    def read_buffer(prompt, default: @buffers[-2]&.name)
-      f = ->(s) {
-        complete(s, @buffers.map(&:name))
-      }
+    def read_buffer(prompt, default: (Buffer.last || Buffer.current)&.name)
+      f = ->(s) { complete(s, Buffer.names) }
       read_from_minibuffer(prompt, completion_proc: f, default: default)
     end
 
