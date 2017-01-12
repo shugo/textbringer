@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require "textbringer/buffer"
 require "ncursesw"
 require "unicode/display_width"
+require_relative "buffer"
 
 module Textbringer
   class Window

@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require "textbringer/buffer"
-require "textbringer/window"
-require "textbringer/echo_area"
-require "textbringer/commands"
-require "textbringer/keys"
+require_relative "buffer"
+require_relative "window"
+require_relative "echo_area"
+require_relative "commands"
+require_relative "keys"
 
 module Textbringer
   TOP_LEVEL_TAG = Object.new

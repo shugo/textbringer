@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "textbringer/window"
+require_relative "window"
 
 module Textbringer
   class EchoArea < Window
