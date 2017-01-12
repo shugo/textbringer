@@ -605,14 +605,31 @@ EOF
       buffer.re_search_forward("bar")
     end
     assert_raise(RuntimeError) do
-      buffer.re_search_forward("foo") # foo is in the gap
+      buffer.re_search_forward("\0") # NUL is in the gap
     end
     buffer.next_line
-    buffer.end_of_line
-    buffer.backward_delete_char
+    buffer.delete_char
     buffer.insert("x") # create invalid byte sequence in the gap
     buffer.beginning_of_buffer
     assert_equal(53, buffer.re_search_forward("あいうえお"))
+
+    buffer = Buffer.new(<<EOF)
+hello world
+あいうえお
+hello world
+かきくけこ
+EOF
+    buffer.next_line
+    buffer.end_of_line
+    buffer.insert("foo")
+    buffer.backward_delete_char(3)
+    buffer.beginning_of_line
+    buffer.next_line
+    buffer.next_line
+    buffer.delete_char
+    buffer.insert("x") # create invalid byte sequence in the gap
+    buffer.beginning_of_buffer
+    assert_equal(53, buffer.re_search_forward("きくけこ"))
   end
 
   def test_transpose_chars

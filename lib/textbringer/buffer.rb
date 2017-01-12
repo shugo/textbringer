@@ -311,7 +311,7 @@ module Textbringer
       pos = get_pos(@point, n)
       if n > 0
         str = substring(s, pos)
-        # fill the gap with nul to avoid invalid byte sequence in UTF-8
+        # fill the gap with NUL to avoid invalid byte sequence in UTF-8
         @contents[@gap_end...user_to_gap(pos)] = "\0" * (pos - @point)
         @gap_end += pos - @point
         @marks.each do |m|
@@ -323,7 +323,7 @@ module Textbringer
         @modified = true
       elsif n < 0
         str = substring(pos, s)
-        # fill the gap with nul to avoid invalid byte sequence in UTF-8
+        # fill the gap with NUL to avoid invalid byte sequence in UTF-8
         @contents[user_to_gap(pos)...@gap_start] = "\0" * (@point - pos)
         @marks.each do |m|
           if m.location >= @point
@@ -526,7 +526,7 @@ module Textbringer
         @point = s
         adjust_gap
         len = e - s
-        # fill the gap with nul to avoid invalid byte sequence in UTF-8
+        # fill the gap with NUL to avoid invalid byte sequence in UTF-8
         @contents[@gap_end, len] = "\0" * len
         @gap_end += len
         @marks.each do |m|
@@ -629,7 +629,7 @@ module Textbringer
       if b.nil?
         raise "Search failed"
       end
-      if b < 0 || (b < @gap_end && e > @gap_start)
+      if b < @gap_end && e > @gap_start
         b, e = utf8_re_search(@contents, re, @gap_end)
         if b.nil?
           raise "Search failed"
@@ -666,6 +666,8 @@ module Textbringer
         @gap_start -= len
         @gap_end -= len
       end
+      # fill the gap with NUL to avoid invalid byte sequence in UTF-8
+      @contents[@gap_start...@gap_end] = "\0" * (@gap_end - @gap_start)
       if gap_size < min_size
         new_gap_size = GAP_SIZE + min_size
         extended_size = new_gap_size - gap_size
