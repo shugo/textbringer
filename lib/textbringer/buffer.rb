@@ -37,7 +37,7 @@ module Textbringer
       @@auto_detect_encodings
     end
 
-    def self.auto_detect_encodings(encodings)
+    def self.auto_detect_encodings=(encodings)
       @@auto_detect_encodings = encodings
     end
 
@@ -123,7 +123,7 @@ module Textbringer
 
     def initialize(s = "", name: nil,
                    file_name: nil, file_encoding: Encoding::UTF_8,
-                   new_file: true)
+                   new_file: true, undo_limit: UNDO_LIMIT)
       @contents = s.encode(Encoding::UTF_8)
       @contents.force_encoding(Encoding::ASCII_8BIT)
       @name = name
@@ -142,6 +142,7 @@ module Textbringer
         @file_format = :unix
       end
       @new_file = new_file
+      @undo_limit = undo_limit
       @point = 0
       @gap_start = 0
       @gap_end = 0
@@ -258,6 +259,9 @@ module Textbringer
       if pos < 0 || pos > size
         raise RangeError, "Out of buffer"
       end
+      if /[\x80-\xbf]/n =~ byte_after(pos)
+        raise ArgumentError, "Position is in the middle of a character"
+      end
       @column = nil
       @point = pos
     end
@@ -307,6 +311,8 @@ module Textbringer
       pos = get_pos(@point, n)
       if n > 0
         str = substring(s, pos)
+        # fill the gap with nul to avoid invalid byte sequence in UTF-8
+        @contents[@gap_end...user_to_gap(pos)] = "\0" * (pos - @point)
         @gap_end += pos - @point
         @marks.each do |m|
           if m.location > @point
@@ -317,9 +323,11 @@ module Textbringer
         @modified = true
       elsif n < 0
         str = substring(pos, s)
+        # fill the gap with nul to avoid invalid byte sequence in UTF-8
+        @contents[user_to_gap(pos)...@gap_start] = "\0" * (@point - pos)
         @marks.each do |m|
-          if m.location > @point
-            m.location += pos - @point
+          if m.location >= @point
+            m.location -= @point - pos
           end
         end
         @point = @gap_start = pos
@@ -517,10 +525,13 @@ module Textbringer
         str = substring(s, e)
         @point = s
         adjust_gap
-        @gap_end += e - s
+        len = e - s
+        # fill the gap with nul to avoid invalid byte sequence in UTF-8
+        @contents[@gap_end, len] = "\0" * len
+        @gap_end += len
         @marks.each do |m|
           if m.location > @point
-            m.location -= e - s
+            m.location -= len
           end
         end
         push_undo(DeleteAction.new(self, old_pos, s, str)) 
@@ -618,14 +629,11 @@ module Textbringer
       if b.nil?
         raise "Search failed"
       end
-      if b < @gap_end && e > @gap_start
+      if b < 0 || (b < @gap_end && e > @gap_start)
         b, e = utf8_re_search(@contents, re, @gap_end)
         if b.nil?
           raise "Search failed"
         end
-      end
-      if /[\x80-\xbf]/n =~ @contents[e]
-        raise "Search failed"
       end
       goto_char(gap_to_user(e))
     end
@@ -715,8 +723,8 @@ module Textbringer
 
     def push_undo(action)
       return if @undoing
-      if @undo_stack.size >= UNDO_LIMIT
-        @undo_stack[0, @undo_stack.size + 1 - UNDO_LIMIT] = []
+      if @undo_stack.size >= @undo_limit
+        @undo_stack[0, @undo_stack.size + 1 - @undo_limit] = []
       end
       if !modified?
         action.version = @version
@@ -737,9 +745,6 @@ module Textbringer
         else
           nil
         end
-      rescue ArgumentError
-        # invalid byte sequence in UTF-8
-        nil
       ensure
         s.force_encoding(Encoding::ASCII_8BIT)
       end
@@ -763,6 +768,11 @@ module Textbringer
     def initialize(max = 30)
       @max = max
       @ring = []
+      @current = -1
+    end
+
+    def clear
+      @ring.clear
       @current = -1
     end
 

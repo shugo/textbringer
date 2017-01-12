@@ -1,4 +1,4 @@
-require "test/unit"
+require_relative "../test_helper"
 require "tempfile"
 require "textbringer/buffer"
 
@@ -7,6 +7,7 @@ class TestBuffer < Test::Unit::TestCase
 
   def teardown
     Buffer.kill_em_all
+    KILL_RING.clear
   end
 
   def test_insert
@@ -354,6 +355,8 @@ abcdefg
 あいうえお
 かきくけこ
 EOF
+    buffer.copy_region(3, 7, true)
+    assert_equal("abcdefg\nあいうえお\n3456", KILL_RING.current)
   end
 
   def test_kill_region
@@ -412,6 +415,11 @@ EOF
 
 かきくけこ
 EOF
+
+    buffer.end_of_buffer
+    assert_raise(RangeError) do
+      buffer.kill_line
+    end
   end
 
   def test_kill_word
@@ -429,6 +437,11 @@ EOF
     buffer.kill_word
     assert_equal("\nあいうえお", KILL_RING.current)
     assert_equal(" world\n", buffer.to_s)
+
+    buffer.end_of_buffer
+    assert_raise(RangeError) do
+      buffer.kill_word
+    end
   end
 
   def test_save_ascii_only
@@ -545,6 +558,13 @@ EOF
     end
   end
 
+  def test_save_no_file_name
+    buffer = Buffer.new
+    assert_raise(RuntimeError) do
+      buffer.save
+    end
+  end
+
   def test_file_format
     buffer = Buffer.new("foo")
     assert_equal(:unix, buffer.file_format)
@@ -579,6 +599,20 @@ EOF
     assert_equal(33, buffer.point)
     assert_equal(55, buffer.re_search_forward("[あ-お]+"))
     assert_equal(55, buffer.point)
+
+    buffer.beginning_of_buffer
+    assert_raise(RuntimeError) do
+      buffer.re_search_forward("bar")
+    end
+    assert_raise(RuntimeError) do
+      buffer.re_search_forward("foo") # foo is in the gap
+    end
+    buffer.next_line
+    buffer.end_of_line
+    buffer.backward_delete_char
+    buffer.insert("x") # create invalid byte sequence in the gap
+    buffer.beginning_of_buffer
+    assert_equal(53, buffer.re_search_forward("あいうえお"))
   end
 
   def test_transpose_chars
@@ -587,6 +621,9 @@ hello world
 あいうえお
 EOF
     buffer.beginning_of_buffer
+    assert_raise(RangeError) do
+      buffer.transpose_chars
+    end
     buffer.forward_char
     buffer.transpose_chars
     buffer = Buffer.new(<<EOF)
@@ -674,6 +711,10 @@ Hello world
 I'm shugo
 EOF
 
+      assert_raise(RuntimeError) do
+        buffer.undo
+      end
+
       2.times { buffer.redo }
       assert_equal(true, buffer.modified?)
       assert_equal(<<EOF, buffer.to_s)
@@ -739,6 +780,81 @@ Goodbye world
 I'm tired
 This is the last line
 EOF
+
+      assert_raise(RuntimeError) do
+        buffer.redo
+      end
+    end
+  end
+
+  def test_undo_merge
+    buffer = Buffer.new
+    buffer.insert("foo")
+    buffer.insert("bar", true)
+    assert_equal("foobar", buffer.to_s)
+    buffer.undo
+    assert_equal("", buffer.to_s)
+  end
+
+  def test_undo_limit
+    Tempfile.create("test_buffer") do |f|
+      buffer = Buffer.new(<<EOF, undo_limit: 4)
+Hello world
+I'm shugo
+EOF
+      assert_equal(false, buffer.modified?)
+      buffer.delete_char("Hello".size)
+      buffer.insert("Goodbye")
+      assert_equal(true, buffer.modified?)
+      assert_equal(<<EOF, buffer.to_s)
+Goodbye world
+I'm shugo
+EOF
+      buffer.end_of_buffer
+      buffer.backward_char
+      buffer.delete_char(-"shugo".size)
+      buffer.insert("tired")
+      assert_equal(<<EOF, buffer.to_s)
+Goodbye world
+I'm tired
+EOF
+      buffer.end_of_buffer
+      buffer.insert("How are you?\n")
+      assert_equal(<<EOF, buffer.to_s)
+Goodbye world
+I'm tired
+How are you?
+EOF
+      buffer.backward_char("How are you?\n".size)
+      buffer.delete_char(-"I'm tired\n".size)
+      assert_equal(<<EOF, buffer.to_s)
+Goodbye world
+How are you?
+EOF
+
+      buffer.undo
+      assert_equal(true, buffer.modified?)
+      assert_equal(<<EOF, buffer.to_s)
+Goodbye world
+I'm tired
+How are you?
+EOF
+      buffer.undo
+      assert_equal(true, buffer.modified?)
+      assert_equal(<<EOF, buffer.to_s)
+Goodbye world
+I'm tired
+EOF
+      2.times { buffer.undo }
+      assert_equal(true, buffer.modified?)
+      assert_equal(<<EOF, buffer.to_s)
+Goodbye world
+I'm shugo
+EOF
+
+      assert_raise(RuntimeError) do
+        buffer.undo
+      end
     end
   end
 
@@ -768,6 +884,10 @@ EOF
       buffer2 = Buffer.find_file(f.path)
       assert_equal(buffer, buffer2)
       assert_equal(1, Buffer.count)
+
+      buffer3 = Buffer.find_file("no_such_file")
+      assert_equal("no_such_file", buffer3.name)
+      assert_equal(true, buffer3.new_file?)
     end
   end
 
@@ -800,5 +920,195 @@ EOF
     Buffer.current = Buffer.last
     assert_equal(nil, Buffer.current)
     assert_equal(nil, Buffer.last)
+  end
+
+  def test_s_auto_detect_encodings
+    old_encodings = Buffer.auto_detect_encodings
+    begin
+      Buffer.auto_detect_encodings = [Encoding::ISO_8859_1, Encoding::US_ASCII]
+      assert_equal([Encoding::ISO_8859_1, Encoding::US_ASCII],
+                   Buffer.auto_detect_encodings)
+    ensure
+      Buffer.auto_detect_encodings = old_encodings
+    end
+  end
+
+  def test_s_names
+    assert_equal([], Buffer.names)
+    foo = Buffer.new_buffer("foo")
+    assert_equal(["foo"], Buffer.names)
+    Buffer.new_buffer("bar")
+    assert_equal(["foo", "bar"], Buffer.names)
+    Buffer.new_buffer("baz")
+    assert_equal(["foo", "bar", "baz"], Buffer.names)
+    foo.kill
+    assert_equal(["bar", "baz"], Buffer.names)
+  end
+
+  def test_s_each
+    a = []
+    Buffer.each { |i| a.push(i) }
+    assert_equal(true, a.empty?)
+
+    foo = Buffer.new_buffer("foo")
+    a = []
+    Buffer.each { |i| a.push(i) }
+    assert_equal([foo], a)
+
+    bar = Buffer.new_buffer("bar")
+    baz = Buffer.new_buffer("baz")
+    a = []
+    Buffer.each { |i| a.push(i) }
+    assert_equal([foo, bar, baz], a)
+  end
+
+  def test_set_name
+    buffer = Buffer.new
+    assert_equal(nil, buffer.name)
+    buffer.name = "foo"
+    assert_equal("foo", buffer.name)
+
+    buffer2 = Buffer.new_buffer("bar")
+    assert_equal("bar", buffer2.name)
+    assert_equal(buffer2, Buffer["bar"])
+    buffer2.name = "baz"
+    assert_equal("baz", buffer2.name)
+    assert_equal(buffer2, Buffer["baz"])
+    assert_equal(nil, Buffer["bar"])
+  end
+
+  def test_current?
+    buffer = Buffer.new
+    assert_equal(false, buffer.current?)
+    Buffer.current = buffer
+    assert_equal(true, buffer.current?)
+    Buffer.current = nil
+    assert_equal(false, buffer.current?)
+  end
+
+  def test_point_min_max
+    buffer = Buffer.new
+    assert_equal(0, buffer.point_min)
+    assert_equal(0, buffer.point_max)
+    buffer.insert("foo")
+    assert_equal(0, buffer.point_min)
+    assert_equal(3, buffer.point_max)
+    buffer.insert("あいうえお")
+    assert_equal(0, buffer.point_min)
+    assert_equal(18, buffer.point_max)
+  end
+  
+  def test_goto_char
+    buffer = Buffer.new
+    buffer.insert("fooあいうえお")
+    buffer.goto_char(0)
+    assert_equal(0, buffer.point)
+    buffer.goto_char(3)
+    assert_equal(3, buffer.point)
+    buffer.goto_char(6)
+    assert_equal(6, buffer.point)
+    buffer.goto_char(18)
+    assert_equal(18, buffer.point)
+    assert_raise(RangeError) do
+      buffer.goto_char(-1)
+    end
+    assert_raise(RangeError) do
+      buffer.goto_char(19)
+    end
+    assert_raise(ArgumentError) do
+      buffer.goto_char(7) # in the middle of a character
+    end
+  end
+
+  def test_mark
+    buffer = Buffer.new
+    mark = buffer.new_mark
+    assert_equal(0, mark.location)
+    buffer.insert("12345")
+    assert_equal(0, mark.location)
+    mark2 = buffer.new_mark
+    assert_equal(5, mark2.location)
+    buffer.insert("6789")
+    assert_equal(0, mark.location)
+    assert_equal(5, mark2.location)
+    buffer.point_to_mark(mark2)
+    buffer.backward_char
+    assert_equal(false, buffer.point_at_mark?(mark2))
+    assert_equal(true, buffer.point_before_mark?(mark2))
+    assert_equal(false, buffer.point_after_mark?(mark2))
+    buffer.forward_char(2)
+    assert_equal(false, buffer.point_at_mark?(mark2))
+    assert_equal(false, buffer.point_before_mark?(mark2))
+    assert_equal(true, buffer.point_after_mark?(mark2))
+    buffer.point_to_mark(mark2)
+    assert_equal(true, buffer.point_at_mark?(mark2))
+    assert_equal(false, buffer.point_before_mark?(mark2))
+    assert_equal(false, buffer.point_after_mark?(mark2))
+    assert_equal(5, buffer.point)
+    buffer.beginning_of_buffer
+    buffer.insert("x")
+    assert_equal(0, mark.location)
+    assert_equal(6, mark2.location)
+    buffer.mark_to_point(mark)
+    assert_equal(1, mark.location)
+    buffer.delete_char
+    assert_equal(1, mark.location)
+    assert_equal(5, mark2.location)
+    buffer.point_to_mark(mark2)
+    buffer.backward_delete_char
+    assert_equal(1, mark.location)
+    assert_equal(4, mark2.location)
+    buffer.forward_char
+    buffer.backward_delete_char
+    assert_equal(1, mark.location)
+    assert_equal(4, mark2.location)
+    buffer.point_to_mark(mark)
+    buffer.forward_char(2)
+    buffer.backward_delete_char(2)
+    assert_equal(1, mark.location)
+    assert_equal(2, mark2.location)
+    buffer.point_to_mark(mark)
+    buffer.backward_delete_char
+    assert_equal(0, mark.location)
+    assert_equal(1, mark2.location)
+    buffer.swap_point_and_mark(mark2)
+    assert_equal(1, buffer.point)
+    assert_equal(0, mark2.location)
+  end
+
+  def test_yank
+    buffer = Buffer.new(<<EOF)
+foo
+bar
+baz
+EOF
+    3.times do
+      buffer.kill_line
+      buffer.next_line
+    end
+    buffer.yank
+    assert_equal("\n\n\nbaz", buffer.to_s)
+    2.times do
+      buffer.yank_pop
+      assert_equal("\n\n\nbar", buffer.to_s)
+      buffer.yank_pop
+      assert_equal("\n\n\nfoo", buffer.to_s)
+      buffer.yank_pop
+      assert_equal("\n\n\nbaz", buffer.to_s)
+    end
+  end
+
+  def test_gap_to_user
+    buffer = Buffer.new("foobar")
+    buffer.forward_char(3)
+    buffer.insert("123")
+    assert_equal(6, buffer.send(:gap_to_user, 6))
+    assert_raise(RangeError) do
+      buffer.send(:gap_to_user, 7)
+    end
+    assert_raise(RangeError) do
+      buffer.send(:gap_to_user, 6 + Buffer::GAP_SIZE - 1)
+    end
+    assert_equal(6, buffer.send(:gap_to_user, 6 + Buffer::GAP_SIZE))
   end
 end

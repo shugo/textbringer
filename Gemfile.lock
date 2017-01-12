@@ -8,9 +8,16 @@ PATH
 GEM
   remote: https://rubygems.org/
   specs:
+    docile (1.1.5)
+    json (2.0.2)
     ncursesw (1.4.10)
     power_assert (0.4.1)
     rake (10.5.0)
+    simplecov (0.12.0)
+      docile (~> 1.1.0)
+      json (>= 1.8, < 3)
+      simplecov-html (~> 0.10.0)
+    simplecov-html (0.10.0)
     test-unit (3.2.3)
       power_assert
     unicode-display_width (1.1.2)
@@ -21,8 +28,9 @@ PLATFORMS
 DEPENDENCIES
   bundler (~> 1.11)
   rake (~> 10.0)
+  simplecov
   test-unit
   textbringer!
 
 BUNDLED WITH
-   1.11.2
+   1.13.7
