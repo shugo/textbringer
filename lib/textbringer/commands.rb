@@ -6,16 +6,17 @@ module Textbringer
   module Commands
     include Minibuffer
 
-    @list = []
+    @@list = []
 
     def self.list
-      @list
+      @@list
     end
 
-    def self.define_command(name, &block)
+    def define_command(name, &block)
       define_method(name, &block)
-      @list << name if !@list.include?(name)
+      @@list << name if !@@list.include?(name)
     end
+    module_function :define_command
 
     define_command(:version) do
       message("Textbringer #{Textbringer::VERSION} "\
