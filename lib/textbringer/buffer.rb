@@ -652,6 +652,10 @@ module Textbringer
       insert(c)
     end
 
+    def gap_filled_with_nul?
+      /\A\0*\z/ =~ @contents[@gap_start...@gap_end] ? true : false
+    end
+
     private
 
     def adjust_gap(min_size = 0)
