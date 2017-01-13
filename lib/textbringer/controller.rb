@@ -2,7 +2,6 @@
 
 require_relative "buffer"
 require_relative "window"
-require_relative "echo_area"
 require_relative "commands"
 require_relative "keys"
 
@@ -18,9 +17,6 @@ module Textbringer
       @minibuffer = Buffer.new
       @minibuffer.keymap = MINIBUFFER_LOCAL_MAP
       @minibuffer_completion_proc = nil
-      @window = nil
-      @current_window = nil
-      @echo_area = nil
       @key_sequence = []
       @last_key = nil
       @recursive_edit_level = 0
@@ -29,8 +25,6 @@ module Textbringer
 
     def start(args)
       Window.start do
-        @current_window = @window =
-          Textbringer::Window.new(Window.lines - 1, Window.columns, 0, 0)
         if args.size > 0
           args.reverse_each do |arg|
             find_file(arg)
@@ -39,17 +33,15 @@ module Textbringer
           buffer = Buffer.new_buffer("Untitled")
           switch_to_buffer(buffer)
         end
-        @echo_area = Textbringer::EchoArea.new(1, Window.columns,
-                                               Window.lines - 1, 0)
-        @echo_area.buffer = @minibuffer
-        @echo_area.show("Type C-x C-c to exit Textbringer")
-        @echo_area.redisplay
-        @window.redisplay
+        Window.echo_area.buffer = @minibuffer
+        Window.echo_area.show("Type C-x C-c to exit Textbringer")
+        Window.echo_area.redisplay
+        Window.windows.each(&:redisplay)
         Window.update
         load_user_config
         trap(:CONT) do
-          @echo_area.redraw
-          @window.redraw
+          Window.echo_area.redraw
+          Window.windows.each(&:redraw)
           Window.update
         end
         loop do
@@ -64,7 +56,7 @@ module Textbringer
     end
 
     def message(msg)
-      @echo_area.show(msg)
+      Window.echo_area.show(msg)
     end
 
     def read_from_minibuffer(prompt, completion_proc: nil, default: nil)
@@ -72,18 +64,18 @@ module Textbringer
         raise "Command attempted to use minibuffer while in minibuffer"
       end
       buffer = Buffer.current
-      window = @current_window
+      window = Window.current
       old_completion_proc = @minibuffer_completion_proc
       @minibuffer_completion_proc = completion_proc
       begin
         @minibuffer.delete_region(@minibuffer.point_min, @minibuffer.point_max)
         Buffer.current = @minibuffer
-        @current_window = @echo_area
+        Window.current = Window.echo_area
         if default
           prompt = prompt.sub(/:/, " (default #{default}):")
         end
-        @echo_area.prompt = prompt
-        @echo_area.redisplay
+        Window.echo_area.prompt = prompt
+        Window.echo_area.redisplay
         Window.update
         recursive_edit
         s = @minibuffer.to_s.chomp
@@ -93,11 +85,11 @@ module Textbringer
           s
         end
       ensure
-        @echo_area.clear
-        @echo_area.redisplay
+        Window.echo_area.clear
+        Window.echo_area.redisplay
         Window.update
         Buffer.current = buffer
-        @current_window = window
+        Window.current = window
         @minibuffer_completion_proc = old_completion_proc
       end
     end
@@ -180,10 +172,10 @@ module Textbringer
     end
 
     def redisplay
-      if @current_window != @echo_area
-        @echo_area.redisplay
+      if Window.current != Window.echo_area
+        Window.echo_area.redisplay
       end
-      @current_window.redisplay
+      Window.current.redisplay
       Window.update
     end
 
@@ -191,8 +183,8 @@ module Textbringer
       catch(tag) do
         loop do
           begin
-            c = @current_window.getch
-            @echo_area.clear_message
+            c = Window.current.getch
+            Window.echo_area.clear_message
             @last_key = c
             @key_sequence << @last_key
             cmd = key_binding(@key_sequence)
@@ -212,11 +204,11 @@ module Textbringer
               if cmd.nil?
                 keys = @key_sequence.map { |c| key_name(c) }.join(" ")
                 @key_sequence.clear
-                @echo_area.show("#{keys} is undefined")
+                Window.echo_area.show("#{keys} is undefined")
               end
             end
           rescue => e
-            @echo_area.show(e.to_s.chomp)
+            Window.echo_area.show(e.to_s.chomp)
             Window.beep
           end
           redisplay

@@ -82,17 +82,15 @@ module Textbringer
     end
           
     define_command(:resize_window) do
-      @window.resize(Window.lines - 1, Window.columns)
-      @echo_area.move(Window.lines - 1, 0)
-      @echo_area.resize(1, Window.columns)
+      Window.resize
     end
 
     define_command(:scroll_up) do
-      @current_window.scroll_up
+      Window.current.scroll_up
     end
 
     define_command(:scroll_down) do
-      @current_window.scroll_down
+      Window.current.scroll_down
     end
 
     define_command(:exit_textbringer) do |status = 0|
@@ -124,7 +122,7 @@ module Textbringer
         buffer = Buffer[buffer_name]
       end
       if buffer
-        @current_window.buffer = Buffer.current = buffer
+        Window.current.buffer = Buffer.current = buffer
       else
         message("No such buffer: #{buffer_name}")
       end

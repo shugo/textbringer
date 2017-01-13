@@ -1,5 +1,4 @@
 require_relative "textbringer/version"
 require_relative "textbringer/buffer"
 require_relative "textbringer/window"
-require_relative "textbringer/echo_area"
 require_relative "textbringer/controller"
