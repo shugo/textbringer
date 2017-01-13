@@ -6,6 +6,7 @@ rvm:
 cache: bundler
 script:
 - bundle exec rake test
+- bundle exec bundle-audit check --update
 notifications:
   email:
     on_success: never
