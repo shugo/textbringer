@@ -118,30 +118,4 @@ module Textbringer
   MINIBUFFER_LOCAL_MAP.define_key(?\n, :exit_recursive_edit)
   MINIBUFFER_LOCAL_MAP.define_key(?\t, :complete_minibuffer)
   MINIBUFFER_LOCAL_MAP.define_key(?\C-g, :abort_recursive_edit)
-
-  module Keys
-    def key_name(key)
-      case key
-      when Integer
-        if key < 0x80
-          s = Ncurses.keyname(key)
-          case s
-          when /\AKEY_(.*)/
-            "<#{$1.downcase}>"
-          else
-            s
-          end
-        else
-          key.chr(Encoding::UTF_8)
-        end
-      else
-        key.to_s
-      end
-    end
-
-    def key_binding(key_sequence)
-      Buffer.current.keymap&.lookup(key_sequence) ||
-        GLOBAL_MAP.lookup(key_sequence)
-    end
-  end
 end

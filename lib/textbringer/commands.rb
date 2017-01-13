@@ -1,14 +1,12 @@
 # frozen_string_literal: true
 
+require_relative "minibuffer"
+
 module Textbringer
   module Commands
-    @list = []
+    include Minibuffer
 
-    def initialize(*args)
-      super
-      @this_command = nil
-      @last_command = nil
-    end
+    @list = []
 
     def self.list
       @list
@@ -53,26 +51,26 @@ module Textbringer
     end
 
     define_command(:self_insert) do
-      Buffer.current.insert(last_key.chr(Encoding::UTF_8),
-                             @last_command == :self_insert)
+      Buffer.current.insert(Controller.current.last_key.chr(Encoding::UTF_8),
+                            Controller.current.last_command == :self_insert)
     end
 
     define_command(:kill_line) do
-      Buffer.current.kill_line(@last_command == :kill_region)
-      @this_command = :kill_region
+      Buffer.current.kill_line(Controller.current.last_command == :kill_region)
+      Controller.current.this_command = :kill_region
     end
 
     define_command(:kill_word) do
-      Buffer.current.kill_word(@last_command == :kill_region)
-      @this_command = :kill_region
+      Buffer.current.kill_word(Controller.current.last_command == :kill_region)
+      Controller.current.this_command = :kill_region
     end
 
     define_command(:yank_pop) do
-      if @last_command != :yank
+      if Controller.current.last_command != :yank
         raise "Previous command was not a yank"
       end
       Buffer.current.yank_pop
-      @this_command = :yank
+      Controller.current.this_command = :yank
     end
 
     define_command(:re_search_forward) do
@@ -174,14 +172,14 @@ module Textbringer
       begin
         send(cmd)
       ensure
-        @this_command ||= cmd
+        Controller.current.this_command ||= cmd
       end
     end
 
     define_command(:eval_expression) do
       |s = read_from_minibuffer("Eval: ")|
       begin
-        message(eval(s).inspect)
+        message(eval(s, TOPLEVEL_BINDING).inspect)
       rescue Exception => e
         message("#{e.class}: #{e}")
       end
@@ -228,6 +226,10 @@ module Textbringer
 
     define_command(:keyboard_quit) do
       raise Quit
+    end
+
+    define_command(:recursive_edit) do
+      Controller.current.recursive_edit
     end
   end
 

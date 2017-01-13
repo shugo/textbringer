@@ -2,5 +2,43 @@
 
 require "textbringer"
 
-controller = Textbringer::Controller.new
-controller.start(ARGV)
+include Textbringer
+include Commands
+
+def load_user_config
+  config_file = File.expand_path("~/.tb")
+  begin
+    load(config_file)
+  rescue LoadError
+  rescue Exception => e
+    message(e.to_s)
+  end
+end
+
+Controller.current = Controller.new
+Buffer.minibuffer.keymap = MINIBUFFER_LOCAL_MAP
+Window.start do
+  if ARGV.size > 0
+    ARGV.each do |arg|
+      find_file(arg)
+    end
+  else
+    buffer = Buffer.new_buffer("Untitled")
+    switch_to_buffer(buffer)
+  end
+  Window.echo_area.buffer = Buffer.minibuffer
+  Window.echo_area.show("Type C-x C-c to exit Textbringer")
+  Window.echo_area.redisplay
+  Window.windows.each(&:redisplay)
+  Window.update
+  load_user_config
+  trap(:CONT) do
+    Window.echo_area.redraw
+    Window.windows.each(&:redraw)
+    Window.update
+  end
+  loop do
+    Controller.current.command_loop(TOP_LEVEL_TAG)
+    Window.redisplay_all
+  end
+end

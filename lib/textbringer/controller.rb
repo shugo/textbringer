@@ -10,172 +10,28 @@ module Textbringer
   RECURSIVE_EDIT_TAG = Object.new
 
   class Controller
-    include Commands
-    include Keys
+    attr_accessor :this_command, :last_command
+
+    @@current = nil
+
+    def self.current
+      @@current
+    end
+
+    def self.current=(controller)
+      @@current = controller
+    end
 
     def initialize
-      Buffer.minibuffer.keymap = MINIBUFFER_LOCAL_MAP
       @key_sequence = []
       @last_key = nil
       @recursive_edit_level = 0
-      super
-    end
-
-    def start(args)
-      Window.start do
-        if args.size > 0
-          args.reverse_each do |arg|
-            find_file(arg)
-          end
-        else
-          buffer = Buffer.new_buffer("Untitled")
-          switch_to_buffer(buffer)
-        end
-        Window.echo_area.buffer = Buffer.minibuffer
-        Window.echo_area.show("Type C-x C-c to exit Textbringer")
-        Window.echo_area.redisplay
-        Window.windows.each(&:redisplay)
-        Window.update
-        load_user_config
-        trap(:CONT) do
-          Window.echo_area.redraw
-          Window.windows.each(&:redraw)
-          Window.update
-        end
-        loop do
-          command_loop(TOP_LEVEL_TAG)
-          redisplay
-        end
-      end
+      @this_command = nil
+      @last_command = nil
     end
 
     def last_key
       @last_key
-    end
-
-    def message(msg)
-      Window.echo_area.show(msg)
-    end
-
-    def read_from_minibuffer(prompt, completion_proc: nil, default: nil)
-      if Buffer.current == Buffer.minibuffer
-        raise "Command attempted to use minibuffer while in minibuffer"
-      end
-      buffer = Buffer.current
-      window = Window.current
-      old_completion_proc = Buffer.minibuffer[:completion_proc]
-      Buffer.minibuffer[:completion_proc] = completion_proc
-      begin
-        Buffer.minibuffer.delete_region(Buffer.minibuffer.point_min,
-                                        Buffer.minibuffer.point_max)
-        Buffer.current = Buffer.minibuffer
-        Window.current = Window.echo_area
-        if default
-          prompt = prompt.sub(/:/, " (default #{default}):")
-        end
-        Window.echo_area.prompt = prompt
-        Window.echo_area.redisplay
-        Window.update
-        recursive_edit
-        s = Buffer.minibuffer.to_s.chomp
-        if default && s.empty?
-          default
-        else
-          s
-        end
-      ensure
-        Window.echo_area.clear
-        Window.echo_area.redisplay
-        Window.update
-        Buffer.current = buffer
-        Window.current = window
-        Buffer.minibuffer[:completion_proc] = old_completion_proc
-      end
-    end
-
-    def read_file_name(prompt, default: nil)
-      f = ->(s) {
-        files = Dir.glob(s + "*")
-        if files.size > 0
-          x, *xs = files
-          file = x.size.downto(1).lazy.map { |i|
-            x[0, i]
-          }.find { |i|
-            xs.all? { |j| j.start_with?(i) }
-          }
-          if file && files.size == 1 &&
-             File.directory?(file) && !file.end_with?(?/)
-            file + "/"
-          else
-            file
-          end
-        else
-          nil
-        end
-      }
-      read_from_minibuffer(prompt, completion_proc: f, default: default)
-    end
-
-    def complete(s, candidates)
-      xs = candidates.select { |i| i.start_with?(s) }
-      if xs.size > 0
-        y, *ys = xs
-        y.size.downto(1).lazy.map { |i|
-          y[0, i]
-        }.find { |i|
-          ys.all? { |j| j.start_with?(i) }
-        }
-      else
-        nil
-      end
-    end
-
-    def read_buffer(prompt, default: (Buffer.last || Buffer.current)&.name)
-      f = ->(s) { complete(s, Buffer.names) }
-      read_from_minibuffer(prompt, completion_proc: f, default: default)
-    end
-
-    def read_command_name(prompt)
-      f = ->(s) {
-        complete(s.tr("-", "_"), Commands.list.map(&:to_s))
-      }
-      read_from_minibuffer(prompt, completion_proc: f)
-    end
-
-    def yes_or_no?(prompt)
-      loop {
-        s = read_from_minibuffer(prompt + " (yes or no) ")
-        case s
-        when "yes"
-          return true
-        when "no"
-          return false
-        else
-          message("Please answer yes or no.")
-        end
-      }
-    end
-
-    def y_or_n?(prompt)
-      loop {
-        s = read_from_minibuffer(prompt + " (y or n) ")
-        case s
-        when "y"
-          return true
-        when "n"
-          return false
-        else
-          message("Please answer y or n.")
-        end
-      }
-    end
-
-    def redisplay
-      if Window.current != Window.echo_area
-        Window.echo_area.redisplay
-      end
-      Window.current.redisplay
-      Window.update
     end
 
     def command_loop(tag)
@@ -210,7 +66,7 @@ module Textbringer
             Window.echo_area.show(e.to_s.chomp)
             Window.beep
           end
-          redisplay
+          Window.redisplay
         end
       end
     end
@@ -226,14 +82,30 @@ module Textbringer
       end
     end
 
-    def load_user_config
-      config_file = File.expand_path("~/.tb")
-      begin
-        load(config_file)
-      rescue LoadError
-      rescue Exception => e
-        message(e.to_s)
+    private
+
+    def key_name(key)
+      case key
+      when Integer
+        if key < 0x80
+          s = Ncurses.keyname(key)
+          case s
+          when /\AKEY_(.*)/
+            "<#{$1.downcase}>"
+          else
+            s
+          end
+        else
+          key.chr(Encoding::UTF_8)
+        end
+      else
+        key.to_s
       end
+    end
+
+    def key_binding(key_sequence)
+      Buffer.current.keymap&.lookup(key_sequence) ||
+        GLOBAL_MAP.lookup(key_sequence)
     end
   end
 end

@@ -61,6 +61,14 @@ module Textbringer
       end
     end
 
+    def self.redisplay
+      if current != echo_area
+        echo_area.redisplay
+      end
+      current.redisplay
+      update
+    end
+
     def self.update
       Ncurses.doupdate
     end
