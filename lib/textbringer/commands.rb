@@ -214,12 +214,14 @@ module Textbringer
     end
 
     define_command(:complete_minibuffer) do
-      if @minibuffer_completion_proc
-        s = @minibuffer_completion_proc.call(@minibuffer.to_s)
+      minibuffer = Buffer.minibuffer
+      completion_proc = minibuffer[:completion_proc]
+      if completion_proc
+        s = completion_proc.call(minibuffer.to_s)
         if s
-          @minibuffer.delete_region(@minibuffer.point_min,
-                                    @minibuffer.point_max)
-          @minibuffer.insert(s)
+          minibuffer.delete_region(minibuffer.point_min,
+                                   minibuffer.point_max)
+          minibuffer.insert(s)
         end
       end
     end

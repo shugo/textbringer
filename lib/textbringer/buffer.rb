@@ -32,6 +32,7 @@ module Textbringer
     @@table = {}
     @@list = []
     @@current = nil
+    @@minibuffer = nil
 
     def self.auto_detect_encodings
       @@auto_detect_encodings
@@ -56,6 +57,10 @@ module Textbringer
         @@list.push(buffer)
       end
       @@current = buffer
+    end
+
+    def self.minibuffer
+      @@minibuffer ||= Buffer.new
     end
 
     def self.last

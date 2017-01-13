@@ -1165,4 +1165,11 @@ EOF
     assert_equal("abc", buffer[:foo])
     assert_equal("def", buffer2[:foo])
   end
+
+  def test_s_minibuffer
+    buffer = Buffer.minibuffer
+    assert_equal("", buffer.to_s)
+    buffer2 = Buffer.minibuffer
+    assert_same(buffer, buffer2)
+  end
 end

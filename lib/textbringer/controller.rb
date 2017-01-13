@@ -14,9 +14,7 @@ module Textbringer
     include Keys
 
     def initialize
-      @minibuffer = Buffer.new
-      @minibuffer.keymap = MINIBUFFER_LOCAL_MAP
-      @minibuffer_completion_proc = nil
+      Buffer.minibuffer.keymap = MINIBUFFER_LOCAL_MAP
       @key_sequence = []
       @last_key = nil
       @recursive_edit_level = 0
@@ -33,7 +31,7 @@ module Textbringer
           buffer = Buffer.new_buffer("Untitled")
           switch_to_buffer(buffer)
         end
-        Window.echo_area.buffer = @minibuffer
+        Window.echo_area.buffer = Buffer.minibuffer
         Window.echo_area.show("Type C-x C-c to exit Textbringer")
         Window.echo_area.redisplay
         Window.windows.each(&:redisplay)
@@ -60,16 +58,17 @@ module Textbringer
     end
 
     def read_from_minibuffer(prompt, completion_proc: nil, default: nil)
-      if Buffer.current == @minibuffer
+      if Buffer.current == Buffer.minibuffer
         raise "Command attempted to use minibuffer while in minibuffer"
       end
       buffer = Buffer.current
       window = Window.current
-      old_completion_proc = @minibuffer_completion_proc
-      @minibuffer_completion_proc = completion_proc
+      old_completion_proc = Buffer.minibuffer[:completion_proc]
+      Buffer.minibuffer[:completion_proc] = completion_proc
       begin
-        @minibuffer.delete_region(@minibuffer.point_min, @minibuffer.point_max)
-        Buffer.current = @minibuffer
+        Buffer.minibuffer.delete_region(Buffer.minibuffer.point_min,
+                                        Buffer.minibuffer.point_max)
+        Buffer.current = Buffer.minibuffer
         Window.current = Window.echo_area
         if default
           prompt = prompt.sub(/:/, " (default #{default}):")
@@ -78,7 +77,7 @@ module Textbringer
         Window.echo_area.redisplay
         Window.update
         recursive_edit
-        s = @minibuffer.to_s.chomp
+        s = Buffer.minibuffer.to_s.chomp
         if default && s.empty?
           default
         else
@@ -90,7 +89,7 @@ module Textbringer
         Window.update
         Buffer.current = buffer
         Window.current = window
-        @minibuffer_completion_proc = old_completion_proc
+        Buffer.minibuffer[:completion_proc] = old_completion_proc
       end
     end
 
