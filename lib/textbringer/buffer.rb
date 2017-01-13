@@ -156,6 +156,7 @@ module Textbringer
       @version = 0
       @modified = false
       @keymap = nil
+      @attributes = {}
     end
 
     def name=(name)
@@ -182,6 +183,14 @@ module Textbringer
 
     def modified?
       @modified
+    end
+
+    def [](name)
+      @attributes[name]
+    end
+
+    def []=(name, value)
+      @attributes[name] = value
     end
 
     def new_file?

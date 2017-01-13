@@ -1154,4 +1154,15 @@ EOF
     end
     assert_equal(6, buffer.send(:gap_to_user, 6 + Buffer::GAP_SIZE))
   end
+
+  def test_attributes
+    buffer = Buffer.new
+    buffer2 = Buffer.new
+    assert_equal(nil, buffer[:foo])
+    assert_equal(nil, buffer2[:foo])
+    buffer[:foo] = "abc"
+    buffer2[:foo] = "def"
+    assert_equal("abc", buffer[:foo])
+    assert_equal("def", buffer2[:foo])
+  end
 end
