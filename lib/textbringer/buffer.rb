@@ -102,6 +102,10 @@ module Textbringer
       @@table[name]
     end
 
+    def self.find_or_new(name)
+      @@table[name] ||= new_buffer(name)
+    end
+
     def self.names
       @@table.keys
     end

@@ -1197,4 +1197,11 @@ EOF
     buffer2 = Buffer.minibuffer
     assert_same(buffer, buffer2)
   end
+
+  def test_find_or_new
+    buffer = Buffer.find_or_new("foo")
+    assert_equal("foo", buffer.name)
+    buffer2 = Buffer.find_or_new("foo")
+    assert_same(buffer, buffer2)
+  end
 end
