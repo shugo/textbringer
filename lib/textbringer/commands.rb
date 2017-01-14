@@ -6,15 +6,15 @@ module Textbringer
   module Commands
     include Minibuffer
 
-    @@list = []
+    @@command_list = []
 
     def self.list
-      @@list
+      @@command_list
     end
 
     def define_command(name, &block)
       define_method(name, &block)
-      @@list << name if !@@list.include?(name)
+      @@command_list << name if !@@command_list.include?(name)
     end
     module_function :define_command
 
@@ -93,7 +93,7 @@ module Textbringer
     end
 
     define_command(:exit_textbringer) do |status = 0|
-      if Buffer.any?(&:modified?)
+      if Buffer.any? { |buffer| /\A\*/ !~ buffer.name && buffer.modified? }
         return unless yes_or_no?("Unsaved buffers exist; exit anyway?")
       end
       exit(status)
@@ -168,7 +168,7 @@ module Textbringer
       end
       buffer.kill
       if Buffer.count == 0
-        buffer = Buffer.new_buffer("Untitled")
+        buffer = Buffer.new_buffer("*scratch*")
         switch_to_buffer(buffer)
       elsif Buffer.current.nil?
         switch_to_buffer(Buffer.last)
