@@ -114,7 +114,6 @@ module Textbringer
       @@table.clear
       @@list.clear
       @@current = nil
-      @@last = nil
     end
 
     def self.find_file(file_name)
