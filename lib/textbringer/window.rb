@@ -2,7 +2,6 @@
 
 require "ncursesw"
 require "unicode/display_width"
-require_relative "buffer"
 
 module Textbringer
   class Window

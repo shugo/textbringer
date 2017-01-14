@@ -1,10 +1,5 @@
 # frozen_string_literal: true
 
-require_relative "buffer"
-require_relative "window"
-require_relative "commands"
-require_relative "keys"
-
 module Textbringer
   TOP_LEVEL_TAG = Object.new
   RECURSIVE_EDIT_TAG = Object.new
