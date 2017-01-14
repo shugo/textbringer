@@ -103,6 +103,7 @@ module Textbringer
   GLOBAL_MAP.define_key("\C-x\C-s", :save_buffer)
   GLOBAL_MAP.define_key("\C-x\C-w", :write_file)
   GLOBAL_MAP.define_key("\C-xk", :kill_buffer)
+  GLOBAL_MAP.define_key("\C-x\nf", :set_buffer_file_encoding)
   GLOBAL_MAP.define_key("\ex", :execute_command)
   GLOBAL_MAP.define_key("\e:", :eval_expression)
   GLOBAL_MAP.define_key(?\C-g, :keyboard_quit)

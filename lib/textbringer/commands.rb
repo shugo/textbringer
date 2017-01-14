@@ -174,6 +174,12 @@ module Textbringer
       end
     end
 
+    define_command(:set_buffer_file_encoding) do
+      |enc = read_from_minibuffer("File encoding: ",
+                                  default: Buffer.current.file_encoding.name)|
+      Buffer.current.file_encoding = Encoding.find(enc)
+    end
+
     define_command(:execute_command) do
       |cmd = read_command_name("M-x ").strip.intern|
       unless Commands.list.include?(cmd)
