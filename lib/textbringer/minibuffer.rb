@@ -9,6 +9,14 @@ module Textbringer
       }
       buffer.end_of_buffer
       buffer.insert(msg + "\n")
+      if buffer.line > 1000
+        buffer.beginning_of_buffer
+        10.times do
+          buffer.next_line
+        end
+        buffer.delete_region(buffer.point_min, buffer.point)
+        buffer.end_of_buffer
+      end
       Window.echo_area.show(msg)
     end
 
