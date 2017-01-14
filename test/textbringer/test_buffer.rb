@@ -257,6 +257,8 @@ EOF
     assert_equal("あ", buffer.char_after)
     buffer.forward_char
     assert_equal("い", buffer.char_after)
+    buffer.end_of_buffer
+    assert_equal(nil, buffer.char_after)
   end
 
   def test_next_line

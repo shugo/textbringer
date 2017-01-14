@@ -280,7 +280,8 @@ module Textbringer
     end
 
     def char_after(location = @point)
-      substring(location, location + UTF8_CHAR_LEN[byte_after(location)])
+      s = substring(location, location + UTF8_CHAR_LEN[byte_after(location)])
+      s.empty? ? nil : s
     end
 
     def bytesize

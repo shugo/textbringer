@@ -240,7 +240,8 @@ module Textbringer
       @mode_line.addstr("[+]") if @buffer.modified?
       @mode_line.addstr("[#{@buffer.file_encoding.name}/")
       @mode_line.addstr("#{@buffer.file_format}]")
-      @mode_line.addstr(" (#{@buffer.line},#{@buffer.column})")
+      @mode_line.addstr(" U+%04X" % (@buffer.char_after&.ord || 0))
+      @mode_line.addstr(" #{@buffer.line},#{@buffer.column}")
       @mode_line.addstr(" " * (@mode_line.getmaxx - @mode_line.getcurx))
       @mode_line.attroff(Ncurses::A_REVERSE)
       @mode_line.noutrefresh
