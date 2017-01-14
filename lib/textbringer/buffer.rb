@@ -587,11 +587,12 @@ module Textbringer
     end
 
     def delete_region(s = @point, e = mark)
+      old_pos = @point
+      if s > e
+        s, e = e, s
+      end
+      update_line_and_column(old_pos, s)
       save_point do
-        old_pos = @point
-        if s > e
-          s, e = e, s
-        end
         str = substring(s, e)
         @point = s
         adjust_gap

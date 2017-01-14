@@ -413,8 +413,14 @@ abcdefg
 EOF
     buffer.next_line
     buffer.set_mark
+    assert_equal(2, buffer.line)
+    assert_equal(1, buffer.column)
     buffer.next_line
+    assert_equal(3, buffer.line)
+    assert_equal(1, buffer.column)
     buffer.kill_region
+    assert_equal(2, buffer.line)
+    assert_equal(1, buffer.column)
     assert_equal("abcdefg\n", KILL_RING.current)
     assert_equal(<<EOF, buffer.to_s)
 0123456789
