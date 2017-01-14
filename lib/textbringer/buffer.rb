@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "nkf"
 require "unicode/display_width"
 
 module Textbringer
@@ -29,6 +30,20 @@ module Textbringer
       Encoding::Windows_31J
     ]
 
+    DEFAULT_DETECT_ENCODING = ->(s) {
+      @@auto_detect_encodings.find { |e|
+        s.force_encoding(e)
+        s.valid_encoding?
+      }
+    }
+
+    NKF_DETECT_ENCODING = ->(s) {
+      e = NKF.guess(s)
+      e == Encoding::US_ASCII ? Encoding::UTF_8 : e
+    }
+
+    @@detect_encoding_proc = DEFAULT_DETECT_ENCODING
+
     @@table = {}
     @@list = []
     @@current = nil
@@ -40,6 +55,14 @@ module Textbringer
 
     def self.auto_detect_encodings=(encodings)
       @@auto_detect_encodings = encodings
+    end
+
+    def self.detect_encoding_proc
+      @@detect_encoding_proc
+    end
+
+    def self.detect_encoding_proc=(f)
+      @@detect_encoding_proc = f
     end
 
     def self.add(buffer)
@@ -204,10 +227,8 @@ module Textbringer
 
     def self.open(file_name, name: File.basename(file_name))
       s = File.read(file_name)
-      enc = @@auto_detect_encodings.find { |e|
-        s.force_encoding(e)
-        s.valid_encoding?
-      }
+      enc = @@detect_encoding_proc.call(s)
+      s.force_encoding(enc)
       Buffer.new(s, name: name,
                  file_name: file_name, file_encoding: enc,
                  new_file: false)

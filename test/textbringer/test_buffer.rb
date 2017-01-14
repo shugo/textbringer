@@ -546,6 +546,31 @@ EOF
     end
   end
 
+  def test_save_iso2022jp
+    old_detect_encoding_proc = Buffer.detect_encoding_proc
+    Buffer.detect_encoding_proc = Buffer::NKF_DETECT_ENCODING
+    begin
+      Tempfile.create("test_buffer") do |f|
+        f.print(<<EOF.encode(Encoding::ISO_2022_JP))
+こんにちは
+EOF
+        f.close
+        buffer = Buffer.open(f.path)
+        assert_equal(Encoding::ISO_2022_JP, buffer.file_encoding)
+        assert_equal("こんにちは\n", buffer.to_s)
+        buffer.end_of_buffer
+        buffer.insert("さようなら\n")
+        buffer.save
+        assert_equal(<<EOF.encode(Encoding::ISO_2022_JP), File.read(f.path, encoding: Encoding::ISO_2022_JP, binmode: true))
+こんにちは
+さようなら
+EOF
+      end
+    ensure
+      Buffer.detect_encoding_proc = old_detect_encoding_proc
+    end
+  end
+
   def test_save_dos
     Tempfile.create("test_buffer") do |f|
       f.print(<<EOF.gsub(/\n/, "\r\n").encode(Encoding::Windows_31J))
