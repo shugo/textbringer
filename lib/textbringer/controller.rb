@@ -62,7 +62,7 @@ module Textbringer
             if e.is_a?(SystemExit)
               raise
             end
-            buffer = Buffer.find_or_new("*Backtrace*")
+            buffer = Buffer.find_or_new("*Backtrace*", undo_limit: 0)
             buffer.delete_region(buffer.point_min, buffer.point_max)
             buffer.insert("#{e.class}: #{e}\n")
             e.backtrace.each do |line|

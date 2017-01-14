@@ -4,7 +4,7 @@ module Textbringer
   module Minibuffer
     def message(msg)
       buffer = Buffer["*Messages*"] ||
-        Buffer.new_buffer("*Messages*").tap { |b|
+        Buffer.new_buffer("*Messages*", undo_limit: 0).tap { |b|
           b[:top_of_window] = b.new_mark
       }
       buffer.end_of_buffer

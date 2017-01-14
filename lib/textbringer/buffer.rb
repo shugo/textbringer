@@ -102,8 +102,8 @@ module Textbringer
       @@table[name]
     end
 
-    def self.find_or_new(name)
-      @@table[name] ||= new_buffer(name)
+    def self.find_or_new(name, **opts)
+      @@table[name] ||= new_buffer(name, **opts)
     end
 
     def self.names
@@ -601,8 +601,10 @@ module Textbringer
         @contents[@gap_end, len] = "\0" * len
         @gap_end += len
         @marks.each do |m|
-          if m.location > @point
+          if m.location > e
             m.location -= len
+          elsif m.location > s
+            m.location = s
           end
         end
         push_undo(DeleteAction.new(self, old_pos, s, str)) 
@@ -834,7 +836,7 @@ module Textbringer
     end
 
     def push_undo(action)
-      return if @undoing
+      return if @undoing || @undo_limit == 0
       if @undo_stack.size >= @undo_limit
         @undo_stack[0, @undo_stack.size + 1 - @undo_limit] = []
       end

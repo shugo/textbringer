@@ -98,9 +98,7 @@ module Textbringer
       @window.scrollok(false)
       @buffer = nil
       @top_of_window = nil
-      @top_of_windows = {}
       @bottom_of_window = nil
-      @bottom_of_windows = {}
     end
 
     def buffer=(buffer)

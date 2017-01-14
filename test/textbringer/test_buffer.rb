@@ -404,6 +404,19 @@ EOF
     assert_equal("abcdefg\nあいうえお\n3456", KILL_RING.current)
   end
 
+  def test_delete_region
+    buffer = Buffer.new("foobar")
+    buffer.end_of_buffer
+    mark = buffer.new_mark
+    buffer.backward_char(3)
+    mark2 = buffer.new_mark
+    buffer.backward_char
+    buffer.delete_region(1, 4)
+    assert_equal(1, buffer.point)
+    assert_equal(3, mark.location)
+    assert_equal(1, mark2.location)
+  end
+
   def test_kill_region
     buffer = Buffer.new(<<EOF)
 0123456789
