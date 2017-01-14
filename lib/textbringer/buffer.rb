@@ -541,7 +541,7 @@ module Textbringer
       @point > mark.location
     end
 
-    def swap_point_and_mark(mark)
+    def exchange_point_and_mark(mark = @mark)
       update_line_and_column(@point, mark.location)
       @point, mark.location = mark.location, @point
     end

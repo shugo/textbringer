@@ -37,6 +37,7 @@ module Textbringer
       :beginning_of_buffer,
       :end_of_buffer,
       :set_mark,
+      :exchange_point_and_mark,
       :copy_region,
       :kill_region,
       :yank,

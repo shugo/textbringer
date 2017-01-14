@@ -1141,7 +1141,7 @@ EOF
     buffer.backward_delete_char
     assert_equal(0, mark.location)
     assert_equal(1, mark2.location)
-    buffer.swap_point_and_mark(mark2)
+    buffer.exchange_point_and_mark(mark2)
     assert_equal(1, buffer.point)
     assert_equal(0, mark2.location)
   end
