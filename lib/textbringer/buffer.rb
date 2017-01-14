@@ -75,7 +75,7 @@ module Textbringer
     end
 
     def self.current=(buffer)
-      if buffer && buffer.name
+      if buffer && buffer.name && @@table.key?(buffer.name)
         @@list.delete(buffer)
         @@list.push(buffer)
       end
@@ -83,7 +83,7 @@ module Textbringer
     end
 
     def self.minibuffer
-      @@minibuffer ||= Buffer.new
+      @@minibuffer ||= Buffer.new(name: "*Minibuffer*")
     end
 
     def self.last
@@ -191,6 +191,10 @@ module Textbringer
       @keymap = nil
       @attributes = {}
       @save_point_level = 0
+    end
+
+    def inspect
+      "#<Buffer:#{@name || '0x%x' % object_id}>"
     end
 
     def name=(name)

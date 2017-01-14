@@ -1249,4 +1249,11 @@ EOF
     buffer2 = Buffer.find_or_new("foo")
     assert_same(buffer, buffer2)
   end
+
+  def test_inspect
+    buffer = Buffer.new
+    assert_match(/\A#<Buffer:0x[0-9a-f]+>\z/, buffer.inspect)
+    buffer2 = Buffer.new(name: "foo")
+    assert_equal("#<Buffer:foo>", buffer2.inspect)
+  end
 end

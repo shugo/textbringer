@@ -19,6 +19,11 @@ Controller.current = Controller.new
 Buffer.minibuffer.keymap = MINIBUFFER_LOCAL_MAP
 Window.start do
   buffer = Buffer.new_buffer("*scratch*")
+  defout = Object.new
+  def defout.write(s)
+    Buffer.current.insert(s)
+  end
+  $> = defout
   if ARGV.size > 0
     ARGV.each do |arg|
       find_file(arg)
