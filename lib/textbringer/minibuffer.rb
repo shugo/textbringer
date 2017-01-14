@@ -3,7 +3,10 @@
 module Textbringer
   module Minibuffer
     def message(msg)
-      buffer = Buffer.find_or_new("*Messages*")
+      buffer = Buffer["*Messages*"] ||
+        Buffer.new_buffer("*Messages*").tap { |b|
+          b[:top_of_window] = b.new_mark
+      }
       buffer.end_of_buffer
       buffer.insert(msg + "\n")
       Window.echo_area.show(msg)

@@ -104,15 +104,9 @@ module Textbringer
     end
 
     def buffer=(buffer)
-      if @top_of_window
-        @top_of_window.delete
-      end
-      if @bottom_of_window
-        @bottom_of_window.delete
-      end
       @buffer = buffer
-      @top_of_window = @top_of_windows[@buffer] ||= @buffer.new_mark
-      @bottom_of_window = @bottom_of_windows[@buffer] ||= @buffer.new_mark
+      @top_of_window = @buffer[:top_of_window] ||= @buffer.new_mark
+      @bottom_of_window = @buffer[:bottom_of_window] ||= @buffer.new_mark
     end
 
     def lines
