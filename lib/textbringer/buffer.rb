@@ -179,7 +179,7 @@ module Textbringer
       @gap_end = 0
       @marks = []
       @mark = nil
-      @column = nil
+      @desired_column = nil
       @yank_start = new_mark
       @undo_stack = []
       @redo_stack = []
@@ -300,7 +300,7 @@ module Textbringer
       if /[\x80-\xbf]/n =~ byte_after(pos)
         raise ArgumentError, "Position is in the middle of a character"
       end
-      @column = nil
+      @desired_column = nil
       @point = pos
     end
 
@@ -324,7 +324,7 @@ module Textbringer
         end
       end
       @modified = true
-      @column = nil
+      @desired_column = nil
     end
 
     def newline
@@ -372,7 +372,7 @@ module Textbringer
         push_undo(DeleteAction.new(self, s, pos, str))
         @modified = true
       end
-      @column = nil
+      @desired_column = nil
     end
 
     def backward_delete_char(n = 1)
@@ -381,7 +381,7 @@ module Textbringer
 
     def forward_char(n = 1)
       @point = get_pos(@point, n)
-      @column = nil
+      @desired_column = nil
     end
 
     def backward_char(n = 1)
@@ -416,8 +416,8 @@ module Textbringer
     end
 
     def next_line
-      if @column
-        column = @column
+      if @desired_column
+        column = @desired_column
       else
         prev_point = @point
         beginning_of_line
@@ -431,12 +431,12 @@ module Textbringer
           Unicode::DisplayWidth.of(substring(s, @point), 2) < column
         forward_char
       end
-      @column = column
+      @desired_column = column
     end
 
     def previous_line
-      if @column
-        column = @column
+      if @desired_column
+        column = @desired_column
       else
         prev_point = @point
         beginning_of_line
@@ -451,7 +451,7 @@ module Textbringer
           Unicode::DisplayWidth.of(substring(s, @point), 2) < column
         forward_char
       end
-      @column = column
+      @desired_column = column
     end
 
     def beginning_of_buffer
@@ -518,13 +518,13 @@ module Textbringer
 
     def save_point
       saved = new_mark
-      column = @column
+      column = @desired_column
       begin
         yield(saved)
       ensure
         point_to_mark(saved)
         saved.delete
-        @column = column
+        @desired_column = column
       end
     end
 
