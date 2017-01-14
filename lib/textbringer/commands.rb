@@ -104,6 +104,15 @@ module Textbringer
       Process.kill(:STOP, $$)
     end
 
+    define_command(:pwd) do
+      message(Dir.pwd)
+    end
+
+    define_command(:chdir) do
+      |dir_name = read_file_name("Change directory: ")|
+      Dir.chdir(dir_name)
+    end
+
     define_command(:find_file) do
       |file_name = read_file_name("Find file: ")|
       buffer = Buffer.find_file(file_name)
