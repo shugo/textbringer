@@ -44,6 +44,7 @@ module Textbringer
 
     def read_file_name(prompt, default: nil)
       f = ->(s) {
+        s = File.expand_path(s) if s.start_with?("~")
         files = Dir.glob(s + "*")
         if files.size > 0
           x, *xs = files
@@ -62,7 +63,8 @@ module Textbringer
           nil
         end
       }
-      read_from_minibuffer(prompt, completion_proc: f, default: default)
+      file = read_from_minibuffer(prompt, completion_proc: f, default: default)
+      File.expand_path(file)
     end
 
     def complete(s, candidates)
