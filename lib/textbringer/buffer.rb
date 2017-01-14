@@ -7,8 +7,8 @@ module Textbringer
   class Buffer
     extend Enumerable
 
-    attr_accessor :file_name, :file_encoding, :file_format, :keymap
-    attr_reader :name, :point, :marks, :line, :column
+    attr_accessor :file_name, :file_encoding, :keymap
+    attr_reader :name, :file_format, :point, :marks, :line, :column
 
     GAP_SIZE = 256
     UNDO_LIMIT = 1000
@@ -204,6 +204,19 @@ module Textbringer
         @@table[@name] = self
       else
         @name = name
+      end
+    end
+
+    def file_format=(format)
+      case format
+      when /\Aunix\z/i
+        @file_format = :unix
+      when /\Ados\z/i
+        @file_format = :dos
+      when /\Amac\z/i
+        @file_format = :mac
+      else
+        raise ArgumentError, "Unknown file format: #{format}"
       end
     end
 
