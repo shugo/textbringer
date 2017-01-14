@@ -5,7 +5,7 @@ module Textbringer
   RECURSIVE_EDIT_TAG = Object.new
 
   class Controller
-    attr_accessor :this_command, :last_command
+    attr_accessor :this_command, :last_command, :overriding_map
 
     @@current = nil
 
@@ -23,6 +23,7 @@ module Textbringer
       @recursive_edit_level = 0
       @this_command = nil
       @last_command = nil
+      @overriding_map = nil
     end
 
     def last_key
@@ -99,6 +100,7 @@ module Textbringer
     end
 
     def key_binding(key_sequence)
+      @overriding_map&.lookup(key_sequence) ||
       Buffer.current.keymap&.lookup(key_sequence) ||
         GLOBAL_MAP.lookup(key_sequence)
     end
