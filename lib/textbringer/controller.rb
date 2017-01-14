@@ -60,7 +60,6 @@ module Textbringer
             end
           rescue => e
             message(e.to_s.chomp)
-            STDERR.puts(e.backtrace)
             Window.beep
           end
           Window.redisplay
