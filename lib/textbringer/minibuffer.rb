@@ -3,6 +3,9 @@
 module Textbringer
   module Minibuffer
     def message(msg)
+      buffer = Buffer.find_or_new("*Messages*")
+      buffer.end_of_buffer
+      buffer.insert(msg + "\n")
       Window.echo_area.show(msg)
     end
 

@@ -59,7 +59,8 @@ module Textbringer
               end
             end
           rescue => e
-            Window.echo_area.show(e.to_s.chomp)
+            message(e.to_s.chomp)
+            STDERR.puts(e.backtrace)
             Window.beep
           end
           Window.redisplay
@@ -101,7 +102,7 @@ module Textbringer
 
     def key_binding(key_sequence)
       @overriding_map&.lookup(key_sequence) ||
-      Buffer.current.keymap&.lookup(key_sequence) ||
+      Buffer.current&.keymap&.lookup(key_sequence) ||
         GLOBAL_MAP.lookup(key_sequence)
     end
   end
