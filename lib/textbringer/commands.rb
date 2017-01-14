@@ -195,19 +195,11 @@ module Textbringer
 
     define_command(:eval_expression) do
       |s = read_from_minibuffer("Eval: ")|
-      begin
-        message(eval(s, TOPLEVEL_BINDING).inspect)
-      rescue Exception => e
-        message("#{e.class}: #{e}")
-      end
+      message(eval(s, TOPLEVEL_BINDING).inspect)
     end
 
     define_command(:eval_buffer) do
-      begin
-        message(eval(Buffer.current.to_s, TOPLEVEL_BINDING).inspect)
-      rescue Exception => e
-        message("#{e.class}: #{e}")
-      end
+      message(eval(Buffer.current.to_s, TOPLEVEL_BINDING).inspect)
     end
 
     define_command(:exit_recursive_edit) do

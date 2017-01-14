@@ -58,7 +58,17 @@ module Textbringer
                 Window.echo_area.show("#{keys} is undefined")
               end
             end
-          rescue => e
+          rescue Exception => e
+            if e.is_a?(SystemExit)
+              raise
+            end
+            buffer = Buffer.find_or_new("*Backtrace*")
+            buffer.delete_region(buffer.point_min, buffer.point_max)
+            buffer.insert("#{e.class}: #{e}\n")
+            e.backtrace.each do |line|
+              buffer.insert(line + "\n")
+            end
+            buffer.beginning_of_buffer
             message(e.to_s.chomp)
             Window.beep
           end
