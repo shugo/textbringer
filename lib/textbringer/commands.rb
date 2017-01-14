@@ -164,6 +164,7 @@ module Textbringer
       end
       if buffer.modified?
         next unless yes_or_no?("The last change is not saved; kill anyway?")
+        message("Arioch! Arioch! Blood and souls for my Lord Arioch!")
       end
       buffer.kill
       if Buffer.count == 0
