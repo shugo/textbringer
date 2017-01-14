@@ -8,7 +8,7 @@ module Textbringer
     extend Enumerable
 
     attr_accessor :file_name, :file_encoding, :file_format, :keymap
-    attr_reader :name, :point, :marks
+    attr_reader :name, :point, :marks, :line, :column
 
     GAP_SIZE = 256
     UNDO_LIMIT = 1000
@@ -179,6 +179,8 @@ module Textbringer
       @gap_end = 0
       @marks = []
       @mark = nil
+      @line = 1
+      @column = 1
       @desired_column = nil
       @yank_start = new_mark
       @undo_stack = []
@@ -188,6 +190,7 @@ module Textbringer
       @modified = false
       @keymap = nil
       @attributes = {}
+      @save_point_level = 0
     end
 
     def name=(name)
@@ -301,6 +304,22 @@ module Textbringer
         raise ArgumentError, "Position is in the middle of a character"
       end
       @desired_column = nil
+      if @save_point_level == 0
+        @line = 1 + substring(point_min, pos).count("\n")
+        if pos == point_min
+          @column = 1
+        else
+          i = get_pos(pos, -1)
+          while i > point_min
+            if byte_after(i) == "\n"
+              i += 1
+              break
+            end
+            i = get_pos(i, -1)
+          end
+          @column = 1 + substring(i, pos).size
+        end
+      end
       @point = pos
     end
 
@@ -315,6 +334,7 @@ module Textbringer
         end
       end
       @point = @gap_start += size
+      update_line_and_column(pos, @point)
       unless @undoing
         if merge_undo && @undo_stack.last.is_a?(InsertAction)
           @undo_stack.last.merge(s)
@@ -361,6 +381,7 @@ module Textbringer
         @modified = true
       elsif n < 0
         str = substring(pos, s)
+        update_line_and_column(@point, pos)
         # fill the gap with NUL to avoid invalid byte sequence in UTF-8
         @contents[user_to_gap(pos)...@gap_start] = "\0" * (@point - pos)
         @marks.each do |m|
@@ -380,7 +401,9 @@ module Textbringer
     end
 
     def forward_char(n = 1)
-      @point = get_pos(@point, n)
+      pos = get_pos(@point, n)
+      update_line_and_column(@point, pos)
+      @point = pos
       @desired_column = nil
     end
 
@@ -455,6 +478,10 @@ module Textbringer
     end
 
     def beginning_of_buffer
+      if @save_point_level == 0
+        @line = 1
+        @column = 1
+      end
       @point = 0
     end
 
@@ -463,7 +490,7 @@ module Textbringer
     end
 
     def end_of_buffer
-      @point = bytesize
+      goto_char(bytesize)
     end
 
     def end_of_buffer?
@@ -493,6 +520,7 @@ module Textbringer
     end
 
     def point_to_mark(mark)
+      update_line_and_column(@point, mark.location)
       @point = mark.location
     end
 
@@ -513,18 +541,21 @@ module Textbringer
     end
 
     def swap_point_and_mark(mark)
+      update_line_and_column(@point, mark.location)
       @point, mark.location = mark.location, @point
     end
 
     def save_point
       saved = new_mark
       column = @desired_column
+      @save_point_level += 1
       begin
         yield(saved)
       ensure
         point_to_mark(saved)
         saved.delete
         @desired_column = column
+        @save_point_level -= 1
       end
     end
 
@@ -763,6 +794,41 @@ module Textbringer
         end
       end
       pos
+    end
+
+    def update_line_and_column(pos, new_pos)
+      return if @save_point_level > 0
+      if pos < new_pos
+        s = substring(pos, new_pos)
+        n = s.count("\n")
+        if n == 0
+          @column += s.size
+        else
+          @line += n
+          @column = 1 + s.slice(/[^\n]*\z/).size
+        end
+      elsif pos > new_pos
+        s = substring(new_pos, pos)
+        n = s.count("\n")
+        if n == 0
+          @column -= s.size
+        else
+          @line -= n
+          if new_pos == point_min
+            @column = 1
+          else
+            i = get_pos(new_pos, -1)
+            while i > point_min
+              if byte_after(i) == "\n"
+                i += 1
+                break
+              end
+              i = get_pos(i, -1)
+            end
+            @column = 1 + substring(i, new_pos).size
+          end
+        end
+      end
     end
 
     def push_undo(action)

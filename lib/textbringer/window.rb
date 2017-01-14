@@ -236,11 +236,11 @@ module Textbringer
       @mode_line.erase
       @mode_line.move(0, 0)
       @mode_line.attron(Ncurses::A_REVERSE)
-      @mode_line.addstr(@buffer.name)
-      @mode_line.addstr(" ")
+      @mode_line.addstr("#{@buffer.name} ")
       @mode_line.addstr("[+]") if @buffer.modified?
-      @mode_line.addstr("[#{@buffer.file_encoding.name}]")
-      @mode_line.addstr("[#{@buffer.file_format}]")
+      @mode_line.addstr("[#{@buffer.file_encoding.name}/")
+      @mode_line.addstr("#{@buffer.file_format}]")
+      @mode_line.addstr(" (#{@buffer.line},#{@buffer.column})")
       @mode_line.addstr(" " * (@mode_line.getmaxx - @mode_line.getcurx))
       @mode_line.attroff(Ncurses::A_REVERSE)
       @mode_line.noutrefresh
