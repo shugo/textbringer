@@ -52,6 +52,16 @@ module Textbringer
       end
     end
 
+    define_command(:goto_char) do
+      |n = read_from_minibuffer("Go to char: ")|
+      Buffer.current.goto_char(n.to_i)
+    end
+
+    define_command(:goto_line) do
+      |n = read_from_minibuffer("Go to line: ")|
+      Buffer.current.goto_line(n.to_i)
+    end
+
     define_command(:self_insert) do
       Buffer.current.insert(Controller.current.last_key.chr(Encoding::UTF_8),
                             Controller.current.last_command == :self_insert)

@@ -341,6 +341,21 @@ module Textbringer
       @point = pos
     end
 
+    def goto_line(n)
+      pos = point_min
+      i = 1
+      while i < n && pos < @contents.bytesize
+        pos = @contents.index("\n", pos)
+        break if pos.nil?
+        i += 1
+        pos += 1
+      end
+      @point = gap_to_user(pos)
+      @line = i
+      @column = 1
+      @desired_column = nil
+    end
+
     def insert(s, merge_undo = false)
       pos = @point
       size = s.bytesize
