@@ -18,12 +18,12 @@ end
 Controller.current = Controller.new
 Buffer.minibuffer.keymap = MINIBUFFER_LOCAL_MAP
 Window.start do
+  buffer = Buffer.new_buffer("*scratch*")
   if ARGV.size > 0
     ARGV.each do |arg|
       find_file(arg)
     end
   else
-    buffer = Buffer.new_buffer("*scratch*")
     switch_to_buffer(buffer)
   end
   Window.echo_area.buffer = Buffer.minibuffer
