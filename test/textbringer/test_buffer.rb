@@ -616,6 +616,31 @@ EOF
     end
   end
 
+  def test_save_binary
+    Tempfile.create("test_buffer") do |f|
+      data = (0..255).to_a.pack("C*")
+      f.print(data)
+      f.close
+      buffer = Buffer.open(f.path)
+      assert_equal(Encoding::ASCII_8BIT, buffer.file_encoding)
+      assert_equal(data, buffer.to_s)
+      buffer.end_of_buffer
+      buffer.insert("\de\ad\be\ef")
+      buffer.save
+      assert_equal(data + "\de\ad\be\ef", File.read(f.path, binmode: true))
+    end
+  end
+
+  def test_save_binary_with_nkf
+    old_detect_encoding_proc = Buffer.detect_encoding_proc
+    Buffer.detect_encoding_proc = Buffer::NKF_DETECT_ENCODING
+    begin
+      test_save_binary
+    ensure
+      Buffer.detect_encoding_proc = old_detect_encoding_proc
+    end
+  end
+
   def test_save_dos
     Tempfile.create("test_buffer") do |f|
       f.print(<<EOF.gsub(/\n/, "\r\n").encode(Encoding::Windows_31J))
@@ -1313,5 +1338,26 @@ EOF
     buffer.goto_line(7)
     assert_equal(6, buffer.current_line)
     assert_equal(1, buffer.current_column)
+  end
+
+  def test_binary
+    data = (0..255).to_a.pack("C*")
+    buffer = Buffer.new(data)
+    assert_equal(false, buffer.binary?)
+    buffer = Buffer.new(data, file_encoding: Encoding::ASCII_8BIT)
+    assert_equal(true, buffer.binary?)
+    assert_raise(RangeError) do
+      buffer.backward_char
+    end
+    buffer.end_of_buffer
+    assert_raise(RangeError) do
+      buffer.forward_char
+    end
+    buffer.beginning_of_buffer
+    buffer.forward_char(0xe3)
+    assert_equal("\xe3".force_encoding(Encoding::ASCII_8BIT),
+                 buffer.byte_after)
+    assert_equal("\xe3".force_encoding(Encoding::ASCII_8BIT),
+                 buffer.char_after)
   end
 end

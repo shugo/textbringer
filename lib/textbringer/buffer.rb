@@ -7,8 +7,8 @@ module Textbringer
   class Buffer
     extend Enumerable
 
-    attr_accessor :file_name, :file_encoding, :keymap
-    attr_reader :name, :file_format, :point, :marks
+    attr_accessor :file_name, :keymap
+    attr_reader :name, :file_encoding, :file_format, :point, :marks
     attr_reader :current_line, :current_column
 
     GAP_SIZE = 256
@@ -153,14 +153,20 @@ module Textbringer
       @@table.each_value(&block)
     end
 
-    def initialize(s = "", name: nil,
+    # s might not be copied.
+    def initialize(s = String.new, name: nil,
                    file_name: nil, file_encoding: Encoding::UTF_8,
                    new_file: true, undo_limit: UNDO_LIMIT)
-      @contents = s.encode(Encoding::UTF_8)
+      case s.encoding
+      when Encoding::UTF_8, Encoding::ASCII_8BIT
+        @contents = s.frozen? ? s.dup : s
+      else
+        @contents = s.encode(Encoding::UTF_8)
+      end
       @contents.force_encoding(Encoding::ASCII_8BIT)
       @name = name
       @file_name = file_name
-      @file_encoding = file_encoding
+      self.file_encoding = file_encoding
       case @contents
       when /(?<!\r)\n/ 
         @file_format = :unix
@@ -208,6 +214,15 @@ module Textbringer
       end
     end
 
+    def file_encoding=(enc)
+      @file_encoding = enc
+      @binary = enc == Encoding::ASCII_8BIT
+    end
+
+    def binary?
+      @binary
+    end
+
     def file_format=(format)
       case format
       when /\Aunix\z/i
@@ -251,8 +266,12 @@ module Textbringer
 
     def self.open(file_name, name: File.basename(file_name))
       s = File.read(file_name)
-      enc = @@detect_encoding_proc.call(s)
+      enc = @@detect_encoding_proc.call(s) || Encoding::ASCII_8BIT
       s.force_encoding(enc)
+      unless s.valid_encoding?
+        enc = Encoding::ASCII_8BIT
+        s.force_encoding(enc)
+      end
       Buffer.new(s, name: name,
                  file_name: file_name, file_encoding: enc,
                  new_file: false)
@@ -276,17 +295,21 @@ module Textbringer
     end
 
     def to_s
-      (@contents[0...@gap_start] +
-       @contents[@gap_end..-1]).force_encoding(Encoding::UTF_8)
+      result = (@contents[0...@gap_start] + @contents[@gap_end..-1])
+      result.force_encoding(Encoding::UTF_8) unless @binary
+      result
     end
 
     def substring(s, e)
-      if s > @gap_start || e <= @gap_start
-        @contents[user_to_gap(s)...user_to_gap(e)]
-      else
-        len = @gap_start - s
-        @contents[user_to_gap(s), len] + @contents[@gap_end, e - s - len]
-      end.force_encoding(Encoding::UTF_8)
+      result =
+        if s > @gap_start || e <= @gap_start
+          @contents[user_to_gap(s)...user_to_gap(e)]
+        else
+          len = @gap_start - s
+          @contents[user_to_gap(s), len] + @contents[@gap_end, e - s - len]
+        end
+      result.force_encoding(Encoding::UTF_8) unless @binary
+      result
     end
 
     def byte_after(location = @point)
@@ -298,8 +321,12 @@ module Textbringer
     end
 
     def char_after(location = @point)
-      s = substring(location, location + UTF8_CHAR_LEN[byte_after(location)])
-      s.empty? ? nil : s
+      if @binary
+        byte_after(location)
+      else
+        s = substring(location, location + UTF8_CHAR_LEN[byte_after(location)])
+        s.empty? ? nil : s
+      end
     end
 
     def bytesize
@@ -809,6 +836,13 @@ module Textbringer
     end
 
     def get_pos(pos, offset)
+      if @binary
+        result = pos + offset
+        if result < 0 || result > bytesize
+          raise RangeError, "Out of buffer"
+        end
+        return result
+      end
       if offset >= 0
         i = offset
         while i > 0
