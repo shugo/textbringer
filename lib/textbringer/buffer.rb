@@ -8,7 +8,8 @@ module Textbringer
     extend Enumerable
 
     attr_accessor :file_name, :file_encoding, :keymap
-    attr_reader :name, :file_format, :point, :marks, :line, :column
+    attr_reader :name, :file_format, :point, :marks
+    attr_reader :current_line, :current_column
 
     GAP_SIZE = 256
     UNDO_LIMIT = 1000
@@ -179,8 +180,8 @@ module Textbringer
       @gap_end = 0
       @marks = []
       @mark = nil
-      @line = 1
-      @column = 1
+      @current_line = 1
+      @current_column = 1
       @desired_column = nil
       @yank_start = new_mark
       @undo_stack = []
@@ -323,9 +324,9 @@ module Textbringer
       end
       @desired_column = nil
       if @save_point_level == 0
-        @line = 1 + substring(point_min, pos).count("\n")
+        @current_line = 1 + substring(point_min, pos).count("\n")
         if pos == point_min
-          @column = 1
+          @current_column = 1
         else
           i = get_pos(pos, -1)
           while i > point_min
@@ -335,7 +336,7 @@ module Textbringer
             end
             i = get_pos(i, -1)
           end
-          @column = 1 + substring(i, pos).size
+          @current_column = 1 + substring(i, pos).size
         end
       end
       @point = pos
@@ -351,8 +352,8 @@ module Textbringer
         pos += 1
       end
       @point = gap_to_user(pos)
-      @line = i
-      @column = 1
+      @current_line = i
+      @current_column = 1
       @desired_column = nil
     end
 
@@ -512,8 +513,8 @@ module Textbringer
 
     def beginning_of_buffer
       if @save_point_level == 0
-        @line = 1
-        @column = 1
+        @current_line = 1
+        @current_column = 1
       end
       @point = 0
     end
@@ -838,20 +839,20 @@ module Textbringer
         s = substring(pos, new_pos)
         n = s.count("\n")
         if n == 0
-          @column += s.size
+          @current_column += s.size
         else
-          @line += n
-          @column = 1 + s.slice(/[^\n]*\z/).size
+          @current_line += n
+          @current_column = 1 + s.slice(/[^\n]*\z/).size
         end
       elsif pos > new_pos
         s = substring(new_pos, pos)
         n = s.count("\n")
         if n == 0
-          @column -= s.size
+          @current_column -= s.size
         else
-          @line -= n
+          @current_line -= n
           if new_pos == point_min
-            @column = 1
+            @current_column = 1
           else
             i = get_pos(new_pos, -1)
             while i > point_min
@@ -861,7 +862,7 @@ module Textbringer
               end
               i = get_pos(i, -1)
             end
-            @column = 1 + substring(i, new_pos).size
+            @current_column = 1 + substring(i, new_pos).size
           end
         end
       end

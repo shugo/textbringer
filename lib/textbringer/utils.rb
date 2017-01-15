@@ -9,7 +9,7 @@ module Textbringer
       }
       buffer.end_of_buffer
       buffer.insert(msg + "\n")
-      if buffer.line > 1000
+      if buffer.current_line > 1000
         buffer.beginning_of_buffer
         10.times do
           buffer.next_line

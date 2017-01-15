@@ -15,19 +15,19 @@ class TestBuffer < Test::Unit::TestCase
     buffer.insert("123")
     assert_equal("123abc", buffer.to_s)
     assert_equal(3, buffer.point)
-    assert_equal(1, buffer.line)
-    assert_equal(4, buffer.column)
+    assert_equal(1, buffer.current_line)
+    assert_equal(4, buffer.current_column)
     assert_equal(true, buffer.gap_filled_with_nul?)
     s = "x" * (Buffer::GAP_SIZE + 1)
     buffer.insert(s)
     assert_equal("123#{s}abc", buffer.to_s)
     assert_equal(Buffer::GAP_SIZE + 4, buffer.point)
-    assert_equal(1, buffer.line)
-    assert_equal(Buffer::GAP_SIZE + 5, buffer.column)
+    assert_equal(1, buffer.current_line)
+    assert_equal(Buffer::GAP_SIZE + 5, buffer.current_column)
     assert_equal(true, buffer.gap_filled_with_nul?)
     buffer.insert("\nfoo")
-    assert_equal(2, buffer.line)
-    assert_equal(4, buffer.column)
+    assert_equal(2, buffer.current_line)
+    assert_equal(4, buffer.current_column)
   end
 
   def test_newline
@@ -73,35 +73,35 @@ class TestBuffer < Test::Unit::TestCase
 
   def test_forward_char
     buffer = Buffer.new("abc")
-    assert_equal(1, buffer.line)
-    assert_equal(1, buffer.column)
+    assert_equal(1, buffer.current_line)
+    assert_equal(1, buffer.current_column)
     buffer.forward_char
     assert_equal(1, buffer.point)
-    assert_equal(1, buffer.line)
-    assert_equal(2, buffer.column)
+    assert_equal(1, buffer.current_line)
+    assert_equal(2, buffer.current_column)
     buffer.forward_char(2)
     assert_equal(3, buffer.point)
-    assert_equal(1, buffer.line)
-    assert_equal(4, buffer.column)
+    assert_equal(1, buffer.current_line)
+    assert_equal(4, buffer.current_column)
     assert_raise(RangeError) do
       buffer.forward_char
     end
     buffer.forward_char(-1)
     assert_equal(2, buffer.point)
-    assert_equal(1, buffer.line)
-    assert_equal(3, buffer.column)
+    assert_equal(1, buffer.current_line)
+    assert_equal(3, buffer.current_column)
     buffer.forward_char(-2)
     assert_equal(0, buffer.point)
-    assert_equal(1, buffer.line)
-    assert_equal(1, buffer.column)
+    assert_equal(1, buffer.current_line)
+    assert_equal(1, buffer.current_column)
     assert_raise(RangeError) do
       buffer.forward_char(-1)
     end
     buffer = Buffer.new
     buffer.insert("\n")
     buffer.forward_char(-1)
-    assert_equal(1, buffer.line)
-    assert_equal(1, buffer.column)
+    assert_equal(1, buffer.current_line)
+    assert_equal(1, buffer.current_column)
   end
 
   def test_delete_char_forward
@@ -426,14 +426,14 @@ abcdefg
 EOF
     buffer.next_line
     buffer.set_mark
-    assert_equal(2, buffer.line)
-    assert_equal(1, buffer.column)
+    assert_equal(2, buffer.current_line)
+    assert_equal(1, buffer.current_column)
     buffer.next_line
-    assert_equal(3, buffer.line)
-    assert_equal(1, buffer.column)
+    assert_equal(3, buffer.current_line)
+    assert_equal(1, buffer.current_column)
     buffer.kill_region
-    assert_equal(2, buffer.line)
-    assert_equal(1, buffer.column)
+    assert_equal(2, buffer.current_line)
+    assert_equal(1, buffer.current_column)
     assert_equal("abcdefg\n", KILL_RING.current)
     assert_equal(<<EOF, buffer.to_s)
 0123456789
@@ -1293,25 +1293,25 @@ quux
 quuux
 EOF
     buffer.goto_line(0)
-    assert_equal(1, buffer.line)
-    assert_equal(1, buffer.column)
+    assert_equal(1, buffer.current_line)
+    assert_equal(1, buffer.current_column)
     buffer.goto_line(1)
-    assert_equal(1, buffer.line)
-    assert_equal(1, buffer.column)
+    assert_equal(1, buffer.current_line)
+    assert_equal(1, buffer.current_column)
     buffer.goto_line(2)
-    assert_equal(2, buffer.line)
-    assert_equal(1, buffer.column)
+    assert_equal(2, buffer.current_line)
+    assert_equal(1, buffer.current_column)
     buffer.goto_line(4)
-    assert_equal(4, buffer.line)
-    assert_equal(1, buffer.column)
+    assert_equal(4, buffer.current_line)
+    assert_equal(1, buffer.current_column)
     buffer.goto_line(5)
-    assert_equal(5, buffer.line)
-    assert_equal(1, buffer.column)
+    assert_equal(5, buffer.current_line)
+    assert_equal(1, buffer.current_column)
     buffer.goto_line(6)
-    assert_equal(6, buffer.line)
-    assert_equal(1, buffer.column)
+    assert_equal(6, buffer.current_line)
+    assert_equal(1, buffer.current_column)
     buffer.goto_line(7)
-    assert_equal(6, buffer.line)
-    assert_equal(1, buffer.column)
+    assert_equal(6, buffer.current_line)
+    assert_equal(1, buffer.current_column)
   end
 end
