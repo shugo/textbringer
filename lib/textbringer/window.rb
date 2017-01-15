@@ -246,9 +246,17 @@ module Textbringer
     end
 
     def escape(s)
-      s.gsub(/[\0-\b\v-\x1f]/) { |c|
-        "^" + (c.ord ^ 0x40).chr
-      }
+      if @buffer.binary?
+        s.gsub(/[\0-\b\v-\x1f]/) { |c|
+          "^" + (c.ord ^ 0x40).chr
+        }.gsub(/[\x80-\xff]/n) { |c|
+          "<%02X>" % c.ord
+        }
+      else
+        s.gsub(/[\0-\b\v-\x1f]/) { |c|
+          "^" + (c.ord ^ 0x40).chr
+        }
+      end
     end
 
     def beginning_of_line
