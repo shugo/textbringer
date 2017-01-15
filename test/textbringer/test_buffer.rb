@@ -677,6 +677,33 @@ EOF
     buffer = Buffer.new("foo\rbar\r")
     assert_equal(:mac, buffer.file_format)
     assert_equal("foo\nbar\n", buffer.to_s)
+
+    buffer = Buffer.new
+    assert_equal(:unix, buffer.file_format)
+    buffer.file_format = :dos
+    assert_equal(:dos, buffer.file_format)
+    buffer.file_format = :mac
+    assert_equal(:mac, buffer.file_format)
+    buffer.file_format = :unix
+    assert_equal(:unix, buffer.file_format)
+    assert_raise(ArgumentError) do
+      buffer.file_format = :beos
+    end
+    buffer.file_format = "dos"
+    assert_equal(:dos, buffer.file_format)
+    buffer.file_format = "mac"
+    assert_equal(:mac, buffer.file_format)
+    buffer.file_format = "unix"
+    assert_equal(:unix, buffer.file_format)
+    buffer.file_format = "Dos"
+    assert_equal(:dos, buffer.file_format)
+    buffer.file_format = "Mac"
+    assert_equal(:mac, buffer.file_format)
+    buffer.file_format = "Unix"
+    assert_equal(:unix, buffer.file_format)
+    assert_raise(ArgumentError) do
+      buffer.file_format = "beos"
+    end
   end
 
   def test_re_search_forward
