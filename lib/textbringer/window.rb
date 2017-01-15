@@ -90,10 +90,14 @@ module Textbringer
       Ncurses.beep
     end
 
-    attr_reader :buffer
+    attr_reader :buffer, :lines, :columns, :y, :x
 
-    def initialize(num_lines, num_columns, y, x)
-      initialize_window(num_lines, num_columns, y, x)
+    def initialize(lines, columns, y, x)
+      @lines = lines
+      @columns = columns
+      @y = y
+      @x = x
+      initialize_window(lines, columns, y, x)
       @window.keypad(true)
       @window.scrollok(false)
       @buffer = nil
@@ -105,14 +109,6 @@ module Textbringer
       @buffer = buffer
       @top_of_window = @buffer[:top_of_window] ||= @buffer.new_mark
       @bottom_of_window = @buffer[:bottom_of_window] ||= @buffer.new_mark
-    end
-
-    def lines
-      @window.getmaxy
-    end
-
-    def columns
-      @window.getmaxx
     end
 
     def getch
@@ -156,10 +152,10 @@ module Textbringer
           c = @buffer.char_after
           if c == "\n"
             @window.clrtoeol
-            break if @window.getcury == lines - 1
+            break if @window.getcury == lines - 2   # lines include mode line
           end
           @window.addstr(escape(c))
-          break if @window.getcury == lines - 1 &&
+          break if @window.getcury == lines - 2 &&  # lines include mode line
             @window.getcurx == columns - 1
           @buffer.forward_char
         end
@@ -178,14 +174,18 @@ module Textbringer
     end
 
     def move(y, x)
+      @y = y
+      @x = x
       @window.mvwin(y, x)
       @mode_line.mvwin(y + @window.getmaxy, x)
     end
 
-    def resize(num_lines, num_columns)
-      @window.resize(num_lines - 1, num_columns)
-      @mode_line.mvwin(@window.getbegy + num_lines - 1, @window.getbegx)
-      @mode_line.resize(1, num_columns)
+    def resize(lines, columns)
+      @lines = lines
+      @columns = columns
+      @window.resize(lines - 1, columns)
+      @mode_line.mvwin(@y + lines - 1, @x)
+      @mode_line.resize(1, columns)
     end
 
     def scroll_up
@@ -217,14 +217,14 @@ module Textbringer
           @buffer.mark_to_point(@top_of_window)
           return
         end
-        while count < lines
+        while count < lines - 1   # lines include mode line
           break if @buffer.point_at_mark?(@top_of_window)
           break if @buffer.point == 0
           new_start_loc = @buffer.point
           @buffer.backward_char
           count += beginning_of_line + 1
         end
-        if count >= lines
+        if count >= lines - 1     # lines include mode line
           @top_of_window.location = new_start_loc
         end
       end
@@ -326,11 +326,15 @@ module Textbringer
     end
 
     def move(y, x)
+      @y = y
+      @x = x
       @window.mvwin(y, x)
     end
 
-    def resize(num_lines, num_columns)
-      @window.resize(num_lines, num_columns)
+    def resize(lines, columns)
+      @lines = lines
+      @columns = columns
+      @window.resize(lines, columns)
     end
 
     private
