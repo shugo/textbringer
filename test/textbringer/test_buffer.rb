@@ -1283,4 +1283,35 @@ EOF
     buffer2 = Buffer.new(name: "foo")
     assert_equal("#<Buffer:foo>", buffer2.inspect)
   end
+
+  def test_goto_line
+    buffer = Buffer.new(<<EOF)
+foo
+bar
+baz
+quux
+quuux
+EOF
+    buffer.goto_line(0)
+    assert_equal(1, buffer.line)
+    assert_equal(1, buffer.column)
+    buffer.goto_line(1)
+    assert_equal(1, buffer.line)
+    assert_equal(1, buffer.column)
+    buffer.goto_line(2)
+    assert_equal(2, buffer.line)
+    assert_equal(1, buffer.column)
+    buffer.goto_line(4)
+    assert_equal(4, buffer.line)
+    assert_equal(1, buffer.column)
+    buffer.goto_line(5)
+    assert_equal(5, buffer.line)
+    assert_equal(1, buffer.column)
+    buffer.goto_line(6)
+    assert_equal(6, buffer.line)
+    assert_equal(1, buffer.column)
+    buffer.goto_line(7)
+    assert_equal(6, buffer.line)
+    assert_equal(1, buffer.column)
+  end
 end
