@@ -38,6 +38,12 @@ module Textbringer
       @@current = window
     end
 
+    def self.other_window
+      i = @@windows.index(@@current)
+      i += 1
+      self.current = @@windows[i % @@windows.size]
+    end
+
     def self.echo_area
       @@echo_area
     end
@@ -63,6 +69,9 @@ module Textbringer
     def self.redisplay
       if current != echo_area
         echo_area.redisplay
+      end
+      @@windows.each do |window|
+        window.redisplay unless window.current?
       end
       current.redisplay
       update
@@ -109,6 +118,10 @@ module Textbringer
       @buffer = buffer
       @top_of_window = @buffer[:top_of_window] ||= @buffer.new_mark
       @bottom_of_window = @buffer[:bottom_of_window] ||= @buffer.new_mark
+    end
+
+    def current?
+      self == @@current
     end
 
     def getch
@@ -200,6 +213,19 @@ module Textbringer
       @buffer.next_line
       @buffer.beginning_of_line
       @top_of_window.location = 0
+    end
+
+    def split
+      if lines < 6
+        raise "Window too small"
+      end
+      old_lines = lines
+      new_lines = (old_lines / 2.0).ceil
+      resize(new_lines, columns)
+      new_window = Window.new(old_lines - new_lines, columns, y + new_lines, x)
+      new_window.buffer = buffer
+      i = @@windows.index(self)
+      @@windows.insert(i + 1, new_window)
     end
 
     private

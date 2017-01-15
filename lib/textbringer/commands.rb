@@ -101,6 +101,14 @@ module Textbringer
       Window.current.scroll_down
     end
 
+    define_command(:split_window) do
+      Window.current.split
+    end
+
+    define_command(:other_window) do
+      Window.other_window
+    end
+
     define_command(:exit_textbringer) do |status = 0|
       if Buffer.any? { |buffer| /\A\*/ !~ buffer.name && buffer.modified? }
         return unless yes_or_no?("Unsaved buffers exist; exit anyway?")
