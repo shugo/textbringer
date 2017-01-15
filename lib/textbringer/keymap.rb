@@ -100,6 +100,8 @@ module Textbringer
   GLOBAL_MAP.define_key(:npage, :scroll_up)
   GLOBAL_MAP.define_key("\ev", :scroll_down)
   GLOBAL_MAP.define_key(:ppage, :scroll_down)
+  GLOBAL_MAP.define_key("\C-x0", :delete_window)
+  GLOBAL_MAP.define_key("\C-x1", :delete_other_windows)
   GLOBAL_MAP.define_key("\C-x2", :split_window)
   GLOBAL_MAP.define_key("\C-xo", :other_window)
   GLOBAL_MAP.define_key("\C-x\C-c", :exit_textbringer)

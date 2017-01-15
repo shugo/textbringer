@@ -42,6 +42,35 @@ module Textbringer
       Buffer.current = window.buffer
     end
 
+    def self.delete_window
+      if @@windows.size == 1
+        raise "Can't delete the sole window"
+      end
+      i = @@windows.index(@@current)
+      if i == 0
+        window = @@windows[1]
+        window.move(0, 0)
+      else
+        window = @@windows[i - 1]
+      end
+      window.resize(@@current.lines + window.lines, window.columns)
+      @@current.delete
+      @@windows.delete_at(i)
+      self.current = window
+    end
+
+    def self.delete_other_windows
+      @@windows.delete_if do |window|
+        if window.current?
+          false
+        else
+          window.delete
+          true
+        end
+      end
+      @@current.resize(Window.lines - 1, @@current.columns)
+    end
+
     def self.other_window
       i = @@windows.index(@@current)
       i += 1

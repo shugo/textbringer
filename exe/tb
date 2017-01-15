@@ -21,11 +21,6 @@ Window.start do
   begin
     buffer = Buffer.new_buffer("*scratch*")
     switch_to_buffer(buffer)
-    defout = Object.new
-    def defout.write(s)
-      Buffer.current.insert(s)
-    end
-    $> = defout
     load_user_config
     if ARGV.size > 0
       ARGV.each do |arg|

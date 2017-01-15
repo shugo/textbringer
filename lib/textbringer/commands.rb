@@ -101,6 +101,14 @@ module Textbringer
       Window.current.scroll_down
     end
 
+    define_command(:delete_window) do
+      Window.delete_window
+    end
+
+    define_command(:delete_other_windows) do
+      Window.delete_other_windows
+    end
+
     define_command(:split_window) do
       Window.current.split
     end
