@@ -35,7 +35,11 @@ module Textbringer
     end
 
     def self.current=(window)
+      if window.deleted?
+        window = @@windows.first
+      end
       @@current = window
+      Buffer.current = window.buffer
     end
 
     def self.other_window
@@ -90,7 +94,21 @@ module Textbringer
     end
 
     def self.resize
-      @@windows.first.resize(Window.lines - 1, Window.columns)
+      @@windows.delete_if do |window|
+        if window.y > Window.lines - 4
+          window.delete
+          true
+        else
+          false
+        end
+      end
+      @@windows.each_with_index do |window, i|
+        if i < @@windows.size - 1
+          window.resize(window.lines, Window.columns)
+        else
+          window.resize(Window.lines - 1 - window.y, Window.columns)
+        end
+      end
       @@echo_area.move(Window.lines - 1, 0)
       @@echo_area.resize(1, Window.columns)
     end
@@ -112,6 +130,21 @@ module Textbringer
       @buffer = nil
       @top_of_window = nil
       @bottom_of_window = nil
+      @deleted = false
+    end
+
+    def deleted?
+      @deleted
+    end
+
+    def delete
+      unless @deleted
+        if current?
+          Window.current = @@windows.first
+        end
+        @window.del
+        @deleted = true
+      end
     end
 
     def buffer=(buffer)

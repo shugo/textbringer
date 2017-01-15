@@ -39,14 +39,13 @@ module Textbringer
       if Buffer.current == Buffer.minibuffer
         raise "Command attempted to use minibuffer while in minibuffer"
       end
-      buffer = Buffer.current
-      window = Window.current
+      old_buffer = Buffer.current
+      old_window = Window.current
       old_completion_proc = Buffer.minibuffer[:completion_proc]
       Buffer.minibuffer[:completion_proc] = completion_proc
       begin
         Buffer.minibuffer.delete_region(Buffer.minibuffer.point_min,
                                         Buffer.minibuffer.point_max)
-        Buffer.current = Buffer.minibuffer
         Window.current = Window.echo_area
         if default
           prompt = prompt.sub(/:/, " (default #{default}):")
@@ -65,8 +64,10 @@ module Textbringer
         Window.echo_area.clear
         Window.echo_area.redisplay
         Window.update
-        Buffer.current = buffer
-        Window.current = window
+        Window.current = old_window
+        # Just in case old_window has been deleted by resize,
+        # in which case Window.current is set to the first window.
+        Window.current.buffer = Buffer.current = old_buffer
         Buffer.minibuffer[:completion_proc] = old_completion_proc
       end
     end
