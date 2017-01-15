@@ -1,10 +1,8 @@
 # frozen_string_literal: true
 
-require_relative "minibuffer"
-
 module Textbringer
   module Commands
-    include Minibuffer
+    include Utils
 
     @@command_list = []
 

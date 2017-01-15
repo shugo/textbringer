@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Textbringer
-  module Minibuffer
+  module Utils
     def message(msg)
       buffer = Buffer["*Messages*"] ||
         Buffer.new_buffer("*Messages*", undo_limit: 0).tap { |b|
@@ -18,6 +18,21 @@ module Textbringer
         buffer.end_of_buffer
       end
       Window.echo_area.show(msg)
+    end
+
+    def handle_exception(e)
+      if e.is_a?(SystemExit)
+        raise
+      end
+      buffer = Buffer.find_or_new("*Backtrace*", undo_limit: 0)
+      buffer.delete_region(buffer.point_min, buffer.point_max)
+      buffer.insert("#{e.class}: #{e}\n")
+      e.backtrace.each do |line|
+        buffer.insert(line + "\n")
+      end
+      buffer.beginning_of_buffer
+      message(e.to_s.chomp)
+      Window.beep
     end
 
     def read_from_minibuffer(prompt, completion_proc: nil, default: nil)

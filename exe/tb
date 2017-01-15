@@ -10,33 +10,32 @@ def load_user_config
   begin
     load(config_file)
   rescue LoadError
-  rescue Exception => e
-    message(e.to_s)
   end
 end
 
 Controller.current = Controller.new
 Buffer.minibuffer.keymap = MINIBUFFER_LOCAL_MAP
 Window.start do
-  buffer = Buffer.new_buffer("*scratch*")
-  defout = Object.new
-  def defout.write(s)
-    Buffer.current.insert(s)
-  end
-  $> = defout
-  if ARGV.size > 0
-    ARGV.each do |arg|
-      find_file(arg)
-    end
-  else
-    switch_to_buffer(buffer)
-  end
   Window.echo_area.buffer = Buffer.minibuffer
-  Window.echo_area.show("Type C-x C-c to exit Textbringer")
-  Window.echo_area.redisplay
-  Window.windows.each(&:redisplay)
-  Window.update
-  load_user_config
+  message("Type C-x C-c to exit Textbringer")
+  begin
+    buffer = Buffer.new_buffer("*scratch*")
+    switch_to_buffer(buffer)
+    defout = Object.new
+    def defout.write(s)
+      Buffer.current.insert(s)
+    end
+    $> = defout
+    load_user_config
+    if ARGV.size > 0
+      ARGV.each do |arg|
+        find_file(arg)
+      end
+    end
+  rescue Exception => e
+    handle_exception(e)
+  end
+  Window.redisplay
   trap(:CONT) do
     Window.echo_area.redraw
     Window.windows.each(&:redraw)
