@@ -38,6 +38,6 @@ Window.start do
   end
   loop do
     Controller.current.command_loop(TOP_LEVEL_TAG)
-    Window.redisplay_all
+    Window.redisplay
   end
 end
