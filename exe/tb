@@ -28,9 +28,7 @@ Window.start do
   end
   Window.redisplay
   trap(:CONT) do
-    Window.echo_area.redraw
-    Window.windows.each(&:redraw)
-    Window.update
+    Window.redraw
   end
   loop do
     Controller.current.command_loop(TOP_LEVEL_TAG)

@@ -43,6 +43,7 @@ module Textbringer
       old_window = Window.current
       old_completion_proc = Buffer.minibuffer[:completion_proc]
       Buffer.minibuffer[:completion_proc] = completion_proc
+      Window.echo_area.active = true
       begin
         Buffer.minibuffer.delete_region(Buffer.minibuffer.point_min,
                                         Buffer.minibuffer.point_max)
@@ -64,6 +65,7 @@ module Textbringer
         Window.echo_area.clear
         Window.echo_area.redisplay
         Window.update
+        Window.echo_area.active = false
         Window.current = old_window
         # Just in case old_window has been deleted by resize,
         # in which case Window.current is set to the first window.

@@ -43,7 +43,10 @@ module Textbringer
     end
 
     def self.delete_window
-      if @@windows.size == 1
+      if @@current.echo_area?
+        raise "Can't delete the echo area"
+      end
+      if @@windows.size == 2
         raise "Can't delete the sole window"
       end
       i = @@windows.index(@@current)
@@ -60,8 +63,11 @@ module Textbringer
     end
 
     def self.delete_other_windows
+      if @@current.echo_area?
+        raise "Can't expand the echo area to full screen"
+      end
       @@windows.delete_if do |window|
-        if window.current?
+        if window.current? || window.echo_area?
           false
         else
           window.delete
@@ -73,8 +79,11 @@ module Textbringer
 
     def self.other_window
       i = @@windows.index(@@current)
-      i += 1
-      self.current = @@windows[i % @@windows.size]
+      begin
+        i += 1
+        window = @@windows[i % @@windows.size]
+      end while !window.active?
+      self.current = window
     end
 
     def self.echo_area
@@ -95,6 +104,7 @@ module Textbringer
                                                 Window.lines - 1, 0)
   	Buffer.minibuffer.keymap = MINIBUFFER_LOCAL_MAP
 	@@echo_area.buffer = Buffer.minibuffer
+	@@windows.push(@@echo_area)
         yield
       ensure
         Ncurses.echo
@@ -104,13 +114,18 @@ module Textbringer
     end
 
     def self.redisplay
-      if current != echo_area
-        echo_area.redisplay
-      end
       @@windows.each do |window|
         window.redisplay unless window.current?
       end
       current.redisplay
+      update
+    end
+
+    def self.redraw
+      @@windows.each do |window|
+        window.redraw unless window.current?
+      end
+      current.redraw
       update
     end
 
@@ -164,6 +179,14 @@ module Textbringer
       @top_of_window = nil
       @bottom_of_window = nil
       @deleted = false
+    end
+
+    def echo_area?
+      false
+    end
+
+    def active?
+      true
     end
 
     def deleted?
@@ -362,11 +385,21 @@ module Textbringer
 
   class EchoArea < Window
     attr_accessor :prompt
+    attr_writer :active
 
     def initialize(*args)
       super
       @message = nil
       @prompt = ""
+      @active = false
+    end
+
+    def echo_area?
+      true
+    end
+
+    def active?
+      @active
     end
 
     def clear
