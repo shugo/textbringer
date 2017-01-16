@@ -36,7 +36,7 @@ module Textbringer
     end
 
     def read_from_minibuffer(prompt, completion_proc: nil, default: nil)
-      if Buffer.current == Buffer.minibuffer
+      if Window.echo_area.active?
         raise "Command attempted to use minibuffer while in minibuffer"
       end
       old_buffer = Buffer.current
