@@ -1360,4 +1360,21 @@ EOF
     assert_equal("\xe3".force_encoding(Encoding::ASCII_8BIT),
                  buffer.char_after)
   end
+
+  def test_get_line_and_column
+    buffer = Buffer.new(<<EOF)
+hello world
+あいうえお
+EOF
+    assert_equal([1, 1], buffer.get_line_and_column(0))
+    buffer.forward_char(7)
+    assert_equal([1, 8], buffer.get_line_and_column(buffer.point))
+    buffer.next_line
+    buffer.beginning_of_line
+    assert_equal([2, 1], buffer.get_line_and_column(buffer.point))
+    buffer.forward_char(2)
+    assert_equal([2, 3], buffer.get_line_and_column(buffer.point))
+    buffer.end_of_buffer
+    assert_equal([3, 1], buffer.get_line_and_column(buffer.point))
+  end
 end

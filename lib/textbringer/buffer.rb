@@ -348,15 +348,13 @@ module Textbringer
       if pos == point_min
         column = 1
       else
-        i = get_pos(pos, -1)
-        while i > point_min
-          if byte_after(i) == "\n"
-            i += 1
-            break
-          end
-          i = get_pos(i, -1)
+        i = @contents.rindex("\n", user_to_gap(pos - 1))
+        if i
+          i += 1
+        else
+          i = 0
         end
-        column = 1 + substring(i, pos).size
+        column = 1 + substring(gap_to_user(i), pos).size
       end
       [line, column]
     end
