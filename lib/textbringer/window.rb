@@ -392,7 +392,7 @@ module Textbringer
       if c.nil?
         "<EOF>"
       else
-        "U+%04x" % c.ord
+        "U+%04X" % c.ord
       end
     end
 
