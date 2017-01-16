@@ -343,6 +343,24 @@ module Textbringer
       bytesize
     end
 
+    def get_line_and_column(pos)
+      line = 1 + @contents[0, user_to_gap(pos)].count("\n")
+      if pos == point_min
+        column = 1
+      else
+        i = get_pos(pos, -1)
+        while i > point_min
+          if byte_after(i) == "\n"
+            i += 1
+            break
+          end
+          i = get_pos(i, -1)
+        end
+        column = 1 + substring(i, pos).size
+      end
+      [line, column]
+    end
+
     def goto_char(pos)
       if pos < 0 || pos > size
         raise RangeError, "Out of buffer"
@@ -352,20 +370,7 @@ module Textbringer
       end
       @desired_column = nil
       if @save_point_level == 0
-        @current_line = 1 + substring(point_min, pos).count("\n")
-        if pos == point_min
-          @current_column = 1
-        else
-          i = get_pos(pos, -1)
-          while i > point_min
-            if byte_after(i) == "\n"
-              i += 1
-              break
-            end
-            i = get_pos(i, -1)
-          end
-          @current_column = 1 + substring(i, pos).size
-        end
+        @current_line, @current_column = get_line_and_column(pos)
       end
       @point = pos
     end

@@ -373,10 +373,16 @@ module Textbringer
       @mode_line.addstr("[+]") if @buffer.modified?
       @mode_line.addstr("[#{@buffer.file_encoding.name}/")
       @mode_line.addstr("#{@buffer.file_format}] ")
-      if current?
-        @mode_line.addstr(unicode_codepoint(@buffer.char_after))
-        @mode_line.addstr(" #{@buffer.current_line},#{@buffer.current_column}")
+      if current? || @buffer.point_at_mark?(@point_mark)
+        c = @buffer.char_after
+        line = @buffer.current_line
+        column = @buffer.current_column
+      else
+        c = @buffer.char_after(@point_mark.location)
+        line, column = @buffer.get_line_and_column(@point_mark.location)
       end
+      @mode_line.addstr(unicode_codepoint(c))
+      @mode_line.addstr(" #{line},#{column}")
       @mode_line.addstr(" " * (@mode_line.getmaxx - @mode_line.getcurx))
       @mode_line.attroff(Ncurses::A_REVERSE)
       @mode_line.noutrefresh
