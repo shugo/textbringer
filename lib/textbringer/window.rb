@@ -211,11 +211,21 @@ module Textbringer
       delete_marks
       @buffer = buffer
       @top_of_window = @buffer.new_mark(@buffer.point_min)
+      if @buffer[:top_of_window]
+        @top_of_window.location = @buffer[:top_of_window].location
+      end
       @bottom_of_window = @buffer.new_mark(@buffer.point_min)
+      if @buffer[:bottom_of_window]
+        @bottom_of_window.location = @buffer[:bottom_of_window].location
+      end
       @point_mark = @buffer.new_mark
     end
 
     def save_point
+      @buffer[:top_of_window] ||= @buffer.new_mark
+      @buffer[:top_of_window].location = @top_of_window.location
+      @buffer[:bottom_of_window] ||= @buffer.new_mark
+      @buffer[:bottom_of_window].location = @bottom_of_window.location
       @buffer.mark_to_point(@point_mark)
     end
 
