@@ -344,7 +344,7 @@ module Textbringer
     end
 
     def get_line_and_column(pos)
-      line = 1 + @contents[0, user_to_gap(pos)].count("\n")
+      line = 1 + @contents[0...user_to_gap(pos)].count("\n")
       if pos == point_min
         column = 1
       else
@@ -873,34 +873,32 @@ module Textbringer
     def update_line_and_column(pos, new_pos)
       return if @save_point_level > 0
       if pos < new_pos
-        s = substring(pos, new_pos)
-        n = s.count("\n")
+        n = @contents[user_to_gap(pos)...user_to_gap(new_pos)].count("\n")
         if n == 0
-          @current_column += s.size
+          @current_column += substring(pos, new_pos).size
         else
           @current_line += n
-          @current_column = 1 + s.slice(/[^\n]*\z/).size
+          i = @contents.rindex("\n", user_to_gap(new_pos - 1))
+          if i
+            i += 1
+          else
+            i = 0
+          end
+          @current_column = 1 + substring(gap_to_user(i), new_pos).size
         end
       elsif pos > new_pos
-        s = substring(new_pos, pos)
-        n = s.count("\n")
+        n = @contents[user_to_gap(new_pos)...user_to_gap(pos)].count("\n")
         if n == 0
-          @current_column -= s.size
+          @current_column -= substring(new_pos, pos).size
         else
           @current_line -= n
-          if new_pos == point_min
-            @current_column = 1
+          i = @contents.rindex("\n", user_to_gap(new_pos - 1))
+          if i
+            i += 1
           else
-            i = get_pos(new_pos, -1)
-            while i > point_min
-              if byte_after(i) == "\n"
-                i += 1
-                break
-              end
-              i = get_pos(i, -1)
-            end
-            @current_column = 1 + substring(i, new_pos).size
+            i = 0
           end
+          @current_column = 1 + substring(gap_to_user(i), new_pos).size
         end
       end
     end
