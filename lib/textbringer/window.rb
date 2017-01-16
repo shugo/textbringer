@@ -86,11 +86,15 @@ module Textbringer
       Ncurses.noecho
       Ncurses.raw
       begin
-        @@current =
+        window =
           Textbringer::Window.new(Window.lines - 1, Window.columns, 0, 0)
-        @@windows.push(@@current)
+        window.buffer = Buffer.new_buffer("*scratch*")
+        @@windows.push(window)
+        Window.current = window
         @@echo_area = Textbringer::EchoArea.new(1, Window.columns,
                                                 Window.lines - 1, 0)
+  	Buffer.minibuffer.keymap = MINIBUFFER_LOCAL_MAP
+	@@echo_area.buffer = Buffer.minibuffer
         yield
       ensure
         Ncurses.echo

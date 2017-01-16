@@ -14,13 +14,9 @@ def load_user_config
 end
 
 Controller.current = Controller.new
-Buffer.minibuffer.keymap = MINIBUFFER_LOCAL_MAP
 Window.start do
-  Window.echo_area.buffer = Buffer.minibuffer
   message("Type C-x C-c to exit Textbringer")
   begin
-    buffer = Buffer.new_buffer("*scratch*")
-    switch_to_buffer(buffer)
     load_user_config
     if ARGV.size > 0
       ARGV.each do |arg|
