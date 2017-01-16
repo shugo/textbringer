@@ -38,7 +38,9 @@ module Textbringer
       if window.deleted?
         window = @@windows.first
       end
+      @@current&.save_point
       @@current = window
+      @@current.restore_point
       Buffer.current = window.buffer
     end
 
@@ -178,6 +180,7 @@ module Textbringer
       @buffer = nil
       @top_of_window = nil
       @bottom_of_window = nil
+      @point_mark = nil
       @deleted = false
     end
 
@@ -198,15 +201,26 @@ module Textbringer
         if current?
           Window.current = @@windows.first
         end
+        delete_marks
         @window.del
         @deleted = true
       end
     end
 
     def buffer=(buffer)
+      delete_marks
       @buffer = buffer
-      @top_of_window = @buffer[:top_of_window] ||= @buffer.new_mark
-      @bottom_of_window = @buffer[:bottom_of_window] ||= @buffer.new_mark
+      @top_of_window = @buffer.new_mark(@buffer.point_min)
+      @bottom_of_window = @buffer.new_mark(@buffer.point_min)
+      @point_mark = @buffer.new_mark
+    end
+
+    def save_point
+      @buffer.mark_to_point(@point_mark)
+    end
+
+    def restore_point
+      @buffer.point_to_mark(@point_mark)
     end
 
     def current?
@@ -242,13 +256,19 @@ module Textbringer
       return if @buffer.nil?
       redisplay_mode_line
       @buffer.save_point do |saved|
+        if current?
+          point = saved
+        else
+          point = @point_mark
+          @buffer.point_to_mark(@point_mark)
+        end
         framer
         y = x = 0
         @buffer.point_to_mark(@top_of_window)
         @window.erase
         @window.move(0, 0)
         while !@buffer.end_of_buffer?
-          if @buffer.point_at_mark?(saved)
+          if @buffer.point_at_mark?(point)
             y, x = @window.getcury, @window.getcurx
           end
           c = @buffer.char_after
@@ -262,7 +282,7 @@ module Textbringer
           @buffer.forward_char
         end
         @buffer.mark_to_point(@bottom_of_window)
-        if @buffer.point_at_mark?(saved)
+        if @buffer.point_at_mark?(point)
           y, x = @window.getcury, @window.getcurx
         end
         @window.move(y, x)
@@ -353,8 +373,10 @@ module Textbringer
       @mode_line.addstr("[+]") if @buffer.modified?
       @mode_line.addstr("[#{@buffer.file_encoding.name}/")
       @mode_line.addstr("#{@buffer.file_format}] ")
-      @mode_line.addstr(unicode_codepoint(@buffer.char_after))
-      @mode_line.addstr(" #{@buffer.current_line},#{@buffer.current_column}")
+      if current?
+        @mode_line.addstr(unicode_codepoint(@buffer.char_after))
+        @mode_line.addstr(" #{@buffer.current_line},#{@buffer.current_column}")
+      end
       @mode_line.addstr(" " * (@mode_line.getmaxx - @mode_line.getcurx))
       @mode_line.attroff(Ncurses::A_REVERSE)
       @mode_line.noutrefresh
@@ -388,6 +410,21 @@ module Textbringer
       s = @buffer.substring(@buffer.point, e)
       # TODO: should calculate more correctly
       Unicode::DisplayWidth.of(s, 2) / columns
+    end
+
+    def delete_marks
+      if @top_of_window
+        @top_of_window.delete
+        @top_of_window = nil
+      end
+      if @bottom_of_window
+        @bottom_of_window.delete
+        @bottom_of_window = nil
+      end
+      if @point_mark
+        @point_mark.delete
+        @point_mark = nil
+      end
     end
   end
 

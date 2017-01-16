@@ -575,15 +575,14 @@ module Textbringer
       @point
     end
 
-    def new_mark
-      Mark.new(self, @point).tap { |m|
+    def new_mark(location = @point)
+      Mark.new(self, location).tap { |m|
         @marks << m
       }
     end
 
     def point_to_mark(mark)
-      update_line_and_column(@point, mark.location)
-      @point = mark.location
+      goto_char(mark.location)
     end
 
     def mark_to_point(mark)
