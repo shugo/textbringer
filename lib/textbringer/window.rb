@@ -352,12 +352,20 @@ module Textbringer
       @mode_line.addstr("#{@buffer.name} ")
       @mode_line.addstr("[+]") if @buffer.modified?
       @mode_line.addstr("[#{@buffer.file_encoding.name}/")
-      @mode_line.addstr("#{@buffer.file_format}]")
-      @mode_line.addstr(" U+%04X" % (@buffer.char_after&.ord || 0))
+      @mode_line.addstr("#{@buffer.file_format}] ")
+      @mode_line.addstr(unicode_codepoint(@buffer.char_after))
       @mode_line.addstr(" #{@buffer.current_line},#{@buffer.current_column}")
       @mode_line.addstr(" " * (@mode_line.getmaxx - @mode_line.getcurx))
       @mode_line.attroff(Ncurses::A_REVERSE)
       @mode_line.noutrefresh
+    end
+
+    def unicode_codepoint(c)
+      if c.nil?
+        "<EOF>"
+      else
+        "U+%04x" % c.ord
+      end
     end
 
     def escape(s)
