@@ -30,6 +30,13 @@ module Textbringer
       :previous_line,
       :delete_char,
       :backward_delete_char,
+    ].each do |name|
+      define_command(name) do |n = number_prefix_arg|
+        Buffer.current.send(name, n)
+      end
+    end
+
+    [
       :beginning_of_line,
       :end_of_line,
       :beginning_of_buffer,

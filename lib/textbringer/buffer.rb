@@ -503,7 +503,7 @@ module Textbringer
       end
     end
 
-    def next_line
+    def next_line(n = 1)
       if @desired_column
         column = @desired_column
       else
@@ -511,18 +511,19 @@ module Textbringer
         beginning_of_line
         column = Unicode::DisplayWidth.of(substring(@point, prev_point), 2)
       end
-      end_of_line
-      forward_char
-      s = @point
-      while !end_of_buffer? &&
-          byte_after != "\n" &&
-          Unicode::DisplayWidth.of(substring(s, @point), 2) < column
+      n.times do
+        end_of_line
         forward_char
+        s = @point
+        while !end_of_buffer? && byte_after != "\n" &&
+          Unicode::DisplayWidth.of(substring(s, @point), 2) < column
+          forward_char
+        end
       end
       @desired_column = column
     end
 
-    def previous_line
+    def previous_line(n = 1)
       if @desired_column
         column = @desired_column
       else
@@ -530,14 +531,15 @@ module Textbringer
         beginning_of_line
         column = Unicode::DisplayWidth.of(substring(@point, prev_point), 2)
       end
-      beginning_of_line
-      backward_char
-      beginning_of_line
-      s = @point
-      while !end_of_buffer? &&
-          byte_after != "\n" &&
+      n.times do
+        beginning_of_line
+        backward_char
+        beginning_of_line
+        s = @point
+        while !end_of_buffer? && byte_after != "\n" &&
           Unicode::DisplayWidth.of(substring(s, @point), 2) < column
-        forward_char
+          forward_char
+        end
       end
       @desired_column = column
     end
