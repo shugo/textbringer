@@ -116,6 +116,7 @@ module Textbringer
   GLOBAL_MAP.define_key("\C-x\nn", :set_buffer_file_format)
   GLOBAL_MAP.define_key("\ex", :execute_command)
   GLOBAL_MAP.define_key("\e:", :eval_expression)
+  GLOBAL_MAP.define_key(?\C-u, :universal_argument)
   GLOBAL_MAP.define_key(?\C-g, :keyboard_quit)
   GLOBAL_MAP.handle_undefined_key do |key|
     if key.is_a?(Integer) && key > 0x80 && key.chr(Encoding::UTF_8)

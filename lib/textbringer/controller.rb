@@ -6,6 +6,8 @@ module Textbringer
 
   class Controller
     attr_accessor :this_command, :last_command, :overriding_map
+    attr_accessor :prefix_arg, :current_prefix_arg
+    attr_reader :last_key
 
     @@current = nil
 
@@ -24,10 +26,8 @@ module Textbringer
       @this_command = nil
       @last_command = nil
       @overriding_map = nil
-    end
-
-    def last_key
-      @last_key
+      @prefix_arg = nil
+      @current_prefix_arg = nil
     end
 
     def command_loop(tag)
@@ -41,15 +41,20 @@ module Textbringer
             cmd = key_binding(@key_sequence)
             if cmd.is_a?(Symbol) || cmd.respond_to?(:call)
               @key_sequence.clear
-              @this_command = nil
+              @this_command = cmd
+              @current_prefix_arg = @prefix_arg
+              @prefix_arg = nil
               begin
+                run_hooks(:pre_command_hook, remove_on_error: true)
                 if cmd.is_a?(Symbol)
                   send(cmd)
                 else
                   cmd.call
                 end
               ensure
-                @last_command = @this_command || cmd
+                run_hooks(:post_command_hook, remove_on_error: true)
+                @last_command = @this_command
+                @this_command = nil
               end
             else
               if cmd.nil?

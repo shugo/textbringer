@@ -222,11 +222,8 @@ module Textbringer
       unless Commands.list.include?(cmd)
         raise "Undefined command: #{cmd}"
       end
-      begin
-        send(cmd)
-      ensure
-        Controller.current.this_command ||= cmd
-      end
+      Controller.current.this_command = cmd
+      send(cmd)
     end
 
     define_command(:eval_expression) do
@@ -266,6 +263,85 @@ module Textbringer
                                    minibuffer.point_max)
           minibuffer.insert(s)
         end
+      end
+    end
+
+    UNIVERSAL_ARGUMENT_MAP = Keymap.new
+    (?0..?9).each do |c|
+      UNIVERSAL_ARGUMENT_MAP.define_key(c, :digit_argument)
+    end
+    UNIVERSAL_ARGUMENT_MAP.define_key(?-, :negative_argument)
+    UNIVERSAL_ARGUMENT_MAP.define_key(?\C-u, :universal_argument_more)
+
+    def universal_argument_mode
+      set_transient_map(UNIVERSAL_ARGUMENT_MAP)
+    end
+
+    define_command(:universal_argument) do
+      Controller.current.prefix_arg = [4]
+      universal_argument_mode
+    end
+
+    def current_prefix_arg
+      Controller.current.current_prefix_arg
+    end
+
+    def number_prefix_arg
+      arg = current_prefix_arg
+      case arg
+      when Integer
+        arg
+      when Array
+        arg.first
+      when :-
+        -1
+      else
+        1
+      end
+    end
+
+    define_command(:digit_argument) do
+      |arg = current_prefix_arg|
+      n = last_key.chr.to_i
+      Controller.current.prefix_arg =
+        case arg
+        when Integer
+          arg * 10 + (arg < 0 ? -n : n)
+        when :-
+          -n
+        else
+          n
+        end
+      universal_argument_mode
+    end
+
+    define_command(:negative_argument) do
+      |arg = current_prefix_arg|
+      Controller.current.prefix_arg =
+        case arg
+        when Integer
+          -arg
+        when :-
+          nil
+        else
+          :-
+        end
+      universal_argument_mode
+    end
+
+    define_command(:universal_argument_more) do
+      |arg = current_prefix_arg|
+      Controller.current.prefix_arg =
+        case arg
+        when Array
+          [4 * arg.first]
+        when :-
+          [-4]
+        else
+          nil
+        end
+      if Controller.current.prefix_arg
+        universal_argument_mode
       end
     end
 

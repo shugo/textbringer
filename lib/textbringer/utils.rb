@@ -42,6 +42,7 @@ module Textbringer
       old_buffer = Buffer.current
       old_window = Window.current
       old_completion_proc = Buffer.minibuffer[:completion_proc]
+      old_current_prefix_arg = Controller.current.current_prefix_arg
       Buffer.minibuffer[:completion_proc] = completion_proc
       Window.echo_area.active = true
       begin
@@ -71,6 +72,7 @@ module Textbringer
         # in which case Window.current is set to the first window.
         Window.current.buffer = Buffer.current = old_buffer
         Buffer.minibuffer[:completion_proc] = old_completion_proc
+        Controller.current.current_prefix_arg = old_current_prefix_arg
       end
     end
 
@@ -151,6 +153,47 @@ module Textbringer
           message("Please answer y or n.")
         end
       }
+    end
+
+    HOOKS = Hash.new { |h, k| h[k] = [] }
+
+    def add_hook(name, func)
+      HOOKS[name].unshift(func)
+    end
+
+    def remove_hook(name, func)
+      HOOKS[name].delete(func)
+    end
+
+    def run_hooks(name, remove_on_error: false)
+      HOOKS[name].delete_if do |func|
+        begin
+          case func
+          when Symbol
+            send(func)
+          else
+            func.call
+          end
+          false
+        rescue Exception => e
+          raise if e.is_a?(SystemExit)
+          if remove_on_error
+            true
+          else
+            raise
+          end
+        end
+      end
+    end
+
+    def set_transient_map(map)
+      old_overriding_map = Controller.current.overriding_map
+      hook = -> {
+        Controller.current.overriding_map = old_overriding_map
+        remove_hook(:pre_command_hook, hook)
+      }
+      add_hook(:pre_command_hook, hook)
+      Controller.current.overriding_map = map
     end
   end
 end
