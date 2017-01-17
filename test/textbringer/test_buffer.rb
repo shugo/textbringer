@@ -1183,6 +1183,9 @@ EOF
     assert_raise(ArgumentError) do
       buffer.goto_char(7) # in the middle of a character
     end
+    buffer.file_encoding = Encoding::ASCII_8BIT
+    buffer.goto_char(7)
+    assert_equal(7, buffer.point)
   end
 
   def test_mark

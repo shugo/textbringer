@@ -363,7 +363,7 @@ module Textbringer
       if pos < 0 || pos > size
         raise RangeError, "Out of buffer"
       end
-      if /[\x80-\xbf]/n =~ byte_after(pos)
+      if !@binary && /[\x80-\xbf]/n =~ byte_after(pos)
         raise ArgumentError, "Position is in the middle of a character"
       end
       @desired_column = nil
