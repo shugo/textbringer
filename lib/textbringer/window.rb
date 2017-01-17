@@ -322,11 +322,11 @@ module Textbringer
 
     def recenter
       @buffer.save_point do |saved|
-        count = beginning_of_line
+        count = beginning_of_line_and_count
         while count < (lines - 1) / 2
           break if @buffer.point == 0
           @buffer.backward_char
-          count += beginning_of_line + 1
+          count += beginning_of_line_and_count + 1
         end
         @buffer.mark_to_point(@top_of_window)
       end
@@ -369,7 +369,7 @@ module Textbringer
     def framer
       @buffer.save_point do |saved|
         new_start_loc = nil
-        count = beginning_of_line
+        count = beginning_of_line_and_count
         if @buffer.point_before_mark?(@top_of_window)
           @buffer.mark_to_point(@top_of_window)
           return
@@ -379,7 +379,7 @@ module Textbringer
           break if @buffer.point == 0
           new_start_loc = @buffer.point
           @buffer.backward_char
-          count += beginning_of_line + 1
+          count += beginning_of_line_and_count + 1
         end
         if count >= lines - 1     # lines include mode line
           @top_of_window.location = new_start_loc
@@ -432,7 +432,7 @@ module Textbringer
       end
     end
 
-    def beginning_of_line
+    def beginning_of_line_and_count
       e = @buffer.point
       @buffer.beginning_of_line
       s = @buffer.substring(@buffer.point, e)
