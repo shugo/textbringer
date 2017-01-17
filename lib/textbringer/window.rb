@@ -320,6 +320,18 @@ module Textbringer
       @mode_line.resize(1, columns)
     end
 
+    def recenter
+      @buffer.save_point do |saved|
+        count = beginning_of_line
+        while count < (lines - 1) / 2
+          break if @buffer.point == 0
+          @buffer.backward_char
+          count += beginning_of_line + 1
+        end
+        @buffer.mark_to_point(@top_of_window)
+      end
+    end
+
     def scroll_up
       @buffer.point_to_mark(@bottom_of_window)
       @buffer.previous_line

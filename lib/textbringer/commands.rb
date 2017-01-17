@@ -93,6 +93,11 @@ module Textbringer
       Window.resize
     end
 
+    define_command(:recenter) do
+      Window.current.recenter
+      Window.redraw
+    end
+
     define_command(:scroll_up) do
       Window.current.scroll_up
     end

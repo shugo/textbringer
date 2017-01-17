@@ -96,6 +96,7 @@ module Textbringer
   GLOBAL_MAP.define_key("\C-x\C-_", :redo)
   GLOBAL_MAP.define_key("\C-t", :transpose_chars)
   GLOBAL_MAP.define_key(?\n, :newline)
+  GLOBAL_MAP.define_key("\C-l", :recenter)
   GLOBAL_MAP.define_key("\C-v", :scroll_up)
   GLOBAL_MAP.define_key(:npage, :scroll_up)
   GLOBAL_MAP.define_key("\ev", :scroll_down)
