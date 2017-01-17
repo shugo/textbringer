@@ -2,20 +2,22 @@
 
 module Textbringer
   module Utils
-    def message(msg)
-      buffer = Buffer["*Messages*"] ||
-        Buffer.new_buffer("*Messages*", undo_limit: 0).tap { |b|
-          b[:top_of_window] = b.new_mark
-      }
-      buffer.end_of_buffer
-      buffer.insert(msg + "\n")
-      if buffer.current_line > 1000
-        buffer.beginning_of_buffer
-        10.times do
-          buffer.next_line
-        end
-        buffer.delete_region(buffer.point_min, buffer.point)
+    def message(msg, log: true)
+      if log
+        buffer = Buffer["*Messages*"] ||
+          Buffer.new_buffer("*Messages*", undo_limit: 0).tap { |b|
+            b[:top_of_window] = b.new_mark
+        }
         buffer.end_of_buffer
+        buffer.insert(msg + "\n")
+        if buffer.current_line > 1000
+          buffer.beginning_of_buffer
+          10.times do
+            buffer.next_line
+          end
+          buffer.delete_region(buffer.point_min, buffer.point)
+          buffer.end_of_buffer
+        end
       end
       Window.echo_area.show(msg)
     end

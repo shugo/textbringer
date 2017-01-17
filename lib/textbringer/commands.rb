@@ -363,6 +363,112 @@ module Textbringer
     define_command(:recursive_edit) do
       Controller.current.recursive_edit
     end
+
+    ISEARCH_MODE_MAP = Keymap.new
+    (0x20..0x7e).each do |c|
+      ISEARCH_MODE_MAP.define_key(c, :isearch_printing_char)
+    end
+    ISEARCH_MODE_MAP.define_key(?\t, :isearch_printing_char)
+    ISEARCH_MODE_MAP.handle_undefined_key do |key|
+      if key.is_a?(Integer) && key > 0x80
+        begin
+          key.chr(Encoding::UTF_8)
+          :isearch_printing_char
+        rescue RangeError
+          nil
+        end
+      else
+        nil
+      end
+    end
+    ISEARCH_MODE_MAP.define_key(:backspace, :isearch_delete_char)
+    ISEARCH_MODE_MAP.define_key(?\C-h, :isearch_delete_char)
+    ISEARCH_MODE_MAP.define_key(?\C-s, :isearch_repeat_forward)
+    ISEARCH_MODE_MAP.define_key(?\C-r, :isearch_repeat_backward)
+    ISEARCH_MODE_MAP.define_key(?\n, :isearch_exit)
+    ISEARCH_MODE_MAP.define_key(?\C-g, :isearch_abort)
+    
+    ISEARCH_STATUS = {}
+
+    define_command(:isearch_forward) do
+      isearch_mode(true)
+    end
+
+    define_command(:isearch_backward) do
+      isearch_mode(false)
+    end
+
+    def isearch_mode(forward)
+      ISEARCH_STATUS[:forward] = forward
+      ISEARCH_STATUS[:string] = String.new
+      Controller.current.overriding_map = ISEARCH_MODE_MAP
+      run_hooks(:isearch_mode_hook)
+      add_hook(:pre_command_hook, :isearch_pre_command_hook)
+      ISEARCH_STATUS[:start] = ISEARCH_STATUS[:last_pos] = Buffer.current.point
+    end
+
+    def isearch_pre_command_hook
+      if /\Aisearch_/ !~ Controller.current.this_command
+        isearch_done
+      end
+    end
+
+    def isearch_done
+      Controller.current.overriding_map = nil
+      remove_hook(:pre_command_hook, :isearch_pre_command_hook)
+    end
+
+    define_command(:isearch_exit) do
+      isearch_done
+    end
+
+    define_command(:isearch_abort) do
+      goto_char(Buffer.current[:isearch_start])
+      isearch_done
+      raise Quit
+    end
+
+    define_command(:isearch_printing_char) do
+      c = Controller.current.last_key.chr(Encoding::UTF_8)
+      ISEARCH_STATUS[:string].concat(c)
+      isearch_search
+    end
+
+    define_command(:isearch_delete_char) do
+      ISEARCH_STATUS[:string].chop!
+      isearch_search
+    end
+
+    def isearch_search
+      forward = ISEARCH_STATUS[:forward]
+      options = if /\A[A-Z]/ =~ ISEARCH_STATUS[:string]
+                  nil
+                else
+                  Regexp::IGNORECASE
+                end
+      re = Regexp.new(Regexp.quote(ISEARCH_STATUS[:string]), options)
+      last_pos = ISEARCH_STATUS[:last_pos]
+      offset = forward ? last_pos : last_pos - ISEARCH_STATUS[:string].bytesize
+      s, e = Buffer.current.byteindex(forward, re, offset)
+      if s
+        message("I-search: #{ISEARCH_STATUS[:string]}", log: false)
+        goto_char(forward ? e : s)
+      else
+        message("Falling I-search: #{ISEARCH_STATUS[:string]}", log: false)
+      end
+    end
+
+    def isearch_repeat_forward
+      ISEARCH_STATUS[:forward] = true
+      ISEARCH_STATUS[:last_pos] = Buffer.current.point
+      isearch_search
+    end
+
+    def isearch_repeat_backward
+      ISEARCH_STATUS[:forward] = false
+      ISEARCH_STATUS[:last_pos] = Buffer.current.point
+      isearch_search
+    end
   end
 
   class Quit < StandardError

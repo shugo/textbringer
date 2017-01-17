@@ -118,9 +118,16 @@ module Textbringer
   GLOBAL_MAP.define_key("\e:", :eval_expression)
   GLOBAL_MAP.define_key(?\C-u, :universal_argument)
   GLOBAL_MAP.define_key(?\C-g, :keyboard_quit)
+  GLOBAL_MAP.define_key(?\C-s, :isearch_forward)
+  GLOBAL_MAP.define_key(?\C-r, :isearch_backward)
   GLOBAL_MAP.handle_undefined_key do |key|
-    if key.is_a?(Integer) && key > 0x80 && key.chr(Encoding::UTF_8)
-      :self_insert
+    if key.is_a?(Integer) && key > 0x80
+      begin
+        key.chr(Encoding::UTF_8)
+        :self_insert
+      rescue RangeError
+        nil
+      end
     else
       nil
     end
