@@ -414,6 +414,9 @@ module Textbringer
 
     def newline
       indentation = save_point { |saved|
+        if /[ \t]/ =~ char_after
+          next ""
+        end
         beginning_of_line
         s = @point
         while /[ \t]/ =~ char_after
