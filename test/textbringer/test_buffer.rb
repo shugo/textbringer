@@ -778,6 +778,13 @@ EOF
     buffer.insert("x") # create invalid byte sequence in the gap
     buffer.beginning_of_buffer
     assert_equal(53, buffer.re_search_forward("きくけこ"))
+
+    buffer.beginning_of_buffer
+    buffer.forward_char(8)
+    buffer.insert("foo")
+    buffer.backward_delete_char(3)
+    buffer.beginning_of_buffer
+    assert_equal(11, buffer.re_search_forward("world"))
   end
 
   def test_transpose_chars

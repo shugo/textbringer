@@ -763,17 +763,30 @@ module Textbringer
 
     def re_search_forward(s)
       re = Regexp.new(s)
-      b, e = utf8_re_search(@contents, re, user_to_gap(@point))
+      b, e = byteindex(true, re, @point)
       if b.nil?
         raise "Search failed"
       end
-      if b < @gap_end && e > @gap_start
-        b, e = utf8_re_search(@contents, re, @gap_end)
-        if b.nil?
-          raise "Search failed"
-        end
-      end
       goto_char(gap_to_user(e))
+    end
+
+    def byteindex(forward, re, pos)
+      method = forward ? :index : :rindex
+      adjust_gap(0, bytesize)
+      char_pos = @contents[0...pos].force_encoding(Encoding::UTF_8).size
+      @contents.force_encoding(Encoding::UTF_8)
+      begin
+        if @contents.send(method, re, char_pos)
+          m = Regexp.last_match
+          b = m.pre_match.bytesize
+          e = b + m.to_s.bytesize
+          e <= bytesize ? [b, e] : nil
+        else
+          nil
+        end
+      ensure
+        @contents.force_encoding(Encoding::ASCII_8BIT)
+      end
     end
 
     def transpose_chars
@@ -796,15 +809,15 @@ module Textbringer
 
     private
 
-    def adjust_gap(min_size = 0)
-      if @gap_start < @point
-        len = user_to_gap(@point) - @gap_end
+    def adjust_gap(min_size = 0, pos = @point)
+      if @gap_start < pos
+        len = user_to_gap(pos) - @gap_end
         @contents[@gap_start, len] = @contents[@gap_end, len]
         @gap_start += len
         @gap_end += len
-      elsif @gap_start > @point
-        len = @gap_start - @point
-        @contents[@gap_end - len, len] = @contents[@point, len]
+      elsif @gap_start > pos
+        len = @gap_start - pos
+        @contents[@gap_end - len, len] = @contents[pos, len]
         @gap_start -= len
         @gap_end -= len
       end
@@ -915,23 +928,6 @@ module Textbringer
       end
       @undo_stack.push(action)
       @redo_stack.clear
-    end
-
-    def utf8_re_search(s, re, pos)
-      char_pos = s[0...pos].force_encoding(Encoding::UTF_8).size
-      s.force_encoding(Encoding::UTF_8)
-      begin
-        if s.index(re, char_pos)
-          m = Regexp.last_match
-          b = m.pre_match.bytesize
-          e = b + m.to_s.bytesize
-          [b, e]
-        else
-          nil
-        end
-      ensure
-        s.force_encoding(Encoding::ASCII_8BIT)
-      end
     end
   end
 
