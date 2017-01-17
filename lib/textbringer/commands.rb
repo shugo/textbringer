@@ -67,9 +67,12 @@ module Textbringer
       Buffer.current.goto_line(n.to_i)
     end
 
-    define_command(:self_insert) do
-      Buffer.current.insert(Controller.current.last_key.chr(Encoding::UTF_8),
-                            Controller.current.last_command == :self_insert)
+    define_command(:self_insert) do |n = number_prefix_arg|
+      c = Controller.current.last_key.chr(Encoding::UTF_8)
+      merge_undo = Controller.current.last_command == :self_insert
+      n.times do
+        Buffer.current.insert(c, merge_undo)
+      end
     end
 
     define_command(:kill_line) do
