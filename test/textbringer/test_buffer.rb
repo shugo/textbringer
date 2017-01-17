@@ -785,6 +785,10 @@ EOF
     buffer.backward_delete_char(3)
     buffer.beginning_of_buffer
     assert_equal(11, buffer.re_search_forward("world"))
+
+    buffer = Buffer.new("\0\0\0\0\x81\x82\x83foo bar".b,
+                        file_encoding: Encoding::ASCII_8BIT)
+    assert_equal(10, buffer.re_search_forward("foo"))
   end
 
   def test_transpose_chars

@@ -773,10 +773,14 @@ module Textbringer
     def byteindex(forward, re, pos)
       method = forward ? :index : :rindex
       adjust_gap(0, bytesize)
-      char_pos = @contents[0...pos].force_encoding(Encoding::UTF_8).size
-      @contents.force_encoding(Encoding::UTF_8)
+      if @binary
+        offset = pos
+      else
+        offset = @contents[0...pos].force_encoding(Encoding::UTF_8).size
+        @contents.force_encoding(Encoding::UTF_8)
+      end
       begin
-        if @contents.send(method, re, char_pos)
+        if @contents.send(method, re, offset)
           m = Regexp.last_match
           b = m.pre_match.bytesize
           e = b + m.to_s.bytesize
