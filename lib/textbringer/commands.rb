@@ -405,6 +405,9 @@ module Textbringer
       run_hooks(:isearch_mode_hook)
       add_hook(:pre_command_hook, :isearch_pre_command_hook)
       ISEARCH_STATUS[:start] = ISEARCH_STATUS[:last_pos] = Buffer.current.point
+      if Buffer.current != Buffer.minibuffer
+        message("I-search: ")
+      end
     end
 
     def isearch_pre_command_hook
@@ -451,10 +454,14 @@ module Textbringer
       offset = forward ? last_pos : last_pos - ISEARCH_STATUS[:string].bytesize
       s, e = Buffer.current.byteindex(forward, re, offset)
       if s
-        message("I-search: #{ISEARCH_STATUS[:string]}", log: false)
+        if Buffer.current != Buffer.minibuffer
+          message("I-search: #{ISEARCH_STATUS[:string]}", log: false)
+        end
         goto_char(forward ? e : s)
       else
-        message("Falling I-search: #{ISEARCH_STATUS[:string]}", log: false)
+        if Buffer.current != Buffer.minibuffer
+          message("Falling I-search: #{ISEARCH_STATUS[:string]}", log: false)
+        end
       end
     end
 
