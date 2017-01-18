@@ -287,7 +287,7 @@ module Textbringer
 
     def save
       if @file_name.nil?
-        raise "file name is not set"
+        raise EditorError, "file name is not set"
       end
       s = to_s
       case @file_format
@@ -618,7 +618,7 @@ module Textbringer
 
     def exchange_point_and_mark(mark = @mark)
       if mark.nil?
-        raise "The mark is not set"
+        raise EditorError, "The mark is not set"
       end
       update_line_and_column(@point, mark.location)
       @point, mark.location = mark.location, @point
@@ -640,7 +640,7 @@ module Textbringer
 
     def mark
       if @mark.nil?
-        raise "The mark is not set"
+        raise EditorError, "The mark is not set"
       end
       @mark.location
     end
@@ -746,7 +746,7 @@ module Textbringer
 
     def undo
       if @undo_stack.empty?
-        raise "No further undo information"
+        raise EditorError, "No further undo information"
       end
       action = @undo_stack.pop
       @undoing = true
@@ -767,7 +767,7 @@ module Textbringer
 
     def redo
       if @redo_stack.empty?
-        raise "No further redo information"
+        raise EditorError, "No further redo information"
       end
       action = @redo_stack.pop
       @undoing = true
@@ -790,7 +790,7 @@ module Textbringer
       re = Regexp.new(s)
       i = byteindex(true, re, @point)
       if i.nil?
-        raise "Search failed"
+        raise SearchError, "Search failed"
       end
       goto_char(match_end(0))
     end
@@ -801,11 +801,11 @@ module Textbringer
       begin
         i = byteindex(false, re, pos)
         if i.nil?
-          raise "Search failed"
+          raise SearchError, "Search failed"
         end
         pos = get_pos(pos, -1)
       rescue RangeError
-        raise "Search failed"
+        raise SearchError, "Search failed"
       end while match_end(0) > @point
       goto_char(match_beginning(0))
     end
@@ -1074,7 +1074,7 @@ module Textbringer
 
     def current(n = 0)
       if @ring.empty?
-        raise "Kill ring is empty"
+        raise EditorError, "Kill ring is empty"
       end
       @current -= n
       if @current < 0

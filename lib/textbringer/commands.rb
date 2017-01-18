@@ -87,7 +87,7 @@ module Textbringer
 
     define_command(:yank_pop) do
       if Controller.current.last_command != :yank
-        raise "Previous command was not a yank"
+        raise EditorError, "Previous command was not a yank"
       end
       Buffer.current.yank_pop
       Controller.current.this_command = :yank
@@ -138,7 +138,7 @@ module Textbringer
             Buffer.current.delete_visible_mark
           end
         end
-      rescue
+      rescue SearchError
       end
       if n == 1
         message("Replaced 1 occurrence")
@@ -278,7 +278,7 @@ module Textbringer
     define_command(:execute_command) do
       |cmd = read_command_name("M-x ").strip.intern|
       unless Commands.list.include?(cmd)
-        raise "Undefined command: #{cmd}"
+        raise EditorError, "Undefined command: #{cmd}"
       end
       Controller.current.this_command = cmd
       send(cmd)
@@ -295,14 +295,14 @@ module Textbringer
 
     define_command(:exit_recursive_edit) do
       if @recursive_edit_level == 0
-        raise "No recursive edit is in progress"
+        raise EditorError, "No recursive edit is in progress"
       end
       throw RECURSIVE_EDIT_TAG, false
     end
 
     define_command(:abort_recursive_edit) do
       if @recursive_edit_level == 0
-        raise "No recursive edit is in progress"
+        raise EditorError, "No recursive edit is in progress"
       end
       throw RECURSIVE_EDIT_TAG, true
     end

@@ -1,6 +1,6 @@
 require_relative "../test_helper"
 require "tempfile"
-require "textbringer/buffer"
+require "textbringer"
 
 class TestBuffer < Test::Unit::TestCase
   include Textbringer
@@ -377,7 +377,7 @@ abcdefg
 あいうえお
 かきくけこ
 EOF
-    assert_raise(RuntimeError) do
+    assert_raise(EditorError) do
       buffer.copy_region
     end
     buffer.next_line
@@ -681,7 +681,7 @@ EOF
 
   def test_save_no_file_name
     buffer = Buffer.new
-    assert_raise(RuntimeError) do
+    assert_raise(EditorError) do
       buffer.save
     end
   end
@@ -749,10 +749,10 @@ EOF
     assert_equal(55, buffer.point)
 
     buffer.beginning_of_buffer
-    assert_raise(RuntimeError) do
+    assert_raise(SearchError) do
       buffer.re_search_forward("bar")
     end
-    assert_raise(RuntimeError) do
+    assert_raise(SearchError) do
       buffer.re_search_forward("\0") # NUL is in the gap
     end
     buffer.next_line
@@ -818,11 +818,11 @@ EOF
     assert_equal(38, buffer.re_search_backward("[a-z]+"))
     assert_equal(38, buffer.point)
     buffer.beginning_of_buffer
-    assert_raise(RuntimeError) do
+    assert_raise(SearchError) do
       buffer.re_search_backward("world")
     end
     buffer.forward_char(8)
-    assert_raise(RuntimeError) do
+    assert_raise(SearchError) do
       buffer.re_search_backward("world")
     end
   end
@@ -923,7 +923,7 @@ Hello world
 I'm shugo
 EOF
 
-      assert_raise(RuntimeError) do
+      assert_raise(EditorError) do
         buffer.undo
       end
 
@@ -993,7 +993,7 @@ I'm tired
 This is the last line
 EOF
 
-      assert_raise(RuntimeError) do
+      assert_raise(EditorError) do
         buffer.redo
       end
     end
@@ -1064,7 +1064,7 @@ Goodbye world
 I'm shugo
 EOF
 
-      assert_raise(RuntimeError) do
+      assert_raise(EditorError) do
         buffer.undo
       end
     end
@@ -1289,7 +1289,7 @@ EOF
     buffer.exchange_point_and_mark(mark2)
     assert_equal(1, buffer.point)
     assert_equal(0, mark2.location)
-    assert_raise(RuntimeError) do
+    assert_raise(EditorError) do
       buffer.exchange_point_and_mark(nil)
     end
   end

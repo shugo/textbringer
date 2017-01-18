@@ -40,10 +40,10 @@ module Textbringer
 
     def self.delete_window
       if @@current.echo_area?
-        raise "Can't delete the echo area"
+        raise EditorError, "Can't delete the echo area"
       end
       if @@windows.size == 2
-        raise "Can't delete the sole window"
+        raise EditorError, "Can't delete the sole window"
       end
       i = @@windows.index(@@current)
       if i == 0
@@ -60,7 +60,7 @@ module Textbringer
 
     def self.delete_other_windows
       if @@current.echo_area?
-        raise "Can't expand the echo area to full screen"
+        raise EditorError, "Can't expand the echo area to full screen"
       end
       @@windows.delete_if do |window|
         if window.current? || window.echo_area?
@@ -243,14 +243,16 @@ module Textbringer
           buf = [key]
           (len - 1).times do
             c = @window.getch
-            raise "Malformed UTF-8 input" if c.nil? || c < 0x80 || c > 0xbf
+            if c.nil? || c < 0x80 || c > 0xbf
+              raise EditorError, "Malformed UTF-8 input" 
+            end
             buf.push(c)
           end
           s = buf.pack("C*").force_encoding(Encoding::UTF_8)
           if s.valid_encoding?
             s.ord
           else
-            raise "Malformed UTF-8 input"
+            raise EditorError, "Malformed UTF-8 input"
           end
         end
       end
@@ -362,7 +364,7 @@ module Textbringer
 
     def split
       if lines < 6
-        raise "Window too small"
+        raise EditorError, "Window too small"
       end
       old_lines = lines
       new_lines = (old_lines / 2.0).ceil

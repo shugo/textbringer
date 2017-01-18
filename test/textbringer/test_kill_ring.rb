@@ -1,12 +1,12 @@
 require_relative "../test_helper"
-require "textbringer/buffer"
+require "textbringer"
 
 class TestKillRing < Test::Unit::TestCase
   include Textbringer
 
   def test_push
     kill_ring = KillRing.new(3)
-    assert_raise(RuntimeError) do
+    assert_raise(EditorError) do
       kill_ring.current
     end
     kill_ring.push("foo")

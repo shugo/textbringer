@@ -40,7 +40,8 @@ module Textbringer
     def read_from_minibuffer(prompt, completion_proc: nil, default: nil,
                              keymap: MINIBUFFER_LOCAL_MAP)
       if Window.echo_area.active?
-        raise "Command attempted to use minibuffer while in minibuffer"
+        raise EditorError,
+          "Command attempted to use minibuffer while in minibuffer"
       end
       old_buffer = Buffer.current
       old_window = Window.current
