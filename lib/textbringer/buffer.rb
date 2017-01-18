@@ -204,6 +204,7 @@ module Textbringer
       @keymap = nil
       @attributes = {}
       @save_point_level = 0
+      @match_offsets = []
     end
 
     def inspect
@@ -774,29 +775,30 @@ module Textbringer
 
     def re_search_forward(s)
       re = Regexp.new(s)
-      b, e = byteindex(true, re, @point)
-      if b.nil?
+      i = byteindex(true, re, @point)
+      if i.nil?
         raise "Search failed"
       end
-      goto_char(gap_to_user(e))
+      goto_char(match_end(0))
     end
 
     def re_search_backward(s)
       re = Regexp.new(s)
       pos = @point
       begin
-        b, e = byteindex(false, re, pos)
-        if b.nil?
+        i = byteindex(false, re, pos)
+        if i.nil?
           raise "Search failed"
         end
         pos = get_pos(pos, -1)
       rescue RangeError
         raise "Search failed"
-      end while e > @point
-      goto_char(gap_to_user(b))
+      end while match_end(0) > @point
+      goto_char(match_beginning(0))
     end
 
     def byteindex(forward, re, pos)
+      @match_offsets = []
       method = forward ? :index : :rindex
       adjust_gap(0, bytesize)
       if @binary
@@ -811,17 +813,52 @@ module Textbringer
           m = Regexp.last_match
           if m.nil?
             # A bug of rindex
-            [pos, pos]
+            @match_offsets.push([pos, pos])
+            pos
           else
             b = m.pre_match.bytesize
             e = b + m.to_s.bytesize
-            e <= bytesize ? [b, e] : nil
+            if e <= bytesize
+              @match_offsets.push([b, e])
+              match_beg = m.begin(0)
+              match_str = m.to_s
+              (1 .. m.size - 1).each do |j|
+                cb, ce = m.offset(j)
+                if cb.nil?
+                  @match_offsets.push([nil, nil])
+                else
+                  bb = b + match_str[0, cb - match_beg].bytesize
+                  be = b + match_str[0, ce - match_beg].bytesize
+                  @match_offsets.push([bb, be])
+                end
+              end
+              b
+            else
+              nil
+            end
           end
         else
           nil
         end
       ensure
         @contents.force_encoding(Encoding::ASCII_8BIT)
+      end
+    end
+
+    def match_beginning(n)
+      @match_offsets[n]&.first
+    end
+
+    def match_end(n)
+      @match_offsets[n]&.last
+    end
+
+    def match_string(n)
+      b, e = @match_offsets[n]
+      if b.nil?
+        nil
+      else
+        substring(b, e)
       end
     end
 

@@ -93,10 +93,27 @@ module Textbringer
       Controller.current.this_command = :yank
     end
 
+    RE_SEARCH_STATUS = {
+      last_regexp: nil
+    }
+
     define_command(:re_search_forward) do
-      |s = read_from_minibuffer("RE search: ", default: @last_search_re)|
+      |s = read_from_minibuffer("RE search: ",
+                                default: RE_SEARCH_STATUS[:last_regexp])|
+      RE_SEARCH_STATUS[:last_regexp] = s
       Buffer.current.re_search_forward(s)
-      @last_search_re = s
+    end
+
+    def match_beginning(n)
+      Buffer.current.match_beginning(n)
+    end
+
+    def match_end(n)
+      Buffer.current.match_end(n)
+    end
+
+    def match_string(n)
+      Buffer.current.match_string(n)
     end
           
     define_command(:resize_window) do
@@ -467,12 +484,11 @@ module Textbringer
       re = Regexp.new(Regexp.quote(ISEARCH_STATUS[:string]), options)
       last_pos = ISEARCH_STATUS[:last_pos]
       offset = forward ? last_pos : last_pos - ISEARCH_STATUS[:string].bytesize
-      s, e = Buffer.current.byteindex(forward, re, offset)
-      if s
+      if Buffer.current.byteindex(forward, re, offset)
         if Buffer.current != Buffer.minibuffer
           message(isearch_prompt + ISEARCH_STATUS[:string], log: false)
         end
-        goto_char(forward ? e : s)
+        goto_char(forward ? match_end(0) : match_beginning(0))
       else
         if Buffer.current != Buffer.minibuffer
           message("Falling " + isearch_prompt + ISEARCH_STATUS[:string],

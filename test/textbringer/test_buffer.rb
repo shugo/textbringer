@@ -778,6 +778,12 @@ EOF
     buffer.insert("x") # create invalid byte sequence in the gap
     buffer.beginning_of_buffer
     assert_equal(53, buffer.re_search_forward("きくけこ"))
+    buffer.beginning_of_buffer
+    assert_equal(53, buffer.re_search_forward("(あか)|(きく)(けこ)"))
+    assert_equal("きくけこ", buffer.match_string(0))
+    assert_equal(nil, buffer.match_string(1))
+    assert_equal("きく", buffer.match_string(2))
+    assert_equal("けこ", buffer.match_string(3))
 
     buffer.beginning_of_buffer
     buffer.forward_char(8)
