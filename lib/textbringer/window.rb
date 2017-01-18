@@ -348,6 +348,13 @@ module Textbringer
       end
     end
 
+    def recenter_if_needed
+      if @buffer.point_before_mark?(@top_of_window) ||
+         @buffer.point_after_mark?(@bottom_of_window)
+        recenter
+      end
+    end
+
     def scroll_up
       @buffer.point_to_mark(@bottom_of_window)
       @buffer.previous_line

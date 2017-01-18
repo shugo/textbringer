@@ -60,11 +60,13 @@ module Textbringer
     define_command(:goto_char) do
       |n = read_from_minibuffer("Go to char: ")|
       Buffer.current.goto_char(n.to_i)
+      Window.current.recenter_if_needed
     end
 
     define_command(:goto_line) do
       |n = read_from_minibuffer("Go to line: ")|
       Buffer.current.goto_line(n.to_i)
+      Window.current.recenter_if_needed
     end
 
     define_command(:self_insert) do |n = number_prefix_arg|
