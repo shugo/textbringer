@@ -784,6 +784,14 @@ EOF
     assert_equal(nil, buffer.match_string(1))
     assert_equal("きく", buffer.match_string(2))
     assert_equal("けこ", buffer.match_string(3))
+    buffer.beginning_of_buffer
+    buffer.replace_match("\\\\ <\\&><\\1><\\2><\\3>")
+    assert_equal(<<EOF, buffer.to_s)
+hello world
+あいうえお
+hello world
+x\\ <きくけこ><><きく><けこ>
+EOF
 
     buffer.beginning_of_buffer
     buffer.forward_char(8)

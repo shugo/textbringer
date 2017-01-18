@@ -862,6 +862,24 @@ module Textbringer
       end
     end
 
+    def replace_match(str)
+      new_str = str.gsub(/\\(?:([0-9]+)|(&)|(\\))/) { |s|
+        case
+        when $1
+          match_string($1.to_i)
+        when $2
+          match_string(0)
+        when $3
+          "\\"
+        end
+      }
+      b = match_beginning(0)
+      e =  match_end(0)
+      goto_char(b)
+      delete_region(b, e)
+      insert(new_str)
+    end
+
     def transpose_chars
       if end_of_buffer? || char_after == "\n"
         backward_char

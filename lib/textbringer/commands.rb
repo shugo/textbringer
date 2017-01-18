@@ -115,6 +115,10 @@ module Textbringer
     def match_string(n)
       Buffer.current.match_string(n)
     end
+
+    def replace_match(s)
+      Buffer.current.replace_match(s)
+    end
           
     define_command(:resize_window) do
       Window.resize
