@@ -388,7 +388,13 @@ module Textbringer
     ISEARCH_MODE_MAP.define_key(?\n, :isearch_exit)
     ISEARCH_MODE_MAP.define_key(?\C-g, :isearch_abort)
     
-    ISEARCH_STATUS = {}
+    ISEARCH_STATUS = {
+      forward: true,
+      string: "",
+      last_string: "",
+      start: 0,
+      last_pos: 0
+    }
 
     define_command(:isearch_forward) do
       isearch_mode(true)
@@ -406,7 +412,15 @@ module Textbringer
       add_hook(:pre_command_hook, :isearch_pre_command_hook)
       ISEARCH_STATUS[:start] = ISEARCH_STATUS[:last_pos] = Buffer.current.point
       if Buffer.current != Buffer.minibuffer
-        message("I-search: ", log: false)
+        message(isearch_prompt, log: false)
+      end
+    end
+
+    def isearch_prompt
+      if ISEARCH_STATUS[:forward]
+        "I-search: "
+      else
+        "I-search backward: "
       end
     end
 
@@ -419,6 +433,7 @@ module Textbringer
     def isearch_done
       Controller.current.overriding_map = nil
       remove_hook(:pre_command_hook, :isearch_pre_command_hook)
+      ISEARCH_STATUS[:last_string] = ISEARCH_STATUS[:string]
     end
 
     define_command(:isearch_exit) do
@@ -455,25 +470,31 @@ module Textbringer
       s, e = Buffer.current.byteindex(forward, re, offset)
       if s
         if Buffer.current != Buffer.minibuffer
-          message("I-search: #{ISEARCH_STATUS[:string]}", log: false)
+          message(isearch_prompt + ISEARCH_STATUS[:string], log: false)
         end
         goto_char(forward ? e : s)
       else
         if Buffer.current != Buffer.minibuffer
-          message("Falling I-search: #{ISEARCH_STATUS[:string]}", log: false)
+          message("Falling " + isearch_prompt + ISEARCH_STATUS[:string],
+                  log: false)
         end
       end
     end
 
     def isearch_repeat_forward
-      ISEARCH_STATUS[:forward] = true
-      ISEARCH_STATUS[:last_pos] = Buffer.current.point
-      isearch_search
+      isearch_repeat(true)
     end
 
     def isearch_repeat_backward
-      ISEARCH_STATUS[:forward] = false
+      isearch_repeat(false)
+    end
+
+    def isearch_repeat(forward)
+      ISEARCH_STATUS[:forward] = forward
       ISEARCH_STATUS[:last_pos] = Buffer.current.point
+      if ISEARCH_STATUS[:string].empty?
+        ISEARCH_STATUS[:string] = ISEARCH_STATUS[:last_string]
+      end
       isearch_search
     end
   end
