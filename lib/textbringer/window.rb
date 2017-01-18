@@ -11,16 +11,10 @@ module Textbringer
         name.slice(/\AKEY_(.*)/, 1).downcase.intern
     end
 
-    UTF8_CHAR_LEN = Hash.new(1)
-    [
-      [0xc0..0xdf, 2],
-      [0xe0..0xef, 3],
-      [0xf0..0xf4, 4]
-    ].each do |range, len|
-      range.each do |i|
-        UTF8_CHAR_LEN[i] = len
-      end
-    end
+    UTF8_CHAR_LEN =
+      Buffer::UTF8_CHAR_LEN.each_with_object(Hash.new(1)) { |(k, v), h|
+        h[k.ord] = v
+      }
 
     @@windows = []
     @@current = nil
