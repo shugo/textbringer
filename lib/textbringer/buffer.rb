@@ -615,6 +615,9 @@ module Textbringer
     end
 
     def exchange_point_and_mark(mark = @mark)
+      if mark.nil?
+        raise "The mark is not set"
+      end
       update_line_and_column(@point, mark.location)
       @point, mark.location = mark.location, @point
     end

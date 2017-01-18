@@ -1253,6 +1253,9 @@ EOF
     buffer.exchange_point_and_mark(mark2)
     assert_equal(1, buffer.point)
     assert_equal(0, mark2.location)
+    assert_raise(RuntimeError) do
+      buffer.exchange_point_and_mark(nil)
+    end
   end
 
   def test_yank
