@@ -406,7 +406,7 @@ module Textbringer
       add_hook(:pre_command_hook, :isearch_pre_command_hook)
       ISEARCH_STATUS[:start] = ISEARCH_STATUS[:last_pos] = Buffer.current.point
       if Buffer.current != Buffer.minibuffer
-        message("I-search: ")
+        message("I-search: ", log: false)
       end
     end
 
