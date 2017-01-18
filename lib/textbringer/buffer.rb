@@ -781,6 +781,21 @@ module Textbringer
       goto_char(gap_to_user(e))
     end
 
+    def re_search_backward(s)
+      re = Regexp.new(s)
+      pos = @point
+      begin
+        b, e = byteindex(false, re, pos)
+        if b.nil?
+          raise "Search failed"
+        end
+        pos = get_pos(pos, -1)
+      rescue RangeError
+        raise "Search failed"
+      end while e > @point
+      goto_char(gap_to_user(b))
+    end
+
     def byteindex(forward, re, pos)
       method = forward ? :index : :rindex
       adjust_gap(0, bytesize)

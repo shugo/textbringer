@@ -791,6 +791,20 @@ EOF
     assert_equal(10, buffer.re_search_forward("foo"))
   end
 
+  def test_re_search_backward
+    buffer = Buffer.new(<<EOF)
+hello world
+あいうえお
+hello world
+あいうえお
+EOF
+    buffer.end_of_buffer
+    assert_equal(56, buffer.re_search_backward(""))
+    assert_equal(56, buffer.point)
+    assert_equal(38, buffer.re_search_backward("[a-z]+"))
+    assert_equal(38, buffer.point)
+  end
+
   def test_transpose_chars
     buffer = Buffer.new(<<EOF)
 hello world
