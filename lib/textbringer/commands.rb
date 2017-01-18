@@ -129,6 +129,7 @@ module Textbringer
       begin
         loop do
           re_search_forward(regexp)
+          Window.current.recenter_if_needed
           Buffer.current.set_visible_mark(match_beginning(0))
           begin
             Window.redisplay
