@@ -15,6 +15,28 @@ editor.
 
 You can quit the editor by C-x C-c.
 
+## Configuration of terminal emulators
+
+### xterm
+
+Add the following line to ~/.Xresources.
+
+    XTerm*metaSendsEscape: true
+
+### mlterm
+
+Add the following line to ~/.mlterm/main.
+
+    mod_meta_key = alt
+    mod_meta_mode = esc
+    col_size_of_width_a = 1
+
+### screen
+
+Add the following line to ~/.screenrc.
+
+    cjkwidth off
+
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
