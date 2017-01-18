@@ -810,8 +810,8 @@ module Textbringer
         if i
           m = Regexp.last_match
           if m.nil?
-            # A bug of rindex/
-            [i, i]
+            # A bug of rindex
+            [pos, pos]
           else
             b = m.pre_match.bytesize
             e = b + m.to_s.bytesize
