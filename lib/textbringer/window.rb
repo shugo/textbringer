@@ -431,7 +431,7 @@ module Textbringer
       @buffer.beginning_of_line
       s = @buffer.substring(@buffer.point, e)
       # TODO: should calculate more correctly
-      Unicode::DisplayWidth.of(s, 2) / columns
+      Buffer.display_width(s) / columns
     end
 
     def delete_marks

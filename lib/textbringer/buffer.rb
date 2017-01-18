@@ -154,6 +154,11 @@ module Textbringer
       @@table.each_value(&block)
     end
 
+    def self.display_width(s)
+      # ncurses seems to treat ambiguous east asian characters as narrow.
+      Unicode::DisplayWidth.of(s, 1)
+    end
+
     # s might not be copied.
     def initialize(s = String.new, name: nil,
                    file_name: nil, file_encoding: Encoding::UTF_8,
@@ -512,14 +517,14 @@ module Textbringer
       else
         prev_point = @point
         beginning_of_line
-        column = Unicode::DisplayWidth.of(substring(@point, prev_point), 2)
+        column = Buffer.display_width(substring(@point, prev_point))
       end
       n.times do
         end_of_line
         forward_char
         s = @point
         while !end_of_buffer? && byte_after != "\n" &&
-          Unicode::DisplayWidth.of(substring(s, @point), 2) < column
+          Buffer.display_width(substring(s, @point)) < column
           forward_char
         end
       end
@@ -532,7 +537,7 @@ module Textbringer
       else
         prev_point = @point
         beginning_of_line
-        column = Unicode::DisplayWidth.of(substring(@point, prev_point), 2)
+        column = Buffer.display_width(substring(@point, prev_point))
       end
       n.times do
         beginning_of_line
@@ -540,7 +545,7 @@ module Textbringer
         beginning_of_line
         s = @point
         while !end_of_buffer? && byte_after != "\n" &&
-          Unicode::DisplayWidth.of(substring(s, @point), 2) < column
+          Buffer.display_width(substring(s, @point)) < column
           forward_char
         end
       end
