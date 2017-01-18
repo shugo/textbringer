@@ -25,7 +25,7 @@ Add the following line to ~/.Xresources.
 
 ### mlterm
 
-Add the following line to ~/.mlterm/main.
+Add the following lines to ~/.mlterm/main.
 
     mod_meta_key = alt
     mod_meta_mode = esc
