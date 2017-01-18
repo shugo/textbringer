@@ -153,7 +153,7 @@ module Textbringer
     Y_OR_N_MAP.define_key(?n, :n_and_exit_minibuffer)
     Y_OR_N_MAP.define_key(?\C-g, :abort_recursive_edit)
     Y_OR_N_MAP.handle_undefined_key do |key|
-      message("Please answer y or n: ")
+      -> { message("Please answer y or n: ") }
     end
 
     def y_and_exit_minibuffer
