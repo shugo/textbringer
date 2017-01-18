@@ -9,7 +9,7 @@ module Textbringer
 
     attr_accessor :file_name, :keymap
     attr_reader :name, :file_encoding, :file_format, :point, :marks
-    attr_reader :current_line, :current_column
+    attr_reader :current_line, :current_column, :visible_mark
 
     GAP_SIZE = 256
     UNDO_LIMIT = 1000
@@ -205,6 +205,7 @@ module Textbringer
       @attributes = {}
       @save_point_level = 0
       @match_offsets = []
+      @visible_mark = nil
     end
 
     def inspect
@@ -647,6 +648,18 @@ module Textbringer
     def set_mark(pos = @point)
       @mark ||= new_mark
       @mark.location = pos
+    end
+
+    def set_visible_mark(pos = @point)
+      @visible_mark ||= new_mark
+      @visible_mark.location = pos
+    end
+
+    def delete_visible_mark
+      if @visible_mark
+        @visible_mark.delete
+        @visible_mark = nil
+      end
     end
 
     def copy_region(s = @point, e = mark, append = false)

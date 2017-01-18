@@ -271,9 +271,28 @@ module Textbringer
         @buffer.point_to_mark(@top_of_window)
         @window.erase
         @window.move(0, 0)
+        if @buffer.visible_mark &&
+           @buffer.point_after_mark?(@buffer.visible_mark)
+          @window.attron(Ncurses::A_REVERSE)
+        end
         while !@buffer.end_of_buffer?
           if @buffer.point_at_mark?(point)
             y, x = @window.getcury, @window.getcurx
+            if @buffer.visible_mark
+              if @buffer.point_after_mark?(@buffer.visible_mark)
+                @window.attroff(Ncurses::A_REVERSE)
+              elsif @buffer.point_before_mark?(@buffer.visible_mark)
+                @window.attron(Ncurses::A_REVERSE)
+              end
+            end
+          end
+          if @buffer.visible_mark &&
+             @buffer.point_at_mark?(@buffer.visible_mark)
+            if @buffer.point_after_mark?(point)
+              @window.attroff(Ncurses::A_REVERSE)
+            elsif @buffer.point_before_mark?(point)
+              @window.attron(Ncurses::A_REVERSE)
+            end
           end
           c = @buffer.char_after
           if c == "\n"
@@ -285,6 +304,7 @@ module Textbringer
             @window.getcurx == columns - 1
           @buffer.forward_char
         end
+        @window.attroff(Ncurses::A_REVERSE)
         @buffer.mark_to_point(@bottom_of_window)
         if @buffer.point_at_mark?(point)
           y, x = @window.getcury, @window.getcurx

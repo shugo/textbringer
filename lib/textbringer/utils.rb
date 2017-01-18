@@ -37,7 +37,8 @@ module Textbringer
       Window.beep
     end
 
-    def read_from_minibuffer(prompt, completion_proc: nil, default: nil)
+    def read_from_minibuffer(prompt, completion_proc: nil, default: nil,
+                             keymap: MINIBUFFER_LOCAL_MAP)
       if Window.echo_area.active?
         raise "Command attempted to use minibuffer while in minibuffer"
       end
@@ -45,6 +46,8 @@ module Textbringer
       old_window = Window.current
       old_completion_proc = Buffer.minibuffer[:completion_proc]
       old_current_prefix_arg = Controller.current.current_prefix_arg
+      old_minibuffer_map = Buffer.minibuffer.keymap
+      Buffer.minibuffer.keymap = keymap
       Buffer.minibuffer[:completion_proc] = completion_proc
       Window.echo_area.active = true
       begin
@@ -74,6 +77,7 @@ module Textbringer
         # in which case Window.current is set to the first window.
         Window.current.buffer = Buffer.current = old_buffer
         Buffer.minibuffer[:completion_proc] = old_completion_proc
+        Buffer.minibuffer.keymap = old_minibuffer_map
         Controller.current.current_prefix_arg = old_current_prefix_arg
       end
     end
@@ -143,18 +147,26 @@ module Textbringer
       }
     end
 
+    Y_OR_N_MAP = Keymap.new
+    Y_OR_N_MAP.define_key(?y, :y_and_exit_minibuffer)
+    Y_OR_N_MAP.define_key(?n, :n_and_exit_minibuffer)
+    Y_OR_N_MAP.define_key(?\C-g, :abort_recursive_edit)
+    Y_OR_N_MAP.handle_undefined_key do |key|
+      message("Please answer y or n: ")
+    end
+
+    def y_and_exit_minibuffer
+      Buffer.current.insert("y")
+      exit_recursive_edit
+    end
+
+    def n_and_exit_minibuffer
+      Buffer.current.insert("n")
+      exit_recursive_edit
+    end
+
     def y_or_n?(prompt)
-      loop {
-        s = read_from_minibuffer(prompt + " (y or n) ")
-        case s
-        when "y"
-          return true
-        when "n"
-          return false
-        else
-          message("Please answer y or n.")
-        end
-      }
+      read_from_minibuffer(prompt + " (y or n) ", keymap: Y_OR_N_MAP) == "y"
     end
 
     HOOKS = Hash.new { |h, k| h[k] = [] }

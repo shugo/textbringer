@@ -119,6 +119,33 @@ module Textbringer
     def replace_match(s)
       Buffer.current.replace_match(s)
     end
+
+    define_command(:query_replace_regexp) do
+      |regexp = read_from_minibuffer("Query replace regexp: "),
+       to_str = read_from_minibuffer("Query replace regexp #{regexp} with: ")|
+      n = 0
+      begin
+        loop do
+          re_search_forward(regexp)
+          Buffer.current.set_visible_mark(match_beginning(0))
+          begin
+            Window.redisplay
+            if y_or_n?("Replace?")
+              replace_match(to_str)
+              n += 1
+            end
+          ensure
+            Buffer.current.delete_visible_mark
+          end
+        end
+      rescue
+      end
+      if n == 1
+        message("Replaced 1 occurrence")
+      else
+        message("Replaced #{n} occurrences")
+      end
+    end
           
     define_command(:resize_window) do
       Window.resize
@@ -452,6 +479,7 @@ module Textbringer
     end
 
     def isearch_done
+      Buffer.current.delete_visible_mark
       Controller.current.overriding_map = nil
       remove_hook(:pre_command_hook, :isearch_pre_command_hook)
       ISEARCH_STATUS[:last_string] = ISEARCH_STATUS[:string]
@@ -492,6 +520,8 @@ module Textbringer
         if Buffer.current != Buffer.minibuffer
           message(isearch_prompt + ISEARCH_STATUS[:string], log: false)
         end
+        Buffer.current.set_visible_mark(forward ? match_beginning(0) :
+                                        match_end(0))
         goto_char(forward ? match_end(0) : match_beginning(0))
       else
         if Buffer.current != Buffer.minibuffer
