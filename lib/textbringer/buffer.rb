@@ -783,11 +783,17 @@ module Textbringer
         @contents.force_encoding(Encoding::UTF_8)
       end
       begin
-        if @contents.send(method, re, offset)
+        i = @contents.send(method, re, offset)
+        if i
           m = Regexp.last_match
-          b = m.pre_match.bytesize
-          e = b + m.to_s.bytesize
-          e <= bytesize ? [b, e] : nil
+          if m.nil?
+            # A bug of rindex/
+            [i, i]
+          else
+            b = m.pre_match.bytesize
+            e = b + m.to_s.bytesize
+            e <= bytesize ? [b, e] : nil
+          end
         else
           nil
         end
