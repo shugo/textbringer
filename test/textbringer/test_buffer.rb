@@ -1294,6 +1294,16 @@ EOF
     end
   end
 
+  def test_visible_mark
+    buffer = Buffer.new("foobar")
+    buffer.forward_char(3)
+    assert_equal(nil, buffer.visible_mark)
+    buffer.set_visible_mark
+    assert_equal(3, buffer.visible_mark.location)
+    buffer.delete_visible_mark
+    assert_equal(nil, buffer.visible_mark)
+  end
+
   def test_yank
     buffer = Buffer.new(<<EOF)
 foo
