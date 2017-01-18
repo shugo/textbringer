@@ -803,6 +803,14 @@ EOF
     assert_equal(56, buffer.point)
     assert_equal(38, buffer.re_search_backward("[a-z]+"))
     assert_equal(38, buffer.point)
+    buffer.beginning_of_buffer
+    assert_raise(RuntimeError) do
+      buffer.re_search_backward("world")
+    end
+    buffer.forward_char(8)
+    assert_raise(RuntimeError) do
+      buffer.re_search_backward("world")
+    end
   end
 
   def test_transpose_chars
