@@ -48,8 +48,6 @@ module Textbringer
       :yank,
       :newline,
       :delete_region,
-      :undo,
-      :redo,
       :transpose_chars
     ].each do |name|
       define_command(name) do
@@ -180,6 +178,16 @@ module Textbringer
       else
         message("Replaced #{n} occurrences")
       end
+    end
+
+    define_command(:undo) do
+      Buffer.current.undo
+      message("Undo!")
+    end
+
+    define_command(:redo) do
+      Buffer.current.redo
+      message("Redo!")
     end
           
     define_command(:resize_window) do
