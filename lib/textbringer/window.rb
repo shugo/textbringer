@@ -32,7 +32,7 @@ module Textbringer
       if window.deleted?
         window = @@windows.first
       end
-      @@current&.save_point
+      @@current.save_point if @@current && !@@current.deleted?
       @@current = window
       @@current.restore_point
       Buffer.current = window.buffer
