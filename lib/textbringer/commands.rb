@@ -126,7 +126,6 @@ module Textbringer
       |regexp = read_from_minibuffer("Query replace regexp: "),
        to_str = read_from_minibuffer("Query replace regexp #{regexp} with: ")|
       n = 0
-      all = false
       begin
         loop do
           re_search_forward(regexp)
@@ -134,7 +133,7 @@ module Textbringer
           Buffer.current.set_visible_mark(match_beginning(0))
           begin
             Window.redisplay
-            c = all || read_single_char("Replace?", [?y, ?n, ?!, ?q, ?.])
+            c = read_single_char("Replace?", [?y, ?n, ?!, ?q, ?.])
             case c
             when ?y
               replace_match(to_str)
@@ -144,7 +143,24 @@ module Textbringer
             when ?!
               replace_match(to_str)
               n += 1
-              all = ?y
+              buffer = Buffer.current
+              rest = buffer.substring(buffer.point, buffer.point_max)
+              buffer.delete_region(buffer.point, buffer.point_max)
+              new_str = rest.gsub(Regexp.new(regexp)) {
+                n += 1
+                m = Regexp.last_match
+                to_str.gsub(/\\(?:([0-9]+)|(&)|(\\))/) { |s|
+                  case
+                  when $1
+                    m[$1.to_i]
+                  when $2
+                    m.to_s
+                  when $3
+                    "\\"
+                  end
+                }
+              }
+              buffer.insert(new_str)
             when ?q
               break
             when ?.
