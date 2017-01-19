@@ -166,31 +166,41 @@ module Textbringer
     end
 
     Y_OR_N_MAP = Keymap.new
-    Y_OR_N_MAP.define_key(?y, :y_and_exit_minibuffer)
-    Y_OR_N_MAP.define_key(?n, :n_and_exit_minibuffer)
+    Y_OR_N_MAP.define_key(?y, :self_insert_and_exit_minibuffer)
+    Y_OR_N_MAP.define_key(?n, :self_insert_and_exit_minibuffer)
     Y_OR_N_MAP.define_key(?\C-g, :abort_recursive_edit)
     Y_OR_N_MAP.handle_undefined_key do |key|
-      -> { message("Please answer y or n.", sit_for: 2) }
+      :exit_recursive_edit
     end
 
-    def y_and_exit_minibuffer
-      Buffer.current.insert("y")
-      exit_recursive_edit
-    end
-
-    def n_and_exit_minibuffer
-      Buffer.current.insert("n")
+    def self_insert_and_exit_minibuffer
+      self_insert
       exit_recursive_edit
     end
 
     def y_or_n?(prompt)
-      read_from_minibuffer(prompt + " (y or n) ", keymap: Y_OR_N_MAP) == "y"
+      new_prompt = prompt + " (y or n) "
+      prompt_modified = false
+      loop do
+        s = read_from_minibuffer(new_prompt, keymap: Y_OR_N_MAP)
+        case s
+        when ?y
+          break true
+        when ?n
+          break false
+        else
+          unless prompt_modified
+            new_prompt.prepend("Answer y or n. ")
+            prompt_modified = true
+          end
+        end
+      end
     end
 
     def read_single_char(prompt, chars)
       map = Keymap.new
       chars.each do |c|
-        map.define_key(c, -> { self_insert; exit_recursive_edit })
+        map.define_key(c, :self_insert_and_exit_minibuffer)
       end
       map.define_key(?\C-g, :abort_recursive_edit)
       char_options = chars.join(?/)
