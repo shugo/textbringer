@@ -71,6 +71,10 @@ module Textbringer
       end
     end
 
+    def wait_input(msecs)
+      Window.current.wait_input(msecs)
+    end
+
     def recursive_edit
       @recursive_edit_level += 1
       begin

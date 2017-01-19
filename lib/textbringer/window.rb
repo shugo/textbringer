@@ -258,6 +258,19 @@ module Textbringer
       end
     end
 
+    def wait_input(msecs)
+      @window.timeout(msecs)
+      begin
+        c = @window.getch
+        if c
+          Ncurses.ungetch(c)
+        end
+        c
+      ensure
+        @window.timeout(-1)
+      end
+    end
+
     def redisplay
       return if @buffer.nil?
       redisplay_mode_line

@@ -2,7 +2,7 @@
 
 module Textbringer
   module Utils
-    def message(msg, log: true)
+    def message(msg, log: true, sit_for: nil, sleep_for: nil)
       if log
         buffer = Buffer["*Messages*"] ||
           Buffer.new_buffer("*Messages*", undo_limit: 0).tap { |b|
@@ -20,6 +20,23 @@ module Textbringer
         end
       end
       Window.echo_area.show(msg)
+      if sit_for
+        sit_for(sit_for)
+        Window.echo_area.clear_message
+      end
+      if sleep_for
+        sleep_for(sleep_for)
+        Window.echo_area.clear_message
+      end
+    end
+
+    def sit_for(secs, no_redisplay = false)
+      Window.redisplay unless no_redisplay
+      Controller.current.wait_input((secs * 1000).to_i)
+    end
+
+    def sleep_for(secs)
+      sleep(secs)
     end
 
     def handle_exception(e)
@@ -143,7 +160,7 @@ module Textbringer
         when "no"
           return false
         else
-          message("Please answer yes or no.")
+          message("Please answer yes or no.", sit_for: 2)
         end
       }
     end
@@ -153,7 +170,7 @@ module Textbringer
     Y_OR_N_MAP.define_key(?n, :n_and_exit_minibuffer)
     Y_OR_N_MAP.define_key(?\C-g, :abort_recursive_edit)
     Y_OR_N_MAP.handle_undefined_key do |key|
-      -> { message("Please answer y or n: ") }
+      -> { message("Please answer y or n.", sit_for: 2) }
     end
 
     def y_and_exit_minibuffer
@@ -168,6 +185,19 @@ module Textbringer
 
     def y_or_n?(prompt)
       read_from_minibuffer(prompt + " (y or n) ", keymap: Y_OR_N_MAP) == "y"
+    end
+
+    def read_single_char(prompt, chars)
+      map = Keymap.new
+      chars.each do |c|
+        map.define_key(c, -> { self_insert; exit_recursive_edit })
+      end
+      map.define_key(?\C-g, :abort_recursive_edit)
+      char_options = chars.join(?/)
+      map.handle_undefined_key do |key|
+        -> { message("Invalid key.  Type C-g to quit.", sit_for: 2) }
+      end
+      read_from_minibuffer(prompt + " (#{char_options}) ", keymap: map)
     end
 
     HOOKS = Hash.new { |h, k| h[k] = [] }
