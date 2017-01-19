@@ -891,6 +891,7 @@ module Textbringer
       goto_char(b)
       delete_region(b, e)
       insert(new_str)
+      merge_undo(2)
     end
 
     def transpose_chars
@@ -909,6 +910,19 @@ module Textbringer
 
     def gap_filled_with_nul?
       /\A\0*\z/ =~ @contents[@gap_start...@gap_end] ? true : false
+    end
+
+    def merge_undo(n)
+      return if @undoing || @undo_limit == 0
+      actions = @undo_stack.pop(n)
+      if actions
+        action = CompositeAction.new(self, actions.first.location)
+        actions.each do |i|
+          action.add_action(i)
+        end
+        action.version = actions.first.version
+        @undo_stack.push(action)
+      end
     end
 
     private
@@ -1092,6 +1106,7 @@ module Textbringer
 
   class UndoableAction
     attr_accessor :version
+    attr_reader :location
 
     def initialize(buffer, location)
       @version = nil
@@ -1137,6 +1152,29 @@ module Textbringer
     def redo
       @buffer.goto_char(@insert_location)
       @buffer.delete_char(@string.size)
+    end
+  end
+
+  class CompositeAction < UndoableAction
+    def initialize(buffer, location)
+      super(buffer, location)
+      @actions = []
+    end
+
+    def add_action(action)
+      @actions.push(action)
+    end
+
+    def undo
+      @actions.reverse_each do |action|
+        action.undo
+      end
+    end
+
+    def redo
+      @actions.each do |action|
+        action.redo
+      end
     end
   end
 end

@@ -161,6 +161,7 @@ module Textbringer
                 }
               }
               buffer.insert(new_str)
+              buffer.merge_undo(3)
             when ?q
               break
             when ?.
