@@ -11,7 +11,7 @@ module Textbringer
     end
 
     def define_command(name, &block)
-      define_method(name, &block)
+      Commands.send(:define_method, name, &block)
       @@command_list << name if !@@command_list.include?(name)
     end
     module_function :define_command

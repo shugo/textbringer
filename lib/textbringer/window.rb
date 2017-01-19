@@ -444,6 +444,7 @@ module Textbringer
       end
       @mode_line.addstr(unicode_codepoint(c))
       @mode_line.addstr(" #{line},#{column}")
+      @mode_line.addstr(" (#{@buffer.mode&.name || 'None'})")
       @mode_line.addstr(" " * (@mode_line.getmaxx - @mode_line.getcurx))
       @mode_line.attroff(Ncurses::A_REVERSE)
       @mode_line.noutrefresh

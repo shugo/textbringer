@@ -7,7 +7,7 @@ module Textbringer
   class Buffer
     extend Enumerable
 
-    attr_accessor :keymap
+    attr_accessor :mode, :keymap
     attr_reader :name, :file_name, :file_encoding, :file_format, :point, :marks
     attr_reader :current_line, :current_column, :visible_mark
 
@@ -202,6 +202,7 @@ module Textbringer
       @undoing = false
       @version = 0
       @modified = false
+      @mode = nil
       @keymap = nil
       @attributes = {}
       @save_point_level = 0
