@@ -7,8 +7,8 @@ module Textbringer
   class Buffer
     extend Enumerable
 
-    attr_accessor :file_name, :keymap
-    attr_reader :name, :file_encoding, :file_format, :point, :marks
+    attr_accessor :keymap
+    attr_reader :name, :file_name, :file_encoding, :file_format, :point, :marks
     attr_reader :current_line, :current_column, :visible_mark
 
     GAP_SIZE = 256
@@ -222,6 +222,14 @@ module Textbringer
       end
     end
 
+    def file_name=(file_name)
+      @file_name = file_name
+      basename = File.basename(file_name)
+      if /\A#{Regexp.quote(basename)}(<\d+>)?\z/ !~ name
+        self.name = basename
+      end
+    end
+
     def file_encoding=(enc)
       @file_encoding = enc
       @binary = enc == Encoding::ASCII_8BIT
@@ -285,10 +293,11 @@ module Textbringer
                  new_file: false)
     end
 
-    def save
-      if @file_name.nil?
-        raise EditorError, "file name is not set"
+    def save(file_name = @file_name)
+      if file_name.nil?
+        raise EditorError, "File name is not set"
       end
+      file_name = File.expand_path(file_name)
       s = to_s
       case @file_format
       when :dos
@@ -296,7 +305,19 @@ module Textbringer
       when :mac
         s.gsub!(/\n/, "\r")
       end
-      File.write(@file_name, s, encoding: @file_encoding)
+      begin
+        File.write(file_name, s, encoding: @file_encoding)
+      rescue Errno::EISDIR
+        if @name
+          file_name = File.expand_path(@name, file_name)
+          retry
+        else
+          raise
+        end
+      end
+      if file_name != @file_name
+        self.file_name = file_name
+      end
       @version += 1
       @modified = false
       @new_file = false

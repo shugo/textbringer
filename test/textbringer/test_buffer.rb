@@ -1,5 +1,6 @@
 require_relative "../test_helper"
 require "tempfile"
+require "tmpdir"
 require "textbringer"
 
 class TestBuffer < Test::Unit::TestCase
@@ -699,6 +700,45 @@ EOF
     buffer = Buffer.new
     assert_raise(EditorError) do
       buffer.save
+    end
+  end
+
+  def test_save_as
+    Tempfile.create("test_buffer") do |f|
+      f.close
+      buffer = Buffer.new("hello world")
+      buffer.save(f.path)
+      assert_equal("hello world", File.read(f.path))
+      assert_equal(f.path, buffer.file_name)
+      assert_equal(File.basename(f.path), buffer.name)
+    end
+  end
+
+  def test_save_as_dir
+    Dir.mktmpdir do |dir|
+      buffer = Buffer.new("hello world")
+      assert_raise(Errno::EISDIR) do
+        buffer.save(dir)
+      end
+      buffer.name = "foo"
+      buffer.save(dir)
+      assert_equal("hello world", File.read(buffer.file_name))
+      assert_equal(File.expand_path("foo", dir), buffer.file_name)
+      assert_equal("foo", buffer.name)
+    end
+  end
+
+  def test_save_as_fail
+    Tempfile.create("test_buffer") do |f|
+      f.close
+      File.chmod(0400, f.path)
+      buffer = Buffer.new("hello world", name: "foo")
+      assert_raise(Errno::EACCES) do
+        buffer.save(f.path)
+      end
+      assert_equal("", File.read(f.path))
+      assert_equal(nil, buffer.file_name)
+      assert_equal("foo", buffer.name)
     end
   end
 

@@ -261,11 +261,7 @@ module Textbringer
 
     define_command(:write_file) do
       |file_name = read_file_name("Write file: ")|
-      Buffer.current.file_name = file_name
-      if File.basename(file_name) != Buffer.current.name
-        Buffer.current.name = File.basename(file_name)
-      end
-      Buffer.current.save
+      Buffer.current.save(file_name)
       message("Wrote #{Buffer.current.file_name}")
     end
 
