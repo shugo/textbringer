@@ -448,8 +448,10 @@ module Textbringer
         @contents[@gap_end...user_to_gap(pos)] = "\0" * (pos - @point)
         @gap_end += pos - @point
         @marks.each do |m|
-          if m.location > @point
+          if m.location > pos
             m.location -= pos - @point
+          elsif m.location > @point
+            m.location = @point
           end
         end
         push_undo(DeleteAction.new(self, s, s, str))
@@ -462,6 +464,8 @@ module Textbringer
         @marks.each do |m|
           if m.location >= @point
             m.location -= @point - pos
+          elsif m.location > pos
+            m.location = pos
           end
         end
         @point = @gap_start = pos

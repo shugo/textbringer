@@ -69,6 +69,22 @@ class TestBuffer < Test::Unit::TestCase
     buffer.delete_char(-2)
     assert_equal("1いお", buffer.to_s)
     assert_equal(true, buffer.gap_filled_with_nul?)
+
+    buffer = Buffer.new("abcdefghijklmnopqrstuvwxyz")
+    buffer.forward_char(16)
+    mark = buffer.new_mark
+    assert_equal(16, mark.location)
+    buffer.backward_char(5)
+    buffer.delete_char(10)
+    assert_equal(11, mark.location)
+
+    buffer = Buffer.new("abcdefghijklmnopqrstuvwxyz")
+    buffer.forward_char(16)
+    mark = buffer.new_mark
+    assert_equal(16, mark.location)
+    buffer.forward_char(5)
+    buffer.delete_char(-10)
+    assert_equal(11, mark.location)
   end
 
   def test_forward_char
@@ -786,6 +802,20 @@ EOF
     assert_equal("けこ", buffer.match_string(3))
     buffer.beginning_of_buffer
     buffer.replace_match("\\\\ <\\&><\\1><\\2><\\3>")
+    assert_equal(<<EOF, buffer.to_s)
+hello world
+あいうえお
+hello world
+x\\ <きくけこ><><きく><けこ>
+EOF
+    buffer.undo
+    assert_equal(<<EOF, buffer.to_s)
+hello world
+あいうえお
+hello world
+xきくけこ
+EOF
+    buffer.redo
     assert_equal(<<EOF, buffer.to_s)
 hello world
 あいうえお
