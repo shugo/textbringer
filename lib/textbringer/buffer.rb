@@ -1127,7 +1127,7 @@ module Textbringer
 
     def undo
       @buffer.goto_char(@location)
-      @buffer.delete_char(@string.size)
+      @buffer.delete_region(@location, @location + @string.bytesize)
     end
 
     def redo
@@ -1155,7 +1155,8 @@ module Textbringer
 
     def redo
       @buffer.goto_char(@insert_location)
-      @buffer.delete_char(@string.size)
+      @buffer.delete_region(@insert_location,
+                            @insert_location + @string.bytesize)
     end
   end
 
