@@ -162,7 +162,7 @@ module Textbringer
     # s might not be copied.
     def initialize(s = String.new, name: nil,
                    file_name: nil, file_encoding: Encoding::UTF_8,
-                   new_file: true, undo_limit: UNDO_LIMIT)
+                   file_mtime: nil, new_file: true, undo_limit: UNDO_LIMIT)
       case s.encoding
       when Encoding::UTF_8, Encoding::ASCII_8BIT
         @contents = s.frozen? ? s.dup : s
@@ -173,6 +173,7 @@ module Textbringer
       @name = name
       @file_name = file_name
       self.file_encoding = file_encoding
+      @file_mtime = file_mtime
       case @contents
       when /(?<!\r)\n/ 
         @file_format = :unix
@@ -281,7 +282,10 @@ module Textbringer
     end
 
     def self.open(file_name, name: File.basename(file_name))
-      s = File.read(file_name)
+      s, mtime = File.open(file_name) { |f|
+        f.flock(File::LOCK_SH)
+        [f.read, f.mtime]
+      }
       enc = @@detect_encoding_proc.call(s) || Encoding::ASCII_8BIT
       s.force_encoding(enc)
       unless s.valid_encoding?
@@ -289,7 +293,7 @@ module Textbringer
         s.force_encoding(enc)
       end
       Buffer.new(s, name: name,
-                 file_name: file_name, file_encoding: enc,
+                 file_name: file_name, file_encoding: enc, file_mtime: mtime,
                  new_file: false)
     end
 
@@ -306,7 +310,12 @@ module Textbringer
         s.gsub!(/\n/, "\r")
       end
       begin
-        File.write(file_name, s, encoding: @file_encoding)
+        File.open(file_name, "w", external_encoding: @file_encoding) do |f|
+          f.flock(File::LOCK_EX)
+          f.write(s)
+          f.flush
+          @file_mtime = f.mtime
+        end
       rescue Errno::EISDIR
         if @name
           file_name = File.expand_path(@name, file_name)
@@ -321,6 +330,10 @@ module Textbringer
       @version += 1
       @modified = false
       @new_file = false
+    end
+
+    def file_modified?
+      !@file_mtime.nil? && File.mtime(@file_name) != @file_mtime
     end
 
     def to_s

@@ -742,6 +742,26 @@ EOF
     end
   end
 
+  def test_file_modified?
+    buffer = Buffer.new
+    assert_equal(false, buffer.file_modified?)
+    Tempfile.create("test_buffer") do |f|
+      f.print("foo")
+      f.close
+      buffer = Buffer.open(f.path)
+      assert_equal(false, buffer.file_modified?)
+      sleep(0.01)
+      File.write(f.path, "bar")
+      assert_equal(true, buffer.file_modified?)
+      buffer.save
+      assert_equal(false, buffer.file_modified?)
+      assert_equal("foo", File.read(f.path))
+      sleep(0.01)
+      File.write(f.path, "bar")
+      assert_equal(true, buffer.file_modified?)
+    end
+  end
+
   def test_file_format
     buffer = Buffer.new("foo")
     assert_equal(:unix, buffer.file_format)

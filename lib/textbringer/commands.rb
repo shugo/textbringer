@@ -255,6 +255,12 @@ module Textbringer
         Buffer.current.file_name = read_file_name("File to save in: ")
         next if Buffer.current.file_name.nil?
       end
+      if Buffer.current.file_modified?
+        unless yes_or_no?("File changed on disk.  Save anyway?")
+          message("Cancelled")
+          next
+        end
+      end
       Buffer.current.save
       message("Wrote #{Buffer.current.file_name}")
     end
