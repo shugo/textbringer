@@ -809,11 +809,18 @@ EOF
 
   def test_re_search_forward
     buffer = Buffer.new(<<EOF)
-hello world
+Hello World
 あいうえお
 hello world
 あいうえお
 EOF
+    buffer.beginning_of_buffer
+    assert_equal(11, buffer.re_search_forward("world"))
+    assert_equal(11, buffer.point)
+    buffer[:case_fold_search] = false
+    buffer.beginning_of_buffer
+    assert_equal(39, buffer.re_search_forward("world"))
+    assert_equal(39, buffer.point)
     buffer.beginning_of_buffer
     assert_equal(27, buffer.re_search_forward("あいうえお"))
     assert_equal(27, buffer.point)

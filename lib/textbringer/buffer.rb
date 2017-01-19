@@ -270,7 +270,11 @@ module Textbringer
     end
 
     def [](name)
-      @attributes[name]
+      if @attributes.key?(name)
+        @attributes[name]
+      else
+        CONFIG[name]
+      end
     end
 
     def []=(name, value)
@@ -825,7 +829,7 @@ module Textbringer
     end
 
     def re_search_forward(s)
-      re = Regexp.new(s)
+      re = new_regexp(s)
       i = byteindex(true, re, @point)
       if i.nil?
         raise SearchError, "Search failed"
@@ -834,7 +838,7 @@ module Textbringer
     end
 
     def re_search_backward(s)
-      re = Regexp.new(s)
+      re = new_regexp(s)
       pos = @point
       begin
         i = byteindex(false, re, pos)
@@ -936,7 +940,7 @@ module Textbringer
       result = 0
       rest = substring(point, point_max)
       delete_region(point, point_max)
-      new_str = rest.gsub(Regexp.new(regexp)) {
+      new_str = rest.gsub(new_regexp(regexp)) {
         result += 1
         m = Regexp.last_match
         to_str.gsub(/\\(?:([0-9]+)|(&)|(\\))/) { |s|
@@ -1107,6 +1111,10 @@ module Textbringer
       end
       @undo_stack.push(action)
       @redo_stack.clear
+    end
+
+    def new_regexp(s)
+      Regexp.new(s, self[:case_fold_search] ? Regexp::IGNORECASE : 0)
     end
   end
 
