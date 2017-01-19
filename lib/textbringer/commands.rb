@@ -140,26 +140,9 @@ module Textbringer
               # do nothing
             when ?!
               replace_match(to_str)
-              n += 1
-              buffer = Buffer.current
-              rest = buffer.substring(buffer.point, buffer.point_max)
-              buffer.delete_region(buffer.point, buffer.point_max)
-              new_str = rest.gsub(Regexp.new(regexp)) {
-                n += 1
-                m = Regexp.last_match
-                to_str.gsub(/\\(?:([0-9]+)|(&)|(\\))/) { |s|
-                  case
-                  when $1
-                    m[$1.to_i]
-                  when $2
-                    m.to_s
-                  when $3
-                    "\\"
-                  end
-                }
-              }
-              buffer.insert(new_str)
-              buffer.merge_undo(3)
+              n += 1 + Buffer.current.replace_regexp_forward(regexp, to_str)
+              Buffer.current.merge_undo(2)
+              break
             when ?q
               break
             when ?.

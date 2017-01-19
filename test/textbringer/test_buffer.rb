@@ -857,6 +857,22 @@ EOF
     end
   end
 
+  def test_replace_regexp_forward
+    buffer = Buffer.new(<<EOF)
+hello world
+goodbye world
+hello world
+EOF
+    buffer.end_of_line
+    buffer.replace_regexp_forward("([a-z]+) ([a-z]+)",
+                                  "\\\\ <\\&> (\\1) (\\2)")
+    assert_equal(<<EOF, buffer.to_s)
+hello world
+\\ <goodbye world> (goodbye) (world)
+\\ <hello world> (hello) (world)
+EOF
+  end
+
   def test_transpose_chars
     buffer = Buffer.new(<<EOF)
 hello world

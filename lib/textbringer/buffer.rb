@@ -898,6 +898,29 @@ module Textbringer
       merge_undo(2)
     end
 
+    def replace_regexp_forward(regexp, to_str)
+      result = 0
+      rest = substring(point, point_max)
+      delete_region(point, point_max)
+      new_str = rest.gsub(Regexp.new(regexp)) {
+        result += 1
+        m = Regexp.last_match
+        to_str.gsub(/\\(?:([0-9]+)|(&)|(\\))/) { |s|
+          case
+          when $1
+            m[$1.to_i]
+          when $2
+            m.to_s
+          when $3
+            "\\"
+          end
+        }
+      }
+      insert(new_str)
+      merge_undo(2)
+      result
+    end
+
     def transpose_chars
       if end_of_buffer? || char_after == "\n"
         backward_char
