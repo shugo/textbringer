@@ -84,6 +84,7 @@ module Textbringer
     GLOBAL_MAP.define_key(c, :self_insert)
   end
   GLOBAL_MAP.define_key(?\t, :self_insert)
+  GLOBAL_MAP.define_key(?\C-q, :quoted_insert)
   GLOBAL_MAP.define_key("\C- ", :set_mark)
   GLOBAL_MAP.define_key("\C-x\C-x", :exchange_point_and_mark)
   GLOBAL_MAP.define_key("\ew", :copy_region)

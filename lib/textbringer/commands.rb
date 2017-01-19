@@ -75,6 +75,17 @@ module Textbringer
       end
     end
 
+    define_command(:quoted_insert) do |n = number_prefix_arg|
+      c = Controller.current.read_char
+      if !c.is_a?(Integer)
+        raise "Invalid key"
+      end
+      ch = c.chr(Encoding::UTF_8)
+      n.times do
+        Buffer.current.insert(ch)
+      end
+    end
+
     define_command(:kill_line) do
       Buffer.current.kill_line(Controller.current.last_command == :kill_region)
       Controller.current.this_command = :kill_region

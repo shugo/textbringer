@@ -39,6 +39,10 @@ module Textbringer
       sleep(secs)
     end
 
+    def read_char
+      Controller.current.read_char
+    end
+
     def handle_exception(e)
       if e.is_a?(SystemExit)
         raise
