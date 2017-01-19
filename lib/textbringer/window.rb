@@ -70,6 +70,7 @@ module Textbringer
           true
         end
       end
+      @@current.move(0, 0)
       @@current.resize(Window.lines - 1, @@current.columns)
     end
 
