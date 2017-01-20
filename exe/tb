@@ -18,6 +18,7 @@ Window.start do
   message("Type C-x C-c to exit Textbringer")
   begin
     load_user_config
+    ruby_mode
     if ARGV.size > 0
       ARGV.each do |arg|
         find_file(arg)
