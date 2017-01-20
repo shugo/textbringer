@@ -142,4 +142,31 @@ foo { |x|
   bar
 EOF
   end
+
+  
+  def test_indent_line_begin
+    @buffer.insert(<<EOF.chop)
+  begin
+foo
+rescue
+bar
+ensure
+baz
+end
+EOF
+    @buffer.goto_line(2)
+    while !@buffer.end_of_buffer?
+      @ruby_mode.indent_line
+      @buffer.forward_line
+    end
+    assert_equal(<<EOF.chop, @buffer.to_s)
+  begin
+    foo
+  rescue
+    bar
+  ensure
+    baz
+  end
+EOF
+  end
 end

@@ -59,7 +59,7 @@ module Textbringer
         base_indentation = @buffer.match_string(0).size
         @buffer.goto_char(bol_pos)
         if line.nil? ||
-          @buffer.looking_at?(/ *([}\])]|(end|else|elsif|when)\b)/)
+          @buffer.looking_at?(/ *([}\])]|(end|else|elsif|when|rescue|ensure)\b)/)
           indentation = base_indentation
         else
           indentation = base_indentation + @indent_level
@@ -88,7 +88,7 @@ module Textbringer
         when :on_kw
           case text
           when "class", "module", "def", "if", "unless", "case",
-            "do", "for", "while", "until"
+            "do", "for", "while", "until", "begin"
             if /\A(if|unless|while|until)\z/ =~ text
               ts = tokens[0...i].reverse_each.take_while { |(l,_),| l == line }
               t = ts.find { |_, e| e != :on_sp }
