@@ -1552,4 +1552,20 @@ EOF
     buffer.end_of_buffer
     assert_equal([3, 1], buffer.get_line_and_column(buffer.point))
   end
+
+  def test_save_excursion
+    buffer = Buffer.new(<<EOF)
+hello world
+あいうえお
+EOF
+    buffer.next_line
+    buffer.set_mark
+    buffer.forward_char(2)
+    buffer.save_excursion do
+      buffer.backward_char(3)
+      buffer.backward_delete_char(3)
+    end
+    assert_equal(15, buffer.point)
+    assert_equal(9, buffer.mark)
+  end
 end
