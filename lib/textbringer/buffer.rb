@@ -196,8 +196,8 @@ module Textbringer
       @marks = []
       @mark = nil
       @current_line = 1
-      @current_column = 1
-      @desired_column = nil
+      @current_column = 1  # One-based character count
+      @goal_column = nil   # Zero-based display width count
       @yank_start = new_mark
       @undo_stack = []
       @redo_stack = []
@@ -420,7 +420,7 @@ module Textbringer
       if !@binary && /[\x80-\xbf]/n =~ byte_after(pos)
         raise ArgumentError, "Position is in the middle of a character"
       end
-      @desired_column = nil
+      @goal_column = nil
       if @save_point_level == 0
         @current_line, @current_column = get_line_and_column(pos)
       end
@@ -439,7 +439,7 @@ module Textbringer
       @point = gap_to_user(pos)
       @current_line = i
       @current_column = 1
-      @desired_column = nil
+      @goal_column = nil
     end
 
     def insert(s, merge_undo = false)
@@ -464,7 +464,7 @@ module Textbringer
         end
       end
       @modified = true
-      @desired_column = nil
+      @goal_column = nil
     end
 
     def newline
@@ -521,7 +521,7 @@ module Textbringer
         push_undo(DeleteAction.new(self, s, pos, str))
         @modified = true
       end
-      @desired_column = nil
+      @goal_column = nil
     end
 
     def backward_delete_char(n = 1)
@@ -532,7 +532,7 @@ module Textbringer
       pos = get_pos(@point, n)
       update_line_and_column(@point, pos)
       @point = pos
-      @desired_column = nil
+      @goal_column = nil
     end
 
     def backward_char(n = 1)
@@ -588,8 +588,8 @@ module Textbringer
     end
 
     def next_line(n = 1)
-      if @desired_column
-        column = @desired_column
+      if @goal_column
+        column = @goal_column
       else
         prev_point = @point
         beginning_of_line
@@ -604,12 +604,12 @@ module Textbringer
           forward_char
         end
       end
-      @desired_column = column
+      @goal_column = column
     end
 
     def previous_line(n = 1)
-      if @desired_column
-        column = @desired_column
+      if @goal_column
+        column = @goal_column
       else
         prev_point = @point
         beginning_of_line
@@ -625,7 +625,7 @@ module Textbringer
           forward_char
         end
       end
-      @desired_column = column
+      @goal_column = column
     end
 
     def beginning_of_buffer
@@ -702,14 +702,14 @@ module Textbringer
     # because current_line/current_column is not updated in save_point.
     def save_point
       saved = new_mark
-      column = @desired_column
+      column = @goal_column
       @save_point_level += 1
       begin
         yield(saved)
       ensure
         point_to_mark(saved)
         saved.delete
-        @desired_column = column
+        @goal_column = column
         @save_point_level -= 1
       end
     end
@@ -718,7 +718,7 @@ module Textbringer
     def save_excursion
       old_point = new_mark
       old_mark = @mark&.dup
-      old_column = @desired_column
+      old_column = @goal_column
       begin
         yield
       ensure
@@ -728,7 +728,7 @@ module Textbringer
           @mark.location = old_mark.location
           old_mark.delete
         end
-        @desired_column = old_column
+        @goal_column = old_column
       end
     end
 
