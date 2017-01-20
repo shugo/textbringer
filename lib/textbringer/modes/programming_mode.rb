@@ -21,14 +21,14 @@ module Textbringer
       n = 1
       @buffer.save_excursion do
         pos = @buffer.point
-        beginning_of_line
+        @buffer.beginning_of_line
         if /\A\s+\z/ =~ @buffer.substring(@buffer.point, pos)
           @buffer.delete_region(@buffer.point, pos)
           n += 1
         end
       end
       @buffer.insert("\n")
-      if indent_line_command
+      if indent_line
         n += 1
       end
       @buffer.merge_undo(n) if n > 1

@@ -196,4 +196,24 @@ EOF
       @ruby_mode.indent_line
     end
   end
+  
+  def test_newline_and_reindent
+    @buffer.insert(<<EOF.chop)
+class foo
+  def bar
+EOF
+    @ruby_mode.newline_and_reindent
+    assert_equal(<<EOF.chop, @buffer.to_s)
+class foo
+  def bar
+    
+EOF
+    @ruby_mode.newline_and_reindent
+    assert_equal(<<EOF.chop, @buffer.to_s)
+class foo
+  def bar
+
+    
+EOF
+  end
 end
