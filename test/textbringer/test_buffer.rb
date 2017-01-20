@@ -816,6 +816,9 @@ EOF
     buffer.beginning_of_buffer
     assert_equal(11, buffer.re_search_forward("world"))
     assert_equal(11, buffer.point)
+    buffer.beginning_of_buffer
+    assert_equal(39, buffer.re_search_forward(/world/))
+    assert_equal(39, buffer.point)
     buffer[:case_fold_search] = false
     buffer.beginning_of_buffer
     assert_equal(39, buffer.re_search_forward("world"))
