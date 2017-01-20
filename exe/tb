@@ -13,6 +13,8 @@ def load_user_config
   end
 end
 
+$VERBOSE = nil
+
 Controller.current = Controller.new
 Window.start do
   message("Type C-x C-c to exit Textbringer")
