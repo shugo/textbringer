@@ -88,8 +88,8 @@ module Textbringer
         when :on_kw
           case text
           when "class", "module", "def", "if", "unless", "case",
-            "do", "for", "while"
-            if /\A(if|unless|while)\z/ =~ text
+            "do", "for", "while", "until"
+            if /\A(if|unless|while|until)\z/ =~ text
               ts = tokens[0...i].reverse_each.take_while { |(l,_),| l == line }
               t = ts.find { |_, e| e != :on_sp }
               next if t && !(t[1] == :on_op && t[2] == "=")

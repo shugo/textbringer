@@ -76,7 +76,7 @@ end
 EOF
   end
 
-  def test_indent_paren
+  def test_indent_line_paren
     @buffer.insert(<<EOF.chop)
 foo(123,
 456
@@ -88,7 +88,7 @@ foo(123,
 EOF
   end
 
-  def test_indent_modifier
+  def test_indent_line_modifier
     @buffer.insert(<<EOF)
 def foo(x)
   return if x < 0
@@ -101,7 +101,7 @@ def foo(x)
 EOF
   end
   
-  def test_indent_stabby_lambda
+  def test_indent_line_stabby_lambda
     @buffer.insert(<<EOF)
 f = ->(x, y) {
 EOF
@@ -119,7 +119,7 @@ f = ->(x, y) {
 EOF
   end
   
-  def test_indent_op_cont
+  def test_indent_line_op_cont
     @buffer.insert(<<EOF.chop)
 foo = bar +
 baz
@@ -131,7 +131,7 @@ foo = bar +
 EOF
   end
   
-  def test_indent_brace_block_with_param
+  def test_indent_line_brace_block_with_param
     @buffer.insert(<<EOF.chop)
 foo { |x|
 bar
