@@ -40,6 +40,9 @@ module Textbringer
         bol_pos = @buffer.point
         tokens = Ripper.lex(@buffer.substring(buffer.point_min, buffer.point))
         line, column, event, text = find_nearest_beginning_token(tokens)
+        if event == :on_lparen
+          return column + 1
+        end
         if line
           @buffer.goto_line(line)
         else
@@ -69,7 +72,8 @@ module Textbringer
         case event
         when :on_kw
           case text
-          when "class", "module", "def", "for", "if", "unless", "case", "do"
+          when "class", "module", "def", "if", "unless", "case",
+            "do", "for", "while"
             if /\A(if|unless|while)\z/ =~ text
               ts = tokens[0...i].reverse_each.take_while { |(l,_),| l == line }
               t = ts.find { |_, e| e != :on_sp }
@@ -87,7 +91,7 @@ module Textbringer
           end
         when :on_rbrace, :on_rparen, :on_rbracket
           stack.push(text)
-        when :on_lbrace, :on_lparen, :on_lbacket
+        when :on_lbrace, :on_lparen, :on_lbracket
           if stack.empty?
             return line, column, event, text
           end

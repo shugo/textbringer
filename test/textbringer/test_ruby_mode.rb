@@ -8,7 +8,7 @@ class TestRubyMode < Test::Unit::TestCase
     @ruby_mode = RubyMode.new(@buffer)
   end
 
-  def test_indent_line
+  def test_indent_line_class
     @ruby_mode.indent_line
     assert_equal("", @buffer.to_s)
     @buffer.insert("class Foo")
@@ -73,6 +73,31 @@ class Foo
     }
   end
 end
+EOF
+  end
+
+  def test_indent_paren
+    @buffer.insert(<<EOF.chop)
+foo(123,
+456
+EOF
+    @ruby_mode.indent_line
+    assert_equal(<<EOF.chop, @buffer.to_s)
+foo(123,
+    456
+EOF
+  end
+
+  def test_indent_modifier
+    @buffer.insert(<<EOF)
+def foo(x)
+  return if x < 0
+EOF
+    @ruby_mode.indent_line
+    assert_equal(<<EOF.chop, @buffer.to_s)
+def foo(x)
+  return if x < 0
+  
 EOF
   end
 end
