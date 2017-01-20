@@ -118,4 +118,28 @@ f = ->(x, y) {
 }
 EOF
   end
+  
+  def test_indent_op_cont
+    @buffer.insert(<<EOF.chop)
+foo = bar +
+baz
+EOF
+    @ruby_mode.indent_line
+    assert_equal(<<EOF.chop, @buffer.to_s)
+foo = bar +
+  baz
+EOF
+  end
+  
+  def test_indent_brace_block_with_param
+    @buffer.insert(<<EOF.chop)
+foo { |x|
+bar
+EOF
+    @ruby_mode.indent_line
+    assert_equal(<<EOF.chop, @buffer.to_s)
+foo { |x|
+  bar
+EOF
+  end
 end

@@ -56,10 +56,17 @@ module Textbringer
         @buffer.goto_char(bol_pos)
         if line.nil? ||
           @buffer.looking_at?(/ *([}\])]|(end|else|elsif|when)\b)/)
-          base_indentation
+          indentation = base_indentation
         else
-          base_indentation + @indent_level
+          indentation = base_indentation + @indent_level
         end
+        _, last_event, last_text = tokens.reverse_each.find { |_, e, _|
+          e != :on_sp && e != :on_nl && e != :on_ignored_nl
+        }
+        if last_event == :on_op && last_text != "|"
+          indentation += @indent_level
+        end
+        indentation
       end
     end
     
