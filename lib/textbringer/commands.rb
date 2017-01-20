@@ -16,6 +16,12 @@ module Textbringer
     end
     module_function :define_command
 
+    def undefine_command(name)
+      Commands.send(:undef_method, name)
+      @@command_list.delete(name)
+    end
+    module_function :undefine_command
+
     define_command(:version) do
       message("Textbringer #{Textbringer::VERSION} "\
               "(ruby #{RUBY_VERSION} [#{RUBY_PLATFORM}])")

@@ -10,8 +10,18 @@ module Textbringer
     end
 
     def self.define_generic_command(name)
-      define_command(name) do |*args|
-        Buffer.current.mode.send(name, *args)
+      command_name = (name.to_s + "_command").intern
+      define_command(command_name) do |*args|
+        begin
+          Buffer.current.mode.send(name, *args)
+        rescue NoMethodError => e
+          if e.receiver == Buffer.current.mode && e.name == name
+            raise EditorError,
+              "#{command_name} is not supported in the current mode"
+          else
+            raise
+          end
+        end
       end
     end
 

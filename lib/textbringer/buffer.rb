@@ -667,6 +667,8 @@ module Textbringer
       @point, mark.location = mark.location, @point
     end
 
+    # The buffer should not be modified in the given block
+    # because current_line/current_column is not updated in save_point.
     def save_point
       saved = new_mark
       column = @desired_column
@@ -678,6 +680,24 @@ module Textbringer
         saved.delete
         @desired_column = column
         @save_point_level -= 1
+      end
+    end
+
+    # Don't save Buffer.current.
+    def save_excursion
+      old_point = new_mark
+      old_mark = @mark&.dup
+      old_column = @desired_column
+      begin
+        yield
+      ensure
+        point_to_mark(old_point)
+        old_point.delete
+        if old_mark
+          @mark.location = old_mark.location
+          old_mark.delete
+        end
+        @desired_column = old_column
       end
     end
 
@@ -851,6 +871,11 @@ module Textbringer
         raise SearchError, "Search failed"
       end while match_end(0) > @point
       goto_char(match_beginning(0))
+    end
+
+    def looking_at?(re)
+      # TODO: optimization
+      byteindex(true, re, @point) == @point
     end
 
     def byteindex(forward, re, pos)
@@ -1115,7 +1140,11 @@ module Textbringer
     end
 
     def new_regexp(s)
-      Regexp.new(s, self[:case_fold_search] ? Regexp::IGNORECASE : 0)
+      if s.is_a?(Regexp)
+        s
+      else
+        Regexp.new(s, self[:case_fold_search] ? Regexp::IGNORECASE : 0)
+      end
     end
   end
 
@@ -1129,6 +1158,12 @@ module Textbringer
 
     def delete
       @buffer.marks.delete(self)
+    end
+
+    def dup
+      mark = @buffer.new_mark
+      mark.location = @location
+      mark
     end
   end
 
