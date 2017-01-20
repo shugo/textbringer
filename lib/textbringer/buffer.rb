@@ -314,17 +314,10 @@ module Textbringer
         raise EditorError, "File name is not set"
       end
       file_name = File.expand_path(file_name)
-      s = to_s
-      case @file_format
-      when :dos
-        s.gsub!(/\n/, "\r\n")
-      when :mac
-        s.gsub!(/\n/, "\r")
-      end
       begin
         File.open(file_name, "w", external_encoding: @file_encoding) do |f|
           f.flock(File::LOCK_EX)
-          f.write(s)
+          write_to_file(f)
           f.flush
           @file_mtime = f.mtime
         end
@@ -1158,6 +1151,19 @@ module Textbringer
           end
           @current_column = 1 + substring(gap_to_user(i), new_pos).size
         end
+      end
+    end
+
+    def write_to_file(f)
+      [@contents[0...@gap_start], @contents[@gap_end..-1]].each do |s|
+        s.force_encoding(Encoding::UTF_8) unless @binary
+        case @file_format
+        when :dos
+          s.gsub!(/\n/, "\r\n")
+        when :mac
+          s.gsub!(/\n/, "\r")
+        end
+        f.write(s)
       end
     end
 
