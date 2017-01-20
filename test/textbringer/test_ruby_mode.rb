@@ -143,7 +143,6 @@ foo { |x|
 EOF
   end
 
-  
   def test_indent_line_begin
     @buffer.insert(<<EOF.chop)
   begin
@@ -168,5 +167,33 @@ EOF
     baz
   end
 EOF
+  end
+  
+  def test_indent_line_unmatch
+    @buffer.insert(<<EOF.chop)
+  def foo
+    bar do
+      baz {
+      end
+    }
+quux
+EOF
+    assert_raise(EditorError) do
+      @ruby_mode.indent_line
+    end
+  end
+  
+  def test_indent_line_unmatch_2
+    @buffer.insert(<<EOF.chop)
+  def foo
+    bar {
+      baz do
+      }
+    end
+quux
+EOF
+    assert_raise(EditorError) do
+      @ruby_mode.indent_line
+    end
   end
 end
