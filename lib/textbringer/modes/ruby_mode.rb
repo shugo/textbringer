@@ -13,11 +13,15 @@ module Textbringer
       level = calculate_indentation
       @buffer.save_excursion do
         @buffer.beginning_of_line
-        if @buffer.looking_at?(/ +/)
+        has_space = @buffer.looking_at?(/ +/)
+        if has_space
           break if match_string(0).size == level
           @buffer.delete_region(match_beginning(0), match_end(0))
         end
         @buffer.insert(" " * level)
+        if has_space
+          @buffer.merge_undo(2)
+        end
       end
       if @buffer.current_column - 1 < level
         forward_char(level - (@buffer.current_column - 1))
@@ -32,11 +36,15 @@ module Textbringer
         bol_pos = @buffer.point
         tokens = Ripper.lex(@buffer.substring(buffer.point_min, buffer.point))
         line, column, event, text = find_nearest_beginning_token(tokens)
-        @buffer.goto_line(line)
+        if line
+          @buffer.goto_line(line)
+        else
+          @buffer.previous_line
+        end
         @buffer.looking_at?(/ */)
         base_indentation = match_string(0).size
         goto_char(bol_pos)
-        if @buffer.looking_at?(/ *([}\])]|end|else|when)\b/)
+        if line.nil? || @buffer.looking_at?(/ *([}\])]|end|else|when)\b/)
           base_indentation
         else
           base_indentation + @indent_level
