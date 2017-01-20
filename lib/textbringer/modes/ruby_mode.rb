@@ -49,7 +49,7 @@ module Textbringer
         if line
           @buffer.goto_line(line)
         else
-          @buffer.previous_line
+          @buffer.backward_line
         end
         @buffer.looking_at?(/ */)
         base_indentation = @buffer.match_string(0).size
