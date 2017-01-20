@@ -4,9 +4,17 @@ module Textbringer
   class Mode
     extend Commands
     include Commands
+    
+    @@mode_list = []
+    
+    def self.list
+      @@mode_list
+    end
 
     class << self
       attr_accessor :mode_name
+      attr_accessor :command_name
+      attr_accessor :file_name_pattern
     end
 
     def self.define_generic_command(name)
@@ -38,6 +46,8 @@ module Textbringer
         Buffer.current.mode = child.new(Buffer.current)
         run_hooks(hook)
       end
+      child.command_name = command
+      @@mode_list.push(child)
     end
 
     attr_reader :buffer

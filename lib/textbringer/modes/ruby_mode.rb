@@ -4,6 +4,9 @@ require "ripper"
 
 module Textbringer
   class RubyMode < ProgrammingMode
+    self.file_name_pattern = /\A(?:.*\.(?:rb|ru|rake|thor)|
+                              (?:Gem|Rake|Cap|Thor|Vagrant|Guard|Pod)file)\z/x
+
     def initialize(buffer)
       super(buffer)
       @indent_level = 2

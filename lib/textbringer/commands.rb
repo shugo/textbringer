@@ -251,6 +251,11 @@ module Textbringer
         message("New file")
       end
       switch_to_buffer(buffer)
+      mode = Mode.list.find { |mode|
+        mode.file_name_pattern &&
+          mode.file_name_pattern =~ File.basename(buffer.file_name)
+      } || FundamentalMode
+      send(mode.command_name)
     end
 
     define_command(:switch_to_buffer) do
