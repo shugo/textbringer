@@ -555,6 +555,27 @@ module Textbringer
         end
       end
     end
+    
+    def forward_line(n = 1)
+      if n > 0
+        n.times do
+          end_of_line
+          break if end_of_buffer?
+          forward_char
+        end
+      elsif n < 0
+        (-n).times do
+          beginning_of_line
+          break if beginning_of_buffer?
+          backward_char
+          beginning_of_line
+        end
+      end
+    end
+    
+    def backward_line(n = 1)
+      forward_line(-n)
+    end
 
     def next_line(n = 1)
       if @desired_column

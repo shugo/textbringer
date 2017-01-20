@@ -54,7 +54,8 @@ module Textbringer
         @buffer.looking_at?(/ */)
         base_indentation = @buffer.match_string(0).size
         @buffer.goto_char(bol_pos)
-        if line.nil? || @buffer.looking_at?(/ *([}\])]|(end|else|when)\b)/)
+        if line.nil? ||
+          @buffer.looking_at?(/ *([}\])]|(end|else|elsif|when)\b)/)
           base_indentation
         else
           base_indentation + @indent_level

@@ -219,6 +219,61 @@ EOF
     assert_equal(12, buffer.point)
   end
 
+  def test_forward_line
+    buffer = Buffer.new(<<EOF.chop)
+hello world
+0123456789
+
+hello world
+0123456789
+xxx
+EOF
+    buffer.forward_char(3)
+    assert_equal(3, buffer.point)
+    buffer.forward_line
+    assert_equal(2, buffer.current_line)
+    assert_equal(1, buffer.current_column)
+    buffer.forward_char(4)
+    buffer.forward_line(2)
+    assert_equal(4, buffer.current_line)
+    assert_equal(1, buffer.current_column)
+    buffer.forward_line(2)
+    assert_equal(6, buffer.current_line)
+    assert_equal(1, buffer.current_column)
+    buffer.forward_line
+    assert_equal(true, buffer.end_of_buffer?)
+  end
+
+  def test_backward_line
+    buffer = Buffer.new(<<EOF)
+hello world
+0123456789
+
+hello world
+0123456789
+EOF
+    buffer.end_of_buffer
+    buffer.backward_line
+    assert_equal(5, buffer.current_line)
+    assert_equal(1, buffer.current_column)
+    buffer.forward_char(4)
+    buffer.backward_line
+    assert_equal(4, buffer.current_line)
+    assert_equal(1, buffer.current_column)
+    buffer.forward_char(3)
+    buffer.backward_line(2)
+    assert_equal(2, buffer.current_line)
+    assert_equal(1, buffer.current_column)
+    buffer.backward_line(2)
+    assert_equal(1, buffer.current_line)
+    assert_equal(1, buffer.current_column)
+    buffer.backward_line
+    assert_equal(true, buffer.beginning_of_buffer?)
+    buffer.forward_char(3)
+    buffer.backward_line
+    assert_equal(true, buffer.beginning_of_buffer?)
+  end
+
   def test_editing
     buffer = Buffer.new(<<EOF)
 Hello world
