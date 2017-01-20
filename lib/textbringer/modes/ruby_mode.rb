@@ -12,7 +12,9 @@ module Textbringer
       @indent_level = 2
     end
 
+    # Return true if modified.
     def indent_line
+      result = false
       level = calculate_indentation
       @buffer.save_excursion do
         @buffer.beginning_of_line
@@ -26,10 +28,12 @@ module Textbringer
         if has_space
           @buffer.merge_undo(2)
         end
+        result = true
       end
       if @buffer.current_column - 1 < level
         @buffer.forward_char(level - (@buffer.current_column - 1))
       end
+      result
     end
 
     private
