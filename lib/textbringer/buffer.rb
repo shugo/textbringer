@@ -590,7 +590,7 @@ module Textbringer
         forward_char
         s = @point
         while !end_of_buffer? && byte_after != "\n" &&
-          Buffer.display_width(substring(s, @point)) < column
+            Buffer.display_width(substring(s, @point)) < column
           forward_char
         end
       end
@@ -611,7 +611,7 @@ module Textbringer
         beginning_of_line
         s = @point
         while !end_of_buffer? && byte_after != "\n" &&
-          Buffer.display_width(substring(s, @point)) < column
+            Buffer.display_width(substring(s, @point)) < column
           forward_char
         end
       end
