@@ -94,7 +94,7 @@ module Textbringer
           end
         when :on_rbrace, :on_rparen, :on_rbracket
           stack.push(text)
-        when :on_lbrace, :on_lparen, :on_lbracket
+        when :on_lbrace, :on_lparen, :on_lbracket, :on_tlambeg
           if stack.empty?
             return line, column, event, text
           end

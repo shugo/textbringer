@@ -100,4 +100,22 @@ def foo(x)
   
 EOF
   end
+  
+  def test_indent_stabby_lambda
+    @buffer.insert(<<EOF)
+f = ->(x, y) {
+EOF
+    @ruby_mode.indent_line
+    assert_equal(<<EOF.chop, @buffer.to_s)
+f = ->(x, y) {
+  
+EOF
+    @buffer.insert("x + y\n}")
+    @ruby_mode.indent_line
+    assert_equal(<<EOF.chop, @buffer.to_s)
+f = ->(x, y) {
+  x + y
+}
+EOF
+  end
 end
