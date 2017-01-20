@@ -902,7 +902,7 @@ module Textbringer
     def byteindex(forward, re, pos)
       @match_offsets = []
       method = forward ? :index : :rindex
-      adjust_gap(0, bytesize)
+      adjust_gap(0, point_max)
       if @binary
         offset = pos
       else
