@@ -14,9 +14,13 @@ module Textbringer
       @buffer.save_excursion do
         @buffer.beginning_of_line
         if @buffer.looking_at?(/ +/)
+          break if match_string(0).size == level
           @buffer.delete_region(match_beginning(0), match_end(0))
         end
         @buffer.insert(" " * level)
+      end
+      if @buffer.current_column - 1 < level
+        forward_char(level - (@buffer.current_column - 1))
       end
     end
 
@@ -32,7 +36,7 @@ module Textbringer
         @buffer.looking_at?(/ */)
         base_indentation = match_string(0).size
         goto_char(bol_pos)
-        if @buffer.looking_at?(/ *(end|[}\])])/)
+        if @buffer.looking_at?(/ *([}\])]|end|else|when)/)
           base_indentation
         else
           base_indentation + @indent_level
@@ -45,11 +49,17 @@ module Textbringer
       rbrace_count = 0
       rparen_count = 0
       rbracket_count = 0
-      tokens.reverse_each do |(line, column), event, text|
+      (tokens.size - 1).downto(0) do |i|
+        (line, column), event, text = tokens[i]
         case event
         when :on_kw
           case text
-          when "class", "module", "def", "if", "unless", "case", "do"
+          when "class", "module", "def", "for", "if", "unless", "case", "do"
+            if /\A(if|unless|while)\z/ =~ text
+              ts = tokens[0...i].reverse_each.take_while { |(l,_),| l == line }
+              t = ts.find { |_, e| e != :on_sp }
+              next if t && !(t[1] == :on_op && t[2] == "=")
+            end
             if end_count == 0
               return line, column, event, text
             end
