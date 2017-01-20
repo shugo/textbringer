@@ -55,12 +55,15 @@ module Textbringer
         end
       end
     end
+    
+    BLOCK_END = {
+      "{" => "}",
+      "(" => ")",
+      "[" => "]"
+    }
 
     def find_nearest_beginning_token(tokens)
-      end_count = 0
-      rbrace_count = 0
-      rparen_count = 0
-      rbracket_count = 0
+      stack = []
       (tokens.size - 1).downto(0) do |i|
         (line, column), event, text = tokens[i]
         case event
@@ -72,34 +75,26 @@ module Textbringer
               t = ts.find { |_, e| e != :on_sp }
               next if t && !(t[1] == :on_op && t[2] == "=")
             end
-            if end_count == 0
+            if stack.empty?
               return line, column, event, text
             end
-            end_count -= 1
+            if stack.last != "end"
+              raise EditorError, "#{@buffer.name}:#{line}: Unmatched #{text}"
+            end
+            stack.pop
           when "end"
-            end_count += 1
+            stack.push(text)
           end
-        when :on_rbrace
-          rbrace_count += 1
-        when :on_lbrace
-          if rbrace_count == 0
+        when :on_rbrace, :on_rparen, :on_rbracket
+          stack.push(text)
+        when :on_lbrace, :on_lparen, :on_lbacket
+          if stack.empty?
             return line, column, event, text
           end
-          rbrace_count -= 1
-        when :on_rparen
-          rparen_count += 1
-        when :on_lparen
-          if rparen_count == 0
-            return line, column, event, text
+          if stack.last != BLOCK_END[text]
+            raise EditorError, "#{@buffer.name}:#{line}: Unmatched #{text}"
           end
-          rparen_count -= 1
-        when :on_rbracket
-          rbracket_count += 1
-        when :on_lbracket
-          if rbracket_count == 0
-            return line, column, event, text
-          end
-          rbracket_count -= 1
+          stack.pop
         end
       end
       return nil
