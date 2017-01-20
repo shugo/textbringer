@@ -345,11 +345,14 @@ module Textbringer
 
     define_command(:eval_expression) do
       |s = read_from_minibuffer("Eval: ")|
-      message(eval(s, TOPLEVEL_BINDING).inspect)
+      message(eval(s, TOPLEVEL_BINDING, "(eval_expression)", 1).inspect)
     end
 
     define_command(:eval_buffer) do
-      message(eval(Buffer.current.to_s, TOPLEVEL_BINDING).inspect)
+      buffer = Buffer.current
+      result = eval(buffer.to_s, TOPLEVEL_BINDING,
+                    buffer.file_name || buffer.name, 1)
+      message(result.inspect)
     end
 
     define_command(:exit_recursive_edit) do
