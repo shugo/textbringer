@@ -36,7 +36,7 @@ module Textbringer
         @buffer.looking_at?(/ */)
         base_indentation = match_string(0).size
         goto_char(bol_pos)
-        if @buffer.looking_at?(/ *([}\])]|end|else|when)/)
+        if @buffer.looking_at?(/ *([}\])]|end|else|when)\b/)
           base_indentation
         else
           base_indentation + @indent_level
