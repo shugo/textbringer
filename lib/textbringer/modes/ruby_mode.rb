@@ -23,6 +23,8 @@ module Textbringer
           break if @buffer.match_string(0).size == level
           @buffer.delete_region(@buffer.match_beginning(0),
                                 @buffer.match_end(0))
+        else
+          break if level == 0
         end
         @buffer.insert(" " * level)
         if has_space
