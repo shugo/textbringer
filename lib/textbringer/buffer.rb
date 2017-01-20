@@ -10,6 +10,7 @@ module Textbringer
     attr_accessor :mode, :keymap
     attr_reader :name, :file_name, :file_encoding, :file_format, :point, :marks
     attr_reader :current_line, :current_column, :visible_mark
+    attr_writer :read_only
 
     GAP_SIZE = 256
     UNDO_LIMIT = 1000
@@ -162,7 +163,8 @@ module Textbringer
     # s might not be copied.
     def initialize(s = String.new, name: nil,
                    file_name: nil, file_encoding: Encoding::UTF_8,
-                   file_mtime: nil, new_file: true, undo_limit: UNDO_LIMIT)
+                   file_mtime: nil, new_file: true, undo_limit: UNDO_LIMIT,
+                   read_only: false)
       case s.encoding
       when Encoding::UTF_8, Encoding::ASCII_8BIT
         @contents = s.frozen? ? s.dup : s
@@ -208,6 +210,7 @@ module Textbringer
       @save_point_level = 0
       @match_offsets = []
       @visible_mark = nil
+      @read_only = read_only
     end
 
     def inspect
@@ -252,6 +255,10 @@ module Textbringer
       else
         raise ArgumentError, "Unknown file format: #{format}"
       end
+    end
+
+    def read_only?
+      @read_only
     end
 
     def kill
@@ -299,7 +306,7 @@ module Textbringer
       end
       Buffer.new(s, name: name,
                  file_name: file_name, file_encoding: enc, file_mtime: mtime,
-                 new_file: false)
+                 new_file: false, read_only: !File.writable?(file_name))
     end
 
     def save(file_name = @file_name)
@@ -335,6 +342,7 @@ module Textbringer
       @version += 1
       @modified = false
       @new_file = false
+      @read_only = false
     end
 
     def file_modified?
@@ -435,6 +443,7 @@ module Textbringer
     end
 
     def insert(s, merge_undo = false)
+      check_read_only
       pos = @point
       size = s.bytesize
       adjust_gap(size)
@@ -478,6 +487,7 @@ module Textbringer
     end
 
     def delete_char(n = 1)
+      check_read_only
       adjust_gap
       s = @point
       pos = get_pos(@point, n)
@@ -761,6 +771,7 @@ module Textbringer
     end
 
     def delete_region(s = @point, e = mark)
+      check_read_only
       old_pos = @point
       if s > e
         s, e = e, s
@@ -829,6 +840,7 @@ module Textbringer
     end
 
     def undo
+      check_read_only
       if @undo_stack.empty?
         raise EditorError, "No further undo information"
       end
@@ -850,6 +862,7 @@ module Textbringer
     end
 
     def redo
+      check_read_only
       if @redo_stack.empty?
         raise EditorError, "No further redo information"
       end
@@ -1165,6 +1178,12 @@ module Textbringer
         s
       else
         Regexp.new(s, self[:case_fold_search] ? Regexp::IGNORECASE : 0)
+      end
+    end
+
+    def check_read_only
+      if @read_only
+        raise ReadOnlyError, "Buffer is read only"
       end
     end
   end

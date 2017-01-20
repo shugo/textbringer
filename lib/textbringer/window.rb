@@ -432,6 +432,7 @@ module Textbringer
       @mode_line.attron(Ncurses::A_REVERSE)
       @mode_line.addstr("#{@buffer.name} ")
       @mode_line.addstr("[+]") if @buffer.modified?
+      @mode_line.addstr("[RO]") if @buffer.read_only?
       @mode_line.addstr("[#{@buffer.file_encoding.name}/")
       @mode_line.addstr("#{@buffer.file_format}] ")
       if current? || @buffer.point_at_mark?(@point_mark)

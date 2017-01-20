@@ -1626,4 +1626,34 @@ EOF
     assert_equal(15, buffer.point)
     assert_equal(9, buffer.mark)
   end
+
+  def test_read_only
+    Tempfile.create("test_buffer") do |f|
+      Tempfile.create("test_buffer") do |f2|
+        f.print("hello world\n")
+        f.close
+        File.chmod(0400, f.path)
+
+        buffer = Buffer.open(f.path)
+        assert_equal(true, buffer.read_only?)
+        assert_raise(ReadOnlyError) do
+          buffer.insert("foo")
+        end
+        assert_raise(ReadOnlyError) do
+          buffer.delete_char
+        end
+        assert_raise(ReadOnlyError) do
+          buffer.delete_region(buffer.point_min, buffer.point_max)
+        end
+
+        buffer.save(f2.path)
+        assert_equal(false, buffer.read_only?)
+        buffer.insert("foo\n")
+        assert_equal(<<EOF, buffer.to_s)
+foo
+hello world
+EOF
+      end
+    end
+  end
 end

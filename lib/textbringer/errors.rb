@@ -6,4 +6,7 @@ module Textbringer
 
   class SearchError < EditorError
   end
+
+  class ReadOnlyError < EditorError
+  end
 end
