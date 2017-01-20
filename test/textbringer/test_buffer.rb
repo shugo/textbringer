@@ -1,7 +1,6 @@
 require_relative "../test_helper"
 require "tempfile"
 require "tmpdir"
-require "textbringer"
 
 class TestBuffer < Test::Unit::TestCase
   include Textbringer

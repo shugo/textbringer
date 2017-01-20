@@ -15,8 +15,9 @@ module Textbringer
         @buffer.beginning_of_line
         has_space = @buffer.looking_at?(/ +/)
         if has_space
-          break if match_string(0).size == level
-          @buffer.delete_region(match_beginning(0), match_end(0))
+          break if @buffer.match_string(0).size == level
+          @buffer.delete_region(@buffer.match_beginning(0),
+                                @buffer.match_end(0))
         end
         @buffer.insert(" " * level)
         if has_space
@@ -24,15 +25,18 @@ module Textbringer
         end
       end
       if @buffer.current_column - 1 < level
-        forward_char(level - (@buffer.current_column - 1))
+        @buffer.forward_char(level - (@buffer.current_column - 1))
       end
     end
 
     private
 
     def calculate_indentation
+      if @buffer.current_line == 1
+        return 0
+      end
       @buffer.save_excursion do
-        beginning_of_line
+        @buffer.beginning_of_line
         bol_pos = @buffer.point
         tokens = Ripper.lex(@buffer.substring(buffer.point_min, buffer.point))
         line, column, event, text = find_nearest_beginning_token(tokens)
@@ -42,9 +46,9 @@ module Textbringer
           @buffer.previous_line
         end
         @buffer.looking_at?(/ */)
-        base_indentation = match_string(0).size
-        goto_char(bol_pos)
-        if line.nil? || @buffer.looking_at?(/ *([}\])]|end|else|when)\b/)
+        base_indentation = @buffer.match_string(0).size
+        @buffer.goto_char(bol_pos)
+        if line.nil? || @buffer.looking_at?(/ *([}\])]|(end|else|when)\b)/)
           base_indentation
         else
           base_indentation + @indent_level

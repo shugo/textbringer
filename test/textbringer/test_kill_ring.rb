@@ -1,5 +1,4 @@
 require_relative "../test_helper"
-require "textbringer"
 
 class TestKillRing < Test::Unit::TestCase
   include Textbringer
