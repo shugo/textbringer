@@ -17,8 +17,10 @@ module Textbringer
     module_function :define_command
 
     def undefine_command(name)
-      Commands.send(:undef_method, name)
-      @@command_list.delete(name)
+      if @@command_list.include?(name)
+        Commands.send(:undef_method, name)
+        @@command_list.delete(name)
+      end
     end
     module_function :undefine_command
 

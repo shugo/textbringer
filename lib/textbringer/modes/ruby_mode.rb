@@ -38,6 +38,48 @@ module Textbringer
       result
     end
 
+    def forward_definition(n = number_prefix_arg || 1)
+      tokens = Ripper.lex(@buffer.to_s)
+      @buffer.forward_line
+      n.times do |i|
+        tokens = tokens.drop_while { |(l, c), e, t|
+          l < @buffer.current_line ||
+            e != :on_kw || /\A(?:class|module|def)\z/ !~ t
+        }
+        (line, column), event, text = tokens.first
+        if line.nil?
+          @buffer.end_of_buffer
+          break
+        end
+        @buffer.goto_line(line)
+        tokens = tokens.drop(1)
+      end
+      while /\s/ =~ @buffer.char_after
+        @buffer.forward_char
+      end
+    end
+
+    def backward_definition(n = number_prefix_arg || 1)
+      tokens = Ripper.lex(@buffer.to_s).reverse
+      @buffer.beginning_of_line
+      n.times do |i|
+        tokens = tokens.drop_while { |(l, c), e, t|
+          l >= @buffer.current_line ||
+            e != :on_kw || /\A(?:class|module|def)\z/ !~ t
+        }
+        (line, column), event, text = tokens.first
+        if line.nil?
+          @buffer.beginning_of_buffer
+          break
+        end
+        @buffer.goto_line(line)
+        tokens = tokens.drop(1)
+      end
+      while /\s/ =~ @buffer.char_after
+        @buffer.forward_char
+      end
+    end
+
     private
 
     def calculate_indentation
@@ -47,7 +89,8 @@ module Textbringer
       @buffer.save_excursion do
         @buffer.beginning_of_line
         bol_pos = @buffer.point
-        tokens = Ripper.lex(@buffer.substring(buffer.point_min, buffer.point))
+        tokens = Ripper.lex(@buffer.substring(@buffer.point_min,
+                                              @buffer.point))
         line, column, event, text = find_nearest_beginning_token(tokens)
         if event == :on_lparen
           return column + 1
