@@ -653,15 +653,14 @@ module Textbringer
               rescue Errno::EAGAIN, Errno::EWOULDBLOCK
                 next
               end
-            else
-              if received_keyboard_quit?
-                if signals.empty?
-                  keyboard_quit
-                else
-                  sig = signals.shift
-                  message("Send #{sig} to #{wait_thread.pid}")
-                  Process.kill(sig, wait_thread.pid)
-                end
+            end
+            if received_keyboard_quit?
+              if signals.empty?
+                keyboard_quit
+              else
+                sig = signals.shift
+                message("Send #{sig} to #{wait_thread.pid}")
+                Process.kill(sig, wait_thread.pid)
               end
             end
           end
