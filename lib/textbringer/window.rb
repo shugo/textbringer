@@ -344,6 +344,13 @@ module Textbringer
         if @buffer.point_at_mark?(point)
           y, x = @window.getcury, @window.getcurx
         end
+        if x == columns - 1
+          c = @buffer.char_after(point.location)
+          if c && Buffer.display_width(c) > 1
+            y += 1
+            x = 0
+          end
+        end
         @window.move(y, x)
         @window.noutrefresh
       end
