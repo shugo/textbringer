@@ -423,7 +423,7 @@ module Textbringer
 
     def framer
       @buffer.save_point do |saved|
-        new_start_loc = nil
+        new_start_loc = @buffer.point
         count = beginning_of_line_and_count
         if @buffer.point_before_mark?(@top_of_window)
           @buffer.mark_to_point(@top_of_window)
