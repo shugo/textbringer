@@ -80,6 +80,12 @@ module Textbringer
       end
     end
 
+    def compile
+      cmd = read_from_minibuffer("Compile: ", default: default_compile_command)
+      shell_execute(cmd, "*Ruby compile result*")
+      backtrace_mode
+    end
+
     private
 
     def calculate_indentation
@@ -162,6 +168,16 @@ module Textbringer
         end
       end
       return nil
+    end
+
+    def default_compile_command
+      @buffer[:ruby_compile_command] ||
+        if File.exist?("Rakefile")
+          prefix = File.exist?("Gemfile") ? "bundle exec " : ""
+          prefix + "rake"
+        else
+          "ruby " + @buffer.file_name
+        end
     end
   end
 end

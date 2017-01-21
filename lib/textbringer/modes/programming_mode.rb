@@ -9,12 +9,14 @@ module Textbringer
     define_generic_command :newline_and_reindent
     define_generic_command :forward_definition
     define_generic_command :backward_definition
+    define_generic_command :compile
 
     PROGRAMMING_MODE_MAP = Keymap.new
     PROGRAMMING_MODE_MAP.define_key("\t", :indent_line_command)
     PROGRAMMING_MODE_MAP.define_key("\n", :newline_and_reindent_command)
     PROGRAMMING_MODE_MAP.define_key("\C-c\C-n", :forward_definition_command)
     PROGRAMMING_MODE_MAP.define_key("\C-c\C-p", :backward_definition_command)
+    PROGRAMMING_MODE_MAP.define_key("\C-c\C-c", :compile_command)
 
     def initialize(buffer)
       super(buffer)
