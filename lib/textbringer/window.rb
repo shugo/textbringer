@@ -172,6 +172,7 @@ module Textbringer
       initialize_window(lines, columns, y, x)
       @window.keypad(true)
       @window.scrollok(false)
+      @window.idlok(true)
       @buffer = nil
       @top_of_window = nil
       @bottom_of_window = nil
@@ -333,7 +334,7 @@ module Textbringer
           end
           @window.addstr(c)
           break if @window.getcury == lines - 2 &&  # lines include mode line
-            @window.getcurx == columns - 1
+            @window.getcurx == columns
           @buffer.forward_char
         end
         if current? && @buffer.visible_mark
@@ -370,11 +371,12 @@ module Textbringer
 
     def recenter
       @buffer.save_point do |saved|
-        count = beginning_of_line_and_count
-        while count < (lines - 1) / 2
+        max = (lines - 1) / 2
+        count = beginning_of_line_and_count(max)
+        while count < max
           break if @buffer.point == 0
           @buffer.backward_char
-          count += beginning_of_line_and_count + 1
+          count += beginning_of_line_and_count(max - count - 1) + 1
         end
         @buffer.mark_to_point(@top_of_window)
       end
@@ -423,18 +425,19 @@ module Textbringer
 
     def framer
       @buffer.save_point do |saved|
+        max = lines - 1   # lines include mode line
+        count = beginning_of_line_and_count(max)
         new_start_loc = @buffer.point
-        count = beginning_of_line_and_count
         if @buffer.point_before_mark?(@top_of_window)
           @buffer.mark_to_point(@top_of_window)
           return
         end
-        while count < lines - 1   # lines include mode line
+        while count < max
           break if @buffer.point_at_mark?(@top_of_window)
           break if @buffer.point == 0
           new_start_loc = @buffer.point
           @buffer.backward_char
-          count += beginning_of_line_and_count + 1
+          count += beginning_of_line_and_count(max - count - 1) + 1
         end
         if count >= lines - 1     # lines include mode line
           @top_of_window.location = new_start_loc
@@ -495,12 +498,41 @@ module Textbringer
       n.nonzero? || tw
     end
 
-    def beginning_of_line_and_count
+    def beginning_of_line_and_count(max_lines)
       e = @buffer.point
       @buffer.beginning_of_line
       s = @buffer.substring(@buffer.point, e)
-      # TODO: should calculate more correctly
-      Buffer.display_width(s) / columns
+      bols = [@buffer.point]
+      column = 0
+      while @buffer.point < e
+        c = @buffer.char_after
+        if c == ?\t
+          n = calc_tab_width(column)
+          str = " " * n
+        else
+          str = escape(c)
+        end
+        column += Buffer.display_width(str)
+        if column > @columns
+          # Don't forward_char if column > @window.columns
+          # to handle multibyte characters across the end of lines.
+          bols.push(@buffer.point)
+          column = 0
+        else
+          @buffer.forward_char
+          if column == @columns
+            bols.push(@buffer.point)
+            column = 0
+          end
+        end
+      end
+      if bols.size > max_lines
+        @buffer.goto_char(bols[-max_lines])
+        max_lines
+      else
+        @buffer.goto_char(bols.first)
+        bols.size - 1
+      end
     end
 
     def delete_marks
@@ -539,7 +571,7 @@ module Textbringer
     end
 
     def clear
-      @buffer.delete_region(0, @buffer.size)
+      @buffer.clear
       @message = nil
       @prompt = ""
     end
