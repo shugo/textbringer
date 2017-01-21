@@ -3,13 +3,16 @@
 require "ripper"
 
 module Textbringer
+  CONFIG[:ruby_indent_level] = 2
+  CONFIG[:ruby_indent_tabs_mode] = false
+
   class RubyMode < ProgrammingMode
     self.file_name_pattern = /\A(?:.*\.(?:rb|ru|rake|thor)|
                               (?:Gem|Rake|Cap|Thor|Vagrant|Guard|Pod)file)\z/x
 
     def initialize(buffer)
       super(buffer)
-      @indent_level = 2
+      @buffer[:indent_tabs_mode] = CONFIG[:ruby_indent_tabs_mode]
     end
 
     # Return true if modified.
@@ -18,22 +21,26 @@ module Textbringer
       level = calculate_indentation
       @buffer.save_excursion do
         @buffer.beginning_of_line
-        has_space = @buffer.looking_at?(/ +/)
+        has_space = @buffer.looking_at?(/[ \t]+/)
         if has_space
-          break if @buffer.match_string(0).size == level
+          s = @buffer.match_string(0)
+          break if /\t/ !~ s && s.size == level
           @buffer.delete_region(@buffer.match_beginning(0),
                                 @buffer.match_end(0))
         else
           break if level == 0
         end
-        @buffer.insert(" " * level)
+        @buffer.indent_to(level)
         if has_space
           @buffer.merge_undo(2)
         end
         result = true
       end
-      if @buffer.current_column - 1 < level
-        @buffer.forward_char(level - (@buffer.current_column - 1))
+      pos = @buffer.point
+      @buffer.beginning_of_line
+      @buffer.forward_char while /[ \t]/ =~ @buffer.char_after
+      if @buffer.point < pos
+        @buffer.goto_char(pos)
       end
       result
     end
@@ -106,20 +113,22 @@ module Textbringer
         else
           @buffer.backward_line
         end
-        @buffer.looking_at?(/ */)
-        base_indentation = @buffer.match_string(0).size
+        @buffer.looking_at?(/[ \t]*/)
+        base_indentation = @buffer.match_string(0).
+          gsub(/\t/, " " * @buffer[:tab_width]).size
         @buffer.goto_char(bol_pos)
         if line.nil? ||
-          @buffer.looking_at?(/ *([}\])]|(end|else|elsif|when|rescue|ensure)\b)/)
+          @buffer.looking_at?(/[ \t]*([}\])]|(end|else|elsif|when|rescue|ensure)\b)/)
           indentation = base_indentation
         else
-          indentation = base_indentation + @indent_level
+          indentation = base_indentation + @buffer[:ruby_indent_level]
         end
         _, last_event, last_text = tokens.reverse_each.find { |_, e, _|
           e != :on_sp && e != :on_nl && e != :on_ignored_nl
         }
-        if last_event == :on_op && last_text != "|"
-          indentation += @indent_level
+        if (last_event == :on_op && last_text != "|") ||
+            last_event == :on_period
+          indentation += @buffer[:ruby_indent_level]
         end
         indentation
       end

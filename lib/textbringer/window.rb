@@ -325,8 +325,13 @@ module Textbringer
           if c == "\n"
             @window.clrtoeol
             break if @window.getcury == lines - 2   # lines include mode line
+          elsif c == "\t"
+            n = calc_tab_width(@window.getcurx)
+            c = " " * n
+          else
+            c = escape(c)
           end
-          @window.addstr(escape(c))
+          @window.addstr(c)
           break if @window.getcury == lines - 2 &&  # lines include mode line
             @window.getcurx == columns - 1
           @buffer.forward_char
@@ -482,6 +487,12 @@ module Textbringer
           "^" + (c.ord ^ 0x40).chr
         }
       end
+    end
+
+    def calc_tab_width(column)
+      tw = @buffer[:tab_width]
+      n = tw - column % tw
+      n.nonzero? || tw
     end
 
     def beginning_of_line_and_count

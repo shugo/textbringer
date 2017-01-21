@@ -1069,6 +1069,15 @@ module Textbringer
       run_hooks(mode_class.hook_name)
     end
 
+    def indent_to(column)
+      s = if self[:indent_tabs_mode]
+        "\t" * (column / self[:tab_width]) + " " * (column % self[:tab_width])
+      else
+        " " * column
+      end
+      insert(s)
+    end
+
     private
 
     def adjust_gap(min_size = 0, pos = @point)
