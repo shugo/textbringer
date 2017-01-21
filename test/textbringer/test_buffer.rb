@@ -428,6 +428,30 @@ EOF
     assert_equal(12, buffer.point)
   end
 
+  def test_beginning_of_line?
+    buffer = Buffer.new(<<EOF)
+hello world
+0123456789
+あいうえお
+EOF
+    assert_equal(true, buffer.beginning_of_line?)
+    buffer.forward_char
+    assert_equal(false, buffer.beginning_of_line?)
+    buffer.end_of_line
+    assert_equal(false, buffer.beginning_of_line?)
+    buffer.forward_char
+    assert_equal(true, buffer.beginning_of_line?)
+    buffer.forward_line
+    assert_equal(true, buffer.beginning_of_line?)
+    buffer.forward_char
+    assert_equal(false, buffer.beginning_of_line?)
+    buffer.end_of_buffer
+    assert_equal(true, buffer.beginning_of_line?)
+
+    buffer = Buffer.new
+    assert_equal(true, buffer.beginning_of_line?)
+  end
+
   def test_end_of_line
     buffer = Buffer.new(<<EOF.chomp)
 hello world
@@ -439,6 +463,28 @@ EOF
     buffer.forward_char(3)
     buffer.end_of_line
     assert_equal(22, buffer.point)
+  end
+
+  def test_end_of_line?
+    buffer = Buffer.new(<<EOF)
+hello world
+0123456789
+あいうえお
+EOF
+    assert_equal(false, buffer.end_of_line?)
+    buffer.end_of_line
+    assert_equal(true, buffer.end_of_line?)
+    buffer.backward_char
+    assert_equal(false, buffer.end_of_line?)
+    buffer.forward_line
+    assert_equal(false, buffer.end_of_line?)
+    buffer.end_of_line
+    assert_equal(true, buffer.end_of_line?)
+    buffer.end_of_buffer
+    assert_equal(true, buffer.end_of_line?)
+
+    buffer = Buffer.new
+    assert_equal(true, buffer.end_of_line?)
   end
 
   def test_copy_region

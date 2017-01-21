@@ -374,6 +374,14 @@ module Textbringer
       end
     end
 
+    def byte_before(location = @point)
+      if location <= point_min || location > point_max
+        nil
+      else
+        byte_after(location - 1)
+      end
+    end
+
     def char_after(location = @point)
       if @binary
         byte_after(location)
@@ -648,11 +656,14 @@ module Textbringer
     end
 
     def beginning_of_line
-      while !beginning_of_buffer? &&
-          byte_after(@point - 1) != "\n"
+      while !beginning_of_buffer? && byte_before != "\n"
         backward_char
       end
       @point
+    end
+
+    def beginning_of_line?
+      beginning_of_buffer? || byte_before == "\n"
     end
 
     def end_of_line
@@ -661,6 +672,10 @@ module Textbringer
         forward_char
       end
       @point
+    end
+
+    def end_of_line?
+      end_of_buffer? || byte_after == "\n"
     end
 
     def new_mark(location = @point)
