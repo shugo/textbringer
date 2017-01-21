@@ -216,4 +216,62 @@ class foo
     
 EOF
   end
+  
+  def test_forward_definition
+    @buffer.insert(<<EOF.chop)
+# encoding: us-ascii
+
+class foo
+  def bar
+    x
+    y
+  end
+
+  def baz
+    a
+    b
+  end
+EOF
+    @buffer.beginning_of_buffer
+    @ruby_mode.forward_definition
+    assert_equal(3, @buffer.current_line)
+    assert_equal(1, @buffer.current_column)
+    @ruby_mode.forward_definition
+    assert_equal(4, @buffer.current_line)
+    assert_equal(3, @buffer.current_column)
+    @ruby_mode.forward_definition
+    assert_equal(9, @buffer.current_line)
+    assert_equal(3, @buffer.current_column)
+    @ruby_mode.forward_definition
+    assert_equal(true, @buffer.end_of_buffer?)
+  end
+  
+  def test_backward_definition
+    @buffer.insert(<<EOF.chop)
+# encoding: us-ascii
+
+class foo
+  def bar
+    x
+    y
+  end
+
+  def baz
+    a
+    b
+  end
+EOF
+    @buffer.end_of_buffer
+    @ruby_mode.backward_definition
+    assert_equal(9, @buffer.current_line)
+    assert_equal(3, @buffer.current_column)
+    @ruby_mode.backward_definition
+    assert_equal(4, @buffer.current_line)
+    assert_equal(3, @buffer.current_column)
+    @ruby_mode.backward_definition
+    assert_equal(3, @buffer.current_line)
+    assert_equal(1, @buffer.current_column)
+    @ruby_mode.backward_definition
+    assert_equal(true, @buffer.beginning_of_buffer?)
+  end
 end
