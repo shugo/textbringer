@@ -1049,6 +1049,11 @@ module Textbringer
       end
     end
 
+    def apply_mode(mode_class)
+      @mode = mode_class.new(self)
+      run_hooks(mode_class.hook_name)
+    end
+
     private
 
     def adjust_gap(min_size = 0, pos = @point)

@@ -2,8 +2,6 @@
 
 module Textbringer
   class BacktraceMode < Mode
-    self.file_name_pattern = /\A\*Backtrace\*\z/
-
     define_generic_command :jump_to_source_location
 
     BACKTRACE_MODE_MAP = Keymap.new

@@ -14,6 +14,7 @@ module Textbringer
     class << self
       attr_accessor :mode_name
       attr_accessor :command_name
+      attr_accessor :hook_name
       attr_accessor :file_name_pattern
     end
 
@@ -42,11 +43,11 @@ module Textbringer
         }
       command = command_name.intern
       hook = (command_name + "_hook").intern
-      define_command(command) do
-        Buffer.current.mode = child.new(Buffer.current)
-        run_hooks(hook)
-      end
       child.command_name = command
+      child.hook_name = hook
+      define_command(command) do
+        Buffer.current.apply_mode(child)
+      end
       @@mode_list.push(child)
     end
 

@@ -54,6 +54,9 @@ module Textbringer
       end
       if Buffer.current.name != "*Backtrace*"
         buffer = Buffer.find_or_new("*Backtrace*", undo_limit: 0)
+        if !buffer.mode.is_a?(BacktraceMode)
+          buffer.apply_mode(BacktraceMode)
+        end
         buffer.read_only = false
         begin
           buffer.delete_region(buffer.point_min, buffer.point_max)
