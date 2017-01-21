@@ -606,7 +606,7 @@ module Textbringer
         end_of_line
         forward_char
         s = @point
-        while !end_of_buffer? && byte_after != "\n" &&
+        while !end_of_line? &&
             Buffer.display_width(substring(s, @point)) < column
           forward_char
         end
@@ -627,7 +627,7 @@ module Textbringer
         backward_char
         beginning_of_line
         s = @point
-        while !end_of_buffer? && byte_after != "\n" &&
+        while !end_of_line? &&
             Buffer.display_width(substring(s, @point)) < column
           forward_char
         end
@@ -656,7 +656,7 @@ module Textbringer
     end
 
     def beginning_of_line
-      while !beginning_of_buffer? && byte_before != "\n"
+      while !beginning_of_line?
         backward_char
       end
       @point
@@ -667,8 +667,7 @@ module Textbringer
     end
 
     def end_of_line
-      while !end_of_buffer? &&
-          byte_after(@point) != "\n"
+      while !end_of_line?
         forward_char
       end
       @point
@@ -1049,7 +1048,7 @@ module Textbringer
     end
 
     def transpose_chars
-      if end_of_buffer? || char_after == "\n"
+      if end_of_line?
         backward_char
       end
       if beginning_of_buffer?
