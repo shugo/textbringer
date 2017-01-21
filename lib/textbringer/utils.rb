@@ -3,20 +3,25 @@
 module Textbringer
   module Utils
     def message(msg, log: true, sit_for: nil, sleep_for: nil)
-      if log
+      if log && Buffer.current.name != "*Messages*"
         buffer = Buffer["*Messages*"] ||
           Buffer.new_buffer("*Messages*", undo_limit: 0).tap { |b|
             b[:top_of_window] = b.new_mark
         }
-        buffer.end_of_buffer
-        buffer.insert(msg + "\n")
-        if buffer.current_line > 1000
-          buffer.beginning_of_buffer
-          10.times do
-            buffer.next_line
-          end
-          buffer.delete_region(buffer.point_min, buffer.point)
+        buffer.read_only = false
+        begin
           buffer.end_of_buffer
+          buffer.insert(msg + "\n")
+          if buffer.current_line > 1000
+            buffer.beginning_of_buffer
+            10.times do
+              buffer.next_line
+            end
+            buffer.delete_region(buffer.point_min, buffer.point)
+            buffer.end_of_buffer
+          end
+        ensure
+          buffer.read_only = true
         end
       end
       Window.echo_area.show(msg)
@@ -47,13 +52,20 @@ module Textbringer
       if e.is_a?(SystemExit)
         raise
       end
-      buffer = Buffer.find_or_new("*Backtrace*", undo_limit: 0)
-      buffer.delete_region(buffer.point_min, buffer.point_max)
-      buffer.insert("#{e.class}: #{e}\n")
-      e.backtrace.each do |line|
-        buffer.insert(line + "\n")
+      if Buffer.current.name != "*Backtrace*"
+        buffer = Buffer.find_or_new("*Backtrace*", undo_limit: 0)
+        buffer.read_only = false
+        begin
+          buffer.delete_region(buffer.point_min, buffer.point_max)
+          buffer.insert("#{e.class}: #{e}\n")
+          e.backtrace.each do |line|
+            buffer.insert(line + "\n")
+          end
+          buffer.beginning_of_buffer
+        ensure
+          buffer.read_only = true
+        end
       end
-      buffer.beginning_of_buffer
       message(e.to_s.chomp)
       Window.beep
     end
