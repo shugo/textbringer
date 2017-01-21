@@ -796,6 +796,21 @@ module Textbringer
       end
     end
 
+    def clear
+      check_read_only_flag
+      @contents = String.new
+      @point = @gap_start = @gap_end = 0
+      @marks.each do |m|
+        m.location = 0
+      end
+      @current_line = 1
+      @current_column = 1
+      @goal_column = nil
+      @modified = true
+      @undo_stack.clear
+      @redo_stack.clear
+    end
+
     def kill_line(append = false)
       save_point do |saved|
         if end_of_buffer?

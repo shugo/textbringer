@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+require "open3"
+require "io/wait"
+
 module Textbringer
   module Commands
     include Utils
@@ -357,6 +360,17 @@ module Textbringer
       message(result.inspect)
     end
 
+    define_command(:eval_region) do
+      buffer = Buffer.current
+      b, e = buffer.point, buffer.mark
+      if e < b
+        b, e = e, b
+      end
+      result = eval(buffer.substring(b, e), TOPLEVEL_BINDING,
+                    "(eval_region)", 1)
+      message(result.inspect)
+    end
+
     define_command(:exit_recursive_edit) do
       if @recursive_edit_level == 0
         raise EditorError, "No recursive edit is in progress"
@@ -610,6 +624,48 @@ module Textbringer
         ISEARCH_STATUS[:string] = ISEARCH_STATUS[:last_string]
       end
       isearch_search
+    end
+
+    define_command(:shell_execute) do
+      |cmd = read_from_minibuffer("Shell execute: "),
+       buffer_name = "*Shell output*"|
+      buffer = Buffer.find_or_new(buffer_name)
+      switch_to_buffer(buffer)
+      buffer.read_only = false
+      buffer.clear
+      Window.redisplay
+      begin
+        Open3.popen2e(cmd) do |input, output, wait_thread|
+          input.close
+          loop do
+            status = output.wait_readable(0.5)
+            if status == false
+              break # EOF
+            end
+            if status
+              begin
+                s = output.read_nonblock(1024)
+                buffer.insert(s)
+                Window.redisplay
+              rescue EOFError
+                break
+              rescue Errno::EAGAIN, Errno::EWOULDBLOCK
+                next
+              end
+            else
+              if received_keyboard_quit?
+                message("Send SIGTERM to #{wait_thread.pid}")
+                Process.kill(:TERM, wait_thread.pid)
+                keyboard_quit
+              end
+            end
+          end
+          status = wait_thread.value
+          message("Exited with status code #{status.exitstatus}")
+        end
+      ensure
+        buffer.read_only = true
+      end
     end
   end
 

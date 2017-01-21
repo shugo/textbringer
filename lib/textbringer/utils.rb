@@ -48,6 +48,10 @@ module Textbringer
       Controller.current.read_char
     end
 
+    def received_keyboard_quit?
+      Controller.current.received_keyboard_quit?
+    end
+
     def handle_exception(e)
       if e.is_a?(SystemExit)
         raise

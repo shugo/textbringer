@@ -79,6 +79,11 @@ module Textbringer
       Window.current.getch
     end
 
+    def received_keyboard_quit?
+      key = Window.current.getch_nonblock
+      key && GLOBAL_MAP.lookup([key]) == :keyboard_quit
+    end
+
     def recursive_edit
       @recursive_edit_level += 1
       begin

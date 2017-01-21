@@ -234,7 +234,9 @@ module Textbringer
 
     def getch
       key = @window.getch
-      if key > 0xff
+      if key.nil?
+        nil
+      elsif key > 0xff
         KEY_NAMES[key]
       else
         len = UTF8_CHAR_LEN[key]
@@ -256,6 +258,15 @@ module Textbringer
             raise EditorError, "Malformed UTF-8 input"
           end
         end
+      end
+    end
+
+    def getch_nonblock
+      @window.nodelay(true)
+      begin
+        getch
+      ensure
+        @window.nodelay(false)
       end
     end
 
