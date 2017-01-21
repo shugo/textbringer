@@ -634,6 +634,7 @@ module Textbringer
       buffer.read_only = false
       buffer.clear
       Window.redisplay
+      signals = [:INT, :TERM, :KILL]
       begin
         Open3.popen2e(cmd) do |input, output, wait_thread|
           input.close
@@ -654,14 +655,27 @@ module Textbringer
               end
             else
               if received_keyboard_quit?
-                message("Send SIGTERM to #{wait_thread.pid}")
-                Process.kill(:TERM, wait_thread.pid)
-                keyboard_quit
+                if signals.empty?
+                  keyboard_quit
+                else
+                  sig = signals.shift
+                  message("Send #{sig} to #{wait_thread.pid}")
+                  Process.kill(sig, wait_thread.pid)
+                end
               end
             end
           end
           status = wait_thread.value
-          message("Exited with status code #{status.exitstatus}")
+          pid = status.pid
+          if status.exited?
+            code = status.exitstatus
+            message("Process #{pid} exited with status code #{code}")
+          elsif status.signaled?
+            signame = Signal.signame(status.termsig)
+            message("Process #{pid} was killed by #{signame}")
+          else
+            message("Process #{pid} exited")
+          end
         end
       ensure
         buffer.read_only = true

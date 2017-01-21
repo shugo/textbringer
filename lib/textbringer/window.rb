@@ -274,7 +274,7 @@ module Textbringer
       @window.timeout(msecs)
       begin
         c = @window.getch
-        if c
+        if c && c >= 0
           Ncurses.ungetch(c)
         end
         c
