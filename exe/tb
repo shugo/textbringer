@@ -6,7 +6,7 @@ include Textbringer
 include Commands
 
 def load_user_config
-  config_file = File.expand_path("~/.tb")
+  config_file = File.expand_path("~/.textbringer.rb")
   begin
     load(config_file)
   rescue LoadError
