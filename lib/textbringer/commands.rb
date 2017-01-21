@@ -636,7 +636,7 @@ module Textbringer
       Window.redisplay
       signals = [:INT, :TERM, :KILL]
       begin
-        Open3.popen2e(cmd) do |input, output, wait_thread|
+        Open3.popen2e(cmd, pgroup: true) do |input, output, wait_thread|
           input.close
           loop do
             status = output.wait_readable(0.5)
@@ -660,7 +660,7 @@ module Textbringer
               else
                 sig = signals.shift
                 message("Send #{sig} to #{wait_thread.pid}")
-                Process.kill(sig, wait_thread.pid)
+                Process.kill(sig, -wait_thread.pid)
               end
             end
           end
