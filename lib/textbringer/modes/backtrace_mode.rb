@@ -14,8 +14,10 @@ module Textbringer
 
     def jump_to_source_location
       file_name, line_number = get_source_location
-      find_file(file_name)
-      goto_line(line_number)
+      if file_name
+        find_file(file_name)
+        goto_line(line_number)
+      end
     end
 
     private
