@@ -5,6 +5,10 @@
 Textbringer is a member of a demon race that takes on the form of a text
 editor.
 
+## Demo
+
+[![asciicast](https://asciinema.org/a/100156.png)](https://asciinema.org/a/100156)
+
 ## Installation
 
     $ gem install textbringer
