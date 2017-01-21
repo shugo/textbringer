@@ -80,8 +80,12 @@ module Textbringer
     end
 
     def received_keyboard_quit?
-      key = Window.current.getch_nonblock
-      key && GLOBAL_MAP.lookup([key]) == :keyboard_quit
+      while key = Window.current.getch_nonblock
+        if GLOBAL_MAP.lookup([key]) == :keyboard_quit
+          return true
+        end
+      end
+      false
     end
 
     def recursive_edit
