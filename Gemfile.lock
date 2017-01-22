@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    textbringer (0.1.0)
+    textbringer (0.1.1)
       ncursesw (~> 1.4)
       unicode-display_width (~> 1.1)
 
