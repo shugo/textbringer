@@ -15,7 +15,7 @@ editor.
 
 ## Usage
 
-    $ tb
+    $ textbringer
 
 You can quit the editor by C-x C-c.
 
