@@ -357,8 +357,8 @@ module Textbringer
     end
     
     def redraw
-      @window.noutrefresh
-      @mode_line.noutrefresh
+      @window.redraw
+      @mode_line.redraw
     end
 
     def move(y, x)
@@ -622,7 +622,7 @@ module Textbringer
     end
 
     def redraw
-      @window.noutrefresh
+      @window.redraw
     end
 
     def move(y, x)
