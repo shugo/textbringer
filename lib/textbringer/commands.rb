@@ -79,7 +79,7 @@ module Textbringer
     end
 
     define_command(:self_insert) do |n = number_prefix_arg|
-      c = Controller.current.last_key.chr(Encoding::UTF_8)
+      c = Controller.current.last_key
       merge_undo = Controller.current.last_command == :self_insert
       n.times do
         Buffer.current.insert(c, merge_undo)
@@ -91,9 +91,8 @@ module Textbringer
       if !c.is_a?(Integer)
         raise "Invalid key"
       end
-      ch = c.chr(Encoding::UTF_8)
       n.times do
-        Buffer.current.insert(ch)
+        Buffer.current.insert(c)
       end
     end
 
@@ -439,7 +438,7 @@ module Textbringer
 
     define_command(:digit_argument) do
       |arg = current_prefix_arg|
-      n = last_key.chr.to_i
+      n = last_key.to_i
       Controller.current.prefix_arg =
         case arg
         when Integer
@@ -491,18 +490,13 @@ module Textbringer
     end
 
     ISEARCH_MODE_MAP = Keymap.new
-    (0x20..0x7e).each do |c|
+    (?\x20..?\x7e).each do |c|
       ISEARCH_MODE_MAP.define_key(c, :isearch_printing_char)
     end
     ISEARCH_MODE_MAP.define_key(?\t, :isearch_printing_char)
     ISEARCH_MODE_MAP.handle_undefined_key do |key|
-      if key.is_a?(Integer) && key > 0x80
-        begin
-          key.chr(Encoding::UTF_8)
-          :isearch_printing_char
-        rescue RangeError
-          nil
-        end
+      if key.is_a?(String) && /[\0-\x7f]/ !~ key 
+        :isearch_printing_char
       else
         nil
       end
@@ -574,7 +568,7 @@ module Textbringer
     end
 
     define_command(:isearch_printing_char) do
-      c = Controller.current.last_key.chr(Encoding::UTF_8)
+      c = Controller.current.last_key
       ISEARCH_STATUS[:string].concat(c)
       isearch_search
     end

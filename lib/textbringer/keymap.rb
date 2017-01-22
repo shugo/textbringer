@@ -43,10 +43,10 @@ module Textbringer
 
     def kbd(key)
       case key
-      when Integer, Symbol
+      when Symbol
         [key]
       when String
-        key.unpack("C*")
+        key.chars
       when Array
         key
       else
@@ -80,7 +80,7 @@ module Textbringer
   GLOBAL_MAP.define_key(:end, :end_of_line)
   GLOBAL_MAP.define_key("\e<", :beginning_of_buffer)
   GLOBAL_MAP.define_key("\e>", :end_of_buffer)
-  (0x20..0x7e).each do |c|
+  (?\x20..?\x7e).each do |c|
     GLOBAL_MAP.define_key(c, :self_insert)
   end
   GLOBAL_MAP.define_key(?\t, :self_insert)
@@ -123,13 +123,8 @@ module Textbringer
   GLOBAL_MAP.define_key(?\C-r, :isearch_backward)
   GLOBAL_MAP.define_key("\e!", :shell_execute)
   GLOBAL_MAP.handle_undefined_key do |key|
-    if key.is_a?(Integer) && key > 0x80
-      begin
-        key.chr(Encoding::UTF_8)
-        :self_insert
-      rescue RangeError
-        nil
-      end
+    if key.is_a?(String) && /[\0-\x7f]/ !~ key 
+      :self_insert
     else
       nil
     end

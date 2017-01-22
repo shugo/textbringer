@@ -11,11 +11,6 @@ module Textbringer
         name.slice(/\AKEY_(.*)/, 1).downcase.intern
     end
 
-    UTF8_CHAR_LEN =
-      Buffer::UTF8_CHAR_LEN.each_with_object(Hash.new(1)) { |(k, v), h|
-        h[k.ord] = v
-      }
-
     @@windows = []
     @@current = nil
     @@echo_area = nil
@@ -170,7 +165,7 @@ module Textbringer
       @y = y
       @x = x
       initialize_window(lines, columns, y, x)
-      @window.keypad(true)
+      @window.keypad = true
       @window.scrollok(false)
       @window.idlok(true)
       @buffer = nil
@@ -234,40 +229,20 @@ module Textbringer
     end
 
     def getch
-      key = @window.getch.ord
-      if key.nil?
-        nil
-      elsif key > 0xff
+      key = @window.get_char
+      if key.is_a?(Integer)
         KEY_NAMES[key]
       else
-        len = UTF8_CHAR_LEN[key]
-        if len == 1
-          key
-        else
-          buf = [key]
-          (len - 1).times do
-            c = @window.getch
-            if c.nil? || c < 0x80 || c > 0xbf
-              raise EditorError, "Malformed UTF-8 input" 
-            end
-            buf.push(c)
-          end
-          s = buf.pack("C*").force_encoding(Encoding::UTF_8)
-          if s.valid_encoding?
-            s.ord
-          else
-            raise EditorError, "Malformed UTF-8 input"
-          end
-        end
+        key
       end
     end
 
     def getch_nonblock
-      @window.nodelay(true)
+      @window.nodelay = true
       begin
         getch
       ensure
-        @window.nodelay(false)
+        @window.nodelay = false
       end
     end
 
@@ -275,7 +250,7 @@ module Textbringer
       @window.timeout(msecs)
       begin
         c = @window.getch
-        if c && c >= 0
+        if c
           Curses.ungetch(c)
         end
         c
