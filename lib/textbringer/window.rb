@@ -247,15 +247,15 @@ module Textbringer
     end
 
     def wait_input(msecs)
-      @window.timeout(msecs)
+      @window.timeout = msecs
       begin
-        c = @window.getch
+        c = @window.get_char
         if c
-          Curses.ungetch(c)
+          Curses.unget_char(c)
         end
         c
       ensure
-        @window.timeout(-1)
+        @window.timeout = -1
       end
     end
 
