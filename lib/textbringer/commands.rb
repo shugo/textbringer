@@ -236,7 +236,7 @@ module Textbringer
     end
 
     define_command(:suspend_textbringer) do
-      Ncurses.endwin
+      Curses.close_screen
       Process.kill(:STOP, $$)
     end
 

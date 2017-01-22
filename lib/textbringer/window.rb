@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
-require "ncursesw"
+require "curses"
 require "unicode/display_width"
 
 module Textbringer
   class Window
     KEY_NAMES = {}
-    Ncurses.constants.grep(/\AKEY_/).each do |name|
-      KEY_NAMES[Ncurses.const_get(name)] =
+    Curses.constants.grep(/\AKEY_/).each do |name|
+      KEY_NAMES[Curses.const_get(name)] =
         name.slice(/\AKEY_(.*)/, 1).downcase.intern
     end
 
@@ -88,9 +88,9 @@ module Textbringer
     end
 
     def self.start
-      Ncurses.initscr
-      Ncurses.noecho
-      Ncurses.raw
+      Curses.init_screen
+      Curses.noecho
+      Curses.raw
       begin
         window =
           Textbringer::Window.new(Window.lines - 1, Window.columns, 0, 0)
@@ -104,9 +104,9 @@ module Textbringer
 	@@windows.push(@@echo_area)
         yield
       ensure
-        Ncurses.echo
-        Ncurses.noraw
-        Ncurses.endwin
+        Curses.echo
+        Curses.noraw
+        Curses.close_screen
       end
     end
 
@@ -127,15 +127,15 @@ module Textbringer
     end
 
     def self.update
-      Ncurses.doupdate
+      Curses.doupdate
     end
 
     def self.lines
-      Ncurses.LINES
+      Curses.lines
     end
 
     def self.columns
-      Ncurses.COLS
+      Curses.cols
     end
 
     def self.resize
@@ -159,7 +159,7 @@ module Textbringer
     end
 
     def self.beep
-      Ncurses.beep
+      Curses.beep
     end
 
     attr_reader :buffer, :lines, :columns, :y, :x
@@ -234,7 +234,7 @@ module Textbringer
     end
 
     def getch
-      key = @window.getch
+      key = @window.getch.ord
       if key.nil?
         nil
       elsif key > 0xff
@@ -276,7 +276,7 @@ module Textbringer
       begin
         c = @window.getch
         if c && c >= 0
-          Ncurses.ungetch(c)
+          Curses.ungetch(c)
         end
         c
       ensure
@@ -298,51 +298,51 @@ module Textbringer
         y = x = 0
         @buffer.point_to_mark(@top_of_window)
         @window.erase
-        @window.move(0, 0)
+        @window.setpos(0, 0)
         if current? && @buffer.visible_mark &&
            @buffer.point_after_mark?(@buffer.visible_mark)
-          @window.attron(Ncurses::A_REVERSE)
+          @window.attron(Curses::A_REVERSE)
         end
         while !@buffer.end_of_buffer?
           if @buffer.point_at_mark?(point)
-            y, x = @window.getcury, @window.getcurx
+            y, x = @window.cury, @window.curx
             if current? && @buffer.visible_mark
               if @buffer.point_after_mark?(@buffer.visible_mark)
-                @window.attroff(Ncurses::A_REVERSE)
+                @window.attroff(Curses::A_REVERSE)
               elsif @buffer.point_before_mark?(@buffer.visible_mark)
-                @window.attron(Ncurses::A_REVERSE)
+                @window.attron(Curses::A_REVERSE)
               end
             end
           end
           if current? && @buffer.visible_mark &&
              @buffer.point_at_mark?(@buffer.visible_mark)
             if @buffer.point_after_mark?(point)
-              @window.attroff(Ncurses::A_REVERSE)
+              @window.attroff(Curses::A_REVERSE)
             elsif @buffer.point_before_mark?(point)
-              @window.attron(Ncurses::A_REVERSE)
+              @window.attron(Curses::A_REVERSE)
             end
           end
           c = @buffer.char_after
           if c == "\n"
             @window.clrtoeol
-            break if @window.getcury == lines - 2   # lines include mode line
+            break if @window.cury == lines - 2   # lines include mode line
           elsif c == "\t"
-            n = calc_tab_width(@window.getcurx)
+            n = calc_tab_width(@window.curx)
             c = " " * n
           else
             c = escape(c)
           end
           @window.addstr(c)
-          break if @window.getcury == lines - 2 &&  # lines include mode line
-            @window.getcurx == columns
+          break if @window.cury == lines - 2 &&  # lines include mode line
+            @window.curx == columns
           @buffer.forward_char
         end
         if current? && @buffer.visible_mark
-          @window.attroff(Ncurses::A_REVERSE)
+          @window.attroff(Curses::A_REVERSE)
         end
         @buffer.mark_to_point(@bottom_of_window)
         if @buffer.point_at_mark?(point)
-          y, x = @window.getcury, @window.getcurx
+          y, x = @window.cury, @window.curx
         end
         if x == columns - 1
           c = @buffer.char_after(point.location)
@@ -351,28 +351,28 @@ module Textbringer
             x = 0
           end
         end
-        @window.move(y, x)
+        @window.setpos(y, x)
         @window.noutrefresh
       end
     end
     
     def redraw
-      @window.redrawwin
-      @mode_line.redrawwin
+      @window.noutrefresh
+      @mode_line.noutrefresh
     end
 
     def move(y, x)
       @y = y
       @x = x
-      @window.mvwin(y, x)
-      @mode_line.mvwin(y + @window.getmaxy, x)
+      @window.move(y, x)
+      @mode_line.move(y + @window.maxy, x)
     end
 
     def resize(lines, columns)
       @lines = lines
       @columns = columns
       @window.resize(lines - 1, columns)
-      @mode_line.mvwin(@y + lines - 1, @x)
+      @mode_line.move(@y + lines - 1, @x)
       @mode_line.resize(1, columns)
     end
 
@@ -426,8 +426,8 @@ module Textbringer
     private
 
     def initialize_window(num_lines, num_columns, y, x)
-      @window = Ncurses::WINDOW.new(num_lines - 1, num_columns, y, x)
-      @mode_line = Ncurses::WINDOW.new(1, num_columns, y + num_lines - 1, x)
+      @window = Curses::Window.new(num_lines - 1, num_columns, y, x)
+      @mode_line = Curses::Window.new(1, num_columns, y + num_lines - 1, x)
     end
 
     def framer
@@ -454,8 +454,8 @@ module Textbringer
 
     def redisplay_mode_line
       @mode_line.erase
-      @mode_line.move(0, 0)
-      @mode_line.attron(Ncurses::A_REVERSE)
+      @mode_line.setpos(0, 0)
+      @mode_line.attron(Curses::A_REVERSE)
       @mode_line.addstr("#{@buffer.name} ")
       @mode_line.addstr("[+]") if @buffer.modified?
       @mode_line.addstr("[RO]") if @buffer.read_only?
@@ -472,8 +472,8 @@ module Textbringer
       @mode_line.addstr(unicode_codepoint(c))
       @mode_line.addstr(" #{line},#{column}")
       @mode_line.addstr(" (#{@buffer.mode&.name || 'None'})")
-      @mode_line.addstr(" " * (@mode_line.getmaxx - @mode_line.getcurx))
-      @mode_line.attroff(Ncurses::A_REVERSE)
+      @mode_line.addstr(" " * (@mode_line.maxx - @mode_line.curx))
+      @mode_line.attroff(Curses::A_REVERSE)
       @mode_line.noutrefresh
     end
 
@@ -595,7 +595,7 @@ module Textbringer
       return if @buffer.nil?
       @buffer.save_point do |saved|
         @window.erase
-        @window.move(0, 0)
+        @window.setpos(0, 0)
         if @message
           @window.addstr @message
         else
@@ -603,7 +603,7 @@ module Textbringer
           @buffer.beginning_of_line
           while !@buffer.end_of_buffer?
             if @buffer.point_at_mark?(saved)
-              y, x = @window.getcury, @window.getcurx
+              y, x = @window.cury, @window.curx
             end
             c = @buffer.char_after
             if c == "\n"
@@ -613,22 +613,22 @@ module Textbringer
             @buffer.forward_char
           end
           if @buffer.point_at_mark?(saved)
-            y, x = @window.getcury, @window.getcurx
+            y, x = @window.cury, @window.curx
           end
-          @window.move(y, x)
+          @window.setpos(y, x)
         end
         @window.noutrefresh
       end
     end
 
     def redraw
-      @window.redrawwin
+      @window.noutrefresh
     end
 
     def move(y, x)
       @y = y
       @x = x
-      @window.mvwin(y, x)
+      @window.move(y, x)
     end
 
     def resize(lines, columns)
@@ -640,7 +640,7 @@ module Textbringer
     private
 
     def initialize_window(num_lines, num_columns, y, x)
-      @window = Ncurses::WINDOW.new(num_lines, num_columns, y, x)
+      @window = Curses::Window.new(num_lines, num_columns, y, x)
     end
   end
 end

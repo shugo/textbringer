@@ -105,7 +105,7 @@ module Textbringer
       case key
       when Integer
         if key < 0x80
-          s = Ncurses.keyname(key)
+          s = Curses.keyname(key)
           case s
           when /\AKEY_(.*)/
             "<#{$1.downcase}>"

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "ncursesw"
+require "curses"
 
 module Textbringer
   class Keymap
