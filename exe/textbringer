@@ -30,8 +30,11 @@ Window.start do
     handle_exception(e)
   end
   Window.redisplay
-  trap(:CONT) do
-    Window.redraw
+  begin
+    trap(:CONT) do
+      Window.redraw
+    end
+  rescue ArgumentError
   end
   loop do
     Controller.current.command_loop(TOP_LEVEL_TAG)
