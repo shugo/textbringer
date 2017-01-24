@@ -231,7 +231,7 @@ module Textbringer
     def getch
       key = @window.get_char
       if key.is_a?(Integer)
-        KEY_NAMES[key]
+        KEY_NAMES[key] || key
       else
         key&.tr("\r", "\n")
       end
