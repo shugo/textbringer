@@ -233,7 +233,7 @@ module Textbringer
       if key.is_a?(Integer)
         KEY_NAMES[key]
       else
-        key
+        key&.tr("\r", "\n")
       end
     end
 
