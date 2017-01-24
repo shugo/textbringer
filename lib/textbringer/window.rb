@@ -11,6 +11,18 @@ module Textbringer
         name.slice(/\AKEY_(.*)/, 1).downcase.intern
     end
 
+    ALT_IS_FUNCTION_KEY =
+      /mswin32|mingw32/ =~ RUBY_PLATFORM && /PDCurses/ =~ Curses::VERSION
+    if ALT_IS_FUNCTION_KEY
+      KEY_OFFSET = 0xec00
+      ALT_0 = KEY_OFFSET + 0x97
+      ALT_9 = KEY_OFFSET + 0xa0
+      ALT_A = KEY_OFFSET + 0xa1
+      ALT_Z = KEY_OFFSET + 0xba
+      ALT_NUMBER_BASE = ALT_0 - ?0.ord
+      ALT_ALPHA_BASE = ALT_A - ?a.ord
+    end
+
     @@windows = []
     @@current = nil
     @@echo_area = nil
@@ -173,6 +185,7 @@ module Textbringer
       @bottom_of_window = nil
       @point_mark = nil
       @deleted = false
+      @key_buffer = []
     end
 
     def echo_area?
@@ -229,11 +242,26 @@ module Textbringer
     end
 
     def getch
+      if !@key_buffer.empty?
+        return @key_buffer.shift
+      end
       key = @window.get_char
       if key.is_a?(Integer)
-        KEY_NAMES[key] || key
+        if ALT_IS_FUNCTION_KEY
+          if ALT_0 <= key && key <= ALT_9
+            @key_buffer.push((key - ALT_NUMBER_BASE).chr)
+            "\e"
+          elsif ALT_A <= key && key <= ALT_Z
+            @key_buffer.push((key - ALT_ALPHA_BASE).chr)
+            "\e"
+          else
+            KEY_NAMES[key] || key
+          end
+        else
+          KEY_NAMES[key] || key
+        end
       else
-        key&.tr("\r", "\n")
+        key&.encode(Encoding::UTF_8)&.tr("\r", "\n")
       end
     end
 
