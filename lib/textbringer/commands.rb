@@ -88,7 +88,7 @@ module Textbringer
 
     define_command(:quoted_insert) do |n = number_prefix_arg|
       c = Controller.current.read_char
-      if !c.is_a?(Integer)
+      if !c.is_a?(String)
         raise "Invalid key"
       end
       n.times do
