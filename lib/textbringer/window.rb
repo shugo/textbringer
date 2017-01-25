@@ -225,7 +225,7 @@ module Textbringer
           Window.current = @@windows.first
         end
         delete_marks
-        @window.del
+        @window.close
         @deleted = true
       end
     end
