@@ -633,9 +633,9 @@ module Textbringer
         @window.erase
         @window.setpos(0, 0)
         if @message
-          @window.addstr @message
+          @window.addstr(escape(@message))
         else
-          @window.addstr @prompt
+          @window.addstr(escape(@prompt))
           @buffer.beginning_of_line
           while !@buffer.end_of_buffer?
             if @buffer.point_at_mark?(saved)
@@ -645,7 +645,7 @@ module Textbringer
             if c == "\n"
               break
             end
-            @window.addstr escape(c)
+            @window.addstr(escape(c))
             @buffer.forward_char
           end
           if @buffer.point_at_mark?(saved)
