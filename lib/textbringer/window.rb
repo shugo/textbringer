@@ -2,8 +2,27 @@
 
 require "curses"
 require "unicode/display_width"
+require "fiddle/import"
 
 module Textbringer
+  begin
+    # These features should be provided by curses.gem.
+    module PDCurses
+      extend Fiddle::Importer
+      dlload "pdcurses.dll"
+      extern "unsigned long PDC_get_key_modifiers(void)"
+      extern "int PDC_save_key_modifiers(unsigned char)"
+      extern "int PDC_return_key_modifiers(unsigned char)"
+
+      KEY_MODIFIER_SHIFT   = 1
+      KEY_MODIFIER_CONTROL = 2
+      KEY_MODIFIER_ALT     = 4
+      KEY_MODIFIER_NUMLOCK = 8
+    end
+  rescue
+    remove_const :PDCurses
+  end
+
   class Window
     KEY_NAMES = {}
     Curses.constants.grep(/\AKEY_/).each do |name|
@@ -242,10 +261,24 @@ module Textbringer
     end
 
     def getch
-      if !@key_buffer.empty?
-        return @key_buffer.shift
+      if @key_buffer.empty?
+        PDCurses.PDC_save_key_modifiers(1) if defined?(PDCurses)
+        key = @window.get_char
+        if defined?(PDCurses)
+          mods = PDCurses.PDC_get_key_modifiers
+          if key.is_a?(String) && key.ascii_only?
+            if (mods & PDCurses::KEY_MODIFIER_CONTROL) != 0
+              key = key == ?? ? "\x7f" : (key.ord & 0x9f).chr
+            end
+            if (mods & PDCurses::KEY_MODIFIER_ALT) != 0
+              @key_buffer.push(key)
+              key = "\e"
+            end
+          end
+        end
+      else
+        key = @key_buffer.shift
       end
-      key = @window.get_char
       if key.is_a?(Integer)
         if ALT_IS_FUNCTION_KEY
           if ALT_0 <= key && key <= ALT_9
