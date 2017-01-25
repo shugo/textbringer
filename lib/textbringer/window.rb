@@ -261,38 +261,18 @@ module Textbringer
     end
 
     def getch
-      if @key_buffer.empty?
-        PDCurses.PDC_save_key_modifiers(1) if defined?(PDCurses)
-        key = @window.get_char
-        if defined?(PDCurses)
-          mods = PDCurses.PDC_get_key_modifiers
-          if key.is_a?(String) && key.ascii_only?
-            if (mods & PDCurses::KEY_MODIFIER_CONTROL) != 0
-              key = key == ?? ? "\x7f" : (key.ord & 0x9f).chr
-            end
-            if (mods & PDCurses::KEY_MODIFIER_ALT) != 0
-              @key_buffer.push(key)
-              key = "\e"
-            end
-          end
-        end
-      else
-        key = @key_buffer.shift
-      end
+      key = get_char
       if key.is_a?(Integer)
         if ALT_IS_FUNCTION_KEY
           if ALT_0 <= key && key <= ALT_9
             @key_buffer.push((key - ALT_NUMBER_BASE).chr)
-            "\e"
+            return "\e"
           elsif ALT_A <= key && key <= ALT_Z
             @key_buffer.push((key - ALT_ALPHA_BASE).chr)
-            "\e"
-          else
-            KEY_NAMES[key] || key
+            return "\e"
           end
-        else
-          KEY_NAMES[key] || key
         end
+        KEY_NAMES[key] || key
       else
         key&.encode(Encoding::UTF_8)&.tr("\r", "\n")
       end
@@ -590,6 +570,35 @@ module Textbringer
       if @point_mark
         @point_mark.delete
         @point_mark = nil
+      end
+    end
+
+    def get_char
+      if @key_buffer.empty?
+        PDCurses.PDC_save_key_modifiers(1) if defined?(PDCurses)
+        begin
+          key = @window.get_char
+          if defined?(PDCurses)
+            mods = PDCurses.PDC_get_key_modifiers
+            if key.is_a?(String) && key.ascii_only?
+              if (mods & PDCurses::KEY_MODIFIER_CONTROL) != 0
+                key = key == ?? ? "\x7f" : (key.ord & 0x9f).chr
+              end
+              if (mods & PDCurses::KEY_MODIFIER_ALT) != 0
+                if key == "\0"
+                  # Alt + `, Alt + < etc. return NUL, so ignore it.
+                  key = nil
+                else
+                  @key_buffer.push(key)
+                  key = "\e"
+                end
+              end
+            end
+          end
+        end while key.nil?
+        key
+      else
+        @key_buffer.shift
       end
     end
   end
