@@ -25,6 +25,9 @@ module Textbringer
 
     def newline_and_reindent
       n = 1
+      if indent_line
+        n += 1
+      end
       @buffer.save_excursion do
         pos = @buffer.point
         @buffer.beginning_of_line
