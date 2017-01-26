@@ -262,7 +262,7 @@ module Textbringer
       self == @@current
     end
 
-    def getch
+    def read_char
       key = get_char
       if key.is_a?(Integer)
         if ALT_IS_FUNCTION_KEY
@@ -280,10 +280,10 @@ module Textbringer
       end
     end
 
-    def getch_nonblock
+    def read_char_nonblock
       @window.nodelay = true
       begin
-        getch
+        read_char
       ensure
         @window.nodelay = false
       end
@@ -526,6 +526,9 @@ module Textbringer
     def beginning_of_line_and_count(max_lines)
       e = @buffer.point
       @buffer.beginning_of_line
+      if e - @buffer.point < @columns
+        return 0
+      end
       s = @buffer.substring(@buffer.point, e)
       bols = [@buffer.point]
       column = 0

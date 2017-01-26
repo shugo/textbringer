@@ -34,7 +34,7 @@ module Textbringer
       catch(tag) do
         loop do
           begin
-            c = Window.current.getch
+            c = Window.current.read_char
             Window.echo_area.clear_message
             @last_key = c
             @key_sequence << @last_key
@@ -76,11 +76,11 @@ module Textbringer
     end
 
     def read_char
-      Window.current.getch
+      Window.current.read_char
     end
 
     def received_keyboard_quit?
-      while key = Window.current.getch_nonblock
+      while key = Window.current.read_char_nonblock
         if GLOBAL_MAP.lookup([key]) == :keyboard_quit
           return true
         end
