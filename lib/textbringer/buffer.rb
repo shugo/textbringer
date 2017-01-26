@@ -2,6 +2,7 @@
 
 require "nkf"
 require "unicode/display_width"
+require "json"
 
 module Textbringer
   class Buffer
@@ -1090,6 +1091,27 @@ module Textbringer
         " " * column
       end
       insert(s)
+    end
+
+    def dump(path)
+      File.write(path, to_s)
+      metadata = {
+        "name" => name,
+        "file_name" => file_name,
+        "file_encoding" => file_encoding.name,
+        "file_format" => file_format.to_s
+      }
+      File.write(path + ".metadata", metadata.to_json)
+    end
+
+    def self.load(path)
+      buffer =Buffer.new(File.read(path))
+      metadata = JSON.parse(File.read(path + ".metadata"))
+      buffer.name = metadata["name"]
+      buffer.file_name = metadata["file_name"]
+      buffer.file_encoding = Encoding.find(metadata["file_encoding"])
+      buffer.file_format = metadata["file_format"].intern
+      buffer
     end
 
     private

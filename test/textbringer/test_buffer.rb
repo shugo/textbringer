@@ -1702,4 +1702,24 @@ EOF
       end
     end
   end
+
+  def test_dump
+    Dir.mktmpdir do |dir|
+      buffer = Buffer.new(<<EOF.gsub(/\n/, "\r\n").encode("Shift_JIS"), name: "hello.txt", file_name: "/foo/bar/hello.txt", file_encoding: Encoding::Shift_JIS)
+helloworld
+あいうえお
+EOF
+      buffer.forward_char(5)
+      buffer.insert(" ")
+
+      path = File.expand_path(buffer.object_id.to_s, dir)
+      buffer.dump(path)
+      buffer2 = Buffer.load(path)
+      assert_equal(buffer2.to_s, buffer.to_s)
+      assert_equal(buffer2.name, buffer.name)
+      assert_equal(buffer2.file_name, buffer.file_name)
+      assert_equal(buffer2.file_encoding, buffer.file_encoding)
+      assert_equal(buffer2.file_format, buffer.file_format)
+    end
+  end
 end
