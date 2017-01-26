@@ -3,6 +3,7 @@
 require "nkf"
 require "unicode/display_width"
 require "json"
+require "fileutils"
 
 module Textbringer
   class Buffer
@@ -11,6 +12,7 @@ module Textbringer
     attr_accessor :mode, :keymap
     attr_reader :name, :file_name, :file_encoding, :file_format, :point, :marks
     attr_reader :current_line, :current_column, :visible_mark
+    attr_writer :modified
 
     GAP_SIZE = 256
     UNDO_LIMIT = 1000
@@ -1108,10 +1110,35 @@ module Textbringer
       buffer = Buffer.new(File.read(path))
       metadata = JSON.parse(File.read(path + ".metadata"))
       buffer.name = metadata["name"]
-      buffer.file_name = metadata["file_name"]
+      buffer.file_name = metadata["file_name"] if metadata["file_name"]
       buffer.file_encoding = Encoding.find(metadata["file_encoding"])
       buffer.file_format = metadata["file_format"].intern
+      buffer.modified = true
       buffer
+    end
+
+    def self.dump_unsaved_buffers(dir)
+      FileUtils.mkdir_p(dir)
+      @@list.each do |buffer|
+        if /\A\*/ !~ buffer.name && buffer.modified?
+          buffer.dump(File.expand_path(buffer.object_id.to_s, dir))
+        end
+      end
+    end
+
+    def self.dumped_buffers_exist?(dir)
+      !Dir.glob(File.expand_path("*.metadata", dir)).empty?
+    end
+
+    def self.load_dumped_buffers(dir)
+      Dir.glob(File.expand_path("*.metadata", dir)).map do |metadata_path|
+        path = metadata_path.sub(/\.metadata\z/, "")
+        buffer = Buffer.load(path)
+        add(buffer)
+        File.unlink(metadata_path)
+        File.unlink(path)
+        buffer
+      end
     end
 
     private

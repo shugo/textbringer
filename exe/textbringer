@@ -17,7 +17,6 @@ $VERBOSE = nil
 
 Controller.current = Controller.new
 Window.start do
-  message("Type C-x C-c to exit Textbringer")
   begin
     load_user_config
     ruby_mode
@@ -26,18 +25,30 @@ Window.start do
         find_file(arg)
       end
     end
+    if Buffer.dumped_buffers_exist?(CONFIG[:buffer_dump_dir])
+      Window.redisplay
+      if yes_or_no?("Dumped buffers found; restore them?")
+        buffers = Buffer.load_dumped_buffers(CONFIG[:buffer_dump_dir])
+        switch_to_buffer(buffers.last)
+      end
+    end
   rescue Exception => e
     handle_exception(e)
   end
   Window.redisplay
   begin
-    trap(:CONT) do
-      Window.redraw
-    end
+    trap(:CONT) { Window.redraw }
   rescue ArgumentError
   end
-  loop do
-    Controller.current.command_loop(TOP_LEVEL_TAG)
-    Window.redisplay
+  begin
+    loop do
+      Controller.current.command_loop(TOP_LEVEL_TAG)
+      Window.redisplay
+    end
+  rescue Exception => e
+    if !e.is_a?(SystemExit)
+      Buffer.dump_unsaved_buffers(CONFIG[:buffer_dump_dir])
+    end
+    raise
   end
 end

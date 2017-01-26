@@ -1720,6 +1720,35 @@ EOF
       assert_equal(buffer2.file_name, buffer.file_name)
       assert_equal(buffer2.file_encoding, buffer.file_encoding)
       assert_equal(buffer2.file_format, buffer.file_format)
+      assert_equal(true, buffer.modified?)
+    end
+  end
+
+  def test_s_dump_unsaved_buffers
+    Dir.mktmpdir do |dir|
+      buffer = Buffer.new_buffer("foo")
+      buffer.insert("foo!")
+      buffer2 = Buffer.new_buffer("bar")
+      buffer2.insert("bar!")
+      buffer2.modified = false
+      buffer3 = Buffer.new_buffer("baz")
+      buffer3.insert("baz!")
+
+      assert_equal(false, Buffer.dumped_buffers_exist?(dir))
+      Buffer.dump_unsaved_buffers(dir)
+      assert_equal(true, Buffer.dumped_buffers_exist?(dir))
+      paths = [buffer, buffer3].map { |b|
+        File.expand_path(b.object_id.to_s, dir)
+      }
+      assert_equal(paths.flat_map { |i| [i, i + ".metadata"] }.sort,
+                   Dir.glob(File.expand_path("*", dir)).sort)
+
+      Buffer.kill_em_all
+      Buffer.load_dumped_buffers(dir)
+      assert_equal(false, Buffer.dumped_buffers_exist?(dir))
+      assert_equal(buffer.to_s, Buffer["foo"].to_s)
+      assert_equal(nil, Buffer["bar"])
+      assert_equal(buffer3.to_s, Buffer["baz"].to_s)
     end
   end
 end
