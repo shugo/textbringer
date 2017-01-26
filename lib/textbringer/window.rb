@@ -166,7 +166,7 @@ module Textbringer
 
     def self.resize
       @@windows.delete_if do |window|
-        if window.y > Window.lines - 4
+        if !window.echo_area? && window.y > Window.lines - 4
           window.delete
           true
         else
@@ -174,10 +174,12 @@ module Textbringer
         end
       end
       @@windows.each_with_index do |window, i|
-        if i < @@windows.size - 1
-          window.resize(window.lines, Window.columns)
-        else
-          window.resize(Window.lines - 1 - window.y, Window.columns)
+        unless window.echo_area?
+          if i < @@windows.size - 2
+            window.resize(window.lines, Window.columns)
+          else
+            window.resize(Window.lines - 1 - window.y, Window.columns)
+          end
         end
       end
       @@echo_area.move(Window.lines - 1, 0)
