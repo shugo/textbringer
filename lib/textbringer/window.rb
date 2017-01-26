@@ -576,6 +576,7 @@ module Textbringer
     def get_char
       if @key_buffer.empty?
         PDCurses.PDC_save_key_modifiers(1) if defined?(PDCurses)
+        need_retry = false
         begin
           key = @window.get_char
           if defined?(PDCurses)
@@ -587,7 +588,7 @@ module Textbringer
               if (mods & PDCurses::KEY_MODIFIER_ALT) != 0
                 if key == "\0"
                   # Alt + `, Alt + < etc. return NUL, so ignore it.
-                  key = nil
+                  need_retry = true
                 else
                   @key_buffer.push(key)
                   key = "\e"
@@ -595,7 +596,7 @@ module Textbringer
               end
             end
           end
-        end while key.nil?
+        end while need_retry
         key
       else
         @key_buffer.shift
