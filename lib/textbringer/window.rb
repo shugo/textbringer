@@ -302,7 +302,21 @@ module Textbringer
       end
     end
 
+    def has_input?
+      @window.nodelay = true
+      begin
+        c = @window.get_char
+        if c
+          Curses.unget_char(c)
+        end
+        !c.nil?
+      ensure
+        @window.nodelay = false
+      end
+    end
+
     def redisplay
+      return if has_input?
       return if @buffer.nil?
       redisplay_mode_line
       @buffer.save_point do |saved|
