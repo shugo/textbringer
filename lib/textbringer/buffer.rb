@@ -1105,7 +1105,7 @@ module Textbringer
     end
 
     def self.load(path)
-      buffer =Buffer.new(File.read(path))
+      buffer = Buffer.new(File.read(path))
       metadata = JSON.parse(File.read(path + ".metadata"))
       buffer.name = metadata["name"]
       buffer.file_name = metadata["file_name"]
