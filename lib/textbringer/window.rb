@@ -125,9 +125,9 @@ module Textbringer
         Window.current = window
         @@echo_area = Textbringer::EchoArea.new(1, Window.columns,
                                                 Window.lines - 1, 0)
-  	Buffer.minibuffer.keymap = MINIBUFFER_LOCAL_MAP
-	@@echo_area.buffer = Buffer.minibuffer
-	@@windows.push(@@echo_area)
+        Buffer.minibuffer.keymap = MINIBUFFER_LOCAL_MAP
+        @@echo_area.buffer = Buffer.minibuffer
+        @@windows.push(@@echo_area)
         yield
       ensure
         Curses.echo
