@@ -303,7 +303,9 @@ module Textbringer
     end
 
     def self.open(file_name, name: File.basename(file_name))
-      s, mtime = File.open(file_name) { |f|
+      s, mtime = File.open(file_name,
+                           external_encoding: Encoding::ASCII_8BIT,
+                           binmode: true) { |f|
         f.flock(File::LOCK_SH)
         [f.read, f.mtime]
       }
@@ -324,7 +326,8 @@ module Textbringer
       end
       file_name = File.expand_path(file_name)
       begin
-        File.open(file_name, "w", external_encoding: @file_encoding) do |f|
+        File.open(file_name, "w",
+                  external_encoding: @file_encoding, binmode: true) do |f|
           f.flock(File::LOCK_EX)
           write_to_file(f)
           f.flush
@@ -1096,19 +1099,19 @@ module Textbringer
     end
 
     def dump(path)
-      File.write(path, to_s)
+      File.binwrite(path, to_s)
       metadata = {
         "name" => name,
         "file_name" => file_name,
         "file_encoding" => file_encoding.name,
         "file_format" => file_format.to_s
       }
-      File.write(path + ".metadata", metadata.to_json)
+      File.binwrite(path + ".metadata", metadata.to_json)
     end
 
     def self.load(path)
-      buffer = Buffer.new(File.read(path))
-      metadata = JSON.parse(File.read(path + ".metadata"))
+      buffer = Buffer.new(File.binread(path))
+      metadata = JSON.parse(File.binread(path + ".metadata"))
       buffer.name = metadata["name"]
       buffer.file_name = metadata["file_name"] if metadata["file_name"]
       buffer.file_encoding = Encoding.find(metadata["file_encoding"])
