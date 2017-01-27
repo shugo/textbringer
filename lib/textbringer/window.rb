@@ -595,8 +595,8 @@ module Textbringer
     def get_char
       if @key_buffer.empty?
         PDCurses.PDC_save_key_modifiers(1) if defined?(PDCurses)
-        need_retry = false
         begin
+          need_retry = false
           key = @window.get_char
           if defined?(PDCurses)
             mods = PDCurses.PDC_get_key_modifiers
