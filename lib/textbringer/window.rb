@@ -137,6 +137,7 @@ module Textbringer
     end
 
     def self.redisplay
+      return if Window.current.has_input?
       @@windows.each do |window|
         window.redisplay unless window.current?
       end
@@ -316,7 +317,6 @@ module Textbringer
     end
 
     def redisplay
-      return if has_input?
       return if @buffer.nil?
       redisplay_mode_line
       @buffer.save_point do |saved|
