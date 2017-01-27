@@ -10,5 +10,4 @@ test_script:
 deploy: off
 environment:
   matrix:
-    - ruby_version: "23"
     - ruby_version: "23-x64"
