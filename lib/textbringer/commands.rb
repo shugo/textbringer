@@ -143,7 +143,7 @@ module Textbringer
 
     define_command(:query_replace_regexp) do
       |regexp = read_from_minibuffer("Query replace regexp: "),
-       to_str = read_from_minibuffer("Query replace regexp #{regexp} with: ")|
+       to_str = read_from_minibuffer("with: ")|
       n = 0
       begin
         loop do
