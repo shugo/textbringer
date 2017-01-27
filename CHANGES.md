@@ -1,3 +1,7 @@
+## 0.1.3
+
+* Fix an infinite loop bug on Windows.
+
 ## 0.1.2
 
 * Use curses instead of ncursesw.
