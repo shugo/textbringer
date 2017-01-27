@@ -537,12 +537,9 @@ module Textbringer
       n.nonzero? || tw
     end
 
-    def beginning_of_line_and_count(max_lines)
+    def beginning_of_line_and_count(max_lines, columns = @columns)
       e = @buffer.point
       @buffer.beginning_of_line
-      if e - @buffer.point < @columns
-        return 0
-      end
       bols = [@buffer.point]
       column = 0
       while @buffer.point < e
@@ -554,14 +551,14 @@ module Textbringer
           str = escape(c)
         end
         column += Buffer.display_width(str)
-        if column > @columns
-          # Don't forward_char if column > @window.columns
+        if column > columns
+          # Don't forward_char if column > columns
           # to handle multibyte characters across the end of lines.
           bols.push(@buffer.point)
           column = 0
         else
           @buffer.forward_char
-          if column == @columns
+          if column == columns
             bols.push(@buffer.point)
             column = 0
           end
@@ -663,8 +660,11 @@ module Textbringer
         if @message
           @window.addstr(escape(@message))
         else
-          @window.addstr(escape(@prompt))
-          @buffer.beginning_of_line
+          prompt = escape(@prompt)
+          @window.addstr(prompt)
+          y = x = 0
+          columns = @columns - Buffer.display_width(prompt)
+          beginning_of_line_and_count(1, columns)
           while !@buffer.end_of_buffer?
             if @buffer.point_at_mark?(saved)
               y, x = @window.cury, @window.curx
@@ -674,6 +674,7 @@ module Textbringer
               break
             end
             @window.addstr(escape(c))
+            break if @window.curx == @columns
             @buffer.forward_char
           end
           if @buffer.point_at_mark?(saved)
