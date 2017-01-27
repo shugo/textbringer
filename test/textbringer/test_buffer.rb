@@ -759,7 +759,7 @@ EOF
   end
 
   def test_save_dos
-    Tempfile.create("test_buffer", binmode: true, binmode: true) do |f|
+    Tempfile.create("test_buffer", binmode: true) do |f|
       f.print(<<EOF.gsub(/\n/, "\r\n").encode(Encoding::Windows_31J))
 こんにちは
 EOF
