@@ -1,5 +1,6 @@
 # Textbringer
 
+[![Gem Version](https://badge.fury.io/rb/textbringer.svg)](https://badge.fury.io/rb/textbringer)
 [![Build Status](https://travis-ci.org/shugo/textbringer.svg?branch=master)](https://travis-ci.org/shugo/textbringer)
 
 Textbringer is a member of a demon race that takes on the form of a text
