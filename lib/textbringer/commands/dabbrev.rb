@@ -27,26 +27,36 @@ module Textbringer
           candidates = []
         end
         candidates_exclusion = candidates.empty? ? "" :
-          candidates.map { |s|
+          "(?!(?:" + candidates.map { |s|
             Regexp.quote(s)
-          }.join("|")
-        re = /#{Regexp.quote(stem)}#{candidates_exclusion}
+          }.join("|") + ")\\b)"
+        re = /\b#{Regexp.quote(stem)}#{candidates_exclusion}
               ([\p{Letter}\p{Number}_\-]+)/x
         candidate = nil
-        while buffer && candidate.nil?
+        loop do
+          message([:re, re, :buffer, buffer, :direction, direction, :pos, pos].inspect)
           pos, candidate = buffer.dabbrev_search(re, pos, direction)
-          if direction == :backward
-            pos = buffer.point
-            direction = :forward
+          if pos
+            break
           else
-            buffer = buffers.pop
-            if buffer
+            if direction == :backward
               pos = buffer.point
-              direction = :backward
+              direction = :forward
+            else
+              buffer = buffers.pop
+              if buffer
+                pos = buffer.point
+                direction = :backward
+              else
+                break
+              end
             end
           end
         end
         if candidate
+          if !candidates.empty?
+            undo
+          end
           candidates.push(candidate)
           insert(candidate)
         else
@@ -64,6 +74,7 @@ module Textbringer
         re_search_method = direction == :forward ?
           :re_search_forward : :re_search_backward
         save_excursion do
+          goto_char(pos)
           if send(re_search_method, re, raise_error: false)
             [point, match_string(1)]
           else
