@@ -121,6 +121,7 @@ module Textbringer
   GLOBAL_MAP.define_key(?\C-g, :keyboard_quit)
   GLOBAL_MAP.define_key(?\C-s, :isearch_forward)
   GLOBAL_MAP.define_key(?\C-r, :isearch_backward)
+  GLOBAL_MAP.define_key("\e%", :query_replace_regexp)
   GLOBAL_MAP.define_key("\e!", :shell_execute)
   GLOBAL_MAP.handle_undefined_key do |key|
     if key.is_a?(String) && /[\0-\x7f]/ !~ key 
