@@ -640,7 +640,7 @@ module Textbringer
             if status
               begin
                 s = output.read_nonblock(1024)
-                buffer.insert(s)
+                buffer.insert(s.scrub("\u{3013}"))
                 Window.redisplay
               rescue EOFError
                 break
