@@ -1388,7 +1388,7 @@ EOF
     baz = Buffer.new_buffer("baz")
     a = []
     Buffer.each { |i| a.push(i) }
-    assert_equal([foo, bar, baz], a)
+    assert_equal([bar, baz, foo], a.sort_by(&:name))
   end
 
   def test_set_name

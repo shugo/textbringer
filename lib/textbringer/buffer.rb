@@ -154,7 +154,7 @@ module Textbringer
     end
 
     def self.each(&block)
-      @@table.each_value(&block)
+      @@list.each(&block)
     end
 
     def self.display_width(s)
@@ -552,28 +552,28 @@ module Textbringer
       forward_char(-n)
     end
 
-    def forward_word(n = 1)
+    def forward_word(n = 1, regexp: /\p{Letter}|\p{Number}/)
       n.times do
-        while !end_of_buffer? && /\p{Letter}|\p{Number}/ !~ char_after
+        while !end_of_buffer? && regexp !~ char_after
           forward_char
         end
-        while !end_of_buffer? && /\p{Letter}|\p{Number}/ =~ char_after
+        while !end_of_buffer? && regexp =~ char_after
           forward_char
         end
       end
     end
 
-    def backward_word(n = 1)
+    def backward_word(n = 1, regexp: /\p{Letter}|\p{Number}/)
       n.times do
         break if beginning_of_buffer?
         backward_char
-        while !beginning_of_buffer? && /\p{Letter}|\p{Number}/ !~ char_after
+        while !beginning_of_buffer? && regexp !~ char_after
           backward_char
         end
-        while !beginning_of_buffer? && /\p{Letter}|\p{Number}/ =~ char_after
+        while !beginning_of_buffer? && regexp =~ char_after
           backward_char
         end
-        if /\p{Letter}|\p{Number}/ !~ char_after
+        if regexp !~ char_after
           forward_char
         end
       end
@@ -917,26 +917,38 @@ module Textbringer
       end
     end
 
-    def re_search_forward(s)
+    def re_search_forward(s, raise_error: true)
       re = new_regexp(s)
       i = byteindex(true, re, @point)
       if i.nil?
-        raise SearchError, "Search failed"
+        if raise_error
+          raise SearchError, "Search failed"
+        else
+          return nil
+        end
       end
       goto_char(match_end(0))
     end
 
-    def re_search_backward(s)
+    def re_search_backward(s, raise_error: true)
       re = new_regexp(s)
       pos = @point
       begin
         i = byteindex(false, re, pos)
         if i.nil?
-          raise SearchError, "Search failed"
+          if raise_error
+            raise SearchError, "Search failed"
+          else
+            return nil
+          end
         end
         pos = get_pos(pos, -1)
       rescue RangeError
-        raise SearchError, "Search failed"
+        if raise_error
+          raise SearchError, "Search failed"
+        else
+          return nil
+        end
       end while match_end(0) > @point
       goto_char(match_beginning(0))
     end
