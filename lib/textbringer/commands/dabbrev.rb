@@ -7,7 +7,7 @@ module Textbringer
   using Module.new {
     refine Buffer do
       def dabbrev_expand(contd)
-        if contd
+        if contd && self[:dabbrev_stem]
           buffers = self[:dabbrev_buffers]
           buffer = self[:dabbrev_buffer]
           stem = self[:dabbrev_stem]
@@ -22,6 +22,9 @@ module Textbringer
             backward_word(regexp: /[\p{Letter}\p{Number}_\-]/)
             substring(point, pos)
           }
+          if stem.empty?
+            raise "No possible abbreviation"
+          end
           pos = point
           direction = :backward
           candidates = []
@@ -34,7 +37,6 @@ module Textbringer
               ([\p{Letter}\p{Number}_\-]+)/x
         candidate = nil
         loop do
-          message([:re, re, :buffer, buffer, :direction, direction, :pos, pos].inspect)
           pos, candidate = buffer.dabbrev_search(re, pos, direction)
           if pos
             break
@@ -53,14 +55,15 @@ module Textbringer
             end
           end
         end
+        if !candidates.empty?
+          undo
+        end
         if candidate
-          if !candidates.empty?
-            undo
-          end
           candidates.push(candidate)
           insert(candidate)
         else
-          raise EditorError, "No more candidate"
+          self[:dabbrev_stem] = nil
+          raise EditorError, "No more abbreviation"
         end
         self[:dabbrev_buffers] = buffers
         self[:dabbrev_buffer] = buffer
