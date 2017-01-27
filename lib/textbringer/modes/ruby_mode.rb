@@ -49,11 +49,11 @@ module Textbringer
       tokens = Ripper.lex(@buffer.to_s)
       @buffer.forward_line
       n.times do |i|
-        tokens = tokens.drop_while { |(l, c), e, t|
+        tokens = tokens.drop_while { |(l, _), e, t|
           l < @buffer.current_line ||
             e != :on_kw || /\A(?:class|module|def)\z/ !~ t
         }
-        (line, column), event, text = tokens.first
+        (line,), = tokens.first
         if line.nil?
           @buffer.end_of_buffer
           break
@@ -70,11 +70,11 @@ module Textbringer
       tokens = Ripper.lex(@buffer.to_s).reverse
       @buffer.beginning_of_line
       n.times do |i|
-        tokens = tokens.drop_while { |(l, c), e, t|
+        tokens = tokens.drop_while { |(l, _), e, t|
           l >= @buffer.current_line ||
             e != :on_kw || /\A(?:class|module|def)\z/ !~ t
         }
-        (line, column), event, text = tokens.first
+        (line,), = tokens.first
         if line.nil?
           @buffer.beginning_of_buffer
           break
@@ -104,7 +104,7 @@ module Textbringer
         bol_pos = @buffer.point
         tokens = Ripper.lex(@buffer.substring(@buffer.point_min,
                                               @buffer.point))
-        line, column, event, text = find_nearest_beginning_token(tokens)
+        line, column, event, = find_nearest_beginning_token(tokens)
         if event == :on_lparen
           return column + 1
         end

@@ -58,7 +58,7 @@ module Textbringer
               end
             else
               if cmd.nil?
-                keys = @key_sequence.map { |c| key_name(c) }.join(" ")
+                keys = @key_sequence.map { |ch| key_name(ch) }.join(" ")
                 @key_sequence.clear
                 Window.echo_area.show("#{keys} is undefined")
               end

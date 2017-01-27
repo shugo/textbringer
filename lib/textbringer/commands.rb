@@ -255,9 +255,9 @@ module Textbringer
         message("New file")
       end
       switch_to_buffer(buffer)
-      mode = Mode.list.find { |mode|
-        mode.file_name_pattern &&
-          mode.file_name_pattern =~ File.basename(buffer.file_name)
+      mode = Mode.list.find { |m|
+        m.file_name_pattern &&
+          m.file_name_pattern =~ File.basename(buffer.file_name)
       } || FundamentalMode
       send(mode.command_name)
     end

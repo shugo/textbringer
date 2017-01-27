@@ -122,8 +122,8 @@ module Textbringer
 
     def self.find_file(file_name)
       file_name = File.expand_path(file_name)
-      buffer = @@table.each_value.find { |buffer|
-        buffer.file_name == file_name
+      buffer = @@table.each_value.find { |b|
+        b.file_name == file_name
       }
       if buffer.nil?
         name = File.basename(file_name)

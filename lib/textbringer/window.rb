@@ -543,7 +543,6 @@ module Textbringer
       if e - @buffer.point < @columns
         return 0
       end
-      s = @buffer.substring(@buffer.point, e)
       bols = [@buffer.point]
       column = 0
       while @buffer.point < e
