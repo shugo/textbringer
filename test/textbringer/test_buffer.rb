@@ -633,7 +633,7 @@ EOF
   end
 
   def test_save_ascii_only
-    Tempfile.create("test_buffer") do |f|
+    Tempfile.create("test_buffer", binmode: true) do |f|
       f.print(<<EOF)
 hello world
 EOF
@@ -644,7 +644,7 @@ EOF
       buffer.end_of_buffer
       buffer.insert("goodbye\n")
       buffer.save
-      assert_equal(<<EOF, File.read(f.path))
+      assert_equal(<<EOF, File.binread(f.path))
 hello world
 goodbye
 EOF
@@ -652,7 +652,7 @@ EOF
   end
 
   def test_save_utf8
-    Tempfile.create("test_buffer") do |f|
+    Tempfile.create("test_buffer", binmode: true) do |f|
       f.print(<<EOF)
 こんにちは
 EOF
@@ -663,7 +663,7 @@ EOF
       buffer.end_of_buffer
       buffer.insert("さようなら\n")
       buffer.save
-      assert_equal(<<EOF, File.read(f.path))
+      assert_equal(<<EOF.b, File.binread(f.path))
 こんにちは
 さようなら
 EOF
@@ -671,7 +671,7 @@ EOF
   end
 
   def test_save_euc_jp
-    Tempfile.create("test_buffer") do |f|
+    Tempfile.create("test_buffer", binmode: true) do |f|
       f.print(<<EOF.encode(Encoding::EUC_JP))
 こんにちは
 EOF
@@ -682,7 +682,7 @@ EOF
       buffer.end_of_buffer
       buffer.insert("さようなら\n")
       buffer.save
-      assert_equal(<<EOF.encode(Encoding::EUC_JP), File.read(f.path, encoding: Encoding::EUC_JP))
+      assert_equal(<<EOF.encode(Encoding::EUC_JP).b, File.binread(f.path))
 こんにちは
 さようなら
 EOF
@@ -690,7 +690,7 @@ EOF
   end
 
   def test_save_windows31j
-    Tempfile.create("test_buffer") do |f|
+    Tempfile.create("test_buffer", binmode: true) do |f|
       f.print(<<EOF.encode(Encoding::Windows_31J))
 こんにちは
 EOF
@@ -701,7 +701,7 @@ EOF
       buffer.end_of_buffer
       buffer.insert("さようなら\n")
       buffer.save
-      assert_equal(<<EOF.encode(Encoding::Windows_31J), File.read(f.path, encoding: Encoding::Windows_31J))
+      assert_equal(<<EOF.encode(Encoding::Windows_31J).b, File.binread(f.path))
 こんにちは
 さようなら
 EOF
@@ -712,7 +712,7 @@ EOF
     old_detect_encoding_proc = Buffer.detect_encoding_proc
     Buffer.detect_encoding_proc = Buffer::NKF_DETECT_ENCODING
     begin
-      Tempfile.create("test_buffer") do |f|
+      Tempfile.create("test_buffer", binmode: true) do |f|
         f.print(<<EOF.encode(Encoding::ISO_2022_JP))
 こんにちは
 EOF
@@ -723,7 +723,7 @@ EOF
         buffer.end_of_buffer
         buffer.insert("さようなら\n")
         buffer.save
-        assert_equal(<<EOF.encode(Encoding::ISO_2022_JP), File.read(f.path, encoding: Encoding::ISO_2022_JP, binmode: true))
+        assert_equal(<<EOF.encode(Encoding::ISO_2022_JP).b, File.binread(f.path))
 こんにちは
 さようなら
 EOF
@@ -734,7 +734,7 @@ EOF
   end
 
   def test_save_binary
-    Tempfile.create("test_buffer") do |f|
+    Tempfile.create("test_buffer", binmode: true) do |f|
       data = (0..255).to_a.pack("C*")
       f.print(data)
       f.close
@@ -744,7 +744,7 @@ EOF
       buffer.end_of_buffer
       buffer.insert("\de\ad\be\ef")
       buffer.save
-      assert_equal(data + "\de\ad\be\ef", File.read(f.path, binmode: true))
+      assert_equal(data + "\de\ad\be\ef", File.binread(f.path))
     end
   end
 
@@ -759,7 +759,7 @@ EOF
   end
 
   def test_save_dos
-    Tempfile.create("test_buffer") do |f|
+    Tempfile.create("test_buffer", binmode: true, binmode: true) do |f|
       f.print(<<EOF.gsub(/\n/, "\r\n").encode(Encoding::Windows_31J))
 こんにちは
 EOF
@@ -770,7 +770,7 @@ EOF
       buffer.end_of_buffer
       buffer.insert("さようなら\n")
       buffer.save
-      assert_equal(<<EOF.gsub(/\n/, "\r\n").encode(Encoding::Windows_31J), File.read(f.path, encoding: Encoding::Windows_31J))
+      assert_equal(<<EOF.gsub(/\n/, "\r\n").encode(Encoding::Windows_31J).b, File.binread(f.path))
 こんにちは
 さようなら
 EOF
@@ -778,7 +778,7 @@ EOF
   end
 
   def test_save_mac
-    Tempfile.create("test_buffer") do |f|
+    Tempfile.create("test_buffer", binmode: true) do |f|
       f.print(<<EOF.gsub(/\n/, "\r").encode(Encoding::Windows_31J))
 こんにちは
 EOF
@@ -789,7 +789,7 @@ EOF
       buffer.end_of_buffer
       buffer.insert("さようなら\n")
       buffer.save
-      assert_equal(<<EOF.gsub(/\n/, "\r").encode(Encoding::Windows_31J), File.read(f.path, encoding: Encoding::Windows_31J))
+      assert_equal(<<EOF.gsub(/\n/, "\r").encode(Encoding::Windows_31J).b, File.binread(f.path))
 こんにちは
 さようなら
 EOF
@@ -804,11 +804,11 @@ EOF
   end
 
   def test_save_as
-    Tempfile.create("test_buffer") do |f|
+    Tempfile.create("test_buffer", binmode: true) do |f|
       f.close
       buffer = Buffer.new("hello world")
       buffer.save(f.path)
-      assert_equal("hello world", File.read(f.path))
+      assert_equal("hello world", File.binread(f.path))
       assert_equal(f.path, buffer.file_name)
       assert_equal(File.basename(f.path), buffer.name)
     end
@@ -822,21 +822,21 @@ EOF
       end
       buffer.name = "foo"
       buffer.save(dir)
-      assert_equal("hello world", File.read(buffer.file_name))
+      assert_equal("hello world", File.binread(buffer.file_name))
       assert_equal(File.expand_path("foo", dir), buffer.file_name)
       assert_equal("foo", buffer.name)
     end
   end
 
   def test_save_as_fail
-    Tempfile.create("test_buffer") do |f|
+    Tempfile.create("test_buffer", binmode: true) do |f|
       f.close
       File.chmod(0400, f.path)
       buffer = Buffer.new("hello world", name: "foo")
       assert_raise(Errno::EACCES) do
         buffer.save(f.path)
       end
-      assert_equal("", File.read(f.path))
+      assert_equal("", File.binread(f.path))
       assert_equal(nil, buffer.file_name)
       assert_equal("foo", buffer.name)
     end
@@ -845,7 +845,7 @@ EOF
   def test_file_modified?
     buffer = Buffer.new
     assert_equal(false, buffer.file_modified?)
-    Tempfile.create("test_buffer") do |f|
+    Tempfile.create("test_buffer", binmode: true) do |f|
       f.print("foo")
       f.close
       buffer = Buffer.open(f.path)
@@ -855,7 +855,7 @@ EOF
       assert_equal(true, buffer.file_modified?)
       buffer.save
       assert_equal(false, buffer.file_modified?)
-      assert_equal("foo", File.read(f.path))
+      assert_equal("foo", File.binread(f.path))
       sleep(0.01)
       File.write(f.path, "bar")
       assert_equal(true, buffer.file_modified?)
@@ -1076,7 +1076,7 @@ EOF
   end
 
   def test_undo
-    Tempfile.create("test_buffer") do |f|
+    Tempfile.create("test_buffer", binmode: true) do |f|
       f.print(<<EOF)
 Hello world
 I'm shugo
@@ -1225,7 +1225,7 @@ EOF
   end
 
   def test_undo_limit
-    Tempfile.create("test_buffer") do |f|
+    Tempfile.create("test_buffer", binmode: true) do |f|
       buffer = Buffer.new(<<EOF, undo_limit: 4)
 Hello world
 I'm shugo
@@ -1299,7 +1299,7 @@ EOF
   end
 
   def test_s_find_file
-    Tempfile.create("test_buffer") do |f|
+    Tempfile.create("test_buffer", binmode: true) do |f|
       f.print("hello world\n")
       f.close
 
@@ -1307,7 +1307,7 @@ EOF
       assert_equal(File.basename(f.path), buffer.name)
       assert_equal(1, Buffer.count)
       assert_equal(buffer, Buffer[buffer.name])
-      assert_equal(File.read(f.path), buffer.to_s)
+      assert_equal(File.binread(f.path), buffer.to_s)
 
       buffer2 = Buffer.find_file(f.path)
       assert_equal(buffer, buffer2)
@@ -1674,8 +1674,8 @@ EOF
   end
 
   def test_read_only
-    Tempfile.create("test_buffer") do |f|
-      Tempfile.create("test_buffer") do |f2|
+    Tempfile.create("test_buffer", binmode: true) do |f|
+      Tempfile.create("test_buffer", binmode: true) do |f2|
         f.print("hello world\n")
         f.close
         File.chmod(0400, f.path)
