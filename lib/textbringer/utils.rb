@@ -273,14 +273,5 @@ module Textbringer
       add_hook(:pre_command_hook, hook)
       Controller.current.overriding_map = map
     end
-
-    def save_excursion(&block)
-      buffer = Buffer.current
-      begin
-        buffer.save_excursion(&block)
-      ensure
-        Buffer.current = buffer
-      end
-    end
   end
 end
