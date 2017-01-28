@@ -1,8 +1,5 @@
 # frozen_string_literal: true
 
-require "open3"
-require "io/wait"
-
 module Textbringer
   using Module.new {
     refine Buffer do
