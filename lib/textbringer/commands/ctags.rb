@@ -13,7 +13,6 @@ module Textbringer
     }
 
     define_command(:find_tag) do |next_p = current_prefix_arg|
-      prev_file = nil
       tags = get_tags
       if next_p
         name = CTAGS[:name]
@@ -22,7 +21,6 @@ module Textbringer
         end
         candidates = CTAGS[:candidates]
         index = CTAGS[:index]
-        prev_file, = candidates[index]
         if next_p == :-
           index -= 1
         else
@@ -53,33 +51,23 @@ module Textbringer
         end
         CTAGS[:name] = name
         CTAGS[:candidates] = candidates
-        CTAGS[:index] = index = 0
+        index = 0
       end
-      file, addr = candidates[index]
+      file, addr, n = candidates[index]
       find_file(file)
       case addr
       when /\A\d+\z/
         goto_line(addr.to_i)
       when %r'\A/\^(.*)\$/\z'
-        if file == prev_file
-          if next_p == :-
-            beginning_of_line
-          else
-            end_of_line
-          end
-        else
-          beginning_of_buffer
-        end
-        re = "^" + Regexp.quote($1) + "$"
-        if next_p == :-
-          re_search_backward(re)
-        else
-          re_search_forward(re)
+        beginning_of_buffer
+        n.times do
+          re_search_forward("^" + Regexp.quote($1) + "$")
         end
         beginning_of_line
       else
         raise EditorError, "Invalid address: #{addr}"
       end
+      CTAGS[:index] = index
       Window.current.recenter_if_needed
     end
 
@@ -90,7 +78,8 @@ module Textbringer
         tags = Hash.new { |h, k| h[k] = [] }
         File.read(path).scan(/^(.*?)\t(.*?)\t(.*?)(?:;".*)?$/) do
           |name, file, addr|
-          tags[name].push([file, addr])
+          n = tags[name].count { |f,| f == file } + 1
+          tags[name].push([file, addr, n])
         end
         CTAGS[:tags] = tags
         message("Loaded #{path}")
