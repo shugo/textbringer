@@ -1321,6 +1321,7 @@ module Textbringer
   end
 
   class Mark
+    attr_reader :buffer
     attr_accessor :location
 
     def initialize(buffer, location)

@@ -3,6 +3,7 @@
 module Textbringer
   module Commands
     GLOBAL_MAP.define_key("\e.", :find_tag)
+    GLOBAL_MAP.define_key("\e*", :pop_tag_mark)
 
     CTAGS = {
       path: nil,
@@ -10,8 +11,10 @@ module Textbringer
       tags_mtime: nil,
       name: nil,
       candidates: nil,
-      index: nil
+      index: nil,
+      tag_mark_stack: []
     }
+    TAG_MARK_LIMIT = 16
 
     define_command(:find_tag) do |next_p = current_prefix_arg|
       tags = get_tags
@@ -57,6 +60,12 @@ module Textbringer
         CTAGS[:candidates] = candidates
         index = 0
       end
+      tag_mark_stack = CTAGS[:tag_mark_stack]
+      if tag_mark_stack.size == TAG_MARK_LIMIT
+        mark = tag_mark_stack.shift
+        mark.delete
+      end
+      tag_mark_stack.push(Buffer.current.new_mark)
       file, addr, n = candidates[index]
       find_file(file)
       case addr
@@ -96,6 +105,20 @@ module Textbringer
         message("Loaded #{path}")
       end
       CTAGS[:tags]
+    end
+
+    define_command(:pop_tag_mark) do
+      tag_mark_stack = CTAGS[:tag_mark_stack]
+      if tag_mark_stack.empty?
+        raise EditorError, "No previous locations"
+      end
+      mark = tag_mark_stack.pop
+      begin
+        switch_to_buffer(mark.buffer)
+        mark.buffer.point_to_mark(mark)
+      ensure
+        mark.delete
+      end
     end
   end
 end
