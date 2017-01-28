@@ -1,6 +1,7 @@
 ## 0.1.4
 
 * Add dabbrev_expand.
+* Add find_tag.
 
 ## 0.1.3
 
