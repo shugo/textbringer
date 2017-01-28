@@ -630,7 +630,12 @@ module Textbringer
       Window.redisplay
       signals = [:INT, :TERM, :KILL]
       begin
-        Open3.popen2e(cmd, pgroup: true) do |input, output, wait_thread|
+        if /mswin32|mingw32/ =~ RUBY_PLATFORM
+          opts = {}
+        else
+          opts = {pgroup: true}
+        end
+        Open3.popen2e(cmd, opts) do |input, output, wait_thread|
           input.close
           loop do
             status = output.wait_readable(0.5)
@@ -639,8 +644,9 @@ module Textbringer
             end
             if status
               begin
-                s = output.read_nonblock(1024)
-                buffer.insert(s.force_encoding("utf-8").scrub("\u{3013}"))
+                s = output.read_nonblock(1024).force_encoding("utf-8").
+                  scrub("\u{3013}").gsub(/\r\n/, "\n")
+                buffer.insert(s)
                 Window.redisplay
               rescue EOFError
                 break
