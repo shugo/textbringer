@@ -11,6 +11,14 @@ editor.
 
 [![asciicast](https://asciinema.org/a/100156.png)](https://asciinema.org/a/100156)
 
+## WARNING
+
+Textbringer is a beta software, and you may lose your text.  Unsaved buffers
+will be dumped in ~/.textbringer/buffer_dump on crash.
+
+APIs are undocumented and unstable.  There is no compatibility even in the same
+minor versions.
+
 ## Installation
 
     $ gem install textbringer
