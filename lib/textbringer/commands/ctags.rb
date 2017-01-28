@@ -7,6 +7,7 @@ module Textbringer
     CTAGS = {
       path: nil,
       tags: nil,
+      tags_mtime: nil,
       name: nil,
       candidates: nil,
       index: nil
@@ -81,7 +82,8 @@ module Textbringer
 
     def get_tags
       path = File.expand_path("tags")
-      if CTAGS[:path] != path
+      mtime = File.mtime(path)
+      if CTAGS[:path] != path || CTAGS[:tags_mtime] != mtime
         CTAGS[:path] = path
         tags = Hash.new { |h, k| h[k] = [] }
         File.read(path).scan(/^(.*?)\t(.*?)\t(.*?)(?:;".*)?$/) do
@@ -90,6 +92,7 @@ module Textbringer
           tags[name].push([file, addr, n])
         end
         CTAGS[:tags] = tags
+        CTAGS[:tags_mtime] = mtime
         message("Loaded #{path}")
       end
       CTAGS[:tags]
