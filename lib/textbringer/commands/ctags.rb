@@ -35,7 +35,10 @@ module Textbringer
       else
         buffer = Buffer.current
         name = buffer.save_excursion {
-          buffer.backward_word(regexp: /[A-Za-z_\-]/)
+          if /[A-Za-z_\-]/ !~ buffer.char_after ||
+              /[A-Za-z_\-]/ =~ buffer.char_before
+            buffer.backward_word(regexp: /[A-Za-z_\-]/)
+          end
           if buffer.looking_at?(/[A-Za-z_\-]+/)
             match_string(0)
           else
@@ -64,6 +67,11 @@ module Textbringer
           re_search_forward("^" + Regexp.quote($1) + "$")
         end
         beginning_of_line
+      when %r'\A\?\^(.*)\$\?\z'
+        end_of_buffer
+        n.times do
+          re_search_backward("^" + Regexp.quote($1) + "$")
+        end
       else
         raise EditorError, "Invalid address: #{addr}"
       end

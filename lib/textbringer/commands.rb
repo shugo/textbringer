@@ -125,6 +125,13 @@ module Textbringer
       Buffer.current.re_search_forward(s)
     end
 
+    define_command(:re_search_backward) do
+      |s = read_from_minibuffer("RE search backward: ",
+                                default: RE_SEARCH_STATUS[:last_regexp])|
+      RE_SEARCH_STATUS[:last_regexp] = s
+      Buffer.current.re_search_backward(s)
+    end
+
     def match_beginning(n)
       Buffer.current.match_beginning(n)
     end

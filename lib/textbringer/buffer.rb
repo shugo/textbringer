@@ -397,6 +397,19 @@ module Textbringer
       end
     end
 
+    def char_before(location = @point)
+      if @binary
+        byte_before(location)
+      else
+        if beginning_of_buffer?
+          nil
+        else
+          pos = get_pos(location, -1)
+          substring(pos, location)
+        end
+      end
+    end
+
     def bytesize
       @contents.bytesize - gap_size
     end
