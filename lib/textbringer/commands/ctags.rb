@@ -43,7 +43,7 @@ module Textbringer
               /[A-Za-z_\-]/ =~ buffer.char_before
             buffer.backward_word(regexp: /[A-Za-z_\-]/)
           end
-          if buffer.looking_at?(/[A-Za-z_\-]+/)
+          if buffer.looking_at?(/[A-Za-z_\-]+(?:[?!])?/)
             match_string(0)
           else
             nil
