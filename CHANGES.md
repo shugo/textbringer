@@ -1,7 +1,7 @@
 ## 0.1.4
 
-* Add dabbrev_expand.
-* Add find_tag.
+* Add dabbrev_expand (M-/).
+* Add find_tag (M-.) and pop_tag_mark (M-*).
 
 ## 0.1.3
 
