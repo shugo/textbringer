@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Textbringer
-  class ProgrammingMode < Mode
+  class ProgrammingMode < FundamentalMode
     # abstract mode
     undefine_command(:programming_mode)
 

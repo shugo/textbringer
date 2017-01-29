@@ -206,7 +206,7 @@ module Textbringer
       @undoing = false
       @version = 0
       @modified = false
-      @mode = nil
+      @mode = FundamentalMode.new(self)
       @keymap = nil
       @attributes = {}
       @save_point_level = 0
@@ -1166,6 +1166,24 @@ module Textbringer
         File.unlink(metadata_path)
         File.unlink(path)
         buffer
+      end
+    end
+
+    def current_symbol
+      from = save_point { skip_re_backward(@mode.symbol_pattern); @point }
+      to = save_point { skip_re_forward(@mode.symbol_pattern); @point }
+      from < to ? substring(from, to) : nil
+    end
+
+    def skip_re_forward(re)
+      while re =~ char_after
+        forward_char
+      end
+    end
+
+    def skip_re_backward(re)
+      while re =~ char_before
+        backward_char
       end
     end
 

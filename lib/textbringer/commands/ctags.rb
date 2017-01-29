@@ -38,17 +38,7 @@ module Textbringer
         end
       else
         buffer = Buffer.current
-        name = buffer.save_excursion {
-          if /[A-Za-z_\-]/ !~ buffer.char_after ||
-              /[A-Za-z_\-]/ =~ buffer.char_before
-            buffer.backward_word(regexp: /[A-Za-z_\-]/)
-          end
-          if buffer.looking_at?(/[A-Za-z_\-]+(?:[?!])?/)
-            match_string(0)
-          else
-            nil
-          end
-        }
+        name = buffer.current_symbol
         if name.nil?
           raise EditorError, "No name found at point"
         end

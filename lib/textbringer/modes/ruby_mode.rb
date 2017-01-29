@@ -93,6 +93,10 @@ module Textbringer
       backtrace_mode
     end
 
+    def symbol_pattern
+      /[\p{Letter}\p{Number}_$@!?]/
+    end
+
     private
 
     def calculate_indentation
