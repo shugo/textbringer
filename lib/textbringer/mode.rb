@@ -16,6 +16,7 @@ module Textbringer
       attr_accessor :command_name
       attr_accessor :hook_name
       attr_accessor :file_name_pattern
+      attr_accessor :interpreter_name_pattern
     end
 
     def self.define_generic_command(name)

@@ -8,7 +8,8 @@ module Textbringer
 
   class RubyMode < ProgrammingMode
     self.file_name_pattern = /\A(?:.*\.(?:rb|ru|rake|thor)|
-                              (?:Gem|Rake|Cap|Thor|Vagrant|Guard|Pod)file)\z/x
+                              (?:Gem|Rake|Cap|Thor|Vagrant|Guard|Pod)file)\z/ix
+    self.interpreter_name_pattern = /ruby/i
 
     def initialize(buffer)
       super(buffer)
