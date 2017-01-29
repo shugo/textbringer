@@ -2,6 +2,8 @@
 
 * Add dabbrev_expand (M-/).
 * Add find_tag (M-.) and pop_tag_mark (M-*).
+* Add toggle_test_command (C-c t).
+* Force binmode for Windows.
 
 ## 0.1.3
 

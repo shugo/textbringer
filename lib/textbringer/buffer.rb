@@ -164,7 +164,8 @@ module Textbringer
 
     # s might not be copied.
     def initialize(s = String.new, name: nil,
-                   file_name: nil, file_encoding: Encoding::UTF_8,
+                   file_name: nil,
+                   file_encoding: CONFIG[:default_file_encoding],
                    file_mtime: nil, new_file: true, undo_limit: UNDO_LIMIT,
                    read_only: false)
       case s.encoding
@@ -188,7 +189,7 @@ module Textbringer
         @file_format = :dos
         @contents.gsub!(/\r/, "")
       else
-        @file_format = :unix
+        @file_format = CONFIG[:default_file_format]
       end
       @new_file = new_file
       @undo_limit = undo_limit
