@@ -193,5 +193,46 @@ module Textbringer
           "ruby " + @buffer.file_name
         end
     end
+
+    def toggle_test
+      case @buffer.file_name
+      when %r'(.*)/test/(.*/)?test_(.*?)\.rb\z'
+        base = $1
+        namespace = $2
+        name = $3
+        if namespace
+          paths = Dir.glob("#{base}/{lib,app}/**/#{namespace}#{name}.rb")
+          if !paths.empty?
+            find_file(paths.first)
+            return
+          end
+        end
+        paths = Dir.glob("#{base}/{lib,app}/**/#{name}.rb")
+        if !paths.empty?
+          find_file(paths.first)
+          return
+        end
+        raise EditorError, "Test subject not found"
+      when %r'(.*)/(?:lib|app)/(.*/)?(.*?)\.rb\z'
+        base = $1
+        namespace = $2
+        name = $3
+        if namespace
+          paths = Dir.glob("#{base}/test/**/#{namespace}test_#{name}.rb")
+          if !paths.empty?
+            find_file(paths.first)
+            return
+          end
+        end
+        paths = Dir.glob("#{base}/test/**/#{name}.rb")
+        if !paths.empty?
+          find_file(paths.first)
+          return
+        end
+        raise EditorError, "Test not found"
+      else
+        raise EditorError, "Unknown file type"
+      end
+    end
   end
 end
