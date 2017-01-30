@@ -115,6 +115,17 @@ module Textbringer
         end
         if line
           @buffer.goto_line(line)
+          while !@buffer.beginning_of_buffer?
+            if @buffer.save_excursion {
+              @buffer.backward_char
+              @buffer.skip_re_backward(/\s/)
+              @buffer.char_before == ?,
+            }
+              @buffer.backward_line
+            else
+              break
+            end
+          end
         else
           @buffer.backward_line
         end
@@ -132,7 +143,8 @@ module Textbringer
           e != :on_sp && e != :on_nl && e != :on_ignored_nl
         }
         if (last_event == :on_op && last_text != "|") ||
-            last_event == :on_period
+            last_event == :on_period ||
+            last_event == :on_comma
           indentation += @buffer[:ruby_indent_level]
         end
         indentation

@@ -197,6 +197,31 @@ EOF
     end
   end
   
+  def test_indent_line_multiline_args
+    @buffer.insert(<<EOF)
+foo(x, y,
+    z) {
+EOF
+    @ruby_mode.indent_line
+    assert_equal(<<EOF.chop, @buffer.to_s)
+foo(x, y,
+    z) {
+  
+EOF
+
+    @buffer.clear
+    @buffer.insert(<<EOF)
+foo x, y,
+  z {
+EOF
+    @ruby_mode.indent_line
+    assert_equal(<<EOF.chop, @buffer.to_s)
+foo x, y,
+  z {
+  
+EOF
+  end
+  
   def test_newline_and_reindent
     @buffer.insert(<<EOF.chop)
 class foo

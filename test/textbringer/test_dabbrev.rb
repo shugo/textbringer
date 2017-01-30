@@ -35,7 +35,7 @@ foo
 fortran
 EOF
     buffer2.goto_line(4)
-    
+
     buffer.goto_line(9)
     pos = buffer.point
     buffer.end_of_line
