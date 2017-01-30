@@ -224,7 +224,7 @@ module Textbringer
             return
           end
         end
-        paths = Dir.glob("#{base}/test/**/#{name}.rb")
+        paths = Dir.glob("#{base}/test/**/test_#{name}.rb")
         if !paths.empty?
           find_file(paths.first)
           return
