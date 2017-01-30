@@ -356,6 +356,20 @@ EOF
     assert_equal(nil, buffer.char_after)
   end
 
+  def test_char_before
+    buffer = Buffer.new
+    assert_equal(nil, buffer.char_before)
+    buffer.insert("12345\nあいうえお\n")
+    buffer.beginning_of_buffer
+    assert_equal(nil, buffer.char_before)
+    buffer.next_line
+    assert_equal("\n", buffer.char_before)
+    buffer.forward_char
+    assert_equal("あ", buffer.char_before)
+    buffer.end_of_buffer
+    assert_equal("\n", buffer.char_before)
+  end
+
   def test_next_line
     buffer = Buffer.new(<<EOF)
 hello world
@@ -532,6 +546,15 @@ EOF
     assert_equal(1, buffer.point)
     assert_equal(3, mark.location)
     assert_equal(1, mark2.location)
+  end
+
+  def test_clear
+    buffer = Buffer.new("hello world")
+    buffer.forward_char(3)
+    mark = buffer.new_mark
+    buffer.clear
+    assert_equal("", buffer.to_s)
+    assert_equal(buffer.point_min, mark.location)
   end
 
   def test_kill_region
@@ -1700,6 +1723,11 @@ EOF
 foo
 hello world
 EOF
+
+        buffer.read_only = true
+        assert_raise(ReadOnlyError) do
+          buffer.insert("foo")
+        end
       end
     end
   end
@@ -1751,5 +1779,36 @@ EOF
       assert_equal(nil, Buffer["bar"])
       assert_equal(buffer3.to_s, Buffer["baz"].to_s)
     end
+  end
+
+  def test_indent_to
+    buffer = Buffer.new
+    buffer.indent_to(12)
+    assert_equal(" " * 12, buffer.to_s)
+    buffer.clear
+    buffer[:indent_tabs_mode] = true
+    buffer.indent_to(12)
+    assert_equal("\t" + " " * 4, buffer.to_s)
+    buffer.clear
+    buffer[:tab_width] = 5
+    buffer.indent_to(12)
+    assert_equal("\t\t  ", buffer.to_s)
+  end
+
+  def test_current_symbol
+    buffer = Buffer.new("  foo   bar ")
+    assert_equal(nil, buffer.current_symbol)
+    buffer.forward_char
+    assert_equal(nil, buffer.current_symbol)
+    buffer.forward_char
+    assert_equal("foo", buffer.current_symbol)
+    buffer.forward_char(2)
+    assert_equal("foo", buffer.current_symbol)
+    buffer.forward_char
+    assert_equal("foo", buffer.current_symbol)
+    buffer.forward_char
+    assert_equal(nil, buffer.current_symbol)
+    buffer.forward_char(2)
+    assert_equal("bar", buffer.current_symbol)
   end
 end
