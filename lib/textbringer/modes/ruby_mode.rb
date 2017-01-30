@@ -20,6 +20,7 @@ module Textbringer
     def indent_line
       result = false
       level = calculate_indentation
+      return result if level.nil?
       @buffer.save_excursion do
         @buffer.beginning_of_line
         has_space = @buffer.looking_at?(/[ \t]+/)
@@ -109,6 +110,12 @@ module Textbringer
         bol_pos = @buffer.point
         tokens = Ripper.lex(@buffer.substring(@buffer.point_min,
                                               @buffer.point))
+        _, e, = tokens.last
+        if e == :on_tstring_beg ||
+            e == :on_heredoc_beg ||
+            e == :on_tstring_content
+          return nil
+        end
         line, column, event, = find_nearest_beginning_token(tokens)
         if event == :on_lparen
           return column + 1

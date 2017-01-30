@@ -221,6 +221,42 @@ foo x, y,
   
 EOF
   end
+
+  def test_indent_line_in_string
+    @buffer.insert(<<EOF.chop)
+x = "
+     foo
+EOF
+    @ruby_mode.indent_line
+    assert_equal(<<EOF.chop, @buffer.to_s)
+x = "
+     foo
+EOF
+
+    @buffer.clear
+    @buffer.insert(<<EOF.chop)
+x = <<END
+     foo
+EOF
+    @ruby_mode.indent_line
+    assert_equal(<<EOF.chop, @buffer.to_s)
+x = <<END
+     foo
+EOF
+
+    @buffer.clear
+    @buffer.insert(<<EOF.chop)
+x = <<END
+     foo
+   bar
+EOF
+    @ruby_mode.indent_line
+    assert_equal(<<EOF.chop, @buffer.to_s)
+x = <<END
+     foo
+   bar
+EOF
+  end
   
   def test_newline_and_reindent
     @buffer.insert(<<EOF.chop)
