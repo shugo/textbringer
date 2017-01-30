@@ -336,8 +336,9 @@ module Textbringer
           @window.attron(Curses::A_REVERSE)
         end
         while !@buffer.end_of_buffer?
+          cury, curx = @window.cury, @window.curx
           if @buffer.point_at_mark?(point)
-            y, x = @window.cury, @window.curx
+            y, x = cury, curx
             if current? && @buffer.visible_mark
               if @buffer.point_after_mark?(@buffer.visible_mark)
                 @window.attroff(Curses::A_REVERSE)
@@ -357,16 +358,24 @@ module Textbringer
           c = @buffer.char_after
           if c == "\n"
             @window.clrtoeol
-            break if @window.cury == lines - 2   # lines include mode line
+            break if cury == lines - 2   # lines include mode line
           elsif c == "\t"
-            n = calc_tab_width(@window.curx)
+            n = calc_tab_width(curx)
             c = " " * n
           else
             c = escape(c)
           end
+          newx = curx + Buffer.display_width(c)
+          if newx > columns
+            if cury == lines - 2
+              break
+            else
+              @window.clrtoeol
+              @window.setpos(cury + 1, 0)
+            end
+          end
           @window.addstr(c)
-          break if @window.cury == lines - 2 &&  # lines include mode line
-            @window.curx == columns
+          break if cury == lines - 2 && newx == columns
           @buffer.forward_char
         end
         if current? && @buffer.visible_mark
