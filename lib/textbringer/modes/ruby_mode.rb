@@ -110,10 +110,10 @@ module Textbringer
         bol_pos = @buffer.point
         tokens = Ripper.lex(@buffer.substring(@buffer.point_min,
                                               @buffer.point))
-        _, e, = tokens.last
-        if e == :on_tstring_beg ||
-            e == :on_heredoc_beg ||
-            e == :on_tstring_content
+        _, event, = tokens.last
+        if event == :on_tstring_beg ||
+            event == :on_heredoc_beg ||
+            event == :on_tstring_content
           return nil
         end
         line, column, event, = find_nearest_beginning_token(tokens)
