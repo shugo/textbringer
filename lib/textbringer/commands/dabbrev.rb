@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
 module Textbringer
-  module Dabbrev
+  module DabbrevExtension
     refine Buffer do
-      def dabbrev_expand(contd)
+      def dabbrev_expand(contd = false)
         if contd && self[:dabbrev_stem]
           buffers = self[:dabbrev_buffers]
           buffer = self[:dabbrev_buffer]
@@ -85,7 +85,7 @@ module Textbringer
     end
   end
 
-  using Dabbrev
+  using DabbrevExtension
 
   module Commands
     GLOBAL_MAP.define_key("\e/", :dabbrev_expand_command)
