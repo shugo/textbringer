@@ -191,7 +191,7 @@ module Textbringer
       Curses.beep
     end
 
-    attr_reader :buffer, :lines, :columns, :y, :x
+    attr_reader :buffer, :lines, :columns, :y, :x, :window, :mode_line
 
     def initialize(lines, columns, y, x)
       @lines = lines
@@ -517,7 +517,7 @@ module Textbringer
       @mode_line.addstr(unicode_codepoint(c))
       @mode_line.addstr(" #{line},#{column}")
       @mode_line.addstr(" (#{@buffer.mode&.name || 'None'})")
-      @mode_line.addstr(" " * (@mode_line.maxx - @mode_line.curx))
+      @mode_line.addstr(" " * (columns - @mode_line.curx))
       @mode_line.attroff(Curses::A_REVERSE)
       @mode_line.noutrefresh
     end
