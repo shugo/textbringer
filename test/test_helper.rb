@@ -1,10 +1,10 @@
-require "codecov"
+require "simplecov"
 require "test/unit"
 
 SimpleCov.start
 
 if ENV["UPLOAD_TO_CODECOV"]
-  require "simplecov"
+  require "codecov"
   SimpleCov.formatter = SimpleCov::Formatter::Codecov
 end
 
