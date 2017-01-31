@@ -80,4 +80,82 @@ class TestWindow < Textbringer::TestCase
     assert_equal("y" * @columns, @window.window.contents[@lines - 3])
     assert_equal("z", @window.window.contents[@lines - 2])
   end
+
+  def test_split
+    Window.current.split
+    assert_equal(3, Window.windows.size)
+    assert_equal(0, Window.windows[0].y)
+    assert_equal(12, Window.windows[0].lines)
+    assert_equal(true, Window.windows[0].current?)
+    assert_equal(false, Window.windows[0].echo_area?)
+    assert_equal(12, Window.windows[1].y)
+    assert_equal(11, Window.windows[1].lines)
+    assert_equal(false, Window.windows[1].current?)
+    assert_equal(false, Window.windows[1].echo_area?)
+    assert_equal(Window.windows[0].buffer, Window.windows[1].buffer)
+    assert_equal(23, Window.windows[2].y)
+    assert_equal(1, Window.windows[2].lines)
+    assert_equal(false, Window.windows[2].current?)
+    assert_equal(true, Window.windows[2].echo_area?)
+
+    Window.current.split
+    Window.current.split
+    assert_raise(EditorError) do
+      Window.current.split
+    end
+  end
+
+  def test_s_delete_window
+    assert_raise(EditorError) do
+      Window.delete_window
+    end
+    Window.current.split
+    assert_equal(3, Window.windows.size)
+    window = Window.current
+    Window.current = Window.echo_area
+    assert_raise(EditorError) do
+      Window.delete_window
+    end
+    Window.current = window
+    Window.delete_window
+    assert_equal(true, window.deleted?)
+    assert_equal(2, Window.windows.size)
+    assert_equal(0, Window.windows[0].y)
+    assert_equal(23, Window.windows[0].lines)
+    assert_equal(23, Window.windows[1].y)
+    assert_equal(1, Window.windows[1].lines)
+    assert_equal(Window.windows[0], Window.current)
+
+    Window.current.split
+    assert_equal(3, Window.windows.size)
+    window = Window.current = Window.windows[1]
+    Window.delete_window
+    assert_equal(true, window.deleted?)
+    assert_equal(2, Window.windows.size)
+    assert_equal(0, Window.windows[0].y)
+    assert_equal(23, Window.windows[0].lines)
+    assert_equal(23, Window.windows[1].y)
+    assert_equal(1, Window.windows[1].lines)
+    assert_equal(Window.windows[0], Window.current)
+  end
+
+  def test_s_delete_other_windows
+    Window.current = Window.echo_area
+    assert_raise(EditorError) do
+      Window.delete_other_windows
+    end
+
+    window = Window.current = Window.windows[0]
+    Window.current.split
+    Window.current.split
+    assert_equal(4, Window.windows.size)
+    Window.delete_other_windows
+    assert_equal(false, window.deleted?)
+    assert_equal(2, Window.windows.size)
+    assert_equal(0, Window.windows[0].y)
+    assert_equal(23, Window.windows[0].lines)
+    assert_equal(23, Window.windows[1].y)
+    assert_equal(1, Window.windows[1].lines)
+    assert_equal(Window.windows[0], Window.current)
+  end
 end

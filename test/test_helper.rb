@@ -76,6 +76,18 @@ module Textbringer
       end
     end
 
+    undef move
+    def move(y, x)
+      @y = y
+      @x = x
+    end
+
+    undef resize
+    def resize(lines, columns)
+      @lines = lines
+      @columns = columns
+    end
+
     private
 
     undef initialize_window
