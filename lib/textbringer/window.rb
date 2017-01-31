@@ -365,17 +365,21 @@ module Textbringer
           else
             c = escape(c)
           end
-          newx = curx + Buffer.display_width(c)
-          if newx > columns
-            if cury == lines - 2
-              break
-            else
-              @window.clrtoeol
-              @window.setpos(cury + 1, 0)
+          if curx <= columns - 4
+            newx = nil
+          else
+            newx = curx + Buffer.display_width(c)
+            if newx > columns
+              if cury == lines - 2
+                break
+              else
+                @window.clrtoeol
+                @window.setpos(cury + 1, 0)
+              end
             end
           end
           @window.addstr(c)
-          break if cury == lines - 2 && newx == columns
+          break if newx == columns && cury == lines - 2
           @buffer.forward_char
         end
         if current? && @buffer.visible_mark
