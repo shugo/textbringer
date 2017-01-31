@@ -42,6 +42,8 @@ class TestWindow < Test::Unit::TestCase
   class ::Textbringer::Window
     private
 
+    undef initialize_window
+
     def initialize_window(num_lines, num_columns, y, x)
       @window = FakeCursesWindow.new(num_lines - 1, num_columns, y, x)
       @mode_line = FakeCursesWindow.new(1, num_columns, y + num_lines - 1, x)
