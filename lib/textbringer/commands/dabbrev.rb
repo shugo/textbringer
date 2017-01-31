@@ -14,42 +14,24 @@ module Textbringer
         else
           buffers = Buffer.to_a
           buffer = buffers.pop
-          stem = save_excursion {
-            pos = point
-            backward_word(regexp: /[\p{Letter}\p{Number}_\-]/)
-            substring(point, pos)
-          }
-          if stem.empty?
-            raise "No possible abbreviation"
-          end
+          stem = get_stem_at_point
           pos = point
           direction = :backward
           candidates = []
         end
-        candidates_exclusion = candidates.empty? ? "" :
-          "(?!(?:" + candidates.map { |s|
-            Regexp.quote(s)
-          }.join("|") + ")\\b)"
-        re = /\b#{Regexp.quote(stem)}#{candidates_exclusion}
-              ([\p{Letter}\p{Number}_\-]+)/x
+        re = dabbrev_regexp(stem, candidates)
         candidate = nil
         loop do
           pos, candidate = buffer.dabbrev_search(re, pos, direction)
-          if pos
-            break
+          break if pos
+          if direction == :backward
+            pos = buffer.point
+            direction = :forward
           else
-            if direction == :backward
-              pos = buffer.point
-              direction = :forward
-            else
-              buffer = buffers.pop
-              if buffer
-                pos = buffer.point
-                direction = :backward
-              else
-                break
-              end
-            end
+            buffer = buffers.pop
+            break if buffer.nil?
+            pos = buffer.point
+            direction = :backward
           end
         end
         if !candidates.empty?
@@ -81,6 +63,28 @@ module Textbringer
             nil
           end
         end
+      end
+
+      private
+
+      def get_stem_at_point
+        save_excursion {
+          pos = point
+          backward_word(regexp: /[\p{Letter}\p{Number}_\-]/)
+          if point == pos
+            raise EditorError, "No possible abbreviation"
+          end
+          substring(point, pos)
+        }
+      end
+
+      def dabbrev_regexp(stem, candidates)
+        candidates_exclusion = candidates.empty? ? "" :
+          "(?!(?:" + candidates.map { |s|
+            Regexp.quote(s)
+          }.join("|") + ")\\b)"
+        /\b#{Regexp.quote(stem)}#{candidates_exclusion}
+        ([\p{Letter}\p{Number}_\-]+)/x
       end
     end
   end
