@@ -1,7 +1,9 @@
 require "simplecov"
+require "codecov"
 require "test/unit"
 
 SimpleCov.start
+SimpleCov.formatter = SimpleCov::Formatter::Codecov
 
 require "textbringer"
 
