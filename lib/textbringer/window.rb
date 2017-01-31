@@ -365,7 +365,7 @@ module Textbringer
           else
             c = escape(c)
           end
-          if curx <= columns - 4
+          if curx < columns - 4
             newx = nil
           else
             newx = curx + Buffer.display_width(c)
