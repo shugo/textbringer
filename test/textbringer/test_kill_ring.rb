@@ -1,6 +1,6 @@
 require_relative "../test_helper"
 
-class TestKillRing < Test::Unit::TestCase
+class TestKillRing < Textbringer::TestCase
   include Textbringer
 
   def test_push

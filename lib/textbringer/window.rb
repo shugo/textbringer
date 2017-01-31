@@ -359,6 +359,9 @@ module Textbringer
           if c == "\n"
             @window.clrtoeol
             break if cury == lines - 2   # lines include mode line
+            @window.setpos(cury + 1, 0)
+            @buffer.forward_char
+            next
           elsif c == "\t"
             n = calc_tab_width(curx)
             c = " " * n

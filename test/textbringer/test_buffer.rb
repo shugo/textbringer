@@ -5,7 +5,7 @@ require "tmpdir"
 class TestBuffer < Test::Unit::TestCase
   include Textbringer
 
-  def teardown
+  def setup
     Buffer.kill_em_all
     KILL_RING.clear
   end

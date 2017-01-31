@@ -1,6 +1,6 @@
 require_relative "../test_helper"
 
-class TestDabbrev < Test::Unit::TestCase
+class TestDabbrev < Textbringer::TestCase
   include Textbringer
   using DabbrevExtension
 

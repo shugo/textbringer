@@ -1,6 +1,6 @@
 require_relative "../test_helper"
 
-class TestKeymap < Test::Unit::TestCase
+class TestKeymap < Textbringer::TestCase
   include Textbringer
 
   def test_lookup

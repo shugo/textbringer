@@ -1,6 +1,6 @@
 require_relative "../test_helper"
 
-class TestRubyMode < Test::Unit::TestCase
+class TestRubyMode < Textbringer::TestCase
   include Textbringer
 
   def setup

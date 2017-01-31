@@ -13,7 +13,8 @@ module Textbringer
           candidates = self[:dabbrev_candidates]
         else
           buffers = Buffer.to_a
-          buffer = buffers.pop
+          buffers.delete(self)
+          buffer = self
           stem = get_stem_at_point
           pos = point
           direction = :backward
