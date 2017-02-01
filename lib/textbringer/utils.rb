@@ -283,5 +283,9 @@ module Textbringer
     def ruby_install_name
       RbConfig::CONFIG["ruby_install_name"]
     end
+
+    def insert(s)
+      Buffer.current.insert(s)
+    end
   end
 end
