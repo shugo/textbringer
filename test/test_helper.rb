@@ -1,11 +1,13 @@
 require "simplecov"
 require "test/unit"
 
-SimpleCov.start
+if ENV["COVERAGE"]
+  SimpleCov.start 
 
-if ENV["UPLOAD_TO_CODECOV"]
-  require "codecov"
-  SimpleCov.formatter = SimpleCov::Formatter::Codecov
+  if ENV["UPLOAD_TO_CODECOV"]
+    require "codecov"
+    SimpleCov.formatter = SimpleCov::Formatter::Codecov
+  end
 end
 
 require "textbringer"
