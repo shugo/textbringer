@@ -354,8 +354,8 @@ EOF
   def test_default_compile_command
     Dir.mktmpdir do |dir|
       pwd = Dir.pwd
+      Dir.chdir(dir)
       begin
-        Dir.chdir(dir)
         assert_equal(nil, @ruby_mode.default_compile_command)
         @buffer.file_name = "/path/to/foo.rb"
         assert_equal("#{ruby_install_name} /path/to/foo.rb",
@@ -372,8 +372,8 @@ EOF
 
   def test_toggle_test
     Dir.mktmpdir do |dir|
-      Dir.chdir(dir)
       pwd = Dir.pwd
+      Dir.chdir(dir)
       begin
         FileUtils.mkdir_p("app/models/")
         FileUtils.touch("app/models/sword.rb")
