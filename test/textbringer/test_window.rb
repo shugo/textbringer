@@ -158,4 +158,103 @@ class TestWindow < Textbringer::TestCase
     assert_equal(1, Window.windows[1].lines)
     assert_equal(Window.windows[0], Window.current)
   end
+
+  def test_s_other_window
+    assert_equal(true, @window.current?)
+    Window.other_window
+    assert_equal(true, @window.current?)
+
+    @window.split
+    assert_equal(@window, Window.current)
+    Window.other_window
+    assert_equal(Window.windows[1], Window.current)
+    Window.other_window
+    assert_equal(@window, Window.current)
+
+    @window.split
+    assert_equal(@window, Window.current)
+    Window.other_window
+    assert_equal(Window.windows[1], Window.current)
+    Window.other_window
+    assert_equal(Window.windows[2], Window.current)
+    Window.other_window
+    assert_equal(@window, Window.current)
+
+    Window.echo_area.active = true
+    Window.other_window
+    assert_equal(Window.windows[1], Window.current)
+    Window.other_window
+    assert_equal(Window.windows[2], Window.current)
+    Window.other_window
+    assert_equal(Window.windows[3], Window.current)
+    Window.other_window
+    assert_equal(@window, Window.current)
+  end
+
+  def test_s_resize
+    old_lines = Window.lines
+    old_columns = Window.columns
+    Window.lines = 40
+    Window.columns = 60
+    begin
+      Window.resize
+      assert_equal(0, Window.windows[0].y)
+      assert_equal(0, Window.windows[0].x)
+      assert_equal(60, Window.windows[0].columns)
+      assert_equal(39, Window.windows[0].lines)
+      assert_equal(39, Window.windows[1].y)
+      assert_equal(0, Window.windows[1].x)
+      assert_equal(60, Window.windows[1].columns)
+      assert_equal(1, Window.windows[1].lines)
+
+      @window.split
+      assert_equal(3, Window.windows.size)
+      assert_equal(0, Window.windows[0].y)
+      assert_equal(0, Window.windows[0].x)
+      assert_equal(60, Window.windows[0].columns)
+      assert_equal(20, Window.windows[0].lines)
+      assert_equal(20, Window.windows[1].y)
+      assert_equal(0, Window.windows[1].x)
+      assert_equal(60, Window.windows[1].columns)
+      assert_equal(19, Window.windows[1].lines)
+      assert_equal(39, Window.windows[2].y)
+      assert_equal(0, Window.windows[2].x)
+      assert_equal(60, Window.windows[2].columns)
+      assert_equal(1, Window.windows[2].lines)
+
+      Window.lines = 24
+      Window.other_window
+      Window.resize
+      assert_equal(3, Window.windows.size)
+      assert_equal(Window.windows[1], Window.current)
+      assert_equal(0, Window.windows[0].y)
+      assert_equal(0, Window.windows[0].x)
+      assert_equal(60, Window.windows[0].columns)
+      assert_equal(20, Window.windows[0].lines)
+      assert_equal(20, Window.windows[1].y)
+      assert_equal(0, Window.windows[1].x)
+      assert_equal(60, Window.windows[1].columns)
+      assert_equal(3, Window.windows[1].lines)
+      assert_equal(23, Window.windows[2].y)
+      assert_equal(0, Window.windows[2].x)
+      assert_equal(60, Window.windows[2].columns)
+      assert_equal(1, Window.windows[2].lines)
+
+      Window.lines = 23
+      Window.resize
+      assert_equal(2, Window.windows.size)
+      assert_equal(Window.windows[0], Window.current)
+      assert_equal(0, Window.windows[0].y)
+      assert_equal(0, Window.windows[0].x)
+      assert_equal(60, Window.windows[0].columns)
+      assert_equal(22, Window.windows[0].lines)
+      assert_equal(22, Window.windows[1].y)
+      assert_equal(0, Window.windows[1].x)
+      assert_equal(60, Window.windows[1].columns)
+      assert_equal(1, Window.windows[1].lines)
+    ensure
+      Window.lines = old_lines
+      Window.columns = old_columns
+    end
+  end
 end

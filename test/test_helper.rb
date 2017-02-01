@@ -55,15 +55,26 @@ module Textbringer
   end
 
   class Window
+    @fake_lines = 24
+    @fake_columns = 80
+
     class << self
       undef lines
       def lines
-        24
+        @fake_lines
+      end
+
+      def lines=(lines)
+        @fake_lines = lines
       end
 
       undef columns
       def columns
-        80
+        @fake_columns
+      end
+
+      def columns=(columns)
+        @fake_columns = columns
       end
 
       def setup
