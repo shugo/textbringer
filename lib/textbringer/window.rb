@@ -535,13 +535,13 @@ module Textbringer
 
     def escape(s)
       if @buffer.binary?
-        s.gsub(/[\0-\b\v-\x1f]/) { |c|
+        s.gsub(/[\0-\b\v-\x1f\x7f]/) { |c|
           "^" + (c.ord ^ 0x40).chr
         }.gsub(/[\x80-\xff]/n) { |c|
           "<%02X>" % c.ord
         }
       else
-        s.gsub(/[\0-\b\v-\x1f]/) { |c|
+        s.gsub(/[\0-\b\v-\x1f\x7f]/) { |c|
           "^" + (c.ord ^ 0x40).chr
         }
       end
