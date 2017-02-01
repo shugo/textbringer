@@ -99,26 +99,20 @@ module Textbringer
       end
     end
 
-    private
-
     def key_name(key)
       case key
-      when Integer
-        if key < 0x80
-          s = Curses.keyname(key)
-          case s
-          when /\AKEY_(.*)/
-            "<#{$1.downcase}>"
-          else
-            s
-          end
-        else
-          key.chr(Encoding::UTF_8)
-        end
+      when Symbol
+        "<#{key}>"
+      when "\e"
+        "ESC"
+      when /\A[\0-\b\v-\x1f\x7f]\z/
+        "C-" + (key.ord ^ 0x40).chr.downcase
       else
         key.to_s
       end
     end
+
+    private
 
     def key_binding(key_sequence)
       @overriding_map&.lookup(key_sequence) ||
