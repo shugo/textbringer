@@ -2,7 +2,10 @@ require "simplecov"
 require "test/unit"
 
 if ENV["COVERAGE"]
-  SimpleCov.start 
+  SimpleCov.profiles.define "textbringer" do
+    add_filter "/test/"
+  end
+  SimpleCov.start("textbringer")
 
   if ENV["UPLOAD_TO_CODECOV"]
     require "codecov"
