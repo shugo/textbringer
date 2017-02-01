@@ -31,6 +31,24 @@ module Textbringer
       @contents = @lines.times.map { String.new }
     end
 
+    def move(y, x)
+      @y = y
+      @x = x
+    end
+
+    def resize(lines, columns)
+      @lines = lines
+      @columns = columns
+    end
+
+    def maxy
+      @lines
+    end
+
+    def maxx
+      @columns
+    end
+
     def erase
       @contents.each do |line|
         line.clear
@@ -93,18 +111,6 @@ module Textbringer
         @@echo_area.buffer = Buffer.minibuffer
         @@windows.push(@@echo_area)
       end
-    end
-
-    undef move
-    def move(y, x)
-      @y = y
-      @x = x
-    end
-
-    undef resize
-    def resize(lines, columns)
-      @lines = lines
-      @columns = columns
     end
 
     private
