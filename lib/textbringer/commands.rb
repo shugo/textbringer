@@ -388,14 +388,14 @@ module Textbringer
     end
 
     define_command(:exit_recursive_edit) do
-      if @recursive_edit_level == 0
+      if Controller.current.recursive_edit_level == 0
         raise EditorError, "No recursive edit is in progress"
       end
       throw RECURSIVE_EDIT_TAG, false
     end
 
     define_command(:abort_recursive_edit) do
-      if @recursive_edit_level == 0
+      if Controller.current.recursive_edit_level == 0
         raise EditorError, "No recursive edit is in progress"
       end
       throw RECURSIVE_EDIT_TAG, true

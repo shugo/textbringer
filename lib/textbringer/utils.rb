@@ -19,7 +19,7 @@ module Textbringer
           if buffer.current_line > 1000
             buffer.beginning_of_buffer
             10.times do
-              buffer.next_line
+              buffer.forward_line
             end
             buffer.delete_region(buffer.point_min, buffer.point)
             buffer.end_of_buffer
@@ -56,7 +56,7 @@ module Textbringer
       Controller.current.received_keyboard_quit?
     end
 
-    def handle_exception(e)
+    def show_exception(e)
       if e.is_a?(SystemExit)
         raise
       end
@@ -69,8 +69,10 @@ module Textbringer
         begin
           buffer.delete_region(buffer.point_min, buffer.point_max)
           buffer.insert("#{e.class}: #{e}\n")
-          e.backtrace.each do |line|
-            buffer.insert(line + "\n")
+          if e.backtrace
+            e.backtrace.each do |line|
+              buffer.insert(line + "\n")
+            end
           end
           buffer.beginning_of_buffer
         ensure
@@ -152,7 +154,7 @@ module Textbringer
       File.expand_path(file)
     end
 
-    def complete(s, candidates)
+    def complete_for_minibuffer(s, candidates)
       xs = candidates.select { |i| i.start_with?(s) }
       if xs.size > 0
         y, *ys = xs
@@ -167,13 +169,13 @@ module Textbringer
     end
 
     def read_buffer(prompt, default: (Buffer.last || Buffer.current)&.name)
-      f = ->(s) { complete(s, Buffer.names) }
+      f = ->(s) { complete_for_minibuffer(s, Buffer.names) }
       read_from_minibuffer(prompt, completion_proc: f, default: default)
     end
 
     def read_command_name(prompt)
       f = ->(s) {
-        complete(s.tr("-", "_"), Commands.list.map(&:to_s))
+        complete_for_minibuffer(s.tr("-", "_"), Commands.list.map(&:to_s))
       }
       read_from_minibuffer(prompt, completion_proc: f)
     end

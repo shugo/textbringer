@@ -16,17 +16,25 @@ end
 require "textbringer"
 
 module Textbringer
-  null_controller = Object.new
+  class TestController < Controller
+    attr_reader :test_key_buffer
 
-  def null_controller.current_prefix_arg
-    nil
+    def initialize(*args)
+      super
+      @test_key_buffer = []
+    end
+
+    def read_char
+      if @test_key_buffer.empty?
+        raise EditorError, "no more input"
+      end
+      @test_key_buffer.shift
+    end
+
+    def received_keyboard_quit?
+      false
+    end
   end
-
-  def null_controller.method_missing(mid, *args)
-    nil
-  end
-
-  Controller.current = null_controller
 
   class FakeCursesWindow
     attr_reader :cury, :curx, :contents
@@ -148,9 +156,23 @@ module Textbringer
 
   class TestCase < Test::Unit::TestCase
     def setup
+      Controller.current = TestController.new
       Buffer.kill_em_all
       KILL_RING.clear
       Window.setup_for_test
+    end
+
+    private
+
+    def push_key(key)
+      Controller.current.test_key_buffer.push(key)
+    end
+
+    def push_keys(keys)
+      if keys.is_a?(String)
+        keys = keys.chars
+      end
+      Controller.current.test_key_buffer.concat(keys)
     end
   end
 end

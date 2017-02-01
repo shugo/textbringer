@@ -3,6 +3,7 @@ require "tmpdir"
 
 class TestRubyMode < Textbringer::TestCase
   def setup
+    super
     @buffer = Buffer.new_buffer("foo.rb")
     @ruby_mode = RubyMode.new(@buffer)
     switch_to_buffer(@buffer)

@@ -636,6 +636,7 @@ module Textbringer
   end
 
   class EchoArea < Window
+    attr_reader :message
     attr_accessor :prompt
     attr_writer :active
 

@@ -7,7 +7,7 @@ module Textbringer
   class Controller
     attr_accessor :this_command, :last_command, :overriding_map
     attr_accessor :prefix_arg, :current_prefix_arg
-    attr_reader :last_key
+    attr_reader :last_key, :recursive_edit_level
 
     @@current = nil
 
@@ -34,7 +34,7 @@ module Textbringer
       catch(tag) do
         loop do
           begin
-            c = Window.current.read_char
+            c = read_char
             Window.echo_area.clear_message
             @last_key = c
             @key_sequence << @last_key
@@ -64,7 +64,7 @@ module Textbringer
               end
             end
           rescue Exception => e
-            handle_exception(e)
+            show_exception(e)
           end
           Window.redisplay
         end
