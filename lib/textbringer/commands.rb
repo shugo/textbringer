@@ -530,26 +530,31 @@ module Textbringer
       string: "",
       last_string: "",
       start: 0,
-      last_pos: 0
+      last_pos: 0,
+      recursive_edit: false
     }
 
-    define_command(:isearch_forward) do
-      isearch_mode(true)
+    define_command(:isearch_forward) do |**options|
+      isearch_mode(true, **options)
     end
 
-    define_command(:isearch_backward) do
-      isearch_mode(false)
+    define_command(:isearch_backward) do |**options|
+      isearch_mode(false, **options)
     end
 
-    def isearch_mode(forward)
+    def isearch_mode(forward, recursive_edit: false)
       ISEARCH_STATUS[:forward] = forward
       ISEARCH_STATUS[:string] = String.new
+      ISEARCH_STATUS[:recursive_edit] = recursive_edit
       Controller.current.overriding_map = ISEARCH_MODE_MAP
       run_hooks(:isearch_mode_hook)
       add_hook(:pre_command_hook, :isearch_pre_command_hook)
       ISEARCH_STATUS[:start] = ISEARCH_STATUS[:last_pos] = Buffer.current.point
       if Buffer.current != Buffer.minibuffer
         message(isearch_prompt, log: false)
+      end
+      if recursive_edit
+        recursive_edit()
       end
     end
 
@@ -572,6 +577,9 @@ module Textbringer
       Controller.current.overriding_map = nil
       remove_hook(:pre_command_hook, :isearch_pre_command_hook)
       ISEARCH_STATUS[:last_string] = ISEARCH_STATUS[:string]
+      if ISEARCH_STATUS[:recursive_edit]
+        exit_recursive_edit
+      end
     end
 
     define_command(:isearch_exit) do
