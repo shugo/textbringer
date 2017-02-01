@@ -1,0 +1,7 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+Foo	foo.rb	/^class Foo$/;"	c
+bar	foo.rb	/^  def bar$/;"	f	class:Foo
+baz	foo.rb	?^  def baz$?;"	f	class:Foo
+foo	foo.rb	2;"	f	class:Foo
+foo	test.rb	/^def foo$/;"	f	class:Object
