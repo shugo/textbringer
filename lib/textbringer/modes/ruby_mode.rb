@@ -89,14 +89,67 @@ module Textbringer
       end
     end
 
-    def compile
-      cmd = read_from_minibuffer("Compile: ", default: default_compile_command)
+    def compile(cmd = read_from_minibuffer("Compile: ",
+                                           default: default_compile_command))
       shell_execute(cmd, "*Ruby compile result*")
       backtrace_mode
     end
 
     def symbol_pattern
       /[\p{Letter}\p{Number}_$@!?]/
+    end
+
+    def default_compile_command
+      @buffer[:ruby_compile_command] ||
+        if File.exist?("Rakefile")
+          prefix = File.exist?("Gemfile") ? "bundle exec " : ""
+          prefix + "rake"
+        elsif @buffer.file_name
+          "ruby " + @buffer.file_name
+        else
+          nil
+        end
+    end
+
+    def toggle_test
+      case @buffer.file_name
+      when %r'(.*)/test/(.*/)?test_(.*?)\.rb\z'
+        base = $1
+        namespace = $2
+        name = $3
+        if namespace
+          paths = Dir.glob("#{base}/{lib,app}/**/#{namespace}#{name}.rb")
+          if !paths.empty?
+            find_file(paths.first)
+            return
+          end
+        end
+        paths = Dir.glob("#{base}/{lib,app}/**/#{name}.rb")
+        if !paths.empty?
+          find_file(paths.first)
+          return
+        end
+        raise EditorError, "Test subject not found"
+      when %r'(.*)/(?:lib|app)/(.*/)?(.*?)\.rb\z'
+        base = $1
+        namespace = $2
+        name = $3
+        if namespace
+          paths = Dir.glob("#{base}/test/**/#{namespace}test_#{name}.rb")
+          if !paths.empty?
+            find_file(paths.first)
+            return
+          end
+        end
+        paths = Dir.glob("#{base}/test/**/test_#{name}.rb")
+        if !paths.empty?
+          find_file(paths.first)
+          return
+        end
+        raise EditorError, "Test not found"
+      else
+        raise EditorError, "Unknown file type"
+      end
     end
 
     private
@@ -201,57 +254,6 @@ module Textbringer
         end
       end
       return nil
-    end
-
-    def default_compile_command
-      @buffer[:ruby_compile_command] ||
-        if File.exist?("Rakefile")
-          prefix = File.exist?("Gemfile") ? "bundle exec " : ""
-          prefix + "rake"
-        else
-          "ruby " + @buffer.file_name
-        end
-    end
-
-    def toggle_test
-      case @buffer.file_name
-      when %r'(.*)/test/(.*/)?test_(.*?)\.rb\z'
-        base = $1
-        namespace = $2
-        name = $3
-        if namespace
-          paths = Dir.glob("#{base}/{lib,app}/**/#{namespace}#{name}.rb")
-          if !paths.empty?
-            find_file(paths.first)
-            return
-          end
-        end
-        paths = Dir.glob("#{base}/{lib,app}/**/#{name}.rb")
-        if !paths.empty?
-          find_file(paths.first)
-          return
-        end
-        raise EditorError, "Test subject not found"
-      when %r'(.*)/(?:lib|app)/(.*/)?(.*?)\.rb\z'
-        base = $1
-        namespace = $2
-        name = $3
-        if namespace
-          paths = Dir.glob("#{base}/test/**/#{namespace}test_#{name}.rb")
-          if !paths.empty?
-            find_file(paths.first)
-            return
-          end
-        end
-        paths = Dir.glob("#{base}/test/**/test_#{name}.rb")
-        if !paths.empty?
-          find_file(paths.first)
-          return
-        end
-        raise EditorError, "Test not found"
-      else
-        raise EditorError, "Unknown file type"
-      end
     end
   end
 end

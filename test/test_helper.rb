@@ -100,6 +100,7 @@ module Textbringer
         @fake_columns = columns
       end
 
+      undef update
       def update
       end
 
@@ -137,6 +138,9 @@ module Textbringer
   end
 
   class TestCase < Test::Unit::TestCase
+    include Textbringer
+    include Commands
+
     def setup
       Buffer.kill_em_all
       KILL_RING.clear

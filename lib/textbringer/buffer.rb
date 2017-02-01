@@ -1113,7 +1113,7 @@ module Textbringer
     def apply_mode(mode_class)
       @keymap = nil
       @mode = mode_class.new(self)
-      run_hooks(mode_class.hook_name)
+      Utils.run_hooks(mode_class.hook_name)
     end
 
     def indent_to(column)

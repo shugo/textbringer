@@ -1,11 +1,11 @@
 require_relative "../test_helper"
+require "tmpdir"
 
 class TestRubyMode < Textbringer::TestCase
-  include Textbringer
-
   def setup
-    @buffer = Buffer.new
+    @buffer = Buffer.new_buffer("foo.rb")
     @ruby_mode = RubyMode.new(@buffer)
+    switch_to_buffer(@buffer)
   end
 
   def test_indent_line_class
@@ -334,5 +334,84 @@ EOF
     assert_equal(1, @buffer.current_column)
     @ruby_mode.backward_definition
     assert_equal(true, @buffer.beginning_of_buffer?)
+  end
+
+  def test_compile
+    @ruby_mode.compile("#{ruby_install_name} -e 'puts %<hello world>'")
+  end
+
+  def test_symbol_pattern
+    assert_match(@ruby_mode.symbol_pattern, "a")
+    assert_match(@ruby_mode.symbol_pattern, "0")
+    assert_match(@ruby_mode.symbol_pattern, "あ")
+    assert_match(@ruby_mode.symbol_pattern, "_")
+    assert_match(@ruby_mode.symbol_pattern, "?")
+    assert_match(@ruby_mode.symbol_pattern, "!")
+    assert_match(@ruby_mode.symbol_pattern, "$")
+    assert_match(@ruby_mode.symbol_pattern, "@")
+  end
+
+  def test_default_compile_command
+    pwd = Dir.pwd
+    begin
+      Dir.mktmpdir do |dir|
+        Dir.chdir(dir)
+        assert_equal(nil, @ruby_mode.default_compile_command)
+        @buffer.file_name = "/path/to/foo.rb"
+        assert_equal("#{ruby_install_name} /path/to/foo.rb",
+                     @ruby_mode.default_compile_command)
+        FileUtils.touch("Rakefile")
+        assert_equal("rake", @ruby_mode.default_compile_command)
+        FileUtils.touch("Gemfile")
+        assert_equal("bundle exec rake", @ruby_mode.default_compile_command)
+      end
+    ensure
+      Dir.chdir(pwd)
+    end
+  end
+
+  def test_toggle_test
+    pwd = Dir.pwd
+    begin
+      Dir.mktmpdir do |dir|
+        Dir.chdir(dir)
+        FileUtils.mkdir_p("app/models/")
+        FileUtils.touch("app/models/sword.rb")
+        FileUtils.touch("app/models/shield.rb")
+        FileUtils.mkdir_p("lib/roles")
+        FileUtils.touch("lib/roles/fighter.rb")
+        FileUtils.touch("lib/roles/monk.rb")
+        FileUtils.touch("lib/roles/white_mage.rb")
+        FileUtils.mkdir_p("test/models")
+        FileUtils.touch("test/models/test_sword.rb")
+        FileUtils.touch("test/models/test_shield.rb")
+        FileUtils.mkdir_p("test/roles")
+        FileUtils.touch("test/roles/test_fighter.rb")
+        FileUtils.touch("test/test_monk.rb")
+        FileUtils.touch("test/roles/test_white_mage.rb")
+
+        find_file("app/models/sword.rb")
+        assert_equal(File.expand_path("app/models/sword.rb"),
+                     Buffer.current.file_name)
+        toggle_test_command
+        assert_equal(File.expand_path("test/models/test_sword.rb"),
+                     Buffer.current.file_name)
+        toggle_test_command
+        assert_equal(File.expand_path("app/models/sword.rb"),
+                     Buffer.current.file_name)
+
+        find_file("lib/roles/monk.rb")
+        assert_equal(File.expand_path("lib/roles/monk.rb"),
+                     Buffer.current.file_name)
+        toggle_test_command
+        assert_equal(File.expand_path("test/test_monk.rb"),
+                     Buffer.current.file_name)
+        toggle_test_command
+        assert_equal(File.expand_path("lib/roles/monk.rb"),
+                     Buffer.current.file_name)
+      end
+    ensure
+      Dir.chdir(pwd)
+    end
   end
 end

@@ -1,7 +1,11 @@
 # frozen_string_literal: true
 
+require "rbconfig"
+
 module Textbringer
   module Utils
+    module_function
+
     def message(msg, log: true, sit_for: nil, sleep_for: nil)
       if log && Buffer.current.name != "*Messages*"
         buffer = Buffer["*Messages*"] ||
@@ -272,6 +276,10 @@ module Textbringer
       }
       add_hook(:pre_command_hook, hook)
       Controller.current.overriding_map = map
+    end
+
+    def ruby_install_name
+      RbConfig::CONFIG["ruby_install_name"]
     end
   end
 end
