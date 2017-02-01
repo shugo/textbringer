@@ -100,11 +100,15 @@ module Textbringer
         @fake_columns = columns
       end
 
+      undef beep
+      def beep
+      end
+
       undef update
       def update
       end
 
-      def setup
+      def setup_for_test
         @@windows.clear
         window =
           Textbringer::Window.new(Window.lines - 1, Window.columns, 0, 0)
@@ -144,7 +148,7 @@ module Textbringer
     def setup
       Buffer.kill_em_all
       KILL_RING.clear
-      Window.setup
+      Window.setup_for_test
     end
   end
 end
