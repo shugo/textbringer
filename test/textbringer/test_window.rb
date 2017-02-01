@@ -81,6 +81,36 @@ class TestWindow < Textbringer::TestCase
     assert_equal("z", @window.window.contents[@lines - 2])
   end
 
+  def test_redisplay_tabs
+    @buffer.insert("\tfoo\n")
+    @buffer.insert("bar\tbaz\n")
+    @buffer.insert("quuuuuux\tquux\n")
+    @window.redisplay
+    assert_equal(<<EOF + "\n" * 19, window_string(@window))
+        foo
+bar     baz
+quuuuuux        quux
+EOF
+  end
+  
+  def test_redisplay_escape
+    @buffer.file_encoding = Encoding::ASCII_8BIT
+    @buffer.insert((0..0xff).map(&:chr).join)
+    @window.redisplay
+    assert_equal(<<'EOF' + "\n" * 12, window_string(@window))
+^@^A^B^C^D^E^F^G^H      
+^K^L^M^N^O^P^Q^R^S^T^U^V^W^X^Y^Z^[^\^]^^^_ !"#$%&'()*+,-./0123456789:;<=>?@ABCDE
+FGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~<80><81><82><83><84>
+<85><86><87><88><89><8A><8B><8C><8D><8E><8F><90><91><92><93><94><95><96><97><98>
+<99><9A><9B><9C><9D><9E><9F><A0><A1><A2><A3><A4><A5><A6><A7><A8><A9><AA><AB><AC>
+<AD><AE><AF><B0><B1><B2><B3><B4><B5><B6><B7><B8><B9><BA><BB><BC><BD><BE><BF><C0>
+<C1><C2><C3><C4><C5><C6><C7><C8><C9><CA><CB><CC><CD><CE><CF><D0><D1><D2><D3><D4>
+<D5><D6><D7><D8><D9><DA><DB><DC><DD><DE><DF><E0><E1><E2><E3><E4><E5><E6><E7><E8>
+<E9><EA><EB><EC><ED><EE><EF><F0><F1><F2><F3><F4><F5><F6><F7><F8><F9><FA><FB><FC>
+<FD><FE><FF>
+EOF
+  end
+
   def test_split
     Window.current.split
     assert_equal(3, Window.windows.size)
@@ -256,5 +286,11 @@ class TestWindow < Textbringer::TestCase
       Window.lines = old_lines
       Window.columns = old_columns
     end
+  end
+
+  private
+
+  def window_string(window)
+    window.window.contents.join("\n") + "\n"
   end
 end
