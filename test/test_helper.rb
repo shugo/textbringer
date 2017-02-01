@@ -1,16 +1,14 @@
 require "simplecov"
 require "test/unit"
 
-if ENV["COVERAGE"]
-  SimpleCov.profiles.define "textbringer" do
-    add_filter "/test/"
-  end
-  SimpleCov.start("textbringer")
+SimpleCov.profiles.define "textbringer" do
+  add_filter "/test/"
+end
+SimpleCov.start("textbringer")
 
-  if ENV["UPLOAD_TO_CODECOV"]
-    require "codecov"
-    SimpleCov.formatter = SimpleCov::Formatter::Codecov
-  end
+if ENV["UPLOAD_TO_CODECOV"]
+  require "codecov"
+  SimpleCov.formatter = SimpleCov::Formatter::Codecov
 end
 
 require "textbringer"
