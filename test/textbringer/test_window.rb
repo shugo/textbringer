@@ -86,18 +86,28 @@ class TestWindow < Textbringer::TestCase
     @buffer.insert("bar\tbaz\n")
     @buffer.insert("quuuuuux\tquux\n")
     @window.redisplay
-    assert_equal(<<EOF + "\n" * 19, window_string(@window))
+    assert_equal(<<EOF + "\n" * 19, window_string(@window.window))
         foo
 bar     baz
 quuuuuux        quux
 EOF
   end
+
+  def test_redisplay_escape_utf8
+    @buffer.insert((0..0x7f).map(&:chr).join + "あいうえお")
+    @window.redisplay
+    assert_equal(<<'EOF' + "\n" * 19, window_string(@window.window))
+^@^A^B^C^D^E^F^G^H      
+^K^L^M^N^O^P^Q^R^S^T^U^V^W^X^Y^Z^[^\^]^^^_ !"#$%&'()*+,-./0123456789:;<=>?@ABCDE
+FGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~あいうえお
+EOF
+  end
   
-  def test_redisplay_escape
+  def test_redisplay_escape_binary
     @buffer.file_encoding = Encoding::ASCII_8BIT
     @buffer.insert((0..0xff).map(&:chr).join)
     @window.redisplay
-    assert_equal(<<'EOF' + "\n" * 12, window_string(@window))
+    assert_equal(<<'EOF' + "\n" * 12, window_string(@window.window))
 ^@^A^B^C^D^E^F^G^H      
 ^K^L^M^N^O^P^Q^R^S^T^U^V^W^X^Y^Z^[^\^]^^^_ !"#$%&'()*+,-./0123456789:;<=>?@ABCDE
 FGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~<80><81><82><83><84>
@@ -288,9 +298,27 @@ EOF
     end
   end
 
+  def test_echo_area_redisplay
+    Window.echo_area.redisplay
+    assert_equal("\n", window_string(Window.echo_area.window))
+    Window.echo_area.show("foo")
+    Window.echo_area.redisplay
+    assert_equal("foo\n", window_string(Window.echo_area.window))
+    Window.echo_area.clear_message
+    Window.echo_area.prompt = "bar: "
+    Window.echo_area.redisplay
+    assert_equal("bar: \n", window_string(Window.echo_area.window))
+    Buffer.minibuffer.insert("baz")
+    Window.echo_area.redisplay
+    assert_equal("bar: baz\n", window_string(Window.echo_area.window))
+    Window.echo_area.clear
+    Window.echo_area.redisplay
+    assert_equal("\n", window_string(Window.echo_area.window))
+  end
+
   private
 
   def window_string(window)
-    window.window.contents.join("\n") + "\n"
+    window.contents.join("\n") + "\n"
   end
 end
