@@ -352,9 +352,9 @@ EOF
   end
 
   def test_default_compile_command
-    pwd = Dir.pwd
-    begin
-      Dir.mktmpdir do |dir|
+    Dir.mktmpdir do |dir|
+      pwd = Dir.pwd
+      begin
         Dir.chdir(dir)
         assert_equal(nil, @ruby_mode.default_compile_command)
         @buffer.file_name = "/path/to/foo.rb"
@@ -364,17 +364,17 @@ EOF
         assert_equal("rake", @ruby_mode.default_compile_command)
         FileUtils.touch("Gemfile")
         assert_equal("bundle exec rake", @ruby_mode.default_compile_command)
+      ensure
+        Dir.chdir(pwd)
       end
-    ensure
-      Dir.chdir(pwd)
     end
   end
 
   def test_toggle_test
-    pwd = Dir.pwd
-    begin
-      Dir.mktmpdir do |dir|
-        Dir.chdir(dir)
+    Dir.mktmpdir do |dir|
+      Dir.chdir(dir)
+      pwd = Dir.pwd
+      begin
         FileUtils.mkdir_p("app/models/")
         FileUtils.touch("app/models/sword.rb")
         FileUtils.touch("app/models/shield.rb")
@@ -409,9 +409,9 @@ EOF
         toggle_test_command
         assert_equal(File.expand_path("lib/roles/monk.rb"),
                      Buffer.current.file_name)
+      ensure
+        Dir.chdir(pwd)
       end
-    ensure
-      Dir.chdir(pwd)
     end
   end
 end
