@@ -16,7 +16,7 @@ end
 require "textbringer"
 
 module Textbringer
-  class TestController < Controller
+  class FakeController < Controller
     attr_reader :test_key_buffer
 
     def initialize(*args)
@@ -156,7 +156,7 @@ module Textbringer
 
   class TestCase < Test::Unit::TestCase
     def setup
-      Controller.current = TestController.new
+      Controller.current = FakeController.new
       Buffer.kill_em_all
       KILL_RING.clear
       Window.setup_for_test
