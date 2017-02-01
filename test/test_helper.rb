@@ -77,6 +77,9 @@ module Textbringer
         @fake_columns = columns
       end
 
+      def update
+      end
+
       def setup
         @@windows.clear
         window =
