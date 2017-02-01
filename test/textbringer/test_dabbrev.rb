@@ -1,13 +1,7 @@
 require_relative "../test_helper"
 
 class TestDabbrev < Textbringer::TestCase
-  include Textbringer
   using DabbrevExtension
-
-  def teardown
-    Buffer.kill_em_all
-    KILL_RING.clear
-  end
 
   def test_dabbrev_expand
     buffer = Buffer.new_buffer("foo")

@@ -16,11 +16,16 @@ end
 require "textbringer"
 
 module Textbringer
-
   null_controller = Object.new
+
+  def null_controller.current_prefix_arg
+    nil
+  end
+
   def null_controller.method_missing(mid, *args)
     nil
   end
+
   Controller.current = null_controller
 
   class FakeCursesWindow
@@ -142,9 +147,6 @@ module Textbringer
   end
 
   class TestCase < Test::Unit::TestCase
-    include Textbringer
-    include Commands
-
     def setup
       Buffer.kill_em_all
       KILL_RING.clear
@@ -152,3 +154,6 @@ module Textbringer
     end
   end
 end
+
+include Textbringer
+include Commands
