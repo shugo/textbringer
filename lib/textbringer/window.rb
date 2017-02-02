@@ -192,6 +192,7 @@ module Textbringer
     end
 
     attr_reader :buffer, :lines, :columns, :y, :x, :window, :mode_line
+    attr_reader :top_of_window, :bottom_of_window
 
     def initialize(lines, columns, y, x)
       @lines = lines

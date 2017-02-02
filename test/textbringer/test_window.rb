@@ -298,6 +298,75 @@ EOF
     end
   end
 
+  def test_s_current
+    window = Window.current
+    window.split
+    assert_equal(3, Window.windows.size)
+    Window.delete_window
+    Window.current = window
+    assert_not_equal(window, Window.current)
+    assert_equal(Window.windows.first, Window.current)
+  end
+
+  def test_s_readraw
+    assert_nothing_raised do
+      Window.redraw
+    end
+  end
+
+  def test_s_recenter
+    (1..100).each do |i|
+      @buffer.insert("line#{i}\n")
+    end
+    @buffer.goto_line(21)
+    Window.recenter
+    @buffer.point_to_mark(@window.top_of_window)
+    assert_equal(10, @buffer.current_line)
+  end
+
+  def test_scroll_up
+    (1..60).each do |i|
+      @buffer.insert("line#{i}\n")
+    end
+    @buffer.beginning_of_buffer
+    @window.redisplay
+    @window.scroll_up
+    @window.redisplay
+    assert_equal(21, @buffer.current_line)
+    @window.scroll_up
+    @window.redisplay
+    assert_equal(41, @buffer.current_line)
+    @window.scroll_up
+    @window.redisplay
+    assert_equal(60, @buffer.current_line)
+    pos = @window.top_of_window.location
+    @window.scroll_up
+    @window.redisplay
+    assert_equal(60, @buffer.current_line)
+    assert_equal(pos, @window.top_of_window.location)
+  end
+
+  def test_scroll_down
+    (1..60).each do |i|
+      @buffer.insert("line#{i}\n")
+    end
+    @window.redisplay
+    @window.scroll_down
+    @window.redisplay
+    assert_equal(41, @buffer.current_line)
+    @window.scroll_down
+    @window.redisplay
+    assert_equal(21, @buffer.current_line)
+    @window.scroll_down
+    @window.redisplay
+    assert_equal(2, @buffer.current_line)
+    pos = @window.top_of_window.location
+    @window.scroll_down
+    @window.redisplay
+    assert_equal(2, @buffer.current_line)
+    assert_equal(pos, @window.top_of_window.location)
+  end
+
   def test_echo_area_redisplay
     Window.echo_area.redisplay
     assert_equal("\n", window_string(Window.echo_area.window))
