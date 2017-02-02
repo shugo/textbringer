@@ -118,83 +118,6 @@ module Textbringer
       Controller.current.this_command = :yank
     end
 
-    RE_SEARCH_STATUS = {
-      last_regexp: nil
-    }
-
-    define_command(:re_search_forward) do
-      |s = read_from_minibuffer("RE search: ",
-                                default: RE_SEARCH_STATUS[:last_regexp])|
-      RE_SEARCH_STATUS[:last_regexp] = s
-      Buffer.current.re_search_forward(s)
-    end
-
-    define_command(:re_search_backward) do
-      |s = read_from_minibuffer("RE search backward: ",
-                                default: RE_SEARCH_STATUS[:last_regexp])|
-      RE_SEARCH_STATUS[:last_regexp] = s
-      Buffer.current.re_search_backward(s)
-    end
-
-    def match_beginning(n)
-      Buffer.current.match_beginning(n)
-    end
-
-    def match_end(n)
-      Buffer.current.match_end(n)
-    end
-
-    def match_string(n)
-      Buffer.current.match_string(n)
-    end
-
-    def replace_match(s)
-      Buffer.current.replace_match(s)
-    end
-
-    define_command(:query_replace_regexp) do
-      |regexp = read_from_minibuffer("Query replace regexp: "),
-       to_str = read_from_minibuffer("with: ")|
-      n = 0
-      begin
-        loop do
-          re_search_forward(regexp)
-          Window.current.recenter_if_needed
-          Buffer.current.set_visible_mark(match_beginning(0))
-          begin
-            Window.redisplay
-            c = read_single_char("Replace?", [?y, ?n, ?!, ?q, ?.])
-            case c
-            when ?y
-              replace_match(to_str)
-              n += 1
-            when ?n
-              # do nothing
-            when ?!
-              replace_match(to_str)
-              n += 1 + Buffer.current.replace_regexp_forward(regexp, to_str)
-              Buffer.current.merge_undo(2)
-              break
-            when ?q
-              break
-            when ?.
-              replace_match(to_str)
-              n += 1
-              break
-            end
-          ensure
-            Buffer.current.delete_visible_mark
-          end
-        end
-      rescue SearchError
-      end
-      if n == 1
-        message("Replaced 1 occurrence")
-      else
-        message("Replaced #{n} occurrences")
-      end
-    end
-
     define_command(:undo) do
       Buffer.current.undo
       message("Undo!")
@@ -259,26 +182,6 @@ module Textbringer
       Dir.chdir(dir_name)
     end
 
-    define_command(:find_file) do
-      |file_name = read_file_name("Find file: ")|
-      buffer = Buffer.find_file(file_name)
-      if buffer.new_file?
-        message("New file")
-      end
-      switch_to_buffer(buffer)
-      shebang = buffer.save_excursion {
-        buffer.beginning_of_buffer
-        buffer.looking_at?(/#!.*$/) ? buffer.match_string(0) : nil
-      }
-      mode = Mode.list.find { |m|
-        (m.file_name_pattern &&
-         m.file_name_pattern =~ File.basename(buffer.file_name)) ||
-          (m.interpreter_name_pattern &&
-           m.interpreter_name_pattern =~ shebang)
-      } || FundamentalMode
-      send(mode.command_name)
-    end
-
     define_command(:switch_to_buffer) do
       |buffer_name = read_buffer("Switch to buffer: ")|
       if buffer_name.is_a?(Buffer)
@@ -291,36 +194,6 @@ module Textbringer
       else
         message("No such buffer: #{buffer_name}")
       end
-    end
-
-    define_command(:save_buffer) do
-      if Buffer.current.file_name.nil?
-        Buffer.current.file_name = read_file_name("File to save in: ")
-        next if Buffer.current.file_name.nil?
-      end
-      if Buffer.current.file_modified?
-        unless yes_or_no?("File changed on disk.  Save anyway?")
-          message("Cancelled")
-          next
-        end
-      end
-      Buffer.current.save
-      message("Wrote #{Buffer.current.file_name}")
-    end
-
-    define_command(:write_file) do
-      |file_name = read_file_name("Write file: ")|
-      if File.directory?(file_name)
-        file_name = File.expand_path(Buffer.current.name, file_name)
-      end
-      if File.exist?(file_name)
-        unless y_or_n?("File `#{file_name}' exists; overwrite?")
-          message("Cancelled")
-          next
-        end
-      end
-      Buffer.current.save(file_name)
-      message("Wrote #{Buffer.current.file_name}")
     end
 
     define_command(:kill_buffer) do
@@ -341,18 +214,6 @@ module Textbringer
       elsif Buffer.current.nil?
         switch_to_buffer(Buffer.last)
       end
-    end
-
-    define_command(:set_buffer_file_encoding) do
-      |enc = read_from_minibuffer("File encoding: ",
-                                  default: Buffer.current.file_encoding.name)|
-      Buffer.current.file_encoding = Encoding.find(enc)
-    end
-
-    define_command(:set_buffer_file_format) do
-      |format = read_from_minibuffer("File format: ",
-                                     default: Buffer.current.file_format.to_s)|
-      Buffer.current.file_format = format
     end
 
     define_command(:execute_command) do
@@ -504,145 +365,6 @@ module Textbringer
 
     define_command(:recursive_edit) do
       Controller.current.recursive_edit
-    end
-
-    ISEARCH_MODE_MAP = Keymap.new
-    (?\x20..?\x7e).each do |c|
-      ISEARCH_MODE_MAP.define_key(c, :isearch_printing_char)
-    end
-    ISEARCH_MODE_MAP.define_key(?\t, :isearch_printing_char)
-    ISEARCH_MODE_MAP.handle_undefined_key do |key|
-      if key.is_a?(String) && /[\0-\x7f]/ !~ key 
-        :isearch_printing_char
-      else
-        nil
-      end
-    end
-    ISEARCH_MODE_MAP.define_key(:backspace, :isearch_delete_char)
-    ISEARCH_MODE_MAP.define_key(?\C-h, :isearch_delete_char)
-    ISEARCH_MODE_MAP.define_key(?\C-s, :isearch_repeat_forward)
-    ISEARCH_MODE_MAP.define_key(?\C-r, :isearch_repeat_backward)
-    ISEARCH_MODE_MAP.define_key(?\n, :isearch_exit)
-    ISEARCH_MODE_MAP.define_key(?\C-g, :isearch_abort)
-    
-    ISEARCH_STATUS = {
-      forward: true,
-      string: "",
-      last_string: "",
-      start: 0,
-      last_pos: 0,
-      recursive_edit: false
-    }
-
-    define_command(:isearch_forward) do |**options|
-      isearch_mode(true, **options)
-    end
-
-    define_command(:isearch_backward) do |**options|
-      isearch_mode(false, **options)
-    end
-
-    def isearch_mode(forward, recursive_edit: false)
-      ISEARCH_STATUS[:forward] = forward
-      ISEARCH_STATUS[:string] = String.new
-      ISEARCH_STATUS[:recursive_edit] = recursive_edit
-      Controller.current.overriding_map = ISEARCH_MODE_MAP
-      run_hooks(:isearch_mode_hook)
-      add_hook(:pre_command_hook, :isearch_pre_command_hook)
-      ISEARCH_STATUS[:start] = ISEARCH_STATUS[:last_pos] = Buffer.current.point
-      if Buffer.current != Buffer.minibuffer
-        message(isearch_prompt, log: false)
-      end
-      if recursive_edit
-        recursive_edit()
-      end
-    end
-
-    def isearch_prompt
-      if ISEARCH_STATUS[:forward]
-        "I-search: "
-      else
-        "I-search backward: "
-      end
-    end
-
-    def isearch_pre_command_hook
-      if /\Aisearch_/ !~ Controller.current.this_command
-        isearch_done
-      end
-    end
-
-    def isearch_done
-      Buffer.current.delete_visible_mark
-      Controller.current.overriding_map = nil
-      remove_hook(:pre_command_hook, :isearch_pre_command_hook)
-      ISEARCH_STATUS[:last_string] = ISEARCH_STATUS[:string]
-      if ISEARCH_STATUS[:recursive_edit]
-        exit_recursive_edit
-      end
-    end
-
-    define_command(:isearch_exit) do
-      isearch_done
-    end
-
-    define_command(:isearch_abort) do
-      goto_char(Buffer.current[:isearch_start])
-      isearch_done
-      raise Quit
-    end
-
-    define_command(:isearch_printing_char) do
-      c = Controller.current.last_key
-      ISEARCH_STATUS[:string].concat(c)
-      isearch_search
-    end
-
-    define_command(:isearch_delete_char) do
-      ISEARCH_STATUS[:string].chop!
-      isearch_search
-    end
-
-    def isearch_search
-      forward = ISEARCH_STATUS[:forward]
-      options = if /\A[A-Z]/ =~ ISEARCH_STATUS[:string]
-                  nil
-                else
-                  Regexp::IGNORECASE
-                end
-      re = Regexp.new(Regexp.quote(ISEARCH_STATUS[:string]), options)
-      last_pos = ISEARCH_STATUS[:last_pos]
-      offset = forward ? last_pos : last_pos - ISEARCH_STATUS[:string].bytesize
-      if Buffer.current.byteindex(forward, re, offset)
-        if Buffer.current != Buffer.minibuffer
-          message(isearch_prompt + ISEARCH_STATUS[:string], log: false)
-        end
-        Buffer.current.set_visible_mark(forward ? match_beginning(0) :
-                                        match_end(0))
-        goto_char(forward ? match_end(0) : match_beginning(0))
-      else
-        if Buffer.current != Buffer.minibuffer
-          message("Falling " + isearch_prompt + ISEARCH_STATUS[:string],
-                  log: false)
-        end
-      end
-    end
-
-    def isearch_repeat_forward
-      isearch_repeat(true)
-    end
-
-    def isearch_repeat_backward
-      isearch_repeat(false)
-    end
-
-    def isearch_repeat(forward)
-      ISEARCH_STATUS[:forward] = forward
-      ISEARCH_STATUS[:last_pos] = Buffer.current.point
-      if ISEARCH_STATUS[:string].empty?
-        ISEARCH_STATUS[:string] = ISEARCH_STATUS[:last_string]
-      end
-      isearch_search
     end
 
     define_command(:shell_execute) do
