@@ -1,9 +1,9 @@
-require_relative "../test_helper"
+require_relative "../../test_helper"
 
 class TestCtags < Textbringer::TestCase
   def test_find_tag
     pwd = Dir.pwd
-    Dir.chdir(File.expand_path("../fixtures/ctags", __dir__))
+    Dir.chdir(File.expand_path("../../fixtures/ctags", __dir__))
     begin
       assert_raise(EditorError) do
         find_tag(true)

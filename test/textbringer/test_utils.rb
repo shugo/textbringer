@@ -65,7 +65,7 @@ class TestUtils < Textbringer::TestCase
     s = read_buffer("Buffer: ")
     assert_equal("foo", s)
 
-    buffer = Buffer.new_buffer("foobar")
+    Buffer.new_buffer("foobar")
     push_keys("foo\t\n")
     s = read_buffer("Buffer: ")
     assert_equal("foobar", s)

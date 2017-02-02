@@ -1,4 +1,4 @@
-require_relative "../test_helper"
+require_relative "../../test_helper"
 
 class TestReplace < Textbringer::TestCase
   def test_query_replace_regexp

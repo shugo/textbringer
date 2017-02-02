@@ -1,9 +1,9 @@
-require_relative "../test_helper"
+require_relative "../../test_helper"
 
 class TestBacktraceMode < Textbringer::TestCase
   def test_jump_to_location
     pwd = Dir.pwd
-    Dir.chdir(File.expand_path("../fixtures/ctags", __dir__))
+    Dir.chdir(File.expand_path("../../fixtures/ctags", __dir__))
     begin
       buffer = Buffer.current
       buffer.insert("foo.rb:7: error\n")

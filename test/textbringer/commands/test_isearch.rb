@@ -1,4 +1,4 @@
-require_relative "../test_helper"
+require_relative "../../test_helper"
 
 class TestIsearch < Textbringer::TestCase
   def test_isearch_forward
