@@ -258,6 +258,33 @@ x = <<END
    bar
 EOF
   end
+
+  def test_indent_line_comma
+    omit
+    @buffer.insert(<<EOF.chop)
+foo x,
+y
+EOF
+    @ruby_mode.indent_line
+    assert_equal(<<EOF.chop, @buffer.to_s)
+foo x,
+    y
+EOF
+  end
+
+  def test_indent_line_comma_in_hash
+    @buffer.insert(<<EOF.chop)
+h = {
+  x: 1,
+
+EOF
+    @ruby_mode.indent_line
+    assert_equal(<<EOF.chop, @buffer.to_s)
+h = {
+  x: 1,
+  
+EOF
+  end
   
   def test_newline_and_reindent
     @buffer.insert(<<EOF.chop)
