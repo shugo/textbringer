@@ -118,7 +118,7 @@ module Textbringer
         goto_char(forward ? match_end(0) : match_beginning(0))
       else
         if Buffer.current != Buffer.minibuffer
-          message("Falling " + isearch_prompt + ISEARCH_STATUS[:string],
+          message("Failing " + isearch_prompt + ISEARCH_STATUS[:string],
                   log: false)
         end
       end
