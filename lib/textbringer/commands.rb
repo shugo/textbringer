@@ -173,15 +173,6 @@ module Textbringer
       Process.kill(:STOP, $$)
     end
 
-    define_command(:pwd) do
-      message(Dir.pwd)
-    end
-
-    define_command(:chdir) do
-      |dir_name = read_file_name("Change directory: ")|
-      Dir.chdir(dir_name)
-    end
-
     define_command(:switch_to_buffer) do
       |buffer_name = read_buffer("Switch to buffer: ")|
       if buffer_name.is_a?(Buffer)

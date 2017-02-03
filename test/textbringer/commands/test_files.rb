@@ -68,4 +68,19 @@ class TestFiles < Textbringer::TestCase
     set_buffer_file_format("dos")
     assert_equal(:dos, Buffer.current.file_format)
   end
+
+  def test_pwd
+    pwd
+    assert_equal(Dir.pwd, Window.echo_area.message)
+  end
+
+  def test_chdir
+    d = Dir.pwd
+    begin
+      chdir(__dir__)
+      assert_equal(__dir__, Dir.pwd)
+    ensure
+      Dir.chdir(d)
+    end
+  end
 end

@@ -55,13 +55,22 @@ module Textbringer
     define_command(:set_buffer_file_encoding) do
       |enc = read_from_minibuffer("File encoding: ",
                                   default: Buffer.current.file_encoding.name)|
-      Buffer.current.file_encoding = Encoding.find(enc)
+      Buffer.current.file_encoding = enc
     end
 
     define_command(:set_buffer_file_format) do
       |format = read_from_minibuffer("File format: ",
                                      default: Buffer.current.file_format.to_s)|
       Buffer.current.file_format = format
+    end
+
+    define_command(:pwd) do
+      message(Dir.pwd)
+    end
+
+    define_command(:chdir) do
+      |dir_name = read_file_name("Change directory: ")|
+      Dir.chdir(dir_name)
     end
   end
 end
