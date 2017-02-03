@@ -1,7 +1,7 @@
 require_relative "../../test_helper"
 
 class TestWindows < Textbringer::TestCase
-  def test_s_resize
+  def test_resize
     old_lines = Window.lines
     old_columns = Window.columns
     Window.lines = 40
@@ -173,6 +173,30 @@ class TestWindows < Textbringer::TestCase
     assert_equal(23, Window.windows[1].y)
     assert_equal(1, Window.windows[1].lines)
     assert_equal(Window.windows[0], Window.current)
+  end
+
+  def test_split_window
+    split_window
+    assert_equal(3, Window.windows.size)
+    assert_equal(0, Window.windows[0].y)
+    assert_equal(12, Window.windows[0].lines)
+    assert_equal(true, Window.windows[0].current?)
+    assert_equal(false, Window.windows[0].echo_area?)
+    assert_equal(12, Window.windows[1].y)
+    assert_equal(11, Window.windows[1].lines)
+    assert_equal(false, Window.windows[1].current?)
+    assert_equal(false, Window.windows[1].echo_area?)
+    assert_equal(Window.windows[0].buffer, Window.windows[1].buffer)
+    assert_equal(23, Window.windows[2].y)
+    assert_equal(1, Window.windows[2].lines)
+    assert_equal(false, Window.windows[2].current?)
+    assert_equal(true, Window.windows[2].echo_area?)
+
+    split_window
+    split_window
+    assert_raise(EditorError) do
+      split_window
+    end
   end
 
   def test_other_window
