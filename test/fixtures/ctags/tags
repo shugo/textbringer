@@ -4,4 +4,5 @@ Foo	foo.rb	/^class Foo$/;"	c
 bar	foo.rb	/^  def bar$/;"	f	class:Foo
 baz	foo.rb	?^  def baz$?;"	f	class:Foo
 foo	foo.rb	2;"	f	class:Foo
+quux	foo.rb	abc;"	f	class:Foo
 foo	test.rb	/^def foo$/;"	f	class:Object

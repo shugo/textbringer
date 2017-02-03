@@ -50,24 +50,20 @@ module Textbringer
         CTAGS[:candidates] = candidates
         index = 0
       end
-      tag_mark_stack = CTAGS[:tag_mark_stack]
-      if tag_mark_stack.size == TAG_MARK_LIMIT
-        mark = tag_mark_stack.shift
-        mark.delete
-      end
-      tag_mark_stack.push(Buffer.current.new_mark)
       file, addr, n = candidates[index]
-      find_file(file)
       case addr
       when /\A\d+\z/
+        push_tag_mark_and_find_file(file)
         goto_line(addr.to_i)
       when %r'\A/\^(.*)\$/\z'
+        push_tag_mark_and_find_file(file)
         beginning_of_buffer
         n.times do
           re_search_forward("^" + Regexp.quote($1) + "$")
         end
         beginning_of_line
       when %r'\A\?\^(.*)\$\?\z'
+        push_tag_mark_and_find_file(file)
         end_of_buffer
         n.times do
           re_search_backward("^" + Regexp.quote($1) + "$")
@@ -109,6 +105,17 @@ module Textbringer
       ensure
         mark.delete
       end
+    end
+
+    private
+
+    def push_tag_mark_and_find_file(file)
+      tag_mark_stack = CTAGS[:tag_mark_stack]
+      if tag_mark_stack.size == TAG_MARK_LIMIT
+        tag_mark_stack.shift.delete
+      end
+      tag_mark_stack.push(Buffer.current.new_mark)
+      find_file(file)
     end
   end
 end

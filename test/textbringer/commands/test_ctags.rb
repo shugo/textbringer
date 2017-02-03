@@ -57,6 +57,11 @@ class TestCtags < Textbringer::TestCase
       assert_raise(EditorError) do
         find_tag
       end
+      assert_equal("test.rb", Buffer.current.name)
+      re_search_forward(/quuux/)
+      assert_raise(EditorError) do
+        find_tag
+      end
       end_of_buffer
       assert_raise(EditorError) do
         find_tag
