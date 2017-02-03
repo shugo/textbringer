@@ -30,5 +30,5 @@ class TestMode < Textbringer::TestCase
     assert_raise(NoMethodError) do
       foo_command
     end
- end
+  end
 end
