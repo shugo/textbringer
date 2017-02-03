@@ -142,8 +142,10 @@ class TestMisc < Textbringer::TestCase
     shell_execute("#{ruby_install_name} -e 'p 1 + 1'")
     assert_equal("2\n", Buffer.current.to_s)
 
-    push_keys("\C-g")
-    shell_execute("#{ruby_install_name} -e 'sleep'")
-    assert_match(/Process \d+ was killed by/, Window.echo_area.message)
+    omit_on_windows do
+      push_keys("\C-g")
+      shell_execute("#{ruby_install_name} -e 'sleep'")
+      assert_match(/Process \d+ was killed by/, Window.echo_area.message)
+    end
   end
 end
