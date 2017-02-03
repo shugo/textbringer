@@ -45,7 +45,7 @@ module Textbringer
       if buffer
         Window.current.buffer = Buffer.current = buffer
       else
-        message("No such buffer: #{buffer_name}")
+        raise EditorError, "No such buffer: #{buffer_name}"
       end
     end
 
