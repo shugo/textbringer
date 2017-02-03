@@ -79,8 +79,12 @@ module Textbringer
       Window.current.read_char
     end
 
+    def read_char_nonblock
+      Window.current.read_char_nonblock
+    end
+
     def received_keyboard_quit?
-      while key = Window.current.read_char_nonblock
+      while key = read_char_nonblock
         if GLOBAL_MAP.lookup([key]) == :keyboard_quit
           return true
         end

@@ -17,6 +17,7 @@ require "textbringer"
 module Textbringer
   class FakeController < Controller
     attr_reader :test_key_buffer
+    attr_writer :last_key
 
     def initialize(*args)
       super
@@ -30,8 +31,12 @@ module Textbringer
       @test_key_buffer.shift
     end
 
-    def received_keyboard_quit?
-      false
+    def read_char_nonblock
+      if @test_key_buffer.empty?
+        nil
+      else
+        @test_key_buffer.shift
+      end
     end
   end
 

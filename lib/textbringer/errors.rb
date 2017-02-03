@@ -9,4 +9,10 @@ module Textbringer
 
   class ReadOnlyError < EditorError
   end
+
+  class Quit < EditorError
+    def initialize
+      super("Quit")
+    end
+  end
 end
