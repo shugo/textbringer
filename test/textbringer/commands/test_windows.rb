@@ -72,8 +72,11 @@ class TestWindows < Textbringer::TestCase
     (1..100).each do |i|
       insert("line#{i}\n")
     end
-    goto_line(21)
-    resize_window
+    beginning_of_buffer
+    20.times do
+      Buffer.current.forward_line
+    end
+    recenter
     Buffer.current.point_to_mark(Window.current.top_of_window)
     assert_equal(10, Buffer.current.current_line)
   end
