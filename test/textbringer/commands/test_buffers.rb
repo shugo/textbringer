@@ -28,6 +28,9 @@ class TestBuffers < Textbringer::TestCase
   end
 
   def test_yank_pop
+    assert_raise(EditorError) do
+      yank_pop
+    end
     insert("foo\n")
     insert("bar\n")
     insert("baz\n")
@@ -46,5 +49,20 @@ class TestBuffers < Textbringer::TestCase
     assert_equal("\n\nfoo\n", Buffer.current.to_s)
     yank_pop
     assert_equal("\n\nbaz\n", Buffer.current.to_s)
+  end
+
+  def test_undo
+    insert("foo\n")
+    beginning_of_buffer
+    insert("bar\n")
+    assert_equal("bar\nfoo\n", Buffer.current.to_s)
+    undo
+    assert_equal("foo\n", Buffer.current.to_s)
+    undo
+    assert_equal("", Buffer.current.to_s)
+    self.redo
+    assert_equal("foo\n", Buffer.current.to_s)
+    self.redo
+    assert_equal("bar\nfoo\n", Buffer.current.to_s)
   end
 end
