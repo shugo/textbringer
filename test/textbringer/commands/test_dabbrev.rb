@@ -55,4 +55,22 @@ EOF
       buffer.dabbrev_expand(true)
     end
   end
+
+  def test_dabbrev_expand_command
+    assert_raise(EditorError) do
+      dabbrev_expand_command
+    end
+
+    insert(<<EOF.chop)
+foo
+bar
+f
+EOF
+    dabbrev_expand_command
+    assert_equal(<<EOF.chop, Buffer.current.to_s)
+foo
+bar
+foo
+EOF
+  end
 end
