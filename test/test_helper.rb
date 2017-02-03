@@ -1,5 +1,6 @@
 require "simplecov"
 require "test/unit"
+require "tmpdir"
 
 SimpleCov.profiles.define "textbringer" do
   add_filter "/test/"
@@ -162,15 +163,23 @@ module Textbringer
 
     private
 
-    def push_key(key)
-      Controller.current.test_key_buffer.push(key)
-    end
-
     def push_keys(keys)
       if keys.is_a?(String)
         keys = keys.chars
       end
       Controller.current.test_key_buffer.concat(keys)
+    end
+
+    def mkcdtmpdir
+      Dir.mktmpdir do |dir|
+        pwd = Dir.pwd
+        Dir.chdir(dir)
+        begin
+          yield(dir)
+        ensure
+          Dir.chdir(pwd)
+        end
+      end
     end
   end
 end

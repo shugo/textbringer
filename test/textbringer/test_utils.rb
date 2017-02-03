@@ -32,7 +32,7 @@ class TestUtils < Textbringer::TestCase
   end
 
   def test_read_char
-    push_key("a")
+    push_keys("a")
     assert_equal("a", read_char)
   end
 
@@ -110,7 +110,7 @@ class TestUtils < Textbringer::TestCase
   end
 
   def test_read_single_char
-    push_key("c")
+    push_keys("c")
     assert_equal("c", read_single_char("Choose", "abcde".chars))
   end
 
@@ -138,7 +138,7 @@ class TestUtils < Textbringer::TestCase
       Buffer.current.insert("hello")
       exit_recursive_edit
     })
-    push_key("a")
+    push_keys("a")
     set_transient_map(map)
     recursive_edit
     assert_equal("hello", Buffer.current.to_s)
