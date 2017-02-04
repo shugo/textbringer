@@ -1,3 +1,9 @@
+## 0.1.5
+
+* Support clipboard.
+* Added tests.
+* Bug fixes.
+
 ## 0.1.4
 
 * Add dabbrev_expand (M-/).
