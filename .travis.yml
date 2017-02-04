@@ -5,7 +5,7 @@ rvm:
 - 2.4.0
 cache: bundler
 script:
-- bundle exec rake test
+- xvfb-run bundle exec rake test
 - bundle exec bundle-audit check --update
 notifications:
   email:

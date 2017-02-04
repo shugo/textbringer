@@ -1398,6 +1398,10 @@ module Textbringer
     def empty?
       @ring.empty?
     end
+
+    def size
+      @ring.size
+    end
   end
 
   KILL_RING = KillRing.new
