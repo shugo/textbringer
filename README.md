@@ -5,8 +5,8 @@
 [![Build status](https://ci.appveyor.com/api/projects/status/n20vtpfgcgii5jtc?svg=true)](https://ci.appveyor.com/project/shugo31737/textbringer)
 [![codecov](https://codecov.io/gh/shugo/textbringer/branch/master/graph/badge.svg)](https://codecov.io/gh/shugo/textbringer)
 
-Textbringer is a member of a demon race that takes on the form of a text
-editor.
+Textbringer is a member of a demon race that takes on the form of an Emacs-like
+text editor.
 
 ## Demo
 
