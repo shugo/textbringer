@@ -5,22 +5,40 @@ require "unicode/display_width"
 require "fiddle/import"
 
 module Textbringer
-  begin
-    # These features should be provided by curses.gem.
-    module PDCurses
+  # These features should be provided by curses.gem.
+  module PDCurses
+    KEY_OFFSET = 0xec00
+    ALT_0 = KEY_OFFSET + 0x97
+    ALT_9 = KEY_OFFSET + 0xa0
+    ALT_A = KEY_OFFSET + 0xa1
+    ALT_Z = KEY_OFFSET + 0xba
+    ALT_NUMBER_BASE = ALT_0 - ?0.ord
+    ALT_ALPHA_BASE = ALT_A - ?a.ord
+
+    KEY_MODIFIER_SHIFT   = 1
+    KEY_MODIFIER_CONTROL = 2
+    KEY_MODIFIER_ALT     = 4
+    KEY_MODIFIER_NUMLOCK = 8
+
+    @dll_loaded = false
+
+    class << self
+      attr_writer :dll_loaded
+
+      def dll_loaded?
+        @dll_loaded
+      end
+    end
+
+    begin
       extend Fiddle::Importer
       dlload "pdcurses.dll"
       extern "unsigned long PDC_get_key_modifiers(void)"
       extern "int PDC_save_key_modifiers(unsigned char)"
       extern "int PDC_return_key_modifiers(unsigned char)"
-
-      KEY_MODIFIER_SHIFT   = 1
-      KEY_MODIFIER_CONTROL = 2
-      KEY_MODIFIER_ALT     = 4
-      KEY_MODIFIER_NUMLOCK = 8
+      @dll_loaded = true
+    rescue Fiddle::DLError
     end
-  rescue
-    remove_const :PDCurses
   end
 
   class Window
@@ -28,18 +46,6 @@ module Textbringer
     Curses.constants.grep(/\AKEY_/).each do |name|
       KEY_NAMES[Curses.const_get(name)] =
         name.slice(/\AKEY_(.*)/, 1).downcase.intern
-    end
-
-    ALT_IS_FUNCTION_KEY =
-      /mswin32|mingw32/ =~ RUBY_PLATFORM && /PDCurses/ =~ Curses::VERSION
-    if ALT_IS_FUNCTION_KEY
-      KEY_OFFSET = 0xec00
-      ALT_0 = KEY_OFFSET + 0x97
-      ALT_9 = KEY_OFFSET + 0xa0
-      ALT_A = KEY_OFFSET + 0xa1
-      ALT_Z = KEY_OFFSET + 0xba
-      ALT_NUMBER_BASE = ALT_0 - ?0.ord
-      ALT_ALPHA_BASE = ALT_A - ?a.ord
     end
 
     @@windows = []
@@ -267,12 +273,12 @@ module Textbringer
     def read_char
       key = get_char
       if key.is_a?(Integer)
-        if ALT_IS_FUNCTION_KEY
-          if ALT_0 <= key && key <= ALT_9
-            @key_buffer.push((key - ALT_NUMBER_BASE).chr)
+        if PDCurses.dll_loaded?
+          if PDCurses::ALT_0 <= key && key <= PDCurses::ALT_9
+            @key_buffer.push((key - PDCurses::ALT_NUMBER_BASE).chr)
             return "\e"
-          elsif ALT_A <= key && key <= ALT_Z
-            @key_buffer.push((key - ALT_ALPHA_BASE).chr)
+          elsif PDCurses::ALT_A <= key && key <= PDCurses::ALT_Z
+            @key_buffer.push((key - PDCurses::ALT_ALPHA_BASE).chr)
             return "\e"
           end
         end
@@ -607,11 +613,11 @@ module Textbringer
 
     def get_char
       if @key_buffer.empty?
-        PDCurses.PDC_save_key_modifiers(1) if defined?(PDCurses)
+        PDCurses.PDC_save_key_modifiers(1) if PDCurses.dll_loaded?
         begin
           need_retry = false
           key = @window.get_char
-          if defined?(PDCurses)
+          if PDCurses.dll_loaded?
             mods = PDCurses.PDC_get_key_modifiers
             if key.is_a?(String) && key.ascii_only?
               if (mods & PDCurses::KEY_MODIFIER_CONTROL) != 0

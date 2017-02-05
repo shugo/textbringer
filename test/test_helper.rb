@@ -51,6 +51,7 @@ module Textbringer
       @curx = 0
       @cury = 0
       @contents = @lines.times.map { String.new }
+      @key_buffer = []
     end
 
     def move(y, x)
@@ -90,10 +91,35 @@ module Textbringer
       end
     end
 
+    def get_char
+      @key_buffer.shift
+    end
+
+    def push_key(key)
+      @key_buffer.push(key)
+    end
+
     def method_missing(mid, *args)
     end
   end
 
+  module PDCurses
+    self.dll_loaded = true
+
+    @key_modifiers = 0
+
+    def PDCurses.PDC_save_key_modifiers(flag)
+    end
+
+    def PDCurses.PDC_get_key_modifiers
+      @key_modifiers
+    end
+
+    def PDCurses.PDC_set_key_modifiers(key_modifiers)
+      @key_modifiers = key_modifiers
+    end
+  end
+  
   class Window
     @fake_lines = 24
     @fake_columns = 80
