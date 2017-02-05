@@ -4,10 +4,13 @@ install:
   - SET PATH=C:\Ruby%ruby_version%\bin;%PATH%
   - gem install bundler --no-document
   - bundle install
+  - ps: Invoke-WebRequest -Uri http://curl.haxx.se/ca/cacert.pem -OutFile C:\projects\textbringer\cacert.pem
 build: off
 test_script:
   - rake
 deploy: off
 environment:
+  UPLOAD_TO_CODECOV: 1
+  SSL_CERT_FILE: C:\projects\textbringer\cacert.pem
   matrix:
     - ruby_version: "23-x64"
