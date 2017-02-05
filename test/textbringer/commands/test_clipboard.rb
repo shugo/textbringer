@@ -72,4 +72,31 @@ class TestClipboard < Textbringer::TestCase
     assert_equal("かきくけこ\n", KILL_RING.current(1))
     assert_equal(2, KILL_RING.size)
   end
+
+  def test_clipboard_yank_pop
+    assert_raise(EditorError) do
+      clipboard_yank_pop
+    end
+    insert("foo\n")
+    insert("bar\n")
+    insert("baz\n")
+    beginning_of_buffer
+    clipboard_kill_line
+    next_line
+    clipboard_kill_line
+    next_line
+    clipboard_kill_line
+    clipboard_yank
+    assert_equal("\n\nbaz\n", Buffer.current.to_s)
+    Controller.current.last_command = :yank
+    clipboard_yank_pop
+    assert_equal("\n\nbar\n", Buffer.current.to_s)
+    assert_equal("bar", Clipboard.paste.encode("utf-8"))
+    clipboard_yank_pop
+    assert_equal("\n\nfoo\n", Buffer.current.to_s)
+    assert_equal("foo", Clipboard.paste.encode("utf-8"))
+    clipboard_yank_pop
+    assert_equal("\n\nbaz\n", Buffer.current.to_s)
+    assert_equal("baz", Clipboard.paste.encode("utf-8"))
+  end
 end

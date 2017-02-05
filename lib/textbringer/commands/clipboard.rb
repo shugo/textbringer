@@ -14,6 +14,7 @@ module Textbringer
       GLOBAL_MAP.define_key(?\C-k, :clipboard_kill_line)
       GLOBAL_MAP.define_key("\ed", :clipboard_kill_word)
       GLOBAL_MAP.define_key("\C-y", :clipboard_yank)
+      GLOBAL_MAP.define_key("\ey", :clipboard_yank_pop)
     end
 
     define_command(:clipboard_copy_region) do
@@ -43,6 +44,11 @@ module Textbringer
       end
       yank
       Controller.current.this_command = :yank
+    end
+
+    define_command(:clipboard_yank_pop) do
+      yank_pop
+      Clipboard.copy(KILL_RING.current)
     end
   end
 end
