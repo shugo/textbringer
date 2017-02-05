@@ -7,6 +7,9 @@ cache: bundler
 script:
 - xvfb-run bundle exec rake test
 - bundle exec bundle-audit check --update
+env:
+  global:
+    UPLOAD_TO_CODECOV: 1
 notifications:
   email:
     on_success: never
