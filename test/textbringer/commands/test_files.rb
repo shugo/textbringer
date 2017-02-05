@@ -14,6 +14,54 @@ class TestFiles < Textbringer::TestCase
     end
   end
 
+  def test_find_file_with_editorconfig
+    mkcdtmpdir do
+      File.write(".editorconfig", <<EOF)
+root = true
+
+[*.txt]
+charset = utf-16le
+end_of_line = crlf
+indent_style = space
+indent_size = 4
+
+[*.rb]
+charset = utf-8
+end_of_line = lf
+indent_style = tab
+indent_size = 3
+tab_width = 3
+
+[*.mac]
+end_of_line = cr
+EOF
+
+      find_file("foo.txt")
+      assert_equal(Encoding::UTF_16LE, Buffer.current.file_encoding)
+      assert_equal(:dos, Buffer.current.file_format)
+      assert_equal(false, Buffer.current[:indent_tabs_mode])
+      assert_equal(4, Buffer.current[:indent_level])
+      assert_equal(8, Buffer.current[:tab_width])
+      
+      File.write("bar.rb", <<EOF)
+class Foo
+	def foo
+		puts "foo"
+	end
+end
+EOF
+      find_file("bar.rb")
+      assert_equal(Encoding::UTF_8, Buffer.current.file_encoding)
+      assert_equal(:unix, Buffer.current.file_format)
+      assert_equal(true, Buffer.current[:indent_tabs_mode])
+      assert_equal(3, Buffer.current[:indent_level])
+      assert_equal(3, Buffer.current[:tab_width])
+
+      find_file("baz.mac")
+      assert_equal(:mac, Buffer.current.file_format)
+    end
+  end
+
   def test_save_buffer
     mkcdtmpdir do |dir|
       insert("foo")

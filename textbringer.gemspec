@@ -25,6 +25,7 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency "unicode-display_width", "~> 1.1"
   spec.add_runtime_dependency "clipboard", "~> 1.1"
   spec.add_runtime_dependency "ffi"
+  spec.add_runtime_dependency "editorconfig"
 
   spec.add_development_dependency "bundler", "~> 1.11"
   spec.add_development_dependency "rake", "~> 10.0"

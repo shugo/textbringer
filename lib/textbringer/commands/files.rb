@@ -1,9 +1,12 @@
 # frozen_string_literal: true
 
+require "editorconfig"
+
 module Textbringer
   module Commands
     define_command(:find_file) do
       |file_name = read_file_name("Find file: ")|
+      config = EditorConfig.load_file(file_name)
       buffer = Buffer.find_file(file_name)
       if buffer.new_file?
         message("New file")
@@ -20,6 +23,29 @@ module Textbringer
            m.interpreter_name_pattern =~ shebang)
       } || FundamentalMode
       send(mode.command_name)
+      if config.key?("charset")
+        Buffer.current.file_encoding = config["charset"]
+      end
+      if config.key?("end_of_line")
+        Buffer.current.file_format =
+          case config["end_of_line"]
+          when "lf"
+            :unix
+          when "crlf"
+            :dos
+          when "cr"
+            :mac
+          end
+      end
+      if config.key?("indent_style")
+        Buffer.current[:indent_tabs_mode] = config["indent_style"] == "tab"
+      end
+      if config.key?("indent_size")
+        Buffer.current[:indent_level] = config["indent_size"].to_i
+      end
+      if config.key?("tab_width")
+        Buffer.current[:tab_width] = config["tab_width"].to_i
+      end
     end
 
     define_command(:save_buffer) do

@@ -13,6 +13,7 @@ module Textbringer
 
     def initialize(buffer)
       super(buffer)
+      @buffer[:indent_level] = CONFIG[:ruby_indent_level]
       @buffer[:indent_tabs_mode] = CONFIG[:ruby_indent_tabs_mode]
     end
 
@@ -197,14 +198,14 @@ module Textbringer
           @buffer.looking_at?(/[ \t]*([}\])]|(end|else|elsif|when|rescue|ensure)\b)/)
           indentation = base_indentation
         else
-          indentation = base_indentation + @buffer[:ruby_indent_level]
+          indentation = base_indentation + @buffer[:indent_level]
         end
         _, last_event, last_text = tokens.reverse_each.find { |_, e, _|
           e != :on_sp && e != :on_nl && e != :on_ignored_nl
         }
         if (last_event == :on_op && last_text != "|") ||
             last_event == :on_period
-          indentation += @buffer[:ruby_indent_level]
+          indentation += @buffer[:indent_level]
         end
         indentation
       end
