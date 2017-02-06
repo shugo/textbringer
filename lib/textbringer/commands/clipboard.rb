@@ -38,7 +38,7 @@ module Textbringer
     end
 
     define_command(:clipboard_yank) do
-      s = Clipboard.paste.encode(Encoding::UTF_8)
+      s = Clipboard.paste.encode(Encoding::UTF_8).gsub(/\r\n/, "\n")
       if !s.empty? && (KILL_RING.empty? || KILL_RING.current != s)
         KILL_RING.push(s)
       end
