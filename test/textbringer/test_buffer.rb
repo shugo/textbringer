@@ -1811,4 +1811,18 @@ EOF
     buffer.forward_char(2)
     assert_equal("bar", buffer.current_symbol)
   end
+
+  def test_s_display_width
+    old_width = CONFIG[:ambiguos_east_asian_width]
+    begin
+      assert_equal(1, Buffer.display_width("a"))
+      assert_equal(2, Buffer.display_width("あ"))
+      CONFIG[:ambiguos_east_asian_width] = 1
+      assert_equal(1, Buffer.display_width("○"))
+      CONFIG[:ambiguos_east_asian_width] = 2
+      assert_equal(2, Buffer.display_width("○"))
+    ensure
+      CONFIG[:ambiguos_east_asian_width] = old_width
+    end
+  end
 end

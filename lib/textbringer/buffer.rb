@@ -158,8 +158,7 @@ module Textbringer
     end
 
     def self.display_width(s)
-      # ncurses seems to treat ambiguous east asian characters as narrow.
-      Unicode::DisplayWidth.of(s, 1)
+      Unicode::DisplayWidth.of(s, CONFIG[:ambiguos_east_asian_width])
     end
 
     # s might not be copied.
