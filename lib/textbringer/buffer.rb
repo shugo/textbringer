@@ -158,7 +158,7 @@ module Textbringer
     end
 
     def self.display_width(s)
-      Unicode::DisplayWidth.of(s, CONFIG[:ambiguos_east_asian_width])
+      Unicode::DisplayWidth.of(s, CONFIG[:east_asian_ambiguous_width])
     end
 
     # s might not be copied.

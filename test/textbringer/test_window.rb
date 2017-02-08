@@ -122,7 +122,7 @@ EOF
   end
 
   def test_redisplay_escape_ambiwidth
-    old_width = CONFIG[:ambiguos_east_asian_width]
+    old_width = CONFIG[:east_asian_ambiguous_width]
     begin
       @buffer.insert(<<EOF)
 　今から約千七百八十年ほど前のことである。
@@ -135,7 +135,7 @@ EOF
 　涼秋の八月だ。
 　そしてそこは、黄河の畔《ほとり》の——黄土層の低い断《き》り岸《ぎし》であった。
 EOF
-      CONFIG[:ambiguos_east_asian_width] = 1
+      CONFIG[:east_asian_ambiguous_width] = 1
       @window.redisplay
       assert_equal(<<'EOF' + "\n" * 10, window_string(@window.window))
 　今から約千七百八十年ほど前のことである。
@@ -151,7 +151,7 @@ EOF
 　涼秋の八月だ。
 　そしてそこは、黄河の畔《ほとり》の——黄土層の低い断《き》り岸《ぎし》であった。
 EOF
-      CONFIG[:ambiguos_east_asian_width] = 2
+      CONFIG[:east_asian_ambiguous_width] = 2
       @window.redisplay
       assert_equal(<<'EOF' + "\n" * 9, window_string(@window.window))
 　今から約千七百八十年ほど前のことである。
@@ -169,7 +169,7 @@ EOF
 。
 EOF
     ensure
-      CONFIG[:ambiguos_east_asian_width] = old_width
+      CONFIG[:east_asian_ambiguous_width] = old_width
     end
   end
 
