@@ -1,6 +1,7 @@
 # Textbringer
 
 [![Gem Version](https://badge.fury.io/rb/textbringer.svg)](https://badge.fury.io/rb/textbringer)
+[![Dependency Status](https://gemnasium.com/shugo/textbringer.svg)](https://gemnasium.com/shugo/textbringer)
 [![Build Status](https://travis-ci.org/shugo/textbringer.svg?branch=master)](https://travis-ci.org/shugo/textbringer)
 [![Build status](https://ci.appveyor.com/api/projects/status/n20vtpfgcgii5jtc?svg=true)](https://ci.appveyor.com/project/shugo31737/textbringer)
 [![codecov](https://codecov.io/gh/shugo/textbringer/branch/master/graph/badge.svg)](https://codecov.io/gh/shugo/textbringer)
