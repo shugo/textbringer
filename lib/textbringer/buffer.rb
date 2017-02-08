@@ -967,8 +967,12 @@ module Textbringer
     end
 
     def looking_at?(re)
-      # TODO: optimization
-      byteindex(true, re, @point) == @point
+      if re.is_a?(Regexp)
+        r = Regexp.new("\\G(?:#{re.source})", re.options)
+      else
+        r = "\\G(?:#{re})"
+      end
+      byteindex(true, r, @point) == @point
     end
 
     def byteindex(forward, re, pos)
