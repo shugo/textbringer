@@ -90,13 +90,18 @@ module Textbringer
               \\ \g<octal_digit> \g<octal_digit> |
               \\ \g<octal_digit> \g<octal_digit> \g<octal_digit> ) |
             (?<hexadecimal_escape_sequence>
-              \\x hexadecimal_digit_sequence ) |
+              \\x \g<hexadecimal_digit_sequence> ) |
             \g<universal_character_name>
           )
         )+
       ) ' |
     L' \g<c_char_sequence> '
   )
+) |
+(?<string_literal>
+  " (?<s_char_sequence>
+      (?<s_char> [^"\\\r\n] | \g<escape_sequence> )+ ) " |
+  L" \g<s_char_sequence>? "
 ) |
 (?<unknown>.)
     )/x
