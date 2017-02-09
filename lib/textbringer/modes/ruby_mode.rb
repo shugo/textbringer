@@ -134,9 +134,11 @@ module Textbringer
         bol_pos = @buffer.point
         tokens = Ripper.lex(@buffer.substring(@buffer.point_min,
                                               @buffer.point))
-        _, event, = tokens.last
+        _, event, text = tokens.last
         if event == :on_tstring_beg ||
             event == :on_heredoc_beg ||
+            event == :on_regexp_beg ||
+            (event == :on_regexp_end && text.size > 1) ||
             event == :on_tstring_content
           return nil
         end
