@@ -38,12 +38,33 @@ module Textbringer
 ) |
 (?<identifier>
   (?<identifier_nondigit>
-    [\_a-zA-Z] |
-    \\u[0-9a-fA-F]{4} |
-    \\U[0-9a-fA-F]{8} )
-  (?: \g<identifier_nondigit> | [0-9] )*
+    [_a-zA-Z] |
+    (?<universal_character_name>
+      \\u[0-9a-fA-F]{4} |
+      \\U[0-9a-fA-F]{8} ) )
+          (?: \g<identifier_nondigit> | [0-9] )*
 ) |
 (?<constant>
+  (?<floating_constant>
+    (?<decimal_floating_constant>
+      (?<fractional_constant>
+        (?<digit_sequence> [0-9]+ )? \. \g<digit_sequence> |
+        \g<digit_sequence> \. )
+          (?<exponent_part> [eE] [+\-]? \g<digit_sequence> )?
+          (?<floating_suffix> [flFL] )?
+    ) |
+    (?<hexadecimal_floating_constant>
+      (?<hexadecimal_prefix> 0x | 0X )
+          (?<hexadecimal_fractional_constant>
+            (?<hexadecimal_digit_sequence> [0-9a-fA-F]+ )? \.
+                \g<hexadecimal_digit_sequence> |
+            \g<hexadecimal_digit_sequence> \. )
+          (?<binary_exponent_part> [pP] [+\-]? \g<digit_sequence> )
+          \g<floating_suffix>? |
+      \g<hexadecimal_prefix> \g<hexadecimal_digit_sequence>
+          \g<binary_exponent_part> \g<floating_suffix>?
+    )
+  ) |
   (?<integer_constant>
     (?<decimal_constant> [1-9][0-9]* )
     (?<integer_suffix>
@@ -52,8 +73,29 @@ module Textbringer
       \g<long_suffix> \g<unsigned_suffix>?
       \g<long_long_suffix> \g<unsigned_suffix>?
     )? |
-    (?<hexadecimal_constant> 0[xX][0-9a-fA-F]+ ) \g<integer_suffix>? |
-    (?<octal_constant> 0[0-7]* ) \g<integer_suffix>?
+    (?<hexadecimal_constant>
+      \g<hexadecimal_prefix> \g<hexadecimal_digit_sequence> )
+          \g<integer_suffix>? |
+    (?<octal_constant> 0 (?<octal_digit> [0-7] )* )
+        \g<integer_suffix>?
+  ) |
+  (?<character_constant>
+    ' (?<c_char_sequence>
+        (?<c_char>
+          [^'\\\r\n] |
+          (?<escape_sequence>
+            (?<simple_escape_sequence> \\ ['"?\\abfnrtv] ) |
+            (?<octal_escape_sequence>
+              \\ \g<octal_digit> |
+              \\ \g<octal_digit> \g<octal_digit> |
+              \\ \g<octal_digit> \g<octal_digit> \g<octal_digit> ) |
+            (?<hexadecimal_escape_sequence>
+              \\x hexadecimal_digit_sequence ) |
+            \g<universal_character_name>
+          )
+        )+
+      ) ' |
+    L' \g<c_char_sequence> '
   )
 ) |
 (?<unknown>.)
