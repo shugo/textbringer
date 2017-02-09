@@ -259,6 +259,18 @@ x = <<END
 EOF
   end
 
+  def test_indent_line_in_regexp
+    @buffer.insert(<<EOF.chop)
+x = /
+     foo
+EOF
+    @ruby_mode.indent_line
+    assert_equal(<<EOF.chop, @buffer.to_s)
+x = /
+     foo
+EOF
+  end
+
   def test_indent_line_comma
     omit
     @buffer.insert(<<EOF.chop)
