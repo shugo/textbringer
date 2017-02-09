@@ -30,12 +30,34 @@ module Textbringer
 
     TOKEN_REGEXP = /\G(?:
 (?<keyword>
-  auto|break|case|char|const|continue|default|do|double|else|enum|extern|float|for|goto|if|inline|int|long|register|restrict|return|short|signed|sizeof|static|struct|switch|typedef|union|unsigned|void|volatile|while|_Bool|_Complex|_Imaginary)|
-(?<identifier>(?<identifier_nondigit>[\_a-zA-Z]|\\u[0-9a-fA-F]{4}|\\U[0-9a-fA-F]{8})(?:\g<identifier_nondigit>|\d)*)|
+  auto | break | case | char | const | continue | default | do | double |
+  else | enum | extern | float | for | goto | if | inline | int | long |
+  register | restrict | return | short | signed | sizeof | static | struct |
+  switch | typedef | union | unsigned | void | volatile | while | _Bool |
+  _Complex | _Imaginary
+) |
+(?<identifier>
+  (?<identifier_nondigit>
+    [\_a-zA-Z] |
+    \\u[0-9a-fA-F]{4} |
+    \\U[0-9a-fA-F]{8} )
+  (?: \g<identifier_nondigit> | [0-9] )*
+) |
 (?<constant>
-  (?<integer-constant>
-  ))
-  )/x
+  (?<integer_constant>
+    (?<decimal_constant> [1-9][0-9]* )
+    (?<integer_suffix>
+      (?<unsigned_suffix> [uU] ) (?<long_suffix> [lL] )?
+      \g<unsigned_suffix> (?<long_long_suffix> ll | LL )?
+      \g<long_suffix> \g<unsigned_suffix>?
+      \g<long_long_suffix> \g<unsigned_suffix>?
+    )? |
+    (?<hexadecimal_constant> 0[xX][0-9a-fA-F]+ ) \g<integer_suffix>? |
+    (?<octal_constant> 0[0-7]* ) \g<integer_suffix>?
+  )
+) |
+(?<unknown>.)
+    )/x
 
     def lex(s)
       
