@@ -25,6 +25,37 @@ module Textbringer
       buffer.keymap = PROGRAMMING_MODE_MAP
     end
 
+    # Return true if modified.
+    def indent_line
+      result = false
+      level = calculate_indentation
+      return result if level.nil?
+      @buffer.save_excursion do
+        @buffer.beginning_of_line
+        has_space = @buffer.looking_at?(/[ \t]+/)
+        if has_space
+          s = @buffer.match_string(0)
+          break if /\t/ !~ s && s.size == level
+          @buffer.delete_region(@buffer.match_beginning(0),
+                                @buffer.match_end(0))
+        else
+          break if level == 0
+        end
+        @buffer.indent_to(level)
+        if has_space
+          @buffer.merge_undo(2)
+        end
+        result = true
+      end
+      pos = @buffer.point
+      @buffer.beginning_of_line
+      @buffer.forward_char while /[ \t]/ =~ @buffer.char_after
+      if @buffer.point < pos
+        @buffer.goto_char(pos)
+      end
+      result
+    end
+
     def newline_and_reindent
       n = 1
       if indent_line
@@ -43,6 +74,12 @@ module Textbringer
         n += 1
       end
       @buffer.merge_undo(n) if n > 1
+    end
+
+    private
+
+    def calculate_indentation
+      raise EditorError, "indent_line is not defined in the current mode"
     end
   end
 end

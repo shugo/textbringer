@@ -18,37 +18,6 @@ module Textbringer
       @buffer[:indent_tabs_mode] = CONFIG[:ruby_indent_tabs_mode]
     end
 
-    # Return true if modified.
-    def indent_line
-      result = false
-      level = calculate_indentation
-      return result if level.nil?
-      @buffer.save_excursion do
-        @buffer.beginning_of_line
-        has_space = @buffer.looking_at?(/[ \t]+/)
-        if has_space
-          s = @buffer.match_string(0)
-          break if /\t/ !~ s && s.size == level
-          @buffer.delete_region(@buffer.match_beginning(0),
-                                @buffer.match_end(0))
-        else
-          break if level == 0
-        end
-        @buffer.indent_to(level)
-        if has_space
-          @buffer.merge_undo(2)
-        end
-        result = true
-      end
-      pos = @buffer.point
-      @buffer.beginning_of_line
-      @buffer.forward_char while /[ \t]/ =~ @buffer.char_after
-      if @buffer.point < pos
-        @buffer.goto_char(pos)
-      end
-      result
-    end
-
     def forward_definition(n = number_prefix_arg || 1)
       tokens = Ripper.lex(@buffer.to_s)
       @buffer.forward_line
