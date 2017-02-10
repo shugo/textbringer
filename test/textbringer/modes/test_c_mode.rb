@@ -24,6 +24,24 @@ EOF
     assert_equal([[4, 11], :string_literal, '"hello world\\n"'], token)
   end
 
+  def test_lex_keywords
+    source = <<'EOF'.b
+auto  break  case  char  const  continue  default  do  double
+else  enum  extern  float  for  goto  if  inline  int  long
+register  restrict  return  short  signed  sizeof  static  struct
+switch  typedef  union  unsigned  void  volatile  while  _Bool
+_Complex  _Imaginary
+EOF
+    tokens = @c_mode.lex(source)
+    expected = source.split(/\s+/)
+    actual = tokens.select { |_, name,|
+      name == :keyword
+    }.map { |_, _, text|
+      text
+    }
+    assert_equal(expected, actual)
+  end
+
   def test_lex_punctuators
     source = <<'EOF'.b
 [  ]  (  )  {  }
@@ -76,5 +94,22 @@ EOF
     assert_equal(0, column)
     assert_equal(:string_literal, name)
     assert_equal(source.chomp, text)
+  end
+
+  def test_lex_identifiers
+    source = <<'EOF'.b
+foo123
+\u3042\U00029E3D
+goto_line
+あああ
+EOF
+    tokens = @c_mode.lex(source)
+    expected = source.split(/\s+/).take(3)
+    actual = tokens.select { |_, name,|
+      name == :identifier
+    }.map { |_, _, text|
+      text
+    }
+    assert_equal(expected, actual)
   end
 end
