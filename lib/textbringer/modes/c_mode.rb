@@ -181,29 +181,12 @@ module Textbringer
         bol_pos = @buffer.point
         s = @buffer.substring(@buffer.point_min, @buffer.point).b
         tokens = lex(s)
-        _, event, = tokens.last
-        if event == :on_tstring_beg ||
-            event == :on_heredoc_beg ||
-            event == :on_tstring_content
-          return nil
-        end
         line, column, event, text = find_nearest_beginning_token(tokens)
         if event == :punctuator && text == "("
           return column + 1
         end
         if line
           @buffer.goto_line(line)
-          while !@buffer.beginning_of_buffer?
-            if @buffer.save_excursion {
-              @buffer.backward_char
-              @buffer.skip_re_backward(/\s/)
-              @buffer.char_before == ?,
-            }
-              @buffer.backward_line
-            else
-              break
-            end
-          end
         else
           @buffer.backward_line
         end

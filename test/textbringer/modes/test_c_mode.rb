@@ -112,7 +112,7 @@ EOF
     assert_equal(expected, actual)
   end
 
-  def test_indent_line_class
+  def test_indent_line_brace
     @c_mode.indent_line
     assert_equal("", @buffer.to_s)
     @buffer.insert(<<EOF)
@@ -185,5 +185,65 @@ main()
 	;
     
 EOF
+  end
+
+  def test_indent_line_paren
+    @buffer.insert(<<EOF)
+int
+main()
+{
+    foo(x, y,
+EOF
+    @c_mode.indent_line
+    assert_equal(<<EOF.chop, @buffer.to_s)
+int
+main()
+{
+    foo(x, y,
+	
+EOF
+  end
+
+  def test_indent_line_top_level
+    @buffer.insert(<<EOF)
+  foo
+EOF
+    @c_mode.indent_line
+    assert_equal(<<EOF.chop, @buffer.to_s)
+  foo
+  
+EOF
+  end
+  
+  def test_indent_line_unmatch
+    @buffer.insert(<<EOF.chop)
+int main()
+{
+    if (x) [
+    }
+
+EOF
+    assert_raise(EditorError) do
+      @c_mode.indent_line
+    end
+  end
+
+  def test_compile
+    @c_mode.compile("#{ruby_install_name} -e 'puts %<hello world>'")
+  end
+
+  def test_symbol_pattern
+    assert_match(@c_mode.symbol_pattern, "a")
+    assert_match(@c_mode.symbol_pattern, "0")
+    assert_not_match(@c_mode.symbol_pattern, "あ")
+    assert_match(@c_mode.symbol_pattern, "_")
+    assert_not_match(@c_mode.symbol_pattern, "?")
+    assert_not_match(@c_mode.symbol_pattern, "!")
+    assert_not_match(@c_mode.symbol_pattern, "$")
+    assert_not_match(@c_mode.symbol_pattern, "@")
+  end
+
+  def test_default_compile_command
+    assert_equal("make", @c_mode.default_compile_command)
   end
 end
