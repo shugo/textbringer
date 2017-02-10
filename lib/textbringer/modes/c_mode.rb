@@ -217,9 +217,16 @@ module Textbringer
         else
           indentation = base_indentation + @buffer[:indent_level]
         end
-        _, last_event, last_text = tokens.reverse_each.find { |_, e, _|
-          e != :space
-        }
+        if line && !@buffer.looking_at?(/[ \t]*\{/)
+          _, last_event, last_text =
+            tokens.reverse_each.drop_while { |(l, c), e, t|
+              l == @buffer.current_line || e == :space || e == :comment
+            }.first
+          if last_event != :preprocessing_directive &&
+              /[;{}]/ !~ last_text
+            indentation += @buffer[:indent_level]
+          end
+        end
         indentation
       end
     end

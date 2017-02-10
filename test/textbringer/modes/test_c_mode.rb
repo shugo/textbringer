@@ -111,4 +111,79 @@ EOF
     }
     assert_equal(expected, actual)
   end
+
+  def test_indent_line_class
+    @c_mode.indent_line
+    assert_equal("", @buffer.to_s)
+    @buffer.insert(<<EOF)
+#include <stdio.h>
+
+int
+main()
+{
+EOF
+    @c_mode.indent_line
+    assert_equal(<<EOF.chop, @buffer.to_s)
+#include <stdio.h>
+
+int
+main()
+{
+    
+EOF
+    @buffer.insert("if (1) {\n")
+    @c_mode.indent_line
+    assert_equal(<<EOF.chop, @buffer.to_s)
+#include <stdio.h>
+
+int
+main()
+{
+    if (1) {
+	
+EOF
+    @buffer.insert("puts(\"foo\");\n}")
+    @c_mode.indent_line
+    assert_equal(<<EOF.chop, @buffer.to_s)
+#include <stdio.h>
+
+int
+main()
+{
+    if (1) {
+	puts("foo");
+    }
+EOF
+    @buffer.insert("\n")
+    @c_mode.indent_line
+    @buffer.insert("while (0)\n")
+    @c_mode.indent_line
+    assert_equal(<<EOF.chop, @buffer.to_s)
+#include <stdio.h>
+
+int
+main()
+{
+    if (1) {
+	puts("foo");
+    }
+    while (0)
+	
+EOF
+    @buffer.insert(";\n")
+    @c_mode.indent_line
+    assert_equal(<<EOF.chop, @buffer.to_s)
+#include <stdio.h>
+
+int
+main()
+{
+    if (1) {
+	puts("foo");
+    }
+    while (0)
+	;
+    
+EOF
+  end
 end
