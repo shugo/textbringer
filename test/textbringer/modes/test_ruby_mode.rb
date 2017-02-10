@@ -458,6 +458,21 @@ EOF
         toggle_test_command
         assert_equal(File.expand_path("lib/roles/monk.rb"),
                      Buffer.current.file_name)
+
+        find_file("lib/roles/black_mage.rb")
+        assert_raise(EditorError) do
+          toggle_test_command
+        end
+        find_file("test/roles/test_black_mage.rb")
+        assert_raise(EditorError) do
+          toggle_test_command
+        end
+
+        find_file("foo")
+        ruby_mode
+        assert_raise(EditorError) do
+          toggle_test_command
+        end
       ensure
         Dir.chdir(pwd)
       end
