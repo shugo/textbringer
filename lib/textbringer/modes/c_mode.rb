@@ -26,8 +26,16 @@ module Textbringer
       "make"
     end
 
-    private
-
+    TOKEN_NAMES = [
+      :keyword,
+      :identifier,
+      :constant,
+      :string_literal,
+      :punctuator,
+      :space,
+      :unknown
+    ]
+    
     TOKEN_REGEXP = /\G(?:
 (?<keyword>
   auto | break | case | char | const | continue | default | do | double |
@@ -85,10 +93,7 @@ module Textbringer
           [^'\\\r\n] |
           (?<escape_sequence>
             (?<simple_escape_sequence> \\ ['"?\\abfnrtv] ) |
-            (?<octal_escape_sequence>
-              \\ \g<octal_digit> |
-              \\ \g<octal_digit> \g<octal_digit> |
-              \\ \g<octal_digit> \g<octal_digit> \g<octal_digit> ) |
+            (?<octal_escape_sequence> \\ \g<octal_digit>{1,3} ) |
             (?<hexadecimal_escape_sequence>
               \\x \g<hexadecimal_digit_sequence> ) |
             \g<universal_character_name>
@@ -112,12 +117,38 @@ module Textbringer
   , | \# | \#\# |
   <: | :> | <% | %> | %: | %:%:
 ) |
+(?<space>
+  \s+
+) |
 (?<unknown>.)
     )/x
 
     def lex(s)
-      
+      tokens = []
+      pos = 0
+      line = 1
+      column = 0
+      while pos < s.size && s.index(TOKEN_REGEXP, pos)
+        text = $&
+        token_name = TOKEN_NAMES.find { |name| $~[name] }
+        if text.empty?
+          p tokens
+          raise EditorError, "empty token: (#{line},#{column}) #{$~.inspect}"
+        end
+        tokens.push([[line, column], token_name, text])
+        lf_count = text.count("\n")
+        if lf_count > 0
+          line += lf_count
+          column = text.slice(/[^\n]*\z/).size
+        else
+          column += text.size
+        end
+        pos += text.size
+      end
+      tokens
     end
+
+    private
 
     def calculate_indentation
       if @buffer.current_line == 1
@@ -126,8 +157,8 @@ module Textbringer
       @buffer.save_excursion do
         @buffer.beginning_of_line
         bol_pos = @buffer.point
-        tokens = lex(@buffer.substring(@buffer.point_min,
-                                       @buffer.point))
+        s = @buffer.substring(@buffer.point_min, @buffer.point).b
+        tokens = lex(s)
         _, event, = tokens.last
         if event == :on_tstring_beg ||
             event == :on_heredoc_beg ||
