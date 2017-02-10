@@ -29,6 +29,14 @@ class TestUtils < Textbringer::TestCase
       show_exception(e)
       assert_equal(e.to_s, Window.echo_area.message)
     end
+
+    begin
+      exit
+    rescue SystemExit => e
+      assert_raise(SystemExit) do
+        show_exception(e)
+      end
+    end
   end
 
   def test_read_char
@@ -48,6 +56,11 @@ class TestUtils < Textbringer::TestCase
     push_keys("foobar\n")
     s = read_from_minibuffer("Input: ", default: "hello")
     assert_equal("foobar", s)
+
+    Window.echo_area.active = true
+    assert_raise(EditorError) do
+      read_from_minibuffer("Input: ")
+    end
   end
 
   def test_read_file_name
@@ -58,6 +71,14 @@ class TestUtils < Textbringer::TestCase
     push_keys("RE\t\n")
     s = read_file_name("File name: ")
     assert_equal(File.expand_path("README.md"), s)
+
+    push_keys("lib\t\n")
+    s = read_file_name("File name: ")
+    assert_equal(File.expand_path("lib/"), s)
+
+    push_keys("nosuchfile\t\n")
+    s = read_file_name("File name: ")
+    assert_equal(File.expand_path("nosuchfile"), s)
   end
 
   def test_read_buffer
@@ -130,6 +151,12 @@ class TestUtils < Textbringer::TestCase
     assert_equal([hook2], HOOKS[:test_hook])
     run_hooks(:test_hook, remove_on_error: true)
     assert_equal([], HOOKS[:test_hook])
+    add_hook(:test_hook, hook2)
+    assert_equal([hook2], HOOKS[:test_hook])
+    assert_raise(RuntimeError) do
+      run_hooks(:test_hook)
+    end
+    assert_equal([hook2], HOOKS[:test_hook])
   end
 
   def test_set_transient_map
