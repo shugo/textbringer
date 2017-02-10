@@ -178,8 +178,8 @@ module Textbringer
             event == :on_tstring_content
           return nil
         end
-        line, column, event, = find_nearest_beginning_token(tokens)
-        if event == :on_lparen
+        line, column, event, text = find_nearest_beginning_token(tokens)
+        if event == :punctuator && text == "("
           return column + 1
         end
         if line
@@ -203,62 +203,48 @@ module Textbringer
           gsub(/\t/, " " * @buffer[:tab_width]).size
         @buffer.goto_char(bol_pos)
         if line.nil? ||
-          @buffer.looking_at?(/[ \t]*([}\])]|(end|else|elsif|when|rescue|ensure)\b)/)
+            @buffer.looking_at?(/[ \t]*([}\])]|:>|%>)/)
           indentation = base_indentation
         else
           indentation = base_indentation + @buffer[:indent_level]
         end
         _, last_event, last_text = tokens.reverse_each.find { |_, e, _|
-          e != :on_sp && e != :on_nl && e != :on_ignored_nl
+          e != :space
         }
-        if (last_event == :on_op && last_text != "|") ||
-            last_event == :on_period
-          indentation += @buffer[:indent_level]
-        end
         indentation
       end
     end
-    
+
+    CANONICAL_PUNCTUATORS = Hash.new { |h, k| k }
+    CANONICAL_PUNCTUATORS["<:"] = "["
+    CANONICAL_PUNCTUATORS[":>"] = "]"
+    CANONICAL_PUNCTUATORS["<%"] = "{"
+    CANONICAL_PUNCTUATORS["%>"] = "}"
     BLOCK_END = {
       "{" => "}",
       "(" => ")",
       "[" => "]"
     }
+    BLOCK_BEG = BLOCK_END.invert
 
     def find_nearest_beginning_token(tokens)
       stack = []
       (tokens.size - 1).downto(0) do |i|
-        (line, column), event, text = tokens[i]
+        (line, column), event, raw_text = tokens[i]
+        text = CANONICAL_PUNCTUATORS[raw_text]
         case event
-        when :on_kw
-          case text
-          when "class", "module", "def", "if", "unless", "case",
-            "do", "for", "while", "until", "begin"
-            if /\A(if|unless|while|until)\z/ =~ text
-              ts = tokens[0...i].reverse_each.take_while { |(l,_),| l == line }
-              t = ts.find { |_, e| e != :on_sp }
-              next if t && !(t[1] == :on_op && t[2] == "=")
-            end
+        when :punctuator
+          if BLOCK_BEG.key?(text)
+            stack.push(text)
+          elsif BLOCK_END.key?(text)
             if stack.empty?
               return line, column, event, text
             end
-            if stack.last != "end"
+            if stack.last != BLOCK_END[text]
               raise EditorError, "#{@buffer.name}:#{line}: Unmatched #{text}"
             end
             stack.pop
-          when "end"
-            stack.push(text)
           end
-        when :on_rbrace, :on_rparen, :on_rbracket
-          stack.push(text)
-        when :on_lbrace, :on_lparen, :on_lbracket, :on_tlambeg
-          if stack.empty?
-            return line, column, event, text
-          end
-          if stack.last != BLOCK_END[text]
-            raise EditorError, "#{@buffer.name}:#{line}: Unmatched #{text}"
-          end
-          stack.pop
         end
       end
       return nil
