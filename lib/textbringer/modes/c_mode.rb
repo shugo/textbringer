@@ -109,13 +109,25 @@ module Textbringer
   L" \g<s_char_sequence>? "
 ) |
 (?<punctuator>
-  \[ | \] | \( | \) | \{ | \} | \. | -> |
-  \+\+ | -- | & | \* | \+ | - | ~ | ! |
-  \/ | % | << | >> | < | > | <= | >= | == | != | ^ | \| | && | \|\| |
-  \? | : | ; | \.\.\.
-  = | \*= | \/= | %= | \+= | -= | <<= | >>= | &= | ^= | \|= |
-  , | \# | \#\# |
-  <: | :> | <% | %> | %: | %:%:
+  \[ | \] | \( | \) | \{ | \} |
+  \.\.\. | \. |
+  \+\+ | \+= | \+ |
+  -> | -- | -= | - |
+  \*= | \* |
+  \/= | \/ |
+  && | &= | & |
+  \|\| | \|= | \| |
+  != | ! |
+  ~ |
+  == | = |
+  \^= | \^ |
+  <: | <% | <<= | << | <= | < |
+  >>= | >> | >= | > |
+  \? | ; |
+  :> | : |
+  , |
+  \#\# | \# |
+  %> | %:%: | %: | %= | %
 ) |
 (?<space>
   \s+
@@ -132,8 +144,7 @@ module Textbringer
         text = $&
         token_name = TOKEN_NAMES.find { |name| $~[name] }
         if text.empty?
-          p tokens
-          raise EditorError, "empty token: (#{line},#{column}) #{$~.inspect}"
+          raise EditorError, "Empty token: (#{line},#{column}) #{$~.inspect}"
         end
         tokens.push([[line, column], token_name, text])
         lf_count = text.count("\n")
