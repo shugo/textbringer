@@ -40,7 +40,7 @@ module Textbringer
     
     TOKEN_REGEXP = /\G(?:
 (?<preprocessing_directive>
-  ^(?:\#|%:).*(?:\\\n.*)*[^\\]\n
+  ^[ \t\f\v]*(?:\#|%:).*(?:\\\n.*)*[^\\]\n
 ) |
 (?<comment>
   (?<multiline_comment> \/\* (?:.|\n)*? \*\/ ) |
