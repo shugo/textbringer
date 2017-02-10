@@ -60,8 +60,7 @@ EOF
 >>=  >>  >=  >
 ?  ;
 :>  :
-,
-##  #
+,  ##  #
 %>  %:%:  %:  %=  %
 EOF
     tokens = @c_mode.lex(source)
