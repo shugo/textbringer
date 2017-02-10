@@ -27,6 +27,8 @@ module Textbringer
     end
 
     TOKEN_NAMES = [
+      :preprocessing_directive,
+      :comment,
       :keyword,
       :identifier,
       :constant,
@@ -37,6 +39,13 @@ module Textbringer
     ]
     
     TOKEN_REGEXP = /\G(?:
+(?<preprocessing_directive>
+  ^(?:\#|%:).*(?:\\\n.*)*[^\\]\n
+) |
+(?<comment>
+  (?<multiline_comment> \/\* (?:.|\n)*? \*\/ ) |
+  (?<singleline_comment> \/\/ .*(?:\\\n.*)*[^\\]\n )
+) |
 (?<keyword>
   (?:
     auto | break | case | char | const | continue | default | double | do |
