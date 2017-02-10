@@ -44,14 +44,6 @@ module Textbringer
   switch | typedef | union | unsigned | void | volatile | while | _Bool |
   _Complex | _Imaginary
 ) |
-(?<identifier>
-  (?<identifier_nondigit>
-    [_a-zA-Z] |
-    (?<universal_character_name>
-      \\u[0-9a-fA-F]{4} |
-      \\U[0-9a-fA-F]{8} ) )
-          (?: \g<identifier_nondigit> | [0-9] )*
-) |
 (?<constant>
   (?<floating_constant>
     (?<decimal_floating_constant>
@@ -96,7 +88,9 @@ module Textbringer
             (?<octal_escape_sequence> \\ \g<octal_digit>{1,3} ) |
             (?<hexadecimal_escape_sequence>
               \\x \g<hexadecimal_digit_sequence> ) |
-            \g<universal_character_name>
+            (?<universal_character_name>
+              \\u[0-9a-fA-F]{4} |
+              \\U[0-9a-fA-F]{8} )
           )
         )+
       ) ' |
@@ -107,6 +101,12 @@ module Textbringer
   " (?<s_char_sequence>
       (?<s_char> [^"\\\r\n] | \g<escape_sequence> )+ ) " |
   L" \g<s_char_sequence>? "
+) |
+(?<identifier>
+  (?<identifier_nondigit>
+    [_a-zA-Z] |
+    \g<universal_character_name> )
+        (?: \g<identifier_nondigit> | [0-9] )*
 ) |
 (?<punctuator>
   \[ | \] | \( | \) | \{ | \} |
