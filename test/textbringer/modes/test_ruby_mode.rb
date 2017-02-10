@@ -316,6 +316,15 @@ class foo
 
     
 EOF
+    @buffer.insert("end")
+    @ruby_mode.newline_and_reindent
+    assert_equal(<<EOF.chop, @buffer.to_s)
+class foo
+  def bar
+
+  end
+  
+EOF
   end
   
   def test_forward_definition
