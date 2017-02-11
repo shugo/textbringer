@@ -3,6 +3,7 @@
 module Textbringer
   CONFIG[:c_indent_level] = 4
   CONFIG[:c_indent_tabs_mode] = true
+  CONFIG[:c_continued_statement_offset] = 4
   CONFIG[:c_case_label_offset] = -4
   CONFIG[:c_label_offset] = -2
 
@@ -228,7 +229,7 @@ module Textbringer
           }.first
         if last_event != :preprocessing_directive &&
             /[:;{}]/ !~ last_text
-          indentation + @buffer[:indent_level]
+          indentation + @buffer[:c_continued_statement_offset]
         else
           indentation
         end
