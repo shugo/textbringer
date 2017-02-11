@@ -112,6 +112,20 @@ EOF
     assert_equal(expected, actual)
   end
 
+  def test_lex_empty_token
+    old_token_regexp = CMode::TOKEN_REGEXP
+    CMode.send(:remove_const, :TOKEN_REGEXP)
+    CMode.const_set(:TOKEN_REGEXP, /(?<preprocessing_directive>)/)
+    begin
+      assert_raise(EditorError) do
+        @c_mode.lex("foo")
+      end
+    ensure
+      CMode.send(:remove_const, :TOKEN_REGEXP)
+      CMode.const_set(:TOKEN_REGEXP, old_token_regexp)
+    end
+  end
+
   def test_indent_line_brace
     @c_mode.indent_line
     assert_equal("", @buffer.to_s)
