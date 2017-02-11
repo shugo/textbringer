@@ -81,11 +81,19 @@ module Textbringer
       minibuffer = Buffer.minibuffer
       completion_proc = minibuffer[:completion_proc]
       if completion_proc
-        s = completion_proc.call(minibuffer.to_s)
+        xs = completion_proc.call(minibuffer.to_s)
+        if xs.empty?
+          message("No match", sit_for: 1)
+          return
+        end
+        y, *ys = xs
+        s = y.size.downto(1).lazy.map { |i|
+          y[0, i]
+        }.find { |i|
+          ys.all? { |j| j.start_with?(i) }
+        }
         if s
-          minibuffer.delete_region(minibuffer.point_min,
-                                   minibuffer.point_max)
-          minibuffer.insert(s)
+          minibuffer.insert(s[minibuffer.to_s.size..-1])
         end
       end
     end

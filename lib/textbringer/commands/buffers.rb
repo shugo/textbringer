@@ -90,12 +90,12 @@ module Textbringer
 
     define_command(:undo) do
       Buffer.current.undo
-      message("Undo!")
+      message("Undo!") unless Window.echo_area.active?
     end
 
     define_command(:redo) do
       Buffer.current.redo
-      message("Redo!")
+      message("Redo!") unless Window.echo_area.active?
     end
   end
 end

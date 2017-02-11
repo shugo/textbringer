@@ -134,39 +134,18 @@ module Textbringer
       f = ->(s) {
         s = File.expand_path(s) if s.start_with?("~")
         files = Dir.glob(s + "*")
-        if files.size > 0
-          x, *xs = files
-          file = x.size.downto(1).lazy.map { |i|
-            x[0, i]
-          }.find { |i|
-            xs.all? { |j| j.start_with?(i) }
-          }
-          if file && files.size == 1 &&
-             File.directory?(file) && !file.end_with?(?/)
-            file + "/"
-          else
-            file
-          end
-        else
-          nil
+        if files.size == 1 &&
+            File.directory?(files[0]) && !files[0].end_with?(?/)
+          files[0].concat("/")
         end
+        files
       }
       file = read_from_minibuffer(prompt, completion_proc: f, default: default)
       File.expand_path(file)
     end
 
     def complete_for_minibuffer(s, candidates)
-      xs = candidates.select { |i| i.start_with?(s) }
-      if xs.size > 0
-        y, *ys = xs
-        y.size.downto(1).lazy.map { |i|
-          y[0, i]
-        }.find { |i|
-          ys.all? { |j| j.start_with?(i) }
-        }
-      else
-        nil
-      end
+      candidates.select { |i| i.start_with?(s) }
     end
 
     def read_buffer(prompt, default: (Buffer.last || Buffer.current)&.name)
