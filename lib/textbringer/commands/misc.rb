@@ -85,6 +85,9 @@ module Textbringer
             COMPLETION[:completions_window].buffer
         end
         completions = Buffer.find_or_new("*Completions*", undo_limit: 0)
+        if !completions.mode.is_a?(CompletionListMode)
+          completions.apply_mode(CompletionListMode)
+        end
         completions.read_only = false
         begin
           completions.clear
@@ -104,6 +107,18 @@ module Textbringer
     end
     private :update_completions
 
+    def complete_minibuffer_with_string(s)
+      minibuffer = Buffer.minibuffer
+      if s.start_with?(minibuffer.to_s)
+        minibuffer.insert(s[minibuffer.to_s.size..-1])
+      else
+        minibuffer.delete_region(minibuffer.point_min,
+                                 minibuffer.point_max)
+        minibuffer.insert(s)
+      end
+    end
+    private :complete_minibuffer_with_string
+
     define_command(:complete_minibuffer) do
       minibuffer = Buffer.minibuffer
       completion_proc = minibuffer[:completion_proc]
@@ -121,13 +136,7 @@ module Textbringer
           ys.all? { |j| j.start_with?(i) }
         }
         if s
-          if s.start_with?(minibuffer.to_s)
-            minibuffer.insert(s[minibuffer.to_s.size..-1])
-          else
-            minibuffer.delete_region(minibuffer.point_min,
-                                     minibuffer.point_max)
-            minibuffer.insert(s)
-          end
+          complete_minibuffer_with_string(s)
         end
       end
     end
