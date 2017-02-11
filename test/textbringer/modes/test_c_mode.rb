@@ -115,12 +115,13 @@ EOF
   def test_indent_line_brace
     @c_mode.indent_line
     assert_equal("", @buffer.to_s)
-    @buffer.insert(<<EOF)
+    @buffer.insert(<<EOF.chop)
 #include <stdio.h>
 
 int
 main()
 {
+foo();
 EOF
     @c_mode.indent_line
     assert_equal(<<EOF.chop, @buffer.to_s)
@@ -129,9 +130,11 @@ EOF
 int
 main()
 {
-    
+    foo();
 EOF
-    @buffer.insert("if (1) {\n")
+    @buffer.insert("\n")
+    @c_mode.indent_line
+    @buffer.insert("if (1) {\nbar();")
     @c_mode.indent_line
     assert_equal(<<EOF.chop, @buffer.to_s)
 #include <stdio.h>
@@ -139,10 +142,11 @@ EOF
 int
 main()
 {
+    foo();
     if (1) {
-	
+	bar();
 EOF
-    @buffer.insert("puts(\"foo\");\n}")
+    @buffer.insert("\n}")
     @c_mode.indent_line
     assert_equal(<<EOF.chop, @buffer.to_s)
 #include <stdio.h>
@@ -150,13 +154,14 @@ EOF
 int
 main()
 {
+    foo();
     if (1) {
-	puts("foo");
+	bar();
     }
 EOF
     @buffer.insert("\n")
     @c_mode.indent_line
-    @buffer.insert("while (0)\n")
+    @buffer.insert("while (0)\nbaz()")
     @c_mode.indent_line
     assert_equal(<<EOF.chop, @buffer.to_s)
 #include <stdio.h>
@@ -164,13 +169,14 @@ EOF
 int
 main()
 {
+    foo();
     if (1) {
-	puts("foo");
+	bar();
     }
     while (0)
-	
+	baz()
 EOF
-    @buffer.insert(";\n")
+    @buffer.insert(";\nquux();")
     @c_mode.indent_line
     assert_equal(<<EOF.chop, @buffer.to_s)
 #include <stdio.h>
@@ -178,21 +184,23 @@ EOF
 int
 main()
 {
+    foo();
     if (1) {
-	puts("foo");
+	bar();
     }
     while (0)
-	;
-    
+	baz();
+    quux();
 EOF
   end
 
   def test_indent_line_paren
-    @buffer.insert(<<EOF)
+    @buffer.insert(<<EOF.chop)
 int
 main()
 {
     foo(x, y,
+z
 EOF
     @c_mode.indent_line
     assert_equal(<<EOF.chop, @buffer.to_s)
@@ -200,18 +208,19 @@ int
 main()
 {
     foo(x, y,
-	
+	z
 EOF
   end
 
   def test_indent_line_top_level
-    @buffer.insert(<<EOF)
+    @buffer.insert(<<EOF.chop)
   foo
+bar
 EOF
     @c_mode.indent_line
     assert_equal(<<EOF.chop, @buffer.to_s)
   foo
-  
+  bar
 EOF
   end
   
@@ -221,11 +230,93 @@ int main()
 {
     if (x) [
     }
-
+foo();
 EOF
     assert_raise(EditorError) do
       @c_mode.indent_line
     end
+  end
+  
+  def test_indent_line_comments
+    @buffer.insert(<<EOF.chop)
+int main()
+{
+    /* foo */
+foo();
+EOF
+    @c_mode.indent_line
+    assert_equal(<<EOF.chop, @buffer.to_s)
+int main()
+{
+    /* foo */
+    foo();
+EOF
+
+    @buffer.clear
+    @buffer.insert(<<EOF.chop)
+int main()
+{
+    /* 
+     * foo
+foo();
+EOF
+    @c_mode.indent_line
+    assert_equal(<<EOF.chop, @buffer.to_s)
+int main()
+{
+    /* 
+     * foo
+foo();
+EOF
+
+    @buffer.clear
+    @buffer.insert(<<EOF.chop)
+int main()
+{
+    // foo
+foo();
+EOF
+    @c_mode.indent_line
+    assert_equal(<<EOF.chop, @buffer.to_s)
+int main()
+{
+    // foo
+    foo();
+EOF
+
+    @buffer.clear
+    @buffer.insert(<<EOF.chop)
+int main()
+{
+    // foo\\
+bar\\
+  baz
+foo();
+EOF
+    @c_mode.indent_line
+    assert_equal(<<EOF.chop, @buffer.to_s)
+int main()
+{
+    // foo\\
+bar\\
+  baz
+    foo();
+EOF
+
+    @buffer.clear
+    @buffer.insert(<<EOF.chop)
+int main()
+{
+    // foo\\
+foo();
+EOF
+    @c_mode.indent_line
+    assert_equal(<<EOF.chop, @buffer.to_s)
+int main()
+{
+    // foo\\
+foo();
+EOF
   end
 
   def test_compile

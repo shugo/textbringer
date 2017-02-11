@@ -35,6 +35,7 @@ module Textbringer
       :string_literal,
       :punctuator,
       :space,
+      :partial_comment,
       :unknown
     ]
     
@@ -44,7 +45,11 @@ module Textbringer
 ) |
 (?<comment>
   (?<multiline_comment> \/\* (?:.|\n)*? \*\/ ) |
-  (?<singleline_comment> \/\/ .*(?:\\\n.*)*[^\\]\n )
+  (?<singleline_comment> \/\/ .*(?:\\\n.*)*(?<!\\)\n )
+) |
+(?<partial_comment>
+  (?<multiline_comment> \/\* (?:.|\n)* ) |
+  (?<singleline_comment> \/\/ .*? \\\n (?:.|\n)* )
 ) |
 (?<keyword>
   (?:
@@ -181,6 +186,10 @@ module Textbringer
         bol_pos = @buffer.point
         s = @buffer.substring(@buffer.point_min, @buffer.point).b
         tokens = lex(s)
+        _, event, = tokens.last
+        if event == :partial_comment
+          return nil
+        end
         line, column, event, text = find_nearest_beginning_token(tokens)
         if event == :punctuator && text == "("
           return column + 1
@@ -202,7 +211,7 @@ module Textbringer
         end
         if line && !@buffer.looking_at?(/[ \t]*\{/)
           _, last_event, last_text =
-            tokens.reverse_each.drop_while { |(l, c), e, t|
+            tokens.reverse_each.drop_while { |(l, _), e, t|
               l == @buffer.current_line || e == :space || e == :comment
             }.first
           if last_event != :preprocessing_directive &&
