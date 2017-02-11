@@ -20,6 +20,9 @@ class TestUtils < Textbringer::TestCase
     message("foo")
     message("bar", sleep_for: 0.01)
     message("bar")
+
+    message(42)
+    assert_equal("42", Window.echo_area.message)
   end
 
   def test_show_exception

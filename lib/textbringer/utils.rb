@@ -7,6 +7,7 @@ module Textbringer
     module_function
 
     def message(msg, log: true, sit_for: nil, sleep_for: nil)
+      str = msg.to_s
       if log && Buffer.current.name != "*Messages*"
         buffer = Buffer["*Messages*"] ||
           Buffer.new_buffer("*Messages*", undo_limit: 0).tap { |b|
@@ -15,7 +16,7 @@ module Textbringer
         buffer.read_only = false
         begin
           buffer.end_of_buffer
-          buffer.insert(msg + "\n")
+          buffer.insert(str + "\n")
           if buffer.current_line > 1000
             buffer.beginning_of_buffer
             10.times do
@@ -28,7 +29,7 @@ module Textbringer
           buffer.read_only = true
         end
       end
-      Window.echo_area.show(msg)
+      Window.echo_area.show(str)
       if sit_for
         sit_for(sit_for)
         Window.echo_area.clear_message
