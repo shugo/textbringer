@@ -3,6 +3,8 @@
 module Textbringer
   CONFIG[:c_indent_level] = 4
   CONFIG[:c_indent_tabs_mode] = true
+  CONFIG[:c_case_label_offset] = -4
+  CONFIG[:c_label_offset] = -2
 
   class CMode < ProgrammingMode
     self.file_name_pattern =  /\A.*\.[ch]\z/i
@@ -209,6 +211,11 @@ module Textbringer
         else
           indentation = base_indentation + @buffer[:indent_level]
         end
+        if @buffer.looking_at?(/[ \t]*(?:case.*|default):/)
+          indentation += @buffer[:c_case_label_offset]
+        elsif @buffer.looking_at?(/[ \t]*[_a-zA-Z0-9\\]+:/)
+          indentation += @buffer[:c_label_offset]
+        end
         indent_continued_statement(indentation, tokens, line)
       end
     end
@@ -220,7 +227,7 @@ module Textbringer
             l == @buffer.current_line || e == :space || e == :comment
           }.first
         if last_event != :preprocessing_directive &&
-            /[;{}]/ !~ last_text
+            /[:;{}]/ !~ last_text
           indentation + @buffer[:indent_level]
         else
           indentation

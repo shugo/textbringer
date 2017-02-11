@@ -212,6 +212,68 @@ main()
 EOF
   end
 
+  def test_indent_line_labels
+    @buffer.insert(<<EOF.chop)
+int
+main()
+{
+    switch (x) {
+case 0:
+EOF
+    @c_mode.indent_line
+    assert_equal(<<EOF.chop, @buffer.to_s)
+int
+main()
+{
+    switch (x) {
+    case 0:
+EOF
+    @buffer.insert("\nfoo();")
+    @c_mode.indent_line
+    assert_equal(<<EOF.chop, @buffer.to_s)
+int
+main()
+{
+    switch (x) {
+    case 0:
+	foo();
+EOF
+    @buffer.insert("\nbar:")
+    @c_mode.indent_line
+    @buffer.insert("\nbar();")
+    @c_mode.indent_line
+    assert_equal(<<EOF.chop, @buffer.to_s)
+int
+main()
+{
+    switch (x) {
+    case 0:
+	foo();
+      bar:
+	bar();
+EOF
+
+    @buffer.insert("\ndefault:")
+    @c_mode.indent_line
+    @buffer.insert("\nbreak;")
+    @c_mode.indent_line
+    @buffer.insert("\n}")
+    @c_mode.indent_line
+    assert_equal(<<EOF.chop, @buffer.to_s)
+int
+main()
+{
+    switch (x) {
+    case 0:
+	foo();
+      bar:
+	bar();
+    default:
+	break;
+    }
+EOF
+  end
+
   def test_indent_line_top_level
     @buffer.insert(<<EOF.chop)
   foo
