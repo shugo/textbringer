@@ -93,6 +93,11 @@ class TestUtils < Textbringer::TestCase
     push_keys("foo\t\n")
     s = read_buffer("Buffer: ")
     assert_equal("foobar", s)
+
+    Buffer.new_buffer("fooquux")
+    push_keys("f\tq\t\n")
+    s = read_buffer("Buffer: ")
+    assert_equal("fooquux", s)
   end
 
   def test_read_command_name

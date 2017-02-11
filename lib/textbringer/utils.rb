@@ -84,6 +84,11 @@ module Textbringer
       Window.beep
     end
 
+    COMPLETION = {
+      original_buffer: nil,
+      completions_window: nil
+    }
+
     def read_from_minibuffer(prompt, completion_proc: nil, default: nil,
                              keymap: MINIBUFFER_LOCAL_MAP)
       if Window.echo_area.active?
@@ -127,6 +132,11 @@ module Textbringer
         Buffer.minibuffer[:completion_proc] = old_completion_proc
         Buffer.minibuffer.keymap = old_minibuffer_map
         Controller.current.current_prefix_arg = old_current_prefix_arg
+        if COMPLETION[:original_buffer]
+          COMPLETION[:completions_window].buffer = COMPLETION[:original_buffer]
+          COMPLETION[:completions_window] = nil
+          COMPLETION[:original_buffer] = nil
+        end
       end
     end
 

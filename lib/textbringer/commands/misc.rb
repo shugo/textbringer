@@ -77,11 +77,39 @@ module Textbringer
       raise Quit
     end
 
+    def update_completions(xs)
+      if xs.size > 1
+        if COMPLETION[:original_buffer].nil?
+          COMPLETION[:completions_window] = Window.windows[-2]
+          COMPLETION[:original_buffer] =
+            COMPLETION[:completions_window].buffer
+        end
+        completions = Buffer.find_or_new("*Completions*", undo_limit: 0)
+        completions.read_only = false
+        begin
+          completions.clear
+          xs.each do |x|
+            completions.insert(x + "\n")
+          end
+          COMPLETION[:completions_window].buffer = completions
+        ensure
+          completions.read_only = true
+        end
+      else
+        if COMPLETION[:original_buffer]
+          COMPLETION[:completions_window].buffer =
+            COMPLETION[:original_buffer]
+        end
+      end
+    end
+    private :update_completions
+
     define_command(:complete_minibuffer) do
       minibuffer = Buffer.minibuffer
       completion_proc = minibuffer[:completion_proc]
       if completion_proc
         xs = completion_proc.call(minibuffer.to_s)
+        update_completions(xs)
         if xs.empty?
           message("No match", sit_for: 1)
           return
