@@ -274,6 +274,22 @@ main()
 EOF
   end
 
+  def test_indent_line_preprocessing_derective
+    @buffer.insert(<<EOF.chop)
+int
+main()
+{
+    #define foo 1
+EOF
+    @c_mode.indent_line
+    assert_equal(<<EOF.chop, @buffer.to_s)
+int
+main()
+{
+#define foo 1
+EOF
+  end
+
   def test_indent_line_top_level
     @buffer.insert(<<EOF.chop)
   foo

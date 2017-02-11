@@ -186,6 +186,9 @@ module Textbringer
       end
       @buffer.save_excursion do
         @buffer.beginning_of_line
+        if @buffer.looking_at?(/[ \t]*(?:#|%:)/)
+          return 0
+        end
         bol_pos = @buffer.point
         s = @buffer.substring(@buffer.point_min, @buffer.point).b
         tokens = lex(s)
