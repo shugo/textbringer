@@ -93,7 +93,13 @@ module Textbringer
           ys.all? { |j| j.start_with?(i) }
         }
         if s
-          minibuffer.insert(s[minibuffer.to_s.size..-1])
+          if s.start_with?(minibuffer.to_s)
+            minibuffer.insert(s[minibuffer.to_s.size..-1])
+          else
+            minibuffer.delete_region(minibuffer.point_min,
+                                     minibuffer.point_max)
+            minibuffer.insert(s)
+          end
         end
       end
     end
