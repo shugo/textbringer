@@ -1,3 +1,10 @@
+## 0.1.7
+
+* Support EditorConfig.
+* Add CONFIG[:ambiguos_east_asian_width].
+* Add C mode.
+* Add the *Completions* buffer.
+
 ## 0.1.6
 
 * Fix bugs of clipboard commands.
