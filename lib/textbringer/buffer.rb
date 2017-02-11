@@ -161,6 +161,19 @@ module Textbringer
       Unicode::DisplayWidth.of(s, CONFIG[:east_asian_ambiguous_width])
     end
 
+    def expand_tab(s)
+      # TOOD: Support multibyte characters
+      tw = self[:tab_width]
+      fmt = "A#{tw}"
+      s.b.gsub(/([^\t]{#{tw}})|([^\t]*)\t/n) {
+        [$+].pack(fmt)
+      }.force_encoding(Encoding::UTF_8)
+    end
+
+    def display_width(s)
+      Buffer.display_width(expand_tab(s))
+    end
+
     # s might not be copied.
     def initialize(s = String.new, name: nil,
                    file_name: nil,
@@ -614,42 +627,22 @@ module Textbringer
     end
 
     def next_line(n = 1)
-      if @goal_column
-        column = @goal_column
-      else
-        prev_point = @point
-        beginning_of_line
-        column = Buffer.display_width(substring(@point, prev_point))
-      end
+      column = get_goal_column
       n.times do
         end_of_line
         forward_char
-        s = @point
-        while !end_of_line? &&
-            Buffer.display_width(substring(s, @point)) < column
-          forward_char
-        end
+        adjust_column(column)
       end
       @goal_column = column
     end
 
     def previous_line(n = 1)
-      if @goal_column
-        column = @goal_column
-      else
-        prev_point = @point
-        beginning_of_line
-        column = Buffer.display_width(substring(@point, prev_point))
-      end
+      column = get_goal_column
       n.times do
         beginning_of_line
         backward_char
         beginning_of_line
-        s = @point
-        while !end_of_line? &&
-            Buffer.display_width(substring(s, @point)) < column
-          forward_char
-        end
+        adjust_column(column)
       end
       @goal_column = column
     end
@@ -1300,6 +1293,28 @@ module Textbringer
           end
           @current_column = 1 + substring(gap_to_user(i), new_pos).size
         end
+      end
+    end
+
+    def get_goal_column
+      if @goal_column
+        @goal_column
+      else
+        prev_point = @point
+        beginning_of_line
+        display_width(substring(@point, prev_point))
+      end
+    end
+
+    def adjust_column(column)
+      s = @point
+      w = 0
+      while !end_of_line? &&
+          (w = display_width(substring(s, @point))) < column
+        forward_char
+      end
+      if w > column
+        backward_char
       end
     end
 

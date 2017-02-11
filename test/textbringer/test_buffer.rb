@@ -391,6 +391,30 @@ EOF
     assert_equal(38, buffer.point)
   end
 
+  def test_next_line_tab
+    buffer = Buffer.new(<<EOF)
+hello world
+                foo
+01234567890123456789
+		bar
+01234567890123456789
+EOF
+    buffer.forward_char(10)
+    assert_equal(11, buffer.current_column)
+    buffer.next_line
+    assert_equal(2, buffer.current_line)
+    assert_equal(11, buffer.current_column)
+    buffer.next_line
+    assert_equal(3, buffer.current_line)
+    assert_equal(11, buffer.current_column)
+    buffer.next_line
+    assert_equal(4, buffer.current_line)
+    assert_equal(2, buffer.current_column)
+    buffer.next_line
+    assert_equal(5, buffer.current_line)
+    assert_equal(11, buffer.current_column)
+  end
+
   def test_next_line_multibyte
     buffer = Buffer.new(<<EOF)
 0123456789
@@ -398,11 +422,14 @@ EOF
 aかきくけこ
 EOF
     buffer.forward_char(4)
-    assert_equal(4, buffer.point)
+    assert_equal(1, buffer.current_line)
+    assert_equal(5, buffer.current_column)
     buffer.next_line
-    assert_equal(17, buffer.point)
+    assert_equal(2, buffer.current_line)
+    assert_equal(3, buffer.current_column)
     buffer.next_line
-    assert_equal(34, buffer.point)
+    assert_equal(3, buffer.current_line)
+    assert_equal(3, buffer.current_column)
   end
 
   def test_previous_line
