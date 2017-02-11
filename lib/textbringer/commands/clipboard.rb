@@ -5,7 +5,7 @@ require "clipboard"
 module Textbringer
   module Commands
     CLIPBOARD_AVAILABLE =
-      Clipboard.implementation.name != :Linux ||
+      Clipboard.implementation.name != "Clipboard::Linux" ||
       (ENV["DISPLAY"] && system("which xclip > /dev/null 2>&1"))
 
     if CLIPBOARD_AVAILABLE
