@@ -219,6 +219,11 @@ EOF
     PDCurses.PDC_set_key_modifiers(0)
   end
 
+  def test_read_char_nonblock
+    @window.window.push_key("a")
+    assert_equal("a", @window.read_char_nonblock)
+  end
+
   def test_wait_input
     PDCurses.PDC_set_key_modifiers(PDCurses::KEY_MODIFIER_ALT)
     @window.window.push_key("\0")
