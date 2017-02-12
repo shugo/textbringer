@@ -16,10 +16,25 @@ class TestBuffers < Textbringer::TestCase
     assert_equal("foo", Buffer.current.to_s)
   end
 
+  def test_self_insert
+    Controller.current.last_key = "a"
+    self_insert
+    assert_equal("a", Buffer.current.to_s)
+    Controller.current.last_key = "x"
+    self_insert(10)
+    assert_equal("axxxxxxxxxx", Buffer.current.to_s)
+    undo
+    assert_equal("a", Buffer.current.to_s)
+  end
+
   def test_quoted_insert
     push_keys("\C-v")
     quoted_insert
     assert_equal("\C-v", Buffer.current.to_s)
+
+    push_keys("\C-l")
+    quoted_insert(3)
+    assert_equal("\C-v\C-l\C-l\C-l", Buffer.current.to_s)
 
     push_keys([Curses::KEY_LEFT])
     assert_raise(EditorError) do

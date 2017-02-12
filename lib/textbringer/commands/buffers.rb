@@ -55,9 +55,7 @@ module Textbringer
     define_command(:self_insert) do |n = number_prefix_arg|
       c = Controller.current.last_key
       merge_undo = Controller.current.last_command == :self_insert
-      n.times do
-        Buffer.current.insert(c, merge_undo)
-      end
+      Buffer.current.insert(c * n, merge_undo)
     end
 
     define_command(:quoted_insert) do |n = number_prefix_arg|
@@ -65,9 +63,7 @@ module Textbringer
       if !c.is_a?(String)
         raise EditorError, "Invalid key"
       end
-      n.times do
-        Buffer.current.insert(c)
-      end
+      Buffer.current.insert(c * n)
     end
 
     define_command(:kill_line) do
