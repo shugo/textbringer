@@ -28,12 +28,14 @@ module Textbringer
       @overriding_map = nil
       @prefix_arg = nil
       @current_prefix_arg = nil
+      @echo_immediately = false
     end
 
     def command_loop(tag)
       catch(tag) do
         loop do
           begin
+            echo_input
             c = read_char
             Window.echo_area.clear_message
             @last_key = c
@@ -122,6 +124,29 @@ module Textbringer
       @overriding_map&.lookup(key_sequence) ||
       Buffer.current&.keymap&.lookup(key_sequence) ||
         GLOBAL_MAP.lookup(key_sequence)
+    end
+
+    def echo_input
+      if @prefix_arg || !@key_sequence.empty?
+        if !@echo_immediately
+          return if Window.echo_area.wait_input(1000)
+        end
+        @echo_immediately = true
+        s = String.new
+        if @prefix_arg
+          s << @prefix_arg.inspect
+        end
+        if !@key_sequence.empty?
+          s << " " if !s.empty?
+          s << @key_sequence.map { |ch| key_name(ch) }.join(" ")
+        end
+        s << "-"
+        Window.echo_area.show(s)
+        Window.echo_area.redisplay
+        Window.update
+      else
+        @echo_immediately = false
+      end
     end
   end
 end
