@@ -27,9 +27,9 @@ class TestController < Textbringer::TestCase
     assert_match(/^Quit\n\z/, Buffer["*Messages*"].to_s)
     assert_equal(nil, @controller.prefix_arg)
 
-    push_keys "\C-u\C-x\C-a"
+    push_keys "\C-u\C-x\na"
     recursive_edit
-    assert_match(/^C-x C-a is undefined\n\z/, Buffer["*Messages*"].to_s)
+    assert_match(/^C-x RET a is undefined\n\z/, Buffer["*Messages*"].to_s)
     assert_equal(nil, @controller.prefix_arg)
   end
 

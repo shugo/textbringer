@@ -114,6 +114,8 @@ module Textbringer
         "<#{key}>"
       when "\e"
         "ESC"
+      when "\n"
+        "RET"
       when /\A[\0-\b\v-\x1f\x7f]\z/
         "C-" + (key.ord ^ 0x40).chr.downcase
       else
