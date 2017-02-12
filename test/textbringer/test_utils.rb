@@ -141,6 +141,9 @@ class TestUtils < Textbringer::TestCase
   def test_read_single_char
     push_keys("c")
     assert_equal("c", read_single_char("Choose", "abcde".chars))
+
+    push_keys("xc")
+    assert_equal("c", read_single_char("Choose", "abcde".chars))
   end
 
   def test_hooks
