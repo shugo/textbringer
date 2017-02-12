@@ -134,7 +134,7 @@ module Textbringer
     def echo_input
       if @prefix_arg || !@key_sequence.empty?
         if !@echo_immediately
-          return if Window.echo_area.wait_input(1000)
+          return if wait_input(1000)
         end
         @echo_immediately = true
         s = String.new
@@ -148,6 +148,7 @@ module Textbringer
         s << "-"
         Window.echo_area.show(s)
         Window.echo_area.redisplay
+        Window.current.window.noutrefresh
         Window.update
       else
         @echo_immediately = false
