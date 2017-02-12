@@ -4,6 +4,7 @@
 * Add CONFIG[:ambiguos_east_asian_width].
 * Add C mode.
 * Add the *Completions* buffer.
+* Echo multi-character commands in the echo area.
 
 ## 0.1.6
 
