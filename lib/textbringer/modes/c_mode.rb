@@ -203,7 +203,14 @@ module Textbringer
         if line
           @buffer.goto_line(line)
         else
-          @buffer.backward_line
+          (l, _), e = tokens.reverse_each.drop_while { |(l, _), e, t|
+            l >= @buffer.current_line - 1 || e == :space
+          }.first
+          if e == :comment
+            @buffer.goto_line(l)
+          else
+            @buffer.backward_line
+          end
         end
         @buffer.looking_at?(/[ \t]*/)
         base_indentation = @buffer.match_string(0).

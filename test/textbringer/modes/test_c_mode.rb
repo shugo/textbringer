@@ -410,6 +410,22 @@ int main()
 foo();
 EOF
   end
+  
+  def test_indent_line_comments_at_top_level
+    @buffer.insert(<<EOF.chop)
+/* 
+ * foo 
+ */
+   int main()
+EOF
+    @c_mode.indent_line
+    assert_equal(<<EOF.chop, @buffer.to_s)
+/* 
+ * foo 
+ */
+int main()
+EOF
+  end
 
   def test_compile
     @c_mode.compile("#{ruby_install_name} -e 'puts %<hello world>'")
