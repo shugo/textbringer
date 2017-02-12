@@ -14,6 +14,9 @@ end
 
 require "textbringer"
 
+def Curses.unget_char(c)
+end
+
 module Textbringer
   class FakeController < Controller
     attr_reader :test_key_buffer

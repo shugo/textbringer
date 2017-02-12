@@ -314,6 +314,9 @@ module Textbringer
     end
 
     def has_input?
+      unless @key_buffer.empty?
+        return true
+      end
       @window.nodelay = true
       begin
         c = @window.get_char
