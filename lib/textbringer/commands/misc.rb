@@ -272,8 +272,6 @@ module Textbringer
           elsif status.signaled?
             signame = Signal.signame(status.termsig)
             message("Process #{pid} was killed by #{signame}")
-          else
-            message("Process #{pid} exited")
           end
         end
       ensure
