@@ -240,9 +240,6 @@ module Textbringer
           input.close
           loop do
             status = output.wait_readable(0.5)
-            if status == false
-              break # EOF
-            end
             if status
               begin
                 s = output.read_nonblock(1024).force_encoding("utf-8").
