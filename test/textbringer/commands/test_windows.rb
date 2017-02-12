@@ -93,14 +93,9 @@ class TestWindows < Textbringer::TestCase
     scroll_up
     Window.redisplay
     assert_equal(41, Buffer.current.current_line)
-    scroll_up
-    Window.redisplay
-    assert_equal(60, Buffer.current.current_line)
-    pos = Window.current.top_of_window.location
-    scroll_up
-    Window.redisplay
-    assert_equal(60, Buffer.current.current_line)
-    assert_equal(pos, Window.current.top_of_window.location)
+    assert_raise(EditorError) do
+      scroll_up
+    end
   end
 
   def test_scroll_down
@@ -114,14 +109,9 @@ class TestWindows < Textbringer::TestCase
     scroll_down
     Window.redisplay
     assert_equal(21, Buffer.current.current_line)
-    scroll_down
-    Window.redisplay
-    assert_equal(2, Buffer.current.current_line)
-    pos = Window.current.top_of_window.location
-    scroll_down
-    Window.redisplay
-    assert_equal(2, Buffer.current.current_line)
-    assert_equal(pos, Window.current.top_of_window.location)
+    assert_raise(EditorError) do
+      scroll_down
+    end
   end
 
   def test_delete_window
