@@ -143,12 +143,13 @@ module Textbringer
     def read_file_name(prompt, default: nil)
       f = ->(s) {
         s = File.expand_path(s) if s.start_with?("~")
-        files = Dir.glob(s + "*")
-        if files.size == 1 &&
-            File.directory?(files[0]) && !files[0].end_with?(?/)
-          files[0].concat("/")
-        end
-        files
+        Dir.glob(s + "*").map { |file|
+          if File.directory?(file) && !file.end_with?(?/)
+            file + "/"
+          else
+            file
+          end
+        }
       }
       file = read_from_minibuffer(prompt, completion_proc: f, default: default)
       File.expand_path(file)
