@@ -62,11 +62,13 @@ module Textbringer
               if cmd.nil?
                 keys = @key_sequence.map { |ch| key_name(ch) }.join(" ")
                 @key_sequence.clear
+                @prefix_arg = nil
                 message("#{keys} is undefined")
               end
             end
           rescue Exception => e
             show_exception(e)
+            @prefix_arg = nil
           end
           Window.redisplay
         end
