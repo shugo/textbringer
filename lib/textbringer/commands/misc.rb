@@ -235,11 +235,7 @@ module Textbringer
       Window.redisplay
       signals = [:INT, :TERM, :KILL]
       begin
-        if /mswin32|mingw32/ =~ RUBY_PLATFORM
-          opts = {}
-        else
-          opts = {pgroup: true}
-        end
+        opts = /mswin32|mingw32/ =~ RUBY_PLATFORM ? {} : {pgroup: true}
         Open3.popen2e(cmd, opts) do |input, output, wait_thread|
           input.close
           loop do
