@@ -24,13 +24,6 @@ module Textbringer
       @test_key_buffer = []
     end
 
-    def read_char
-      if @test_key_buffer.empty?
-        raise EditorError, "no more input"
-      end
-      @test_key_buffer.shift
-    end
-
     def read_char_nonblock
       if @test_key_buffer.empty?
         nil
@@ -38,6 +31,7 @@ module Textbringer
         @test_key_buffer.shift
       end
     end
+    alias read_char read_char_nonblock
   end
 
   class FakeCursesWindow

@@ -37,6 +37,7 @@ module Textbringer
           begin
             echo_input
             c = read_char
+            break if c.nil?
             Window.echo_area.clear_message
             @last_key = c
             @key_sequence << @last_key

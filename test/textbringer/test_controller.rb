@@ -16,6 +16,23 @@ class TestController < Textbringer::TestCase
     assert_match(/^C-x C-a is undefined\n\z/, Buffer["*Messages*"].to_s)
   end
 
+  def test_clear_prefix_arg
+    echo_area = Window.echo_area
+    def echo_area.wait_input(msecs)
+      nil
+    end
+
+    push_keys "\C-u\C-g"
+    recursive_edit
+    assert_match(/^Quit\n\z/, Buffer["*Messages*"].to_s)
+    assert_equal(nil, @controller.prefix_arg)
+
+    push_keys "\C-u\C-x\C-a"
+    recursive_edit
+    assert_match(/^C-x C-a is undefined\n\z/, Buffer["*Messages*"].to_s)
+    assert_equal(nil, @controller.prefix_arg)
+  end
+
   def test_read_char
     def @window.read_char
       "a"
