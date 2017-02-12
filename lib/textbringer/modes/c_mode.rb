@@ -203,11 +203,11 @@ module Textbringer
         if line
           @buffer.goto_line(line)
         else
-          (l, _), e = tokens.reverse_each.drop_while { |(l, _), e, t|
+          (ln, _), ev = tokens.reverse_each.drop_while { |(l, _), e, t|
             l >= @buffer.current_line - 1 || e == :space
           }.first
-          if e == :comment
-            @buffer.goto_line(l)
+          if ev == :comment
+            @buffer.goto_line(ln)
           else
             @buffer.backward_line
           end
