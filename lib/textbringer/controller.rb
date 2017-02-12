@@ -139,7 +139,7 @@ module Textbringer
         @echo_immediately = true
         s = String.new
         if @prefix_arg
-          s << @prefix_arg.inspect
+          s << "C-u(#{@prefix_arg.inspect})"
         end
         if !@key_sequence.empty?
           s << " " if !s.empty?
