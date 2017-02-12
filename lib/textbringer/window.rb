@@ -298,6 +298,9 @@ module Textbringer
     end
 
     def wait_input(msecs)
+      unless @key_buffer.empty?
+        return @key_buffer.first
+      end
       @window.timeout = msecs
       begin
         c = @window.get_char

@@ -219,6 +219,16 @@ EOF
     PDCurses.PDC_set_key_modifiers(0)
   end
 
+  def test_wait_input
+    PDCurses.PDC_set_key_modifiers(PDCurses::KEY_MODIFIER_ALT)
+    @window.window.push_key("\0")
+    @window.window.push_key("a")
+    assert_equal("\e", @window.read_char)
+    assert_equal("a", @window.wait_input(1))
+  ensure
+    PDCurses.PDC_set_key_modifiers(0)
+  end
+
   def test_echo_area_redisplay
     Window.echo_area.redisplay
     assert_equal("\n", window_string(Window.echo_area.window))
