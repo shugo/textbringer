@@ -47,7 +47,7 @@ module Textbringer
   ^[ \t\f\v]*(?:\#|%:).*(?:\\\n.*)*[^\\]\n
 ) |
 (?<comment>
-  (?<multiline_comment> \/\* (?:.|\n)*? \*\/ ) |
+  (?<multiline_comment> \/\* (?> (?:.|\n)*? \*\/ ) ) |
   (?<singleline_comment> \/\/ .*(?:\\\n.*)*(?<!\\)\n )
 ) |
 (?<partial_comment>
