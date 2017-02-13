@@ -582,7 +582,8 @@ module Textbringer
     def redisplay_mode_line
       @mode_line.erase
       @mode_line.setpos(0, 0)
-      @mode_line.attron(Curses::A_REVERSE)
+      attrs = @@has_colors ? Face[:modeline].attributes : Curses::A_REVERSE
+      @mode_line.attrset(attrs)
       @mode_line.addstr("#{@buffer.name} ")
       @mode_line.addstr("[+]") if @buffer.modified?
       @mode_line.addstr("[RO]") if @buffer.read_only?
@@ -600,7 +601,7 @@ module Textbringer
       @mode_line.addstr(" #{line},#{column}")
       @mode_line.addstr(" (#{@buffer.mode&.name || 'None'})")
       @mode_line.addstr(" " * (columns - @mode_line.curx))
-      @mode_line.attroff(Curses::A_REVERSE)
+      @mode_line.attrset(0)
       @mode_line.noutrefresh
     end
 
