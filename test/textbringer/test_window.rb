@@ -225,6 +225,8 @@ EOF
   end
 
   def test_wait_input
+    assert_equal(nil, @window.wait_input(1))
+
     @window.window.push_key("a")
     assert_equal("a", @window.wait_input(1))
 
@@ -238,6 +240,8 @@ EOF
   end
 
   def test_has_input?
+    assert_equal(false, @window.has_input?)
+
     @window.window.push_key("a")
     assert_equal(true, @window.has_input?)
 
