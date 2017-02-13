@@ -36,8 +36,15 @@ module Textbringer
           [;~=!|&(,\[<>?:*+-]
         ) \s*
         \/ (?: [^\\\/] | \\ .  )* \/[iomxneus]*
+      ) |
+      (?:
+        (?<! class | class \s | [\]})"'.] | :: | \w )
+            <<-?(?<heredoc_quote>['"`]?)
+            (?<heredoc_terminator>[_a-zA-Z\x80-\xff][_a-zA-Z0-9\x80-\xff]*)
+            \k<heredoc_quote>
+            (?> (?:.|\n)*? \k<heredoc_terminator> )
       )
-    /x
+    /nx
 
     def initialize(buffer)
       super(buffer)

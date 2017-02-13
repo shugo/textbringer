@@ -361,7 +361,7 @@ module Textbringer
       end
       re_str = syntax_table.map { |name, re|
         "(?<#{name}>#{re})"
-      }.join("|")
+      }.join("|").b
       re = Regexp.new(re_str)
       names = syntax_table.keys
       pos = 0
