@@ -14,6 +14,12 @@ end
 
 require "textbringer"
 
+class << Curses
+  undef unget_char
+  undef init_pair
+  undef color_pair
+end
+
 def Curses.unget_char(c)
 end
 
