@@ -396,6 +396,7 @@ module Textbringer
         highlight
         @window.erase
         @window.setpos(0, 0)
+        @window.attrset(0)
         if current? && @buffer.visible_mark &&
            @buffer.point_after_mark?(@buffer.visible_mark)
           @window.attron(Curses::A_REVERSE)
