@@ -367,6 +367,9 @@ module Textbringer
       while i = s.index(re, pos)
         b = base_pos + i
         e = b + $&.bytesize
+        if b < @buffer.point && @buffer.point < e
+          b = @buffer.point
+        end
         name = names.find { |n| $~[n] }
         attributes = Face[name]&.attributes
         if attributes
