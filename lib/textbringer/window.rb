@@ -128,6 +128,11 @@ module Textbringer
       @@has_colors
     end
 
+    def self.load_faces
+      require_relative "faces/basic"
+      require_relative "faces/programming"
+    end
+
     def self.start
       Curses.init_screen
       Curses.noecho
@@ -136,8 +141,7 @@ module Textbringer
       if has_colors?
         Curses.start_color
         Curses.use_default_colors
-        require_relative "faces/basic"
-        require_relative "faces/programming"
+        load_faces
       end
       begin
         window =
@@ -351,7 +355,7 @@ module Textbringer
       return if !@@has_colors || !CONFIG[:syntax_highlight]
       syntax_table = @buffer.mode.syntax_table
       return if syntax_table.empty?
-      if @buffer.bytesize < 102400
+      if @buffer.bytesize < CONFIG[:highlight_buffer_size_limit]
         base_pos = @buffer.point_min
         s = @buffer.to_s.b
       else

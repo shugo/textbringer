@@ -30,6 +30,8 @@ def Curses.color_pair(n)
   0
 end
 
+Textbringer::Window.load_faces
+
 module Textbringer
   class FakeController < Controller
     attr_reader :test_key_buffer

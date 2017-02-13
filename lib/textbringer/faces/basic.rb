@@ -2,5 +2,5 @@
 
 module Textbringer
   Face.define :modeline, reverse: true
-  Face.define :link, foreground: "blue"
+  Face.define :link, foreground: "blue", bold: true
 end

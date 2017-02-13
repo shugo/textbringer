@@ -21,11 +21,6 @@ module Textbringer
       "white" => Curses::COLOR_WHITE
     }
 
-    def self.clear
-      @@face_table.clear
-      @@next_color_pair = 1
-    end
-
     def self.[](name)
       @@face_table[name]
     end
@@ -36,6 +31,10 @@ module Textbringer
       else
         @@face_table[name] = new(name, **opts)
       end
+    end
+
+    def self.delete(name)
+      @@face_table.delete(name)
     end
 
     def initialize(name, **opts)

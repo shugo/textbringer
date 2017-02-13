@@ -7,6 +7,8 @@ module Textbringer
     COMPLETION_LIST_MODE_MAP = Keymap.new
     COMPLETION_LIST_MODE_MAP.define_key("\n", :choose_completion_command)
 
+    define_syntax :link, /^.+$/
+
     def initialize(buffer)
       super(buffer)
       buffer.keymap = COMPLETION_LIST_MODE_MAP
