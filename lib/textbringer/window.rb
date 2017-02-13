@@ -51,6 +51,7 @@ module Textbringer
     @@windows = []
     @@current = nil
     @@echo_area = nil
+    @@has_colors = false
 
     def self.windows
       @@windows
@@ -119,12 +120,23 @@ module Textbringer
       @@echo_area
     end
 
+    def self.has_colors=(value)
+      @@has_colors = value
+    end
+
+    def self.has_colors?
+      @@has_colors
+    end
+
     def self.start
       Curses.init_screen
       Curses.noecho
       Curses.raw
-      Curses.start_color
-      Curses.use_default_colors
+      self.has_colors = Curses.has_colors?
+      if has_colors?
+        Curses.start_color
+        Curses.use_default_colors
+      end
       require_relative "faces/programming"
       begin
         window =
@@ -335,7 +347,7 @@ module Textbringer
     def highlight
       @highlight_on = {}
       @highlight_off = {}
-      return unless CONFIG[:syntax_highlight]
+      return if !@@has_colors || !CONFIG[:syntax_highlight]
       syntax_table = @buffer.mode.syntax_table
       return if syntax_table.empty?
       if @buffer.bytesize < 102400
