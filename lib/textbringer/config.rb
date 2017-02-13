@@ -8,6 +8,7 @@ module Textbringer
     tab_width: 8,
     indent_tabs_mode: false,
     case_fold_search: true,
-    buffer_dump_dir: File.expand_path("~/.textbringer/buffer_dump")
+    buffer_dump_dir: File.expand_path("~/.textbringer/buffer_dump"),
+    syntax_highlight: true
   }
 end

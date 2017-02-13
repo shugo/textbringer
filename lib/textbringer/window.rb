@@ -335,28 +335,33 @@ module Textbringer
     def highlight
       @highlight_on = {}
       @highlight_off = {}
+      return unless CONFIG[:syntax_highlight]
       syntax_table = @buffer.mode.syntax_table
       return if syntax_table.empty?
-      len = columns * (lines - 1) / 2 * 3
       if @buffer.bytesize < 102400
         base_pos = @buffer.point_min
-        s = @buffer.to_s
+        s = @buffer.to_s.b
       else
         base_pos = @buffer.point
-        s = @buffer.substring(@buffer.point, @buffer.point + len).scrub("")
+        len = columns * (lines - 1) / 2 * 3
+        s = @buffer.substring(@buffer.point, @buffer.point + len).scrub("").b
       end
       re_str = syntax_table.map { |name, re|
         "(?<#{name}>#{re})"
       }.join("|")
       re = Regexp.new(re_str)
       names = syntax_table.keys
-      s.scan(re) do
-        b = base_pos + $`.bytesize
+      pos = 0
+      while i = s.index(re, pos)
+        b = base_pos + i
         e = b + $&.bytesize
         name = names.find { |n| $~[n] }
-        attributes = Face[name]&.attributes || 0
-        @highlight_on[b] = attributes
-        @highlight_off[e] = attributes
+        attributes = Face[name]&.attributes
+        if attributes
+          @highlight_on[b] = attributes
+          @highlight_off[e] = attributes
+        end
+        pos = i + $&.bytesize
       end
     end
 
@@ -400,11 +405,11 @@ module Textbringer
               @window.attron(Curses::A_REVERSE)
             end
           end
-          if attrs = @highlight_on[@buffer.point]
-            @window.attron(attrs)
-          end
           if attrs = @highlight_off[@buffer.point]
             @window.attroff(attrs)
+          end
+          if attrs = @highlight_on[@buffer.point]
+            @window.attron(attrs)
           end
           c = @buffer.char_after
           if c == "\n"
