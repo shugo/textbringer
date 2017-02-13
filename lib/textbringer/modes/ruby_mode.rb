@@ -12,6 +12,33 @@ module Textbringer
             (?:Gem|Rake|Cap|Thor|Vagrant|Guard|Pod)file)\z/ix
     self.interpreter_name_pattern = /ruby/i
 
+    define_syntax :comment, /
+      \#.*(?:\\\n.*)*(?<!\\)\n
+    /x
+
+    define_syntax :keyword, /
+      (?<![$@.]) \b (?:
+	class |	module | def | undef | begin | rescue |	ensure | end |
+	if | unless | then | elsif | else | case | when | while | until |
+	for | break | next | redo | retry | in | do | return | yield |
+	super |	self | nil | true | false | and | or | not | alias
+      ) \b
+    /x
+
+    define_syntax :string, /
+      (?: " (?: [^\\"] | \\ .  )* " ) |
+      (?: ' (?: [^\\'] | \\ .  )* ' ) |
+      (?:
+        (?<=
+          ^ |
+          \b and | \b or | \b while | \b until | \b unless | \b if |
+          \b elsif | \b when | \b not | \b then | \b else |
+          [;~=!|&(,\[<>?:*+-]
+        ) \s*
+        \/ (?: [^\\\/] | \\ .  )* \/[iomxneus]*
+      )
+    /x
+
     def initialize(buffer)
       super(buffer)
       @buffer[:indent_level] = CONFIG[:ruby_indent_level]

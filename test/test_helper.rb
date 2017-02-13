@@ -17,6 +17,13 @@ require "textbringer"
 def Curses.unget_char(c)
 end
 
+def Curses.init_pair(n, f, g)
+end
+
+def Curses.color_pair(n)
+  0
+end
+
 module Textbringer
   class FakeController < Controller
     attr_reader :test_key_buffer

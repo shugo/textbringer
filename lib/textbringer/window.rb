@@ -123,6 +123,9 @@ module Textbringer
       Curses.init_screen
       Curses.noecho
       Curses.raw
+      Curses.start_color
+      Curses.use_default_colors
+      require_relative "faces/programming"
       begin
         window =
           Textbringer::Window.new(Window.lines - 1, Window.columns, 0, 0)
@@ -329,6 +332,34 @@ module Textbringer
       end
     end
 
+    def highlight
+      @highlight_on = {}
+      @highlight_off = {}
+      syntax_table = @buffer.mode.syntax_table
+      return if syntax_table.empty?
+      len = columns * (lines - 1) / 2 * 3
+      if @buffer.bytesize < 102400
+        base_pos = @buffer.point_min
+        s = @buffer.to_s
+      else
+        base_pos = @buffer.point
+        s = @buffer.substring(@buffer.point, @buffer.point + len).scrub("")
+      end
+      re_str = syntax_table.map { |name, re|
+        "(?<#{name}>#{re})"
+      }.join("|")
+      re = Regexp.new(re_str)
+      names = syntax_table.keys
+      s.scan(re) do
+        b = base_pos + $`.bytesize
+        e = b + $&.bytesize
+        name = names.find { |n| $~[n] }
+        attributes = Face[name]&.attributes || 0
+        @highlight_on[b] = attributes
+        @highlight_off[e] = attributes
+      end
+    end
+
     def redisplay
       return if @buffer.nil?
       redisplay_mode_line
@@ -342,6 +373,7 @@ module Textbringer
         framer
         y = x = 0
         @buffer.point_to_mark(@top_of_window)
+        highlight
         @window.erase
         @window.setpos(0, 0)
         if current? && @buffer.visible_mark &&
@@ -367,6 +399,12 @@ module Textbringer
             elsif @buffer.point_before_mark?(point)
               @window.attron(Curses::A_REVERSE)
             end
+          end
+          if attrs = @highlight_on[@buffer.point]
+            @window.attron(attrs)
+          end
+          if attrs = @highlight_off[@buffer.point]
+            @window.attroff(attrs)
           end
           c = @buffer.char_after
           if c == "\n"

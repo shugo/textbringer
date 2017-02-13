@@ -17,6 +17,7 @@ module Textbringer
       attr_accessor :hook_name
       attr_accessor :file_name_pattern
       attr_accessor :interpreter_name_pattern
+      attr_reader :syntax_table
     end
 
     def self.define_generic_command(name)
@@ -35,6 +36,10 @@ module Textbringer
       end
     end
 
+    def self.define_syntax(face_name, re)
+      @syntax_table[face_name] = re
+    end
+
     def self.inherited(child)
       base_name = child.name.slice(/[^:]*\z/)
       child.mode_name = base_name.sub(/Mode\z/, "")
@@ -50,6 +55,7 @@ module Textbringer
         Buffer.current.apply_mode(child)
       end
       @@mode_list.push(child)
+      child.instance_variable_set(:@syntax_table, {})
     end
 
     attr_reader :buffer
@@ -60,6 +66,10 @@ module Textbringer
 
     def name
       self.class.mode_name
+    end
+
+    def syntax_table
+      self.class.syntax_table
     end
   end
 end
