@@ -173,6 +173,27 @@ EOF
     end
   end
 
+  def test_redisplay_ruby_mode
+    @buffer.apply_mode(RubyMode)
+    @buffer.insert(<<'EOF')
+# Foo
+class Foo
+  def foo
+    puts "foo"
+  end
+end
+EOF
+    @window.redisplay
+    assert_equal(<<'EOF' + "\n" * 16, window_string(@window.window))
+# Foo
+class Foo
+  def foo
+    puts "foo"
+  end
+end
+EOF
+  end
+
   def test_s_current
     window = Window.current
     window.split

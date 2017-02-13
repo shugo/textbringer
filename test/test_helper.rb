@@ -156,6 +156,7 @@ module Textbringer
       end
 
       def setup_for_test
+        self.has_colors = true
         @@windows.clear
         window =
           Textbringer::Window.new(Window.lines - 1, Window.columns, 0, 0)

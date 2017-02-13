@@ -21,6 +21,11 @@ module Textbringer
       "white" => Curses::COLOR_WHITE
     }
 
+    def self.clear
+      @@face_table.clear
+      @@next_color_pair = 1
+    end
+
     def self.[](name)
       @@face_table[name]
     end
@@ -41,19 +46,18 @@ module Textbringer
     end
 
     def update(foreground: -1, background: -1,
-               bold: false, italic: false, underline: false)
+               bold: false, underline: false)
       @foreground = foreground
       @background = background
       @bold = bold
-      @italic = italic
       @underline = underline
       Curses.init_pair(@color_pair,
                        color_value(foreground), color_value(background))
       @attributes = 0
       @attributes |= Curses.color_pair(@color_pair)
       @attributes |= Curses::A_BOLD if bold
-      @attributes |= Curses::A_ITALIC if italic
       @attributes |= Curses::A_UNDERLINE if underline
+      self
     end
 
     private
