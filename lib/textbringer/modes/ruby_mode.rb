@@ -13,7 +13,7 @@ module Textbringer
     self.interpreter_name_pattern = /ruby/i
 
     define_syntax :comment, /
-      \#.*(?:\\\n.*)*(?<!\\)\n
+      \#.*(?:\\\n.*)*(?:\z|(?<!\\)\n)
     /x
 
     define_syntax :keyword, /
