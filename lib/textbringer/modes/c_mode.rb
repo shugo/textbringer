@@ -10,6 +10,28 @@ module Textbringer
   class CMode < ProgrammingMode
     self.file_name_pattern =  /\A.*\.[ch]\z/i
 
+    KEYWORDS = %w(
+      auto break case char const continue default double do
+      else enum extern float for goto if inline int long
+      register restrict return short signed sizeof static struct
+      switch typedef union unsigned void volatile while _Bool
+      _Complex _Imaginary
+    )
+
+    define_syntax :comment, /
+      (?<multiline_comment> \/\* (?> (?:.|\n)*? \*\/ ) ) |
+      (?<singleline_comment> \/\/ .*(?:\\\n.*)*(?:\z|(?<!\\)\n) )
+    /x
+
+    define_syntax :keyword, /
+      \b (?: #{KEYWORDS.join("|")} ) \b
+    /x
+
+    define_syntax :string, /
+      (?: " (?: [^\\"] | \\ .  )* " ) |
+      (?: ' (?: [^\\'] | \\ .  )* ' )
+    /x
+    
     def initialize(buffer)
       super(buffer)
       @buffer[:indent_level] = CONFIG[:c_indent_level]
@@ -55,13 +77,7 @@ module Textbringer
   (?<singleline_comment> \/\/ .*? \\\n (?:.|\n)* )
 ) |
 (?<keyword>
-  (?:
-    auto | break | case | char | const | continue | default | double | do |
-    else | enum | extern | float | for | goto | if | inline | int | long |
-    register | restrict | return | short | signed | sizeof | static | struct |
-    switch | typedef | union | unsigned | void | volatile | while | _Bool |
-    _Complex | _Imaginary
-  ) \b
+  (?: #{KEYWORDS.join("|")} ) \b
 ) |
 (?<constant>
   (?<floating_constant>
