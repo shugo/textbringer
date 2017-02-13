@@ -17,12 +17,12 @@ module Textbringer
     /x
 
     define_syntax :keyword, /
-      (?<![$@.]) \b (?:
+      (?<![$@.]) \b (?: (?:
 	class |	module | def | undef | begin | rescue |	ensure | end |
 	if | unless | then | elsif | else | case | when | while | until |
 	for | break | next | redo | retry | in | do | return | yield |
 	super |	self | nil | true | false | and | or | not | alias
-      ) \b
+      ) \b | defined\? )
     /x
 
     define_syntax :string, /
