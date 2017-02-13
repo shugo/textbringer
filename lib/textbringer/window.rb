@@ -136,8 +136,8 @@ module Textbringer
       if has_colors?
         Curses.start_color
         Curses.use_default_colors
+        require_relative "faces/programming"
       end
-      require_relative "faces/programming"
       begin
         window =
           Textbringer::Window.new(Window.lines - 1, Window.columns, 0, 0)
