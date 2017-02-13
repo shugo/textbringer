@@ -136,6 +136,7 @@ module Textbringer
       if has_colors?
         Curses.start_color
         Curses.use_default_colors
+        require_relative "faces/basic"
         require_relative "faces/programming"
       end
       begin

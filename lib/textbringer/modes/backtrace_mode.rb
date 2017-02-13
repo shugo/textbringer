@@ -7,6 +7,8 @@ module Textbringer
     BACKTRACE_MODE_MAP = Keymap.new
     BACKTRACE_MODE_MAP.define_key("\n", :jump_to_source_location_command)
 
+    define_syntax :link, /^(\S*?):(\d+):/
+
     def initialize(buffer)
       super(buffer)
       buffer.keymap = BACKTRACE_MODE_MAP
