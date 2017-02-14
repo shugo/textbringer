@@ -10,6 +10,7 @@ module Textbringer
     case_fold_search: true,
     buffer_dump_dir: File.expand_path("~/.textbringer/buffer_dump"),
     syntax_highlight: true,
-    highlight_buffer_size_limit: 102400
+    highlight_buffer_size_limit: 102400,
+    tag_mark_limit: 16
   }
 end

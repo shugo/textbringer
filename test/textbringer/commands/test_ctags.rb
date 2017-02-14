@@ -2,6 +2,8 @@ require_relative "../../test_helper"
 
 class TestCtags < Textbringer::TestCase
   def test_find_tag
+    old_tag_mark_limit = CONFIG[:tag_mark_limit]
+    CONFIG[:tag_mark_limit] = 4
     pwd = Dir.pwd
     Dir.chdir(File.expand_path("../../fixtures/ctags", __dir__))
     begin
@@ -66,7 +68,7 @@ class TestCtags < Textbringer::TestCase
       assert_raise(EditorError) do
         find_tag
       end
-      4.times do
+      3.times do |i|
         pop_tag_mark
       end
       assert_raise(EditorError) do
@@ -74,6 +76,7 @@ class TestCtags < Textbringer::TestCase
       end
     ensure
       Dir.chdir(pwd)
+      CONFIG[:tag_mark_limit] = old_tag_mark_limit
     end
   end
 end

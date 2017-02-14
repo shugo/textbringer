@@ -14,7 +14,6 @@ module Textbringer
       index: nil,
       tag_mark_stack: []
     }
-    TAG_MARK_LIMIT = 16
 
     define_command(:find_tag) do |next_p = current_prefix_arg|
       tags = get_tags
@@ -111,7 +110,7 @@ module Textbringer
 
     def push_tag_mark_and_find_file(file)
       tag_mark_stack = CTAGS[:tag_mark_stack]
-      if tag_mark_stack.size == TAG_MARK_LIMIT
+      if tag_mark_stack.size == CONFIG[:tag_mark_limit]
         tag_mark_stack.shift.delete
       end
       tag_mark_stack.push(Buffer.current.new_mark)
