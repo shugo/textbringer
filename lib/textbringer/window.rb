@@ -353,16 +353,18 @@ module Textbringer
       @highlight_on = {}
       @highlight_off = {}
       return if !@@has_colors || !CONFIG[:syntax_highlight]
-      syntax_table = @buffer.mode.syntax_table
+      syntax_table = @buffer.mode&.syntax_table
       return if syntax_table.empty?
-      if @buffer.bytesize < CONFIG[:highlight_buffer_size_limit]
-        base_pos = @buffer.point_min
-        s = @buffer.to_s.b
+      syntax_beginning_pattern = @buffer.mode.syntax_beginning_pattern
+      if syntax_beginning_pattern
+        pos = @buffer.re_search_backward(syntax_beginning_pattern,
+                                         raise_error: false, move: false)
+        base_pos = pos || @buffer.point
       else
         base_pos = @buffer.point
-        len = columns * (lines - 1) / 2 * 3
-        s = @buffer.substring(@buffer.point, @buffer.point + len).scrub("").b
       end
+      end_pos = @buffer.point + 2 * columns * (lines - 1)
+      s = @buffer.substring(base_pos, end_pos).scrub("").b
       re_str = syntax_table.map { |name, re|
         "(?<#{name}>#{re})"
       }.join("|").b

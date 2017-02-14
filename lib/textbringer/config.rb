@@ -9,7 +9,6 @@ module Textbringer
     indent_tabs_mode: false,
     case_fold_search: true,
     buffer_dump_dir: File.expand_path("~/.textbringer/buffer_dump"),
-    syntax_highlight: true,
-    highlight_buffer_size_limit: 102400
+    syntax_highlight: true
   }
 end
