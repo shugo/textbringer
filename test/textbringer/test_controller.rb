@@ -60,4 +60,23 @@ class TestController < Textbringer::TestCase
     assert_equal("x", @controller.key_name("x"))
     assert_equal("あ", @controller.key_name("あ"))
   end
+
+  def test_echo_input
+    @controller.prefix_arg = [4]
+    @controller.echo_input
+    assert_equal("C-u-", Window.echo_area.message)
+    @controller.prefix_arg = [16]
+    @controller.echo_input
+    assert_equal("C-u([16])-", Window.echo_area.message)
+    @controller.prefix_arg = 123
+    @controller.echo_input
+    assert_equal("C-u(123)-", Window.echo_area.message)
+    @controller.prefix_arg = nil
+    @controller.key_sequence.replace(["\C-x"])
+    @controller.echo_input
+    assert_equal("C-x-", Window.echo_area.message)
+    @controller.key_sequence.replace(["\C-x", "\n"])
+    @controller.echo_input
+    assert_equal("C-x RET-", Window.echo_area.message)
+  end
 end

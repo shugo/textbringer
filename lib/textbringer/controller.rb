@@ -7,7 +7,7 @@ module Textbringer
   class Controller
     attr_accessor :this_command, :last_command, :overriding_map
     attr_accessor :prefix_arg, :current_prefix_arg
-    attr_reader :last_key, :recursive_edit_level
+    attr_reader :key_sequence, :last_key, :recursive_edit_level
 
     @@current = nil
 
@@ -123,14 +123,6 @@ module Textbringer
       end
     end
 
-    private
-
-    def key_binding(key_sequence)
-      @overriding_map&.lookup(key_sequence) ||
-      Buffer.current&.keymap&.lookup(key_sequence) ||
-        GLOBAL_MAP.lookup(key_sequence)
-    end
-
     def echo_input
       if @prefix_arg || !@key_sequence.empty?
         if !@echo_immediately
@@ -156,6 +148,14 @@ module Textbringer
       else
         @echo_immediately = false
       end
+    end
+
+    private
+
+    def key_binding(key_sequence)
+      @overriding_map&.lookup(key_sequence) ||
+      Buffer.current&.keymap&.lookup(key_sequence) ||
+        GLOBAL_MAP.lookup(key_sequence)
     end
   end
 end
