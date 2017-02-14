@@ -12,8 +12,6 @@ module Textbringer
             (?:Gem|Rake|Cap|Thor|Vagrant|Guard|Pod)file)\z/ix
     self.interpreter_name_pattern = /ruby/i
 
-    define_syntax_beginning(/^[ \t]*(class|module|def|end)\b/)
-
     define_syntax :comment, /
       (?: \#.*(?:\\\n.*)*(?:\z|(?<!\\)\n) ) |
       (?: ^=begin (?:.|\n)* (?> ^=end \b ) )

@@ -923,7 +923,7 @@ module Textbringer
       end
     end
 
-    def re_search_forward(s, raise_error: true, move: true)
+    def re_search_forward(s, raise_error: true)
       re = new_regexp(s)
       i = byteindex(true, re, @point)
       if i.nil?
@@ -933,12 +933,10 @@ module Textbringer
           return nil
         end
       end
-      pos = match_end(0)
-      goto_char(pos) if move
-      pos
+      goto_char(match_end(0))
     end
 
-    def re_search_backward(s, raise_error: true, move: true)
+    def re_search_backward(s, raise_error: true)
       re = new_regexp(s)
       pos = @point
       begin
@@ -958,9 +956,7 @@ module Textbringer
           return nil
         end
       end while match_end(0) > @point
-      pos = match_beginning(0)
-      goto_char(pos) if move
-      pos
+      goto_char(match_beginning(0))
     end
 
     def looking_at?(re)

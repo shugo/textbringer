@@ -18,8 +18,6 @@ module Textbringer
       _Complex _Imaginary
     )
 
-    define_syntax_beginning(/^[ \t]*[{}]/)
-
     define_syntax :comment, /
       (?<multiline_comment> \/\* (?> (?:.|\n)*? \*\/ ) ) |
       (?<singleline_comment> \/\/ .*(?:\\\n.*)*(?:\z|(?<!\\)\n) )
