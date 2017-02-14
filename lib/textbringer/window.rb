@@ -368,9 +368,8 @@ module Textbringer
       }.join("|").b
       re = Regexp.new(re_str)
       names = syntax_table.keys
-      pos = 0
-      while i = s.index(re, pos)
-        b = base_pos + i
+      s.scan(re) do
+        b = base_pos + $`.bytesize
         e = b + $&.bytesize
         if b < @buffer.point && @buffer.point < e
           b = @buffer.point
@@ -381,7 +380,6 @@ module Textbringer
           @highlight_on[b] = attributes
           @highlight_off[e] = attributes
         end
-        pos = i + $&.bytesize
       end
     end
 
