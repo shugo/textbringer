@@ -19,8 +19,12 @@ module Textbringer
     )
 
     define_syntax :comment, /
-      (?<multiline_comment> \/\* (?> (?:.|\n)*? \*\/ ) ) |
-      (?<singleline_comment> \/\/ .*(?:\\\n.*)*(?:\z|(?<!\\)\n) )
+      (?: \/\* (?> (?:.|\n)*? \*\/ ) ) |
+      (?: \/\/ .*(?:\\\n.*)*(?:\z|(?<!\\)\n) )
+    /x
+
+    define_syntax :preprocessing_directive, /
+      ^ [\ \t]* (?: \# | %: ) [\ \t]* [_a-zA-Z][_a-zA-Z0-9]*
     /x
 
     define_syntax :keyword, /
