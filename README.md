@@ -11,7 +11,9 @@ text editor.
 
 ## Demo
 
-[![asciicast](https://asciinema.org/a/103357.png)](https://asciinema.org/a/103357)
+* FizzBuzz: https://asciinema.org/a/103357
+* Ruby Programming: https://asciinema.org/a/100156
+* Japanese Text Editing: https://asciinema.org/a/100166
 
 ## WARNING
 
