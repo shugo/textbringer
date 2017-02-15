@@ -11,7 +11,7 @@ text editor.
 
 ## Demo
 
-[![asciicast](https://asciinema.org/a/100156.png)](https://asciinema.org/a/100156)
+[![asciicast](https://asciinema.org/a/103357.png)](https://asciinema.org/a/103357)
 
 ## WARNING
 
