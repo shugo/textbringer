@@ -481,7 +481,8 @@ module Textbringer
       @goal_column = nil
     end
 
-    def insert(s, merge_undo = false)
+    def insert(x, merge_undo = false)
+      s = x.to_s
       check_read_only_flag
       pos = @point
       size = s.bytesize

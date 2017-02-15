@@ -30,6 +30,12 @@ class TestBuffer < Test::Unit::TestCase
     assert_equal(4, buffer.current_column)
   end
 
+  def test_insert_to_s
+    buffer = Buffer.new
+    assert_equal(buffer, buffer.insert(123))
+    assert_equal("123", buffer.to_s)
+  end
+
   def test_newline
     buffer = Buffer.new("abc")
     buffer.end_of_buffer
