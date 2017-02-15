@@ -27,6 +27,15 @@ module Textbringer
     /x
 
     define_syntax :string, /
+      (?: %[qQrwWsix]?\{ (?: [^\\}] | \\ .  )* \} ) |
+      (?: %[qQrwWsix]?\( (?: [^\\)] | \\ .  )* \) ) |
+      (?: %[qQrwWsix]?\[ (?: [^\\\]] | \\ .  )* \] ) |
+      (?: %[qQrwWsix]?< (?: [^\\>] | \\ .  )* > ) |
+      (?:
+         %[qQrwWsix]?(?<string_delimiter>[^{(\[<a-zA-Z0-9\x80-\xff])
+             (?: (?! \k<string_delimiter> ) [^\\] | \\ .  )*
+             \k<string_delimiter>
+      ) |
       (?:
         (?<! \$ )
             " (?: [^\\"] | \\ .  )* "
