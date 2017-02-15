@@ -504,6 +504,7 @@ module Textbringer
       end
       @modified = true
       @goal_column = nil
+      self
     end
 
     def newline

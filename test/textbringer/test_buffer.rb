@@ -12,20 +12,20 @@ class TestBuffer < Test::Unit::TestCase
 
   def test_insert
     buffer = Buffer.new("abc")
-    buffer.insert("123")
+    assert_equal(buffer, buffer.insert("123"))
     assert_equal("123abc", buffer.to_s)
     assert_equal(3, buffer.point)
     assert_equal(1, buffer.current_line)
     assert_equal(4, buffer.current_column)
     assert_equal(true, buffer.gap_filled_with_nul?)
     s = "x" * (Buffer::GAP_SIZE + 1)
-    buffer.insert(s)
+    assert_equal(buffer, buffer.insert(s))
     assert_equal("123#{s}abc", buffer.to_s)
     assert_equal(Buffer::GAP_SIZE + 4, buffer.point)
     assert_equal(1, buffer.current_line)
     assert_equal(Buffer::GAP_SIZE + 5, buffer.current_column)
     assert_equal(true, buffer.gap_filled_with_nul?)
-    buffer.insert("\nfoo")
+    assert_equal(buffer, buffer.insert("\nfoo"))
     assert_equal(2, buffer.current_line)
     assert_equal(4, buffer.current_column)
   end
