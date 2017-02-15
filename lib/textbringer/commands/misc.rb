@@ -281,5 +281,12 @@ module Textbringer
         buffer.read_only = true
       end
     end
+
+    define_command(:grep) do
+      |cmd = read_from_minibuffer("Grep: ",
+                                  initial_value: CONFIG[:grep_command] + " ")|
+      shell_execute(cmd, "*grep*")
+      backtrace_mode
+    end
   end
 end

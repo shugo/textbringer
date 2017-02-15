@@ -148,4 +148,10 @@ class TestMisc < Textbringer::TestCase
       assert_match(/Process \d+ was killed by/, Window.echo_area.message)
     end
   end
+
+  def test_grep
+    grep("#{ruby_install_name} -e 'p 1 + 1'")
+    assert_equal("2\n", Buffer.current.to_s)
+    assert_equal("Backtrace", Buffer.current.mode.name)
+  end
 end

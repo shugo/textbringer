@@ -90,6 +90,7 @@ module Textbringer
     }
 
     def read_from_minibuffer(prompt, completion_proc: nil, default: nil,
+                             initial_value: nil,
                              keymap: MINIBUFFER_LOCAL_MAP)
       if Window.echo_area.active?
         raise EditorError,
@@ -104,9 +105,9 @@ module Textbringer
       Buffer.minibuffer[:completion_proc] = completion_proc
       Window.echo_area.active = true
       begin
-        Buffer.minibuffer.delete_region(Buffer.minibuffer.point_min,
-                                        Buffer.minibuffer.point_max)
         Window.current = Window.echo_area
+        Buffer.minibuffer.clear
+        Buffer.minibuffer.insert(initial_value) if initial_value
         if default
           prompt = prompt.sub(/:/, " (default #{default}):")
         end

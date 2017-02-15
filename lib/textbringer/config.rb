@@ -9,10 +9,11 @@ module Textbringer
     indent_tabs_mode: false,
     case_fold_search: true,
     buffer_dump_dir: File.expand_path("~/.textbringer/buffer_dump"),
+    tag_mark_limit: 16,
     syntax_highlight: true,
+    highlight_buffer_size_limit: 102400,
     shell_file_name: ENV["SHELL"],
     shell_command_switch: "-c",
-    highlight_buffer_size_limit: 102400,
-    tag_mark_limit: 16
+    grep_command: "grep -nH -e"
   }
 end
