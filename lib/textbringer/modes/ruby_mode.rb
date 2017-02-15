@@ -27,6 +27,7 @@ module Textbringer
     /x
 
     define_syntax :string, /
+      (?: (?<! [a-zA-Z] ) \? . ) |
       (?: %[qQrwWsix]?\{ (?: [^\\}] | \\ .  )* \} ) |
       (?: %[qQrwWsix]?\( (?: [^\\)] | \\ .  )* \) ) |
       (?: %[qQrwWsix]?\[ (?: [^\\\]] | \\ .  )* \] ) |
