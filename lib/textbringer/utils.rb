@@ -276,12 +276,17 @@ module Textbringer
       RbConfig::CONFIG["ruby_install_name"]
     end
 
-    def insert(s)
-      Buffer.current.insert(s)
-    end
-
-    def gsub(*args, &block)
-      Buffer.current.gsub(*args, &block)
+    [
+      :beginning_of_buffer?,
+      :end_of_buffer?,
+      :beginning_of_line?,
+      :end_of_line?,
+      :insert,
+      :gsub
+    ].each do |name|
+      define_method(name) do |*args, &block|
+        Buffer.current.send(name, *args, &block)
+      end
     end
   end
 end
