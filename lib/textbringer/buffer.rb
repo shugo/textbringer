@@ -162,7 +162,7 @@ module Textbringer
     end
 
     def expand_tab(s)
-      # TOOD: Support multibyte characters
+      # TODO: Support multibyte characters
       tw = self[:tab_width]
       fmt = "A#{tw}"
       s.b.gsub(/([^\t]{#{tw}})|([^\t]*)\t/n) {
