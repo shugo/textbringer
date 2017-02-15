@@ -25,6 +25,12 @@ minor versions.
 
     $ gem install textbringer
 
+You need ncursesw to use multibyte characters.
+Install ncursesw before installing curses.gem, on which textbringer depends.
+
+    $ sudo apt-get install libncursesw5-dev
+    $ gem install curses
+
 ## Usage
 
     $ textbringer
