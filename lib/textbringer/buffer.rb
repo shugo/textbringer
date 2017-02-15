@@ -1186,6 +1186,14 @@ module Textbringer
       end
     end
 
+    def gsub(*args, &block)
+      s = to_s.gsub(*args, &block)
+      delete_region(point_min, point_max)
+      insert(s)
+      merge_undo(2)
+      self
+    end
+
     private
 
     def adjust_gap(min_size = 0, pos = @point)

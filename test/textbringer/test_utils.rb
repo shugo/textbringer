@@ -181,4 +181,18 @@ class TestUtils < Textbringer::TestCase
     recursive_edit
     assert_equal("hello", Buffer.current.to_s)
   end
+
+  def test_gsub
+    insert(<<EOF)
+foo
+bar
+baz
+EOF
+    assert_equal(Buffer.current, gsub(/b(.*)/) {|s| s.capitalize})
+    assert_equal(<<EOF, Buffer.current.to_s)
+foo
+Bar
+Baz
+EOF
+  end
 end

@@ -1852,4 +1852,18 @@ EOF
       CONFIG[:east_asian_ambiguous_width] = old_width
     end
   end
+
+  def test_gsub
+    buffer = Buffer.new(<<EOF)
+foo
+bar
+baz
+EOF
+    assert_equal(buffer, buffer.gsub(/b(.*)/, "B\\1"))
+    assert_equal(<<EOF, buffer.to_s)
+foo
+Bar
+Baz
+EOF
+  end
 end

@@ -279,5 +279,9 @@ module Textbringer
     def insert(s)
       Buffer.current.insert(s)
     end
+
+    def gsub(*args, &block)
+      Buffer.current.gsub(*args, &block)
+    end
   end
 end
