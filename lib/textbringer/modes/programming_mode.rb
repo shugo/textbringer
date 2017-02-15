@@ -18,7 +18,7 @@ module Textbringer
     PROGRAMMING_MODE_MAP.define_key("\C-c\C-n", :forward_definition_command)
     PROGRAMMING_MODE_MAP.define_key("\C-c\C-p", :backward_definition_command)
     PROGRAMMING_MODE_MAP.define_key("\C-c\C-c", :compile_command)
-    PROGRAMMING_MODE_MAP.define_key("\C-ct", :toggle_test_command)
+    PROGRAMMING_MODE_MAP.define_key("\C-c\C-t", :toggle_test_command)
 
     def initialize(buffer)
       super(buffer)
