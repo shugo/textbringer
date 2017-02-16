@@ -227,9 +227,11 @@ module Textbringer
 
     define_command(:shell_execute) do
       |cmd = read_from_minibuffer("Shell execute: "),
-       buffer_name = "*Shell output*"|
+       buffer_name = "*Shell output*",
+       mode: FundamentalMode|
       buffer = Buffer.find_or_new(buffer_name)
       switch_to_buffer(buffer)
+      buffer.apply_mode(mode)
       buffer.read_only = false
       buffer.clear
       Window.redisplay
@@ -285,8 +287,7 @@ module Textbringer
     define_command(:grep) do
       |cmd = read_from_minibuffer("Grep: ",
                                   initial_value: CONFIG[:grep_command] + " ")|
-      shell_execute(cmd, "*grep*")
-      backtrace_mode
+      shell_execute(cmd, "*grep*", mode: BacktraceMode)
     end
   end
 end

@@ -117,8 +117,7 @@ module Textbringer
 
     def compile(cmd = read_from_minibuffer("Compile: ",
                                            default: default_compile_command))
-      shell_execute(cmd, "*Ruby compile result*")
-      backtrace_mode
+      shell_execute(cmd, "*Ruby compile result*", mode: BacktraceMode)
     end
 
     def symbol_pattern
