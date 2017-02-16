@@ -195,7 +195,8 @@ module Textbringer
 
     def self.resize
       @@windows.delete_if do |window|
-        if !window.echo_area? && window.y > Window.lines - 4
+        if !window.echo_area? &&
+            window.y > Window.lines - CONFIG[:window_min_height]
           window.delete
           true
         else
@@ -542,11 +543,11 @@ module Textbringer
     end
 
     def split
-      if lines < 6
-        raise EditorError, "Window too small"
-      end
       old_lines = lines
       new_lines = (old_lines / 2.0).ceil
+      if new_lines < CONFIG[:window_min_height]
+        raise EditorError, "Window too small"
+      end
       resize(new_lines, columns)
       new_window = Window.new(old_lines - new_lines, columns, y + new_lines, x)
       new_window.buffer = buffer

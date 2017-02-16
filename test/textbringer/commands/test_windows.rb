@@ -186,7 +186,6 @@ class TestWindows < Textbringer::TestCase
     assert_equal(true, Window.windows[2].echo_area?)
 
     split_window
-    split_window
     assert_raise(EditorError) do
       split_window
     end

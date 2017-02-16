@@ -10,6 +10,7 @@ module Textbringer
     case_fold_search: true,
     buffer_dump_dir: File.expand_path("~/.textbringer/buffer_dump"),
     tag_mark_limit: 16,
+    window_min_height: 4,
     syntax_highlight: true,
     highlight_buffer_size_limit: 102400,
     shell_file_name: ENV["SHELL"],
