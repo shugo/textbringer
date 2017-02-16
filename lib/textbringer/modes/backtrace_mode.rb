@@ -5,7 +5,7 @@ module Textbringer
     define_generic_command :jump_to_source_location
 
     BACKTRACE_MODE_MAP = Keymap.new
-    BACKTRACE_MODE_MAP.define_key("\n", :jump_to_source_location_command)
+    BACKTRACE_MODE_MAP.define_key("\C-m", :jump_to_source_location_command)
 
     define_syntax :link, /^(\S*?):(\d+):/
 
