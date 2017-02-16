@@ -33,7 +33,7 @@ module Textbringer
       (?: %[qQrwWsix]?\[ (?: [^\\\]] | \\ .  )* \] ) |
       (?: %[qQrwWsix]?< (?: [^\\>] | \\ .  )* > ) |
       (?:
-         %[qQrwWsix]?(?<string_delimiter>[^{(\[<a-zA-Z0-9\x80-\xff])
+         %[qQrwWsix]?(?<string_delimiter>[^{(\[<a-zA-Z0-9\s\x80-\xff])
              (?: (?! \k<string_delimiter> ) [^\\] | \\ .  )*
              \k<string_delimiter>
       ) |
