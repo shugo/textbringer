@@ -1,11 +1,14 @@
 sudo: false
+os:
+- linux
+- osx
 language: ruby
 rvm:
 - 2.3.3
 - 2.4.0
 cache: bundler
 script:
-- xvfb-run bundle exec rake test
+- if [ "$TRAVIS_OS_NAME" == "linux" ]; then xvfb-run bundle exec rake test; else bundle exec rake test; fi
 - bundle exec bundle-audit check --update
 env:
   global:
