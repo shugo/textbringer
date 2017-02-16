@@ -272,7 +272,6 @@ EOF
   end
 
   def test_indent_line_comma
-    omit
     @buffer.insert(<<EOF.chop)
 foo x,
 y
@@ -280,7 +279,7 @@ EOF
     @ruby_mode.indent_line
     assert_equal(<<EOF.chop, @buffer.to_s)
 foo x,
-    y
+  y
 EOF
   end
 
