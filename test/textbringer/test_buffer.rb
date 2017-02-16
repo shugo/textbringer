@@ -901,20 +901,20 @@ EOF
   def test_file_modified?
     buffer = Buffer.new
     assert_equal(false, buffer.file_modified?)
-    delay_secs = /mswin32|mingw32/ =~ RUBY_PLATFORM ? 1 : 0.01
     Tempfile.create("test_buffer", binmode: true) do |f|
       f.print("foo")
       f.close
+      t = Time.now - 10
+      File.utime(t, t, f.path)
       buffer = Buffer.open(f.path)
       assert_equal(false, buffer.file_modified?)
-      sleep(delay_secs)
       File.write(f.path, "bar")
       assert_equal(true, buffer.file_modified?)
       buffer.save
       assert_equal(false, buffer.file_modified?)
       assert_equal("foo", File.binread(f.path))
-      sleep(delay_secs)
       File.write(f.path, "bar")
+      File.utime(t, t, f.path)
       assert_equal(true, buffer.file_modified?)
     end
   end
