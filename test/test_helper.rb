@@ -112,9 +112,6 @@ module Textbringer
     def addstr(s)
       @contents[@cury].concat(s)
       @curx = Textbringer::Buffer.display_width(@contents[@cury])
-      if @curx > @columns
-        raise RangeError, "Out of window: #{@curx} > #{@columns}"
-      end
     end
 
     def get_char
