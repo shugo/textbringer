@@ -9,6 +9,20 @@ SimpleCov.start("textbringer")
 
 if ENV["UPLOAD_TO_CODECOV"]
   require "codecov"
+  module IgnoreFormatError
+    def format(*args)
+      super(*args)
+    rescue => e
+      { 
+        "error" => {
+          "message" => e.message,
+          "class" => e.class.name,
+          "backtrace" => e.backtrace
+        }
+      }
+    end
+  end
+  SimpleCov::Formatter::Codecov.send(:prepend, IgnoreFormatError)
   SimpleCov.formatter = SimpleCov::Formatter::Codecov
 end
 
