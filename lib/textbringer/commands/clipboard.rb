@@ -1,5 +1,9 @@
 # frozen_string_literal: true
 
+module Clipboard
+  @implementation = nil
+end
+
 require "clipboard"
 
 module Textbringer
