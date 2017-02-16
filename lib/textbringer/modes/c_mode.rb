@@ -32,8 +32,8 @@ module Textbringer
     /x
 
     define_syntax :string, /
-      (?: " (?: [^\\"] | \\ .  )* " ) |
-      (?: ' (?: [^\\'] | \\ .  )* ' )
+      (?: " (?: [^\\"] | \\ (?:.|\n)  )* " ) |
+      (?: ' (?: [^\\'] | \\ (?:.|\n)  )* ' )
     /x
     
     def initialize(buffer)
