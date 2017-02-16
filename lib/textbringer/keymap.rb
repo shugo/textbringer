@@ -96,7 +96,8 @@ module Textbringer
   GLOBAL_MAP.define_key(?\C-_, :undo)
   GLOBAL_MAP.define_key("\C-x\C-_", :redo)
   GLOBAL_MAP.define_key("\C-t", :transpose_chars)
-  GLOBAL_MAP.define_key(?\n, :newline)
+  GLOBAL_MAP.define_key("\C-j", :newline)
+  GLOBAL_MAP.define_key("\C-m", :newline)
   GLOBAL_MAP.define_key("\C-l", :recenter)
   GLOBAL_MAP.define_key("\C-v", :scroll_up)
   GLOBAL_MAP.define_key(:npage, :scroll_up)
@@ -132,7 +133,8 @@ module Textbringer
   end
 
   MINIBUFFER_LOCAL_MAP = Keymap.new
-  MINIBUFFER_LOCAL_MAP.define_key(?\n, :exit_recursive_edit)
+  MINIBUFFER_LOCAL_MAP.define_key("\C-j", :exit_recursive_edit)
+  MINIBUFFER_LOCAL_MAP.define_key("\C-m", :exit_recursive_edit)
   MINIBUFFER_LOCAL_MAP.define_key(?\t, :complete_minibuffer)
   MINIBUFFER_LOCAL_MAP.define_key(?\C-g, :abort_recursive_edit)
 end

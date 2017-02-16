@@ -137,6 +137,7 @@ module Textbringer
       Curses.init_screen
       Curses.noecho
       Curses.raw
+      Curses.nonl
       self.has_colors = Curses.has_colors?
       if has_colors?
         Curses.start_color
@@ -158,6 +159,7 @@ module Textbringer
       ensure
         Curses.echo
         Curses.noraw
+        Curses.nl
         Curses.close_screen
       end
     end
@@ -304,7 +306,7 @@ module Textbringer
         end
         KEY_NAMES[key] || key
       else
-        key&.encode(Encoding::UTF_8)&.tr("\r", "\n")
+        key&.encode(Encoding::UTF_8)
       end
     end
 
