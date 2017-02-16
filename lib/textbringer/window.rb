@@ -555,6 +555,47 @@ module Textbringer
       @@windows.insert(i + 1, new_window)
     end
 
+    def enlarge(n)
+      if n > 0
+        max_height = Window.lines -
+          CONFIG[:window_min_height] * (@@windows.size - 2) - 1
+        new_lines = [lines + n, max_height].min
+        needed_lines = new_lines - lines
+        resize(new_lines, columns)
+        i = @@windows.index(self)
+        indices = (i + 1).upto(@@windows.size - 2).to_a +
+          (i - 1).downto(0).to_a
+        indices.each do |j|
+          break if needed_lines == 0
+          window = @@windows[j]
+          extended_lines = [
+            window.lines - CONFIG[:window_min_height],
+            needed_lines
+          ].min
+          window.resize(window.lines - extended_lines, window.columns)
+          needed_lines -= extended_lines
+        end
+        y = 0
+        @@windows.each do |win|
+          win.move(y, win.x)
+          y += win.lines
+        end
+      elsif n < 0 && @@windows.size > 2
+        new_lines = [lines + n, CONFIG[:window_min_height]].max
+        diff = lines - new_lines
+        resize(new_lines, columns)
+        i = @@windows.index(self)
+        if i < @@windows.size - 2
+          window = @@windows[i + 1]
+          window.move(window.y - diff, window.x)
+        else
+          window = @@windows[i - 1]
+          move(self.y + diff, self.x)
+        end
+        window.resize(window.lines + diff, window.columns)
+      end
+    end
+
     private
 
     def initialize_window(num_lines, num_columns, y, x)
