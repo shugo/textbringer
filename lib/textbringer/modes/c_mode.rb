@@ -44,7 +44,7 @@ module Textbringer
 
     def compile(cmd = read_from_minibuffer("Compile: ",
                                            default: default_compile_command))
-      shell_execute(cmd, "*Compile result*")
+      shell_execute(cmd, buffer_name: "*Compile result*")
     end
 
     def symbol_pattern
