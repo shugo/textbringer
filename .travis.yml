@@ -1,15 +1,18 @@
 sudo: false
 os:
-- linux
+  - linux
 language: ruby
 rvm:
-- 2.3.3
-- 2.4.0
-- ruby-head
+  - 2.3.3
+  - 2.4.0
+  - ruby-head
+matrix:
+  allow_failures:
+    - rvm: ruby-head
 cache: bundler
 script:
-- if [ "$TRAVIS_OS_NAME" == "linux" ]; then xvfb-run bundle exec rake test; else bundle exec rake test; fi
-- bundle exec bundle-audit check --update
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then xvfb-run bundle exec rake test; else bundle exec rake test; fi
+  - bundle exec bundle-audit check --update
 env:
   global:
     UPLOAD_TO_CODECOV: 1
