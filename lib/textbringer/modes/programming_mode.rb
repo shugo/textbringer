@@ -64,7 +64,7 @@ module Textbringer
       @buffer.save_excursion do
         pos = @buffer.point
         @buffer.beginning_of_line
-        if /\A\s+\z/ =~ @buffer.substring(@buffer.point, pos)
+        if /\A[ \t]+\z/ =~ @buffer.substring(@buffer.point, pos)
           @buffer.delete_region(@buffer.point, pos)
           n += 1
         end

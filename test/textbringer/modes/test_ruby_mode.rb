@@ -325,6 +325,12 @@ class foo
   
 EOF
   end
+
+  def test_newline_and_reindent_after_cr
+    @buffer.insert("\r")
+    @ruby_mode.newline_and_reindent
+    assert_equal("\r\n", @buffer.to_s)
+  end
   
   def test_forward_definition
     @buffer.insert(<<EOF.chop)
