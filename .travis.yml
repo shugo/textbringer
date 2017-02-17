@@ -20,3 +20,7 @@ notifications:
   email:
     on_success: never
     on_failure: always
+addons:
+  apt:
+    packages:
+      - xclip
