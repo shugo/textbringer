@@ -48,6 +48,7 @@ module Textbringer
         name.slice(/\AKEY_(.*)/, 1).downcase.intern
     end
 
+    @@started = false
     @@windows = []
     @@current = nil
     @@echo_area = nil
@@ -134,6 +135,9 @@ module Textbringer
     end
 
     def self.start
+      if @@started
+        raise EditorError, "Already started"
+      end
       Curses.init_screen
       Curses.noecho
       Curses.raw
@@ -155,12 +159,18 @@ module Textbringer
         Buffer.minibuffer.keymap = MINIBUFFER_LOCAL_MAP
         @@echo_area.buffer = Buffer.minibuffer
         @@windows.push(@@echo_area)
+        @@started = true
         yield
       ensure
+        @@windows.each do |win|
+          win.delete
+        end
+        @@windows.clear
         Curses.echo
         Curses.noraw
         Curses.nl
         Curses.close_screen
+        @@started = false
       end
     end
 

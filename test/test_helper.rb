@@ -28,20 +28,56 @@ end
 
 require "textbringer"
 
+module Curses
+  @fake_lines = 24
+  @fake_cols = 80
+end
+
 class << Curses
-  undef unget_char
-  undef init_pair
+  [
+    :init_screen, :close_screen,
+    :echo, :noecho,
+    :raw, :noraw,
+    :nl, :nonl,
+    :unget_char,
+    :start_color,
+    :use_default_colors,
+    :init_pair,
+    :beep,
+    :doupdate
+  ].each do |name|
+    undef_method name
+    define_method(name) do |*args|
+    end
+  end
+
+  undef lines
+  def lines
+    @fake_lines
+  end
+
+  def lines=(lines)
+    @fake_lines = lines
+  end
+
+  undef cols
+  def cols
+    @fake_cols
+  end
+
+  def cols=(cols)
+    @fake_cols = cols
+  end
+
+  undef has_colors?
+  def has_colors?
+    true
+  end
+
   undef color_pair
-end
-
-def Curses.unget_char(c)
-end
-
-def Curses.init_pair(n, f, g)
-end
-
-def Curses.color_pair(n)
-  0
+  def color_pair(n)
+    0
+  end
 end
 
 Textbringer::Window.load_faces
@@ -144,34 +180,13 @@ module Textbringer
   end
   
   class Window
-    @fake_lines = 24
-    @fake_columns = 80
-
     class << self
-      undef lines
-      def lines
-        @fake_lines
-      end
-
       def lines=(lines)
-        @fake_lines = lines
-      end
-
-      undef columns
-      def columns
-        @fake_columns
+        Curses.lines = lines
       end
 
       def columns=(columns)
-        @fake_columns = columns
-      end
-
-      undef beep
-      def beep
-      end
-
-      undef update
-      def update
+        Curses.cols = columns
       end
 
       def setup_for_test

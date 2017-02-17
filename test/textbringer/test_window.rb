@@ -293,6 +293,33 @@ EOF
     assert_equal("\n", window_string(Window.echo_area.window))
   end
 
+  def test_s_start
+    Buffer.kill_em_all
+    Window.windows.clear
+    Window.start do
+      assert_raise(EditorError) do
+        Window.start
+      end
+      windows = Window.windows
+      assert_equal(2, windows.size)
+      assert_equal(true, windows[0].current?)
+      assert_equal(false, windows[0].echo_area?)
+      assert_equal("*scratch*", windows[0].buffer.name)
+      assert_equal(0, windows[0].y)
+      assert_equal(0, windows[0].x)
+      assert_equal(23, windows[0].lines)
+      assert_equal(80, windows[0].columns)
+      assert_equal(false, windows[1].current?)
+      assert_equal(true, windows[1].echo_area?)
+      assert_equal(Buffer.minibuffer, windows[1].buffer)
+      assert_equal(23, windows[1].y)
+      assert_equal(0, windows[1].x)
+      assert_equal(1, windows[1].lines)
+      assert_equal(80, windows[1].columns)
+    end
+    assert_equal(0, Window.windows.size)
+  end
+
   private
 
   def window_string(window)
