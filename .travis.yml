@@ -11,7 +11,11 @@ matrix:
     - rvm: ruby-head
 cache: bundler
 script:
-  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then xvfb-run bundle exec rake test; else bundle exec rake test; fi
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then
+        xvfb-run bundle exec rake test;
+    else
+        bundle exec rake test;
+    fi
   - bundle exec bundle-audit check --update
 env:
   global:
