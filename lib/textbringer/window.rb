@@ -248,8 +248,6 @@ module Textbringer
       @point_mark = nil
       @deleted = false
       @key_buffer = []
-      @highlight_on = nil
-      @highlight_off = nil
     end
 
     def echo_area?
@@ -277,11 +275,7 @@ module Textbringer
 
     def buffer=(buffer)
       delete_marks
-      if @buffer
-        @buffer.delete_observer(self)
-      end
       @buffer = buffer
-      @buffer.add_observer(self)
       @top_of_window = @buffer.new_mark(@buffer.point_min)
       if @buffer[:top_of_window]
         @top_of_window.location = @buffer[:top_of_window].location
@@ -291,8 +285,6 @@ module Textbringer
         @bottom_of_window.location = @buffer[:bottom_of_window].location
       end
       @point_mark = @buffer.new_mark
-      @highlight_on = nil
-      @highlight_off = nil
     end
 
     def save_point
@@ -371,7 +363,6 @@ module Textbringer
     end
 
     def highlight
-      return if @highlight_on
       @highlight_on = {}
       @highlight_off = {}
       return if !@@has_colors || !CONFIG[:syntax_highlight]
@@ -405,14 +396,8 @@ module Textbringer
       end
     end
 
-    def update
-      @highlight_on = nil
-      @highlight_off = nil
-    end
-
     def redisplay
       return if @buffer.nil?
-      @buffer.notify_observers
       redisplay_mode_line
       @buffer.save_point do |saved|
         if current?

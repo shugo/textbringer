@@ -4,12 +4,10 @@ require "nkf"
 require "unicode/display_width"
 require "json"
 require "fileutils"
-require "observer"
 
 module Textbringer
   class Buffer
     extend Enumerable
-    include Observable
 
     attr_accessor :mode, :keymap
     attr_reader :name, :file_name, :file_encoding, :file_format, :point, :marks
@@ -485,7 +483,7 @@ module Textbringer
 
     def insert(x, merge_undo = false)
       s = x.to_s
-      modify
+      check_read_only_flag
       pos = @point
       size = s.bytesize
       adjust_gap(size)
@@ -530,7 +528,7 @@ module Textbringer
     end
 
     def delete_char(n = 1)
-      modify
+      check_read_only_flag
       adjust_gap
       s = @point
       pos = get_pos(@point, n)
@@ -800,7 +798,7 @@ module Textbringer
     end
 
     def delete_region(s = @point, e = mark)
-      modify
+      check_read_only_flag
       old_pos = @point
       if s > e
         s, e = e, s
@@ -827,7 +825,7 @@ module Textbringer
     end
 
     def clear
-      modify
+      check_read_only_flag
       @contents = String.new
       @point = @gap_start = @gap_end = 0
       @marks.each do |m|
@@ -884,7 +882,7 @@ module Textbringer
     end
 
     def undo
-      modify
+      check_read_only_flag
       if @undo_stack.empty?
         raise EditorError, "No further undo information"
       end
@@ -906,7 +904,7 @@ module Textbringer
     end
 
     def redo
-      modify
+      check_read_only_flag
       if @redo_stack.empty?
         raise EditorError, "No further redo information"
       end
@@ -1363,11 +1361,10 @@ module Textbringer
       end
     end
 
-    def modify
+    def check_read_only_flag
       if @read_only
         raise ReadOnlyError, "Buffer is read only: #{self.inspect}"
       end
-      changed
     end
   end
 
