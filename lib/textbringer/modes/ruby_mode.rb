@@ -33,7 +33,8 @@ module Textbringer
       (?: %[qQrwWsix]?\[ (?: [^\\\]] | \\ .  )* \] ) |
       (?: %[qQrwWsix]?< (?: [^\\>] | \\ .  )* > ) |
       (?:
-         %[qQrwWsix]?(?<string_delimiter>[^{(\[<a-zA-Z0-9\s\x80-\xff])
+         %[qQrwWsix]?
+             (?<string_delimiter>[^{(\[<a-zA-Z0-9\s\u{0100}-\u{10ffff}])
              (?: (?! \k<string_delimiter> ) [^\\] | \\ .  )*
              \k<string_delimiter>
       ) |
@@ -61,11 +62,14 @@ module Textbringer
       (?:
         (?<! class | class \s | [\]})"'.] | :: | \w )
             <<-?(?<heredoc_quote>['"`]?)
-            (?<heredoc_terminator>[_a-zA-Z\x80-\xff][_a-zA-Z0-9\x80-\xff]*)
+            (?<heredoc_terminator>
+              [_a-zA-Z\u{0100}-\u{10ffff}]
+              [_a-zA-Z0-9\u{0100}-\u{10ffff}]*
+            )
             \k<heredoc_quote>
             (?> (?:.|\n)*? \k<heredoc_terminator> )
       )
-    /nx
+    /x
 
     def initialize(buffer)
       super(buffer)

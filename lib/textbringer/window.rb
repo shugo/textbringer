@@ -370,15 +370,15 @@ module Textbringer
       return if syntax_table.empty?
       if @buffer.bytesize < CONFIG[:highlight_buffer_size_limit]
         base_pos = @buffer.point_min
-        s = @buffer.to_s.b
+        s = @buffer.to_s
       else
         base_pos = @buffer.point
         len = columns * (lines - 1) / 2 * 3
-        s = @buffer.substring(@buffer.point, @buffer.point + len).scrub("").b
+        s = @buffer.substring(@buffer.point, @buffer.point + len).scrub("")
       end
       re_str = syntax_table.map { |name, re|
         "(?<#{name}>#{re})"
-      }.join("|").b
+      }.join("|")
       re = Regexp.new(re_str)
       names = syntax_table.keys
       s.scan(re) do
