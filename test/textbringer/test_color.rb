@@ -30,6 +30,10 @@ class TestColor < Textbringer::TestCase
     Curses.colors = 8
     assert_equal(Curses::COLOR_WHITE, Color["white"])
     assert_equal(-1, Color["brightblack"])
+
+    assert_raise(EditorError) do
+      Color["foo"]
+    end
   ensure
     Curses.colors = 256
   end
