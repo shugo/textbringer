@@ -58,7 +58,7 @@ module Textbringer
         g = $2.to_i(16)
         b = $3.to_i(16)
         ADDITIONAL_COLORS.sort_by { |c|
-          Math.sqrt((r - c.r) ** 2 + (g - c.g) ** 2 + (b - c.b) ** 2)
+          (r - c.r) ** 2 + (g - c.g) ** 2 + (b - c.b) ** 2
         }.first.number
       else
         unless BASIC_COLORS.key?(name)
