@@ -81,6 +81,25 @@ class TestWindow < Textbringer::TestCase
     assert_equal("z", @window.window.contents[@lines - 2])
   end
 
+  def test_redisplay_mode_line
+    @buffer.insert("aあ\u{29e3d}")
+    @buffer.beginning_of_line
+    @window.redisplay
+    expected = format("%-#{@columns}s",
+                      "foo [+][UTF-8/unix] U+0061 1,1 (Fundamental)")
+    assert_match(expected, @window.mode_line.contents[0])
+    @buffer.forward_char
+    @window.redisplay
+    expected = format("%-#{@columns}s",
+                      "foo [+][UTF-8/unix] U+3042 1,2 (Fundamental)")
+    assert_match(expected, @window.mode_line.contents[0])
+    @buffer.forward_char
+    @window.redisplay
+    expected = format("%-#{@columns}s",
+                      "foo [+][UTF-8/unix] U+29E3D 1,3 (Fundamental)")
+    assert_match(expected, @window.mode_line.contents[0])
+  end
+
   def test_redisplay_tabs
     @buffer.insert("\tfoo\n")
     @buffer.insert("bar\tbaz\n")
