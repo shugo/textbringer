@@ -371,10 +371,7 @@ module Textbringer
     end
 
     def highlight
-      if @buffer.bytesize < CONFIG[:highlight_buffer_size_limit] &&
-          @highlight_on
-        return
-      end
+      return if @highlight_on
       @highlight_on = {}
       @highlight_off = {}
       return if !@@has_colors || !CONFIG[:syntax_highlight]
