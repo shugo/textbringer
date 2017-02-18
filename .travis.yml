@@ -8,25 +8,10 @@ rvm:
   - 2.4.0
   - ruby-head
 matrix:
-  include:
-    - os: linux
-      rvm: 2.3.3
-    - os: linux
-      rvm: 2.4.0
-    - os: linux
-      rvm: ruby-head
-    - os: osx
-      osx_image: xcode8.2
-      rvm: 2.3.3
-    - os: osx
-      osx_image: xcode8.2
-      rvm: 2.4.0
-    - os: osx
-      osx_image: xcode8.2
-      rvm: ruby-head
   allow_failures:
     - os: osx
     - rvm: ruby-head
+  fast_finish: true
 cache: bundler
 script:
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then
