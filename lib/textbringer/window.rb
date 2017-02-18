@@ -638,7 +638,7 @@ module Textbringer
     def redisplay_mode_line
       @mode_line.erase
       @mode_line.setpos(0, 0)
-      attrs = @@has_colors ? Face[:modeline].attributes : Curses::A_REVERSE
+      attrs = @@has_colors ? Face[:mode_line].attributes : Curses::A_REVERSE
       @mode_line.attrset(attrs)
       @mode_line.addstr("#{@buffer.name} ")
       @mode_line.addstr("[+]") if @buffer.modified?
