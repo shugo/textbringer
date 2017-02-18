@@ -32,6 +32,7 @@ module Curses
   @fake_lines = 24
   @fake_cols = 80
   @fake_colors = 256
+  @fake_default_colors = [-1, -1]
 end
 
 class << Curses
@@ -87,6 +88,17 @@ class << Curses
 
   def colors=(colors)
     @fake_colors = colors
+  end
+
+  if defined?(Curses.assume_default_colors)
+    undef assume_default_colors
+  end
+  def assume_default_colors(fg, bg)
+    @fake_default_colors = [fg, bg]
+  end
+
+  def default_colors
+    @fake_default_colors
   end
 end
 

@@ -339,6 +339,14 @@ EOF
     assert_equal(0, Window.windows.size)
   end
 
+  def test_s_set_default_colors
+    Window.set_default_colors(Color["black"], Color["white"])
+    assert_equal([0, 7], Curses.default_colors)
+
+    Window.set_default_colors(Color["default"], Color["default"])
+    assert_equal([-1, -1], Curses.default_colors)
+  end
+
   private
 
   def window_string(window)

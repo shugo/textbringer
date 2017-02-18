@@ -129,6 +129,11 @@ module Textbringer
       @@has_colors
     end
 
+    def self.set_default_colors(fg, bg)
+      Curses.assume_default_colors(Color[fg], Color[bg])
+      Window.redraw
+    end
+
     def self.load_faces
       require_relative "faces/basic"
       require_relative "faces/programming"
