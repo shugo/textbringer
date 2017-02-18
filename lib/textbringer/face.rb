@@ -9,18 +9,6 @@ module Textbringer
     @@face_table = {}
     @@next_color_pair = 1
 
-    STANDARD_COLORS = {
-      "default" => -1,
-      "black" => Curses::COLOR_BLACK,
-      "red" => Curses::COLOR_RED,
-      "green" => Curses::COLOR_GREEN,
-      "yellow" => Curses::COLOR_YELLOW,
-      "blue" => Curses::COLOR_BLUE,
-      "magenta" => Curses::COLOR_MAGENTA,
-      "cyan" => Curses::COLOR_CYAN,
-      "white" => Curses::COLOR_WHITE
-    }
-
     def self.[](name)
       @@face_table[name]
     end
@@ -52,19 +40,13 @@ module Textbringer
       @underline = underline
       @reverse = reverse
       Curses.init_pair(@color_pair,
-                       color_value(foreground), color_value(background))
+                       Color[foreground], Color[background])
       @attributes = 0
       @attributes |= Curses.color_pair(@color_pair)
       @attributes |= Curses::A_BOLD if bold
       @attributes |= Curses::A_UNDERLINE if underline
       @attributes |= Curses::A_REVERSE if reverse
       self
-    end
-
-    private
-
-    def color_value(color)
-      STANDARD_COLORS[color] || color
     end
   end
 end

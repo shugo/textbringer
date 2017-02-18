@@ -31,6 +31,7 @@ require "textbringer"
 module Curses
   @fake_lines = 24
   @fake_cols = 80
+  @fake_colors = 256
 end
 
 class << Curses
@@ -77,6 +78,15 @@ class << Curses
   undef color_pair
   def color_pair(n)
     0
+  end
+
+  undef colors
+  def colors
+    @fake_colors
+  end
+
+  def colors=(colors)
+    @fake_colors = colors
   end
 end
 
