@@ -41,7 +41,7 @@ module Textbringer
 
     def self.[](name)
       n = find_color_number(name)
-      if n < Curses.colors
+      if n < Window.colors
         n
       else
         -1
