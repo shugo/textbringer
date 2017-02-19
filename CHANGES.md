@@ -1,3 +1,9 @@
+## 0.1.8
+
+* Support syntax highlighting.
+* Add the commands grep, gsub, and enlarge_window.
+* Don't translate CR into LF.
+
 ## 0.1.7
 
 * Support EditorConfig.
