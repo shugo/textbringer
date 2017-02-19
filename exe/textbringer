@@ -33,7 +33,7 @@ Window.start do
       end
     end
   rescue Exception => e
-    handle_exception(e)
+    show_exception(e)
   end
   Window.redisplay
   begin
