@@ -1381,6 +1381,10 @@ module Textbringer
       @buffer.marks.delete(self)
     end
 
+    def deleted?
+      !@buffer.marks.include?(self)
+    end
+
     def dup
       mark = @buffer.new_mark
       mark.location = @location
