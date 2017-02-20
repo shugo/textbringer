@@ -1,13 +1,27 @@
-sudo: false
-os:
-  - linux
-  - osx
 language: ruby
-rvm:
-  - 2.3.3
-  - 2.4.0
-  - ruby-head
 matrix:
+  include:
+    - os: linux
+      dist: trusty
+      sudo: false
+      rvm: 2.3.3
+    - os: linux
+      dist: trusty
+      sudo: false
+      rvm: 2.4.0
+    - os: linux
+      dist: trusty
+      sudo: false
+      rvm: ruby-head
+    - os: osx
+      osx_image: xcode8.2
+      rvm: 2.3.3
+    - os: osx
+      osx_image: xcode8.2
+      rvm: 2.4.0
+    - os: osx
+      osx_image: xcode8.2
+      rvm: ruby-head
   allow_failures:
     - os: osx
     - rvm: ruby-head
