@@ -428,14 +428,13 @@ module Textbringer
         end
         while !@buffer.end_of_buffer?
           cury, curx = @window.cury, @window.curx
-          reverse_after_addstr = false
           if @buffer.point_at_mark?(point)
             y, x = cury, curx
             if current? && @buffer.visible_mark
               if @buffer.point_after_mark?(@buffer.visible_mark)
                 @window.attroff(Curses::A_REVERSE)
               elsif @buffer.point_before_mark?(@buffer.visible_mark)
-                reverse_after_addstr = true
+                @window.attron(Curses::A_REVERSE)
               end
             end
           end
@@ -480,9 +479,6 @@ module Textbringer
             end
           end
           @window.addstr(c)
-          if reverse_after_addstr
-            @window.attron(Curses::A_REVERSE)
-          end
           break if newx == columns && cury == lines - 2
           @buffer.forward_char
         end
