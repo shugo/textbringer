@@ -183,6 +183,8 @@ module Textbringer
     def method_missing(mid, *args)
     end
   end
+  ::Curses.send(:remove_const, :Window)
+  ::Curses.const_set(:Window, FakeCursesWindow)
 
   module PDCurses
     self.dll_loaded = true
@@ -225,23 +227,6 @@ module Textbringer
         @@echo_area.buffer = Buffer.minibuffer
         @@windows.push(@@echo_area)
       end
-    end
-
-    private
-
-    undef initialize_window
-    def initialize_window(num_lines, num_columns, y, x)
-      @window = FakeCursesWindow.new(num_lines - 1, num_columns, y, x)
-      @mode_line = FakeCursesWindow.new(1, num_columns, y + num_lines - 1, x)
-    end
-  end
-
-  class EchoArea
-    private
-
-    undef initialize_window
-    def initialize_window(num_lines, num_columns, y, x)
-      @window = FakeCursesWindow.new(num_lines, num_columns, y, x)
     end
   end
 
