@@ -3,9 +3,7 @@ require "tempfile"
 require "tmpdir"
 
 class TestBuffer < Test::Unit::TestCase
-  include Textbringer
-
-  def setup
+  setup do
     Buffer.kill_em_all
     KILL_RING.clear
   end

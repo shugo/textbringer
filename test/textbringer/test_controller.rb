@@ -1,8 +1,7 @@
 require_relative "../test_helper"
 
 class TestController < Textbringer::TestCase
-  def setup
-    super
+  setup do
     @window = Window.current
     @controller = Controller.new
   end

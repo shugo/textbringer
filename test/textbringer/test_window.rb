@@ -1,10 +1,7 @@
 require_relative "../test_helper"
 
 class TestWindow < Textbringer::TestCase
-  include Textbringer
-
-  def setup
-    super
+  setup do
     @window = Window.current
     @lines = Window.lines - 1
     @columns = Window.columns

@@ -1,8 +1,7 @@
 require_relative "../../test_helper"
 
 class TestRegister < Textbringer::TestCase
-  def setup
-    super
+  setup do
     REGISTERS.clear
   end
 

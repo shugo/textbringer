@@ -2,8 +2,7 @@ require_relative "../../test_helper"
 require "tmpdir"
 
 class TestCMode < Textbringer::TestCase
-  def setup
-    super
+  setup do
     @buffer = Buffer.new_buffer("foo.c")
     @c_mode = CMode.new(@buffer)
     switch_to_buffer(@buffer)

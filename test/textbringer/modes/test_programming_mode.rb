@@ -1,8 +1,7 @@
 require_relative "../../test_helper"
 
 class TestProgrammingMode < Textbringer::TestCase
-  def setup
-    super
+  setup do
     @buffer = Buffer.new_buffer("foo.rb")
     @programming_mode = ProgrammingMode.new(@buffer)
     switch_to_buffer(@buffer)

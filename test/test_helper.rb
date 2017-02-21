@@ -231,7 +231,7 @@ module Textbringer
   end
 
   class TestCase < Test::Unit::TestCase
-    def setup
+    setup do
       Controller.current = FakeController.new
       Buffer.kill_em_all
       KILL_RING.clear

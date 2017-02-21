@@ -1,8 +1,7 @@
 require_relative "../../test_helper"
 
 class TestCompletionListMode < Textbringer::TestCase
-  def setup
-    super
+  setup do
     @buffer = Buffer.new_buffer("*Completions*")
     @mode = CompletionListMode.new(@buffer)
     switch_to_buffer(@buffer)
