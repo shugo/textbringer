@@ -94,4 +94,17 @@ baz
 bar7bar
 EOF
   end
+
+  def test_increment_register
+    number_to_register(42, "a")
+    increment_register(1, "a")
+    assert_equal(43, REGISTERS["a"])
+    increment_register(3, "a")
+    assert_equal(46, REGISTERS["a"])
+    increment_register(-40, "a")
+    assert_equal(6, REGISTERS["a"])
+    assert_raise(ArgumentError) do
+      number_to_register(1, "b")
+    end
+  end
 end

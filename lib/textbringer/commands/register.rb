@@ -83,5 +83,22 @@ module Textbringer
         buffer.goto_char(pos)
       end
     end
+
+    define_command(:number_to_register) do
+      |n = number_prefix_arg,
+        register = read_register("Number to register:")|
+      REGISTERS[register] = n
+    end
+
+    define_command(:increment_register) do
+      |n = number_prefix_arg,
+        register = read_register("Increment register:")|
+      i = REGISTERS[register]
+      if i.is_a?(Integer)
+        REGISTERS[register] = i + n
+      else
+        raise ArgumentError, "Register doesn't a number"
+      end
+    end
   end
 end
