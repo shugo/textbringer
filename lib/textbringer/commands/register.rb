@@ -44,8 +44,7 @@ module Textbringer
       end
       buffer = Buffer.current
       mark = buffer.new_mark
-      position = BufferPosition.new(buffer, mark)
-      REGISTERS[register] = position
+      REGISTERS[register] = BufferPosition.new(buffer, mark)
     end
 
     define_command(:jump_to_register) do
@@ -54,10 +53,11 @@ module Textbringer
         raise ArgumentError, "Invalid register: #{register}"
       end
       position = REGISTERS[register]
-      if position
-        switch_to_buffer(position.buffer)
-        position.buffer.point_to_mark(position.mark)
+      if !position.is_a?(BufferPosition)
+        raise ArgumentError, "Register doesn't contain a buffer position"
       end
+      switch_to_buffer(position.buffer)
+      position.buffer.point_to_mark(position.mark)
     end
 
     define_command(:copy_to_register) do

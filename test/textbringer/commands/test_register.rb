@@ -1,6 +1,10 @@
 require_relative "../../test_helper"
 
 class TestRegister < Textbringer::TestCase
+  def setup
+    REGISTERS.clear
+  end
+
   def test_jump_to_register
     buffer = Buffer.new_buffer("foo")
     switch_to_buffer(buffer)
@@ -37,6 +41,14 @@ EOF
     end
     assert_raise(ArgumentError) do
       jump_to_register(0)
+    end
+
+    assert_raise(ArgumentError) do
+      jump_to_register("b")
+    end
+    REGISTERS["b"] = "foo"
+    assert_raise(ArgumentError) do
+      jump_to_register("b")
     end
   end
 
