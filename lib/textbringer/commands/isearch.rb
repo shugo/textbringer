@@ -18,7 +18,7 @@ module Textbringer
     ISEARCH_MODE_MAP.define_key(?\C-h, :isearch_delete_char)
     ISEARCH_MODE_MAP.define_key(?\C-s, :isearch_repeat_forward)
     ISEARCH_MODE_MAP.define_key(?\C-r, :isearch_repeat_backward)
-    ISEARCH_MODE_MAP.define_key(?\n, :isearch_exit)
+    ISEARCH_MODE_MAP.define_key(?\C-m, :isearch_exit)
     ISEARCH_MODE_MAP.define_key(?\C-g, :isearch_abort)
     
     ISEARCH_STATUS = {
