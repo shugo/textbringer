@@ -2,9 +2,28 @@
 
 module Textbringer
   module Commands
+    class BufferPosition
+      attr_reader :buffer, :mark
+      
+      def initialize(buffer, mark)
+        @buffer = buffer
+        @mark = mark
+      end
+
+      def to_s
+        @mark.location.to_s
+      end
+    end
+
     REGISTERS = {}
 
-    BufferPosition = Struct.new(:buffer, :mark)
+    def REGISTERS.[]=(name, val)
+      old_val = REGISTERS[name]
+      if old_val.is_a?(BufferPosition)
+        old_val.mark.delete
+      end
+      super(name, val)
+    end
 
     def read_register(prompt)
       Window.echo_area.show(prompt)
@@ -23,10 +42,6 @@ module Textbringer
       unless register.is_a?(String)
         raise ArgumentError, "Invalid register: #{register}"
       end
-      position = REGISTERS[register]
-      if position
-        position.mark.delete
-      end
       buffer = Buffer.current
       mark = buffer.new_mark
       position = BufferPosition.new(buffer, mark)
@@ -42,6 +57,30 @@ module Textbringer
       if position
         switch_to_buffer(position.buffer)
         position.buffer.point_to_mark(position.mark)
+      end
+    end
+
+    define_command(:copy_to_register) do
+      |register = read_register("Copy to register:"),
+        s = Buffer.current.mark, e = Buffer.current.point|
+      buffer = Buffer.current
+      str = s <= e ? buffer.substring(s, e) : buffer.substring(e, s)
+      REGISTERS[register] = str
+    end
+
+    define_command(:insert_register) do
+      |register = read_register("Insert register:"),
+        arg = current_prefix_arg|
+      buffer = Buffer.current
+      str = REGISTERS[register]
+      if arg
+        buffer.set_mark
+      end
+      pos = buffer.point
+      insert(str)
+      if !arg
+        buffer.set_mark
+        buffer.goto_char(pos)
       end
     end
   end

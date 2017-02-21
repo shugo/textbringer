@@ -39,4 +39,47 @@ EOF
       jump_to_register(0)
     end
   end
+
+  def test_insert_register
+    buffer = Buffer.current
+    insert(<<EOF)
+foo
+bar
+baz
+EOF
+    goto_char(4)
+    set_mark_command
+    end_of_line
+    copy_to_register("a")
+    point_to_register("b")
+    end_of_buffer
+    pos = buffer.point
+    insert_register("a", nil)
+    assert_equal(pos, buffer.point)
+    assert_equal(pos + 3, buffer.mark)
+    assert_equal(<<EOF.chop, buffer.to_s)
+foo
+bar
+baz
+bar
+EOF
+    insert_register("a", true)
+    assert_equal(pos, buffer.mark)
+    assert_equal(pos + 3, buffer.point)
+    assert_equal(<<EOF.chop, buffer.to_s)
+foo
+bar
+baz
+barbar
+EOF
+    insert_register("b")
+    assert_equal(pos + 3, buffer.point)
+    assert_equal(pos + 4, buffer.mark)
+    assert_equal(<<EOF.chop, buffer.to_s)
+foo
+bar
+baz
+bar7bar
+EOF
+  end
 end
