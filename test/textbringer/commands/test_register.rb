@@ -122,6 +122,10 @@ foo
 bar
 
 EOF
+    number_to_register(1, "d")
+    assert_raise(ArgumentError) do
+      append_to_register("d", 4, 7)
+    end
   end
 
   def test_increment_register
