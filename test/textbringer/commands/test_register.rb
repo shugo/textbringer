@@ -104,7 +104,7 @@ EOF
     increment_register(-40, "a")
     assert_equal(6, REGISTERS["a"])
     assert_raise(ArgumentError) do
-      number_to_register(1, "b")
+      increment_register(1, "b")
     end
   end
 end

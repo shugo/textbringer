@@ -97,7 +97,7 @@ module Textbringer
       if i.is_a?(Integer)
         REGISTERS[register] = i + n
       else
-        raise ArgumentError, "Register doesn't a number"
+        raise ArgumentError, "Register doesn't contain a number"
       end
     end
   end
