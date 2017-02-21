@@ -162,8 +162,7 @@ module Textbringer
       Controller.current.current_prefix_arg
     end
 
-    def number_prefix_arg
-      arg = current_prefix_arg
+    def prefix_numeric_value(arg)
       case arg
       when Integer
         arg
@@ -174,6 +173,10 @@ module Textbringer
       else
         1
       end
+    end
+
+    def number_prefix_arg
+      prefix_numeric_value(current_prefix_arg)
     end
 
     define_command(:digit_argument) do

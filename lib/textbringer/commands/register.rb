@@ -49,7 +49,7 @@ module Textbringer
 
     define_command(:jump_to_register) do
       |register = read_register("Jump to register:")|
-      unless register.is_a?(String)
+      if !register.is_a?(String)
         raise ArgumentError, "Invalid register: #{register}"
       end
       position = REGISTERS[register]
@@ -62,10 +62,30 @@ module Textbringer
 
     define_command(:copy_to_register) do
       |register = read_register("Copy to register:"),
-        s = Buffer.current.mark, e = Buffer.current.point|
+        s = Buffer.current.mark, e = Buffer.current.point,
+        delete_flag = current_prefix_arg|
       buffer = Buffer.current
       str = s <= e ? buffer.substring(s, e) : buffer.substring(e, s)
       REGISTERS[register] = str
+      if delete_flag
+        buffer.delete_region(s, e)
+      end
+    end
+
+    define_command(:append_to_register) do
+      |register = read_register("Append to register:"),
+        s = Buffer.current.mark, e = Buffer.current.point,
+        delete_flag = current_prefix_arg|
+      buffer = Buffer.current
+      str = s <= e ? buffer.substring(s, e) : buffer.substring(e, s)
+      val = REGISTERS[register]
+      if !val.is_a?(String)
+        raise ArgumentError, "Register doesn't contain text"
+      end
+      REGISTERS[register] = val + str
+      if delete_flag
+        buffer.delete_region(s, e)
+      end
     end
 
     define_command(:insert_register) do
@@ -91,13 +111,17 @@ module Textbringer
     end
 
     define_command(:increment_register) do
-      |n = number_prefix_arg,
+      |n = current_prefix_arg,
         register = read_register("Increment register:")|
       i = REGISTERS[register]
-      if i.is_a?(Integer)
-        REGISTERS[register] = i + n
+      case i
+      when Integer
+        REGISTERS[register] = i + prefix_numeric_value(n)
+      when String
+        append_to_register(register, 
+                           Buffer.current.mark, Buffer.current.point, n)
       else
-        raise ArgumentError, "Register doesn't contain a number"
+        raise ArgumentError, "Register doesn't contain a number or text"
       end
     end
   end
