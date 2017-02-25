@@ -6,7 +6,7 @@ module Textbringer
     undefine_command(:programming_mode)
 
     define_generic_command :indent_line
-    define_generic_command :newline_and_reindent
+    define_generic_command :reindent_then_newline_and_indent
     define_generic_command :forward_definition
     define_generic_command :backward_definition
     define_generic_command :compile
@@ -14,7 +14,7 @@ module Textbringer
 
     PROGRAMMING_MODE_MAP = Keymap.new
     PROGRAMMING_MODE_MAP.define_key("\t", :indent_line_command)
-    PROGRAMMING_MODE_MAP.define_key("\C-m", :newline_and_reindent_command)
+    PROGRAMMING_MODE_MAP.define_key("\C-m", :reindent_then_newline_and_indent_command)
     PROGRAMMING_MODE_MAP.define_key("\C-c\C-n", :forward_definition_command)
     PROGRAMMING_MODE_MAP.define_key("\C-c\C-p", :backward_definition_command)
     PROGRAMMING_MODE_MAP.define_key("\C-c\C-c", :compile_command)
@@ -56,7 +56,7 @@ module Textbringer
       result
     end
 
-    def newline_and_reindent
+    def reindent_then_newline_and_indent
       n = 1
       if indent_line
         n += 1

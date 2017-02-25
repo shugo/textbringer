@@ -296,18 +296,18 @@ h = {
 EOF
   end
   
-  def test_newline_and_reindent
+  def test_reindent_then_newline_and_indent
     @buffer.insert(<<EOF.chop)
 class foo
   def bar
 EOF
-    @ruby_mode.newline_and_reindent
+    @ruby_mode.reindent_then_newline_and_indent
     assert_equal(<<EOF.chop, @buffer.to_s)
 class foo
   def bar
     
 EOF
-    @ruby_mode.newline_and_reindent
+    @ruby_mode.reindent_then_newline_and_indent
     assert_equal(<<EOF.chop, @buffer.to_s)
 class foo
   def bar
@@ -315,7 +315,7 @@ class foo
     
 EOF
     @buffer.insert("end")
-    @ruby_mode.newline_and_reindent
+    @ruby_mode.reindent_then_newline_and_indent
     assert_equal(<<EOF.chop, @buffer.to_s)
 class foo
   def bar
@@ -325,9 +325,9 @@ class foo
 EOF
   end
 
-  def test_newline_and_reindent_after_cr
+  def test_reindent_then_newline_and_indent_after_cr
     @buffer.insert("\r")
-    @ruby_mode.newline_and_reindent
+    @ruby_mode.reindent_then_newline_and_indent
     assert_equal("\r\n", @buffer.to_s)
   end
   
