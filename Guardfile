@@ -17,6 +17,6 @@
 
 guard :shell do
   watch(%r'^(lib|test)/.+\.rb$') do
-    `ripper-tags -R`
+    `bundle exec tbtags -R`
   end
 end
