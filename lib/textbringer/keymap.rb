@@ -98,6 +98,7 @@ module Textbringer
   GLOBAL_MAP.define_key("\C-t", :transpose_chars)
   GLOBAL_MAP.define_key("\C-j", :newline)
   GLOBAL_MAP.define_key("\C-m", :newline)
+  GLOBAL_MAP.define_key("\em", :back_to_indentation)
   GLOBAL_MAP.define_key("\C-l", :recenter)
   GLOBAL_MAP.define_key("\C-v", :scroll_up)
   GLOBAL_MAP.define_key(:npage, :scroll_up)

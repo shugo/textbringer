@@ -93,5 +93,13 @@ module Textbringer
       Buffer.current.redo
       message("Redo!") unless Window.echo_area.current?
     end
+
+    define_command(:back_to_indentation) do
+      buffer = Buffer.current
+      buffer.beginning_of_line
+      while /[ \t]/ =~ buffer.char_after
+        buffer.forward_char
+      end
+    end
   end
 end

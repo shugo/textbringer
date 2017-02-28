@@ -80,4 +80,38 @@ class TestBuffers < Textbringer::TestCase
     self.redo
     assert_equal("bar\nfoo\n", Buffer.current.to_s)
   end
+
+  def test_back_to_indentation
+    buffer = Buffer.current
+    insert(<<EOF)
+int
+main()
+{
+    if (1) {
+	if (0) {
+\t    return 0;
+EOF
+    buffer.backward_line
+    assert_equal(6, buffer.current_line)
+    assert_equal(1, buffer.current_column)
+    back_to_indentation
+    assert_equal(6, buffer.current_line)
+    assert_equal(6, buffer.current_column)
+    backward_char(3)
+    back_to_indentation
+    assert_equal(6, buffer.current_line)
+    assert_equal(6, buffer.current_column)
+    end_of_line
+    back_to_indentation
+    assert_equal(6, buffer.current_line)
+    assert_equal(6, buffer.current_column)
+    forward_char(3)
+    back_to_indentation
+    assert_equal(6, buffer.current_line)
+    assert_equal(6, buffer.current_column)
+    end_of_buffer
+    back_to_indentation
+    assert_equal(7, buffer.current_line)
+    assert_equal(1, buffer.current_column)
+  end
 end
