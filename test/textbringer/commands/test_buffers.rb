@@ -114,4 +114,23 @@ EOF
     assert_equal(7, buffer.current_line)
     assert_equal(1, buffer.current_column)
   end
+
+  def test_delete_indentation
+    buffer = Buffer.current
+    insert(<<EOF)
+foo(bar,
+    baz)
+EOF
+    buffer.backward_line
+    delete_indentation
+    assert_equal(<<EOF, buffer.to_s)
+foo(bar, baz)
+EOF
+    assert_equal(8, buffer.point)
+    delete_indentation
+    assert_equal(<<EOF, buffer.to_s)
+foo(bar, baz)
+EOF
+    assert_equal(true, buffer.beginning_of_buffer?)
+  end
 end

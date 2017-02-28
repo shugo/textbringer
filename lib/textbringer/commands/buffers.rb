@@ -101,5 +101,18 @@ module Textbringer
         buffer.forward_char
       end
     end
+
+    define_command(:delete_indentation) do
+      buffer = Buffer.current
+      back_to_indentation
+      pos = buffer.point
+      buffer.skip_re_backward(/[^\n]/)
+      return if buffer.beginning_of_buffer?
+      buffer.backward_char
+      buffer.skip_re_backward(/[ \t]/)
+      buffer.delete_region(buffer.point, pos)
+      buffer.insert(" ")
+      buffer.backward_char
+    end
   end
 end
