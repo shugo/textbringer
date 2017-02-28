@@ -1,0 +1,26 @@
+#!/usr/bin/env ruby
+
+require "ripper-tags"
+
+module Textbringer
+  module TagParser
+    def on_method_add_arg(call, args)
+      call_name = call&.slice(0)
+      first_arg = args&.slice(0) == :args && args[1]
+      if call_name == :fcall && first_arg && call[1][0] == "define_command"
+        [:"def", args[1][0], call[1][1]]
+      else
+        super(call, args)
+      end
+    end
+  end
+end
+
+RipperTags::Parser.prepend(Textbringer::TagParser)
+
+begin
+  RipperTags.process_args(ARGV)
+rescue => e
+  STDERR.printf("%s: %s\n", File.basename($0), e)
+  exit(1)
+end
