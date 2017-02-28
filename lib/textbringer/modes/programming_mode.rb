@@ -7,6 +7,7 @@ module Textbringer
 
     define_generic_command :indent_line
     define_generic_command :reindent_then_newline_and_indent
+    define_generic_command :indent_region
     define_generic_command :forward_definition
     define_generic_command :backward_definition
     define_generic_command :compile
@@ -16,6 +17,7 @@ module Textbringer
     PROGRAMMING_MODE_MAP.define_key("\t", :indent_line_command)
     PROGRAMMING_MODE_MAP.define_key("\C-m",
                                     :reindent_then_newline_and_indent_command)
+    PROGRAMMING_MODE_MAP.define_key("\e\C-\\", :indent_region_command)
     PROGRAMMING_MODE_MAP.define_key("\C-c\C-n", :forward_definition_command)
     PROGRAMMING_MODE_MAP.define_key("\C-c\C-p", :backward_definition_command)
     PROGRAMMING_MODE_MAP.define_key("\C-c\C-c", :compile_command)
@@ -75,6 +77,17 @@ module Textbringer
         n += 1
       end
       @buffer.merge_undo(n) if n > 1
+    end
+
+    def indent_region(s = @buffer.mark, e = @buffer.point)
+      s, e = Buffer.region_boundaries(s, e)
+      @buffer.save_excursion do
+        @buffer.goto_char(s)
+        while @buffer.point < e
+          indent_line
+          @buffer.forward_line
+        end
+      end
     end
 
     private

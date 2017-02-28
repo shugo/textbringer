@@ -783,8 +783,17 @@ module Textbringer
       end
     end
 
+    def self.region_boundaries(s, e)
+      if s > e
+        [e, s]
+      else
+        [s, e]
+      end
+    end
+
     def copy_region(s = @point, e = mark, append = false)
-      str = s <= e ? substring(s, e) : substring(e, s)
+      s, e = Buffer.region_boundaries(s, e)
+      str = substring(s, e)
       if append && !KILL_RING.empty?
         KILL_RING.current.concat(str)
       else
@@ -800,9 +809,7 @@ module Textbringer
     def delete_region(s = @point, e = mark)
       check_read_only_flag
       old_pos = @point
-      if s > e
-        s, e = e, s
-      end
+      s, e = Buffer.region_boundaries(s, e)
       update_line_and_column(old_pos, s)
       save_point do
         str = substring(s, e)

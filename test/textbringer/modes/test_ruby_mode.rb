@@ -330,6 +330,52 @@ EOF
     @ruby_mode.reindent_then_newline_and_indent
     assert_equal("\r\n", @buffer.to_s)
   end
+
+  def test_indent_region
+    @buffer.insert(<<EOF)
+class Foo
+def foo
+puts "foo"
+end
+end
+class Bar
+def bar
+puts "bar"
+end
+end
+EOF
+    @buffer.goto_line(6)
+    pos = @buffer.point
+    @ruby_mode.indent_region(pos, @buffer.point_max)
+    assert_equal(<<EOF, @buffer.to_s)
+class Foo
+def foo
+puts "foo"
+end
+end
+class Bar
+  def bar
+    puts "bar"
+  end
+end
+EOF
+    @ruby_mode.indent_region(pos, @buffer.point_min)
+    assert_equal(<<EOF, @buffer.to_s)
+class Foo
+  def foo
+    puts "foo"
+  end
+end
+class Bar
+  def bar
+    puts "bar"
+  end
+end
+EOF
+    @buffer.clear
+    @ruby_mode.indent_region(0, 0)
+    assert_equal("", @buffer.to_s)
+  end
   
   def test_forward_definition
     @buffer.insert(<<EOF.chop)
