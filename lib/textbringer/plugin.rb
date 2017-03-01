@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "rbconfig"
-
 module Textbringer
   module Plugin
     def self.load_plugins
