@@ -18,6 +18,7 @@ $VERBOSE = nil
 Controller.current = Controller.new
 Window.start do
   begin
+    Plugin.load_plugins
     load_user_config
     ruby_mode
     if ARGV.size > 0
