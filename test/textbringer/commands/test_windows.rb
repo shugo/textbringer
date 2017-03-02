@@ -318,6 +318,42 @@ class TestWindows < Textbringer::TestCase
     assert_equal(1, Window.windows[3].lines)
   end
 
+  def test_shrink_window
+    split_window
+    split_window
+    assert_equal(4, Window.windows.size)
+    assert_equal(0, Window.windows[0].y)
+    assert_equal(6, Window.windows[0].lines)
+    assert_equal(6, Window.windows[1].y)
+    assert_equal(6, Window.windows[1].lines)
+    assert_equal(12, Window.windows[2].y)
+    assert_equal(11, Window.windows[2].lines)
+    assert_equal(23, Window.windows[3].y)
+    assert_equal(1, Window.windows[3].lines)
+
+    shrink_window
+    assert_equal(4, Window.windows.size)
+    assert_equal(0, Window.windows[0].y)
+    assert_equal(5, Window.windows[0].lines)
+    assert_equal(5, Window.windows[1].y)
+    assert_equal(7, Window.windows[1].lines)
+    assert_equal(12, Window.windows[2].y)
+    assert_equal(11, Window.windows[2].lines)
+    assert_equal(23, Window.windows[3].y)
+    assert_equal(1, Window.windows[3].lines)
+
+    shrink_window(-1)
+    assert_equal(4, Window.windows.size)
+    assert_equal(0, Window.windows[0].y)
+    assert_equal(6, Window.windows[0].lines)
+    assert_equal(6, Window.windows[1].y)
+    assert_equal(6, Window.windows[1].lines)
+    assert_equal(12, Window.windows[2].y)
+    assert_equal(11, Window.windows[2].lines)
+    assert_equal(23, Window.windows[3].y)
+    assert_equal(1, Window.windows[3].lines)
+  end
+
   def test_switch_to_buffer
     foo = Buffer.new_buffer("foo")
     bar = Buffer.new_buffer("bar")

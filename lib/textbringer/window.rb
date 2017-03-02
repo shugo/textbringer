@@ -615,6 +615,10 @@ module Textbringer
       end
     end
 
+    def shrink(n)
+      enlarge(-n)
+    end
+
     private
 
     def initialize_window(num_lines, num_columns, y, x)

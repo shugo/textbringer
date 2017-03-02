@@ -39,6 +39,10 @@ module Textbringer
       Window.current.enlarge(n)
     end
 
+    define_command(:shrink_window) do |n = number_prefix_arg|
+      Window.current.shrink(n)
+    end
+
     define_command(:switch_to_buffer) do
       |buffer_name = read_buffer("Switch to buffer: ")|
       if buffer_name.is_a?(Buffer)
