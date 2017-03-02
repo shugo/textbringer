@@ -619,6 +619,21 @@ module Textbringer
       enlarge(-n)
     end
 
+    def shrink_if_larger_than_buffer
+      @buffer.save_point do
+        @buffer.end_of_buffer
+        @buffer.skip_re_backward(/\s/)
+        count = beginning_of_line_and_count(Window.lines) + 1
+        while !@buffer.beginning_of_buffer?
+          @buffer.backward_char
+          count += beginning_of_line_and_count(Window.lines) + 1
+        end
+        if lines - 1 > count
+          shrink(lines - 1 - count)
+        end
+      end
+    end
+
     private
 
     def initialize_window(num_lines, num_columns, y, x)

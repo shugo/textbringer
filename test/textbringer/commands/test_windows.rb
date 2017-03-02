@@ -354,6 +354,34 @@ class TestWindows < Textbringer::TestCase
     assert_equal(1, Window.windows[3].lines)
   end
 
+  def test_shrink_window_if_larger_than_buffer
+    insert(<<EOF)
+foo
+bar
+baz
+quux
+EOF
+    split_window
+    shrink_window_if_larger_than_buffer
+    assert_equal(3, Window.windows.size)
+    assert_equal(0, Window.windows[0].y)
+    assert_equal(5, Window.windows[0].lines)
+    assert_equal(5, Window.windows[1].y)
+    assert_equal(18, Window.windows[1].lines)
+    assert_equal(23, Window.windows[2].y)
+    assert_equal(1, Window.windows[2].lines)
+
+    insert("quux\n")
+    shrink_window_if_larger_than_buffer
+    assert_equal(3, Window.windows.size)
+    assert_equal(0, Window.windows[0].y)
+    assert_equal(5, Window.windows[0].lines)
+    assert_equal(5, Window.windows[1].y)
+    assert_equal(18, Window.windows[1].lines)
+    assert_equal(23, Window.windows[2].y)
+    assert_equal(1, Window.windows[2].lines)
+  end
+
   def test_switch_to_buffer
     foo = Buffer.new_buffer("foo")
     bar = Buffer.new_buffer("bar")

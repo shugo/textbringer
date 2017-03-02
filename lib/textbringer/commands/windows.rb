@@ -43,6 +43,10 @@ module Textbringer
       Window.current.shrink(n)
     end
 
+    define_command(:shrink_window_if_larger_than_buffer) do
+      Window.current.shrink_if_larger_than_buffer
+    end
+
     define_command(:switch_to_buffer) do
       |buffer_name = read_buffer("Switch to buffer: ")|
       if buffer_name.is_a?(Buffer)

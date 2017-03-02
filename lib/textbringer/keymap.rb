@@ -110,6 +110,7 @@ module Textbringer
   GLOBAL_MAP.define_key("\C-x2", :split_window)
   GLOBAL_MAP.define_key("\C-xo", :other_window)
   GLOBAL_MAP.define_key("\C-x^", :enlarge_window)
+  GLOBAL_MAP.define_key("\C-x-", :shrink_window_if_larger_than_buffer)
   GLOBAL_MAP.define_key("\C-x\C-c", :exit_textbringer)
   GLOBAL_MAP.define_key("\C-z", :suspend_textbringer)
   GLOBAL_MAP.define_key("\C-x\C-f", :find_file)
