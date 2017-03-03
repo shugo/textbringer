@@ -67,11 +67,17 @@ module Textbringer
                 message("#{keys} is undefined")
               end
             end
+            Window.redisplay
           rescue Exception => e
             show_exception(e)
             @prefix_arg = nil
+            Window.redisplay
+            if Window.echo_area.active?
+              wait_input(2000)
+              Window.echo_area.clear_message
+              Window.redisplay
+            end
           end
-          Window.redisplay
         end
       end
     end
