@@ -2,9 +2,6 @@
 
 module Textbringer
   module Commands
-    GLOBAL_MAP.define_key("\e.", :find_tag)
-    GLOBAL_MAP.define_key("\e*", :pop_tag_mark)
-
     CTAGS = {
       path: nil,
       tags: nil,
@@ -92,33 +89,10 @@ module Textbringer
       CTAGS[:tags]
     end
 
-    define_command(:pop_tag_mark) do
-      tag_mark_stack = CTAGS[:tag_mark_stack]
-      if tag_mark_stack.empty?
-        raise EditorError, "No previous locations"
-      end
-      mark = tag_mark_stack.pop
-      begin
-        if mark.detached?
-          find_file(mark.file_name)
-          goto_char(mark.location)
-        else
-          switch_to_buffer(mark.buffer)
-          mark.buffer.point_to_mark(mark)
-        end
-      ensure
-        mark.delete
-      end
-    end
-
     private
 
     def push_tag_mark_and_find_file(file)
-      tag_mark_stack = CTAGS[:tag_mark_stack]
-      if tag_mark_stack.size == CONFIG[:tag_mark_limit]
-        tag_mark_stack.shift.delete
-      end
-      tag_mark_stack.push(Buffer.current.new_mark)
+      Buffer.current.push_global_mark
       find_file(file)
     end
   end

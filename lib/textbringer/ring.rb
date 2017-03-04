@@ -38,8 +38,8 @@ module Textbringer
         raise EditorError, "Ring is empty"
       end
       @current -= n
-      if @current < 0
-        @current += @ring.size
+      if @current < 0 || @ring.size <= @current
+        @current %= @ring.size
       end
       @ring[@current]
     end

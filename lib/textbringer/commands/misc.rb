@@ -228,12 +228,27 @@ module Textbringer
       Controller.current.recursive_edit
     end
 
-    define_command(:pop_global_mark) do
+    define_command(:previous_global_mark) do
       global_mark_ring = Buffer.global_mark_ring
       if global_mark_ring.empty?
         raise EditorError, "Global mark ring is empty"
       end
       mark = global_mark_ring.pop
+      if mark.detached?
+        find_file(mark.file_name)
+        goto_char(mark.location)
+      else
+        switch_to_buffer(mark.buffer)
+        mark.buffer.point_to_mark(mark)
+      end
+    end
+
+    define_command(:next_global_mark) do
+      global_mark_ring = Buffer.global_mark_ring
+      if global_mark_ring.empty?
+        raise EditorError, "Global mark ring is empty"
+      end
+      mark = global_mark_ring.current(-1)
       if mark.detached?
         find_file(mark.file_name)
         goto_char(mark.location)

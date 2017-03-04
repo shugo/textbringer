@@ -797,6 +797,12 @@ module Textbringer
       end
     end
 
+    def push_global_mark(pos = @point)
+      mark = new_mark
+      mark.location = pos
+      Buffer.global_mark_ring.push(mark)
+    end
+
     def pop_mark
       return if @mark_ring.empty?
       @mark = @mark_ring.current(1)

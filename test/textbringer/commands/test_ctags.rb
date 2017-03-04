@@ -26,7 +26,7 @@ class TestCtags < Textbringer::TestCase
       assert_equal("foo.rb", Buffer.current.name)
       assert_equal(6, Buffer.current.current_line)
       assert_equal(1, Buffer.current.current_column)
-      pop_tag_mark
+      previous_global_mark
       assert_equal("test.rb", Buffer.current.name)
       assert_equal(pos, Buffer.current.point)
       re_search_forward(/^baz/)
@@ -34,7 +34,7 @@ class TestCtags < Textbringer::TestCase
       assert_equal("foo.rb", Buffer.current.name)
       assert_equal(10, Buffer.current.current_line)
       assert_equal(1, Buffer.current.current_column)
-      pop_tag_mark
+      previous_global_mark
       re_search_backward(/^foo/)
       find_tag
       assert_equal("foo.rb", Buffer.current.name)
@@ -54,7 +54,7 @@ class TestCtags < Textbringer::TestCase
       assert_raise(EditorError) do
         find_tag(:-)
       end
-      pop_tag_mark
+      previous_global_mark
       re_search_forward(/quux/)
       assert_raise(EditorError) do
         find_tag
@@ -67,12 +67,6 @@ class TestCtags < Textbringer::TestCase
       end_of_buffer
       assert_raise(EditorError) do
         find_tag
-      end
-      3.times do |i|
-        pop_tag_mark
-      end
-      assert_raise(EditorError) do
-        pop_tag_mark
       end
     ensure
       Dir.chdir(pwd)
