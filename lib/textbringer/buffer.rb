@@ -1399,51 +1399,7 @@ module Textbringer
     end
   end
 
-  class KillRing
-    def initialize(max = 30)
-      @max = max
-      @ring = []
-      @current = -1
-    end
-
-    def clear
-      @ring.clear
-      @current = -1
-    end
-
-    def push(str)
-      @current += 1
-      if @ring.size < @max
-        @ring.insert(@current, str)
-      else
-        if @current == @max
-          @current = 0
-        end
-        @ring[@current] = str
-      end
-    end
-
-    def current(n = 0)
-      if @ring.empty?
-        raise EditorError, "Kill ring is empty"
-      end
-      @current -= n
-      if @current < 0
-        @current += @ring.size
-      end
-      @ring[@current]
-    end
-
-    def empty?
-      @ring.empty?
-    end
-
-    def size
-      @ring.size
-    end
-  end
-
-  KILL_RING = KillRing.new
+  KILL_RING = Ring.new
 
   class UndoableAction
     attr_accessor :version

@@ -1,6 +1,7 @@
 require_relative "textbringer/version"
 require_relative "textbringer/config"
 require_relative "textbringer/errors"
+require_relative "textbringer/ring"
 require_relative "textbringer/buffer"
 require_relative "textbringer/window"
 require_relative "textbringer/keymap"
