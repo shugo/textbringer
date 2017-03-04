@@ -220,7 +220,6 @@ module Textbringer
       @current_line = 1
       @current_column = 1  # One-based character count
       @goal_column = nil   # Zero-based display width count
-      @yank_start = new_mark
       @undo_stack = []
       @redo_stack = []
       @undoing = false
@@ -917,7 +916,9 @@ module Textbringer
     end
 
     def insert_for_yank(s)
-      mark_to_point(@yank_start)
+      if @mark.nil? || !point_at_mark?(@mark)
+        push_mark
+      end
       insert(s)
     end
 
@@ -926,7 +927,7 @@ module Textbringer
     end
 
     def yank_pop
-      delete_region(@yank_start.location, @point)
+      delete_region
       insert_for_yank(KILL_RING.current(1))
     end
 
