@@ -210,7 +210,8 @@ module Textbringer
       @gap_end = 0
       @marks = []
       @mark = nil
-      @mark_ring = Ring.new(CONFIG[:mark_ring_max])
+      @mark_ring = Ring.new(CONFIG[:mark_ring_max],
+                            on_delete: ->(mark) { mark.delete })
       @current_line = 1
       @current_column = 1  # One-based character count
       @goal_column = nil   # Zero-based display width count
