@@ -99,8 +99,13 @@ module Textbringer
       end
       mark = tag_mark_stack.pop
       begin
-        switch_to_buffer(mark.buffer)
-        mark.buffer.point_to_mark(mark)
+        if mark.detached?
+          find_file(mark.file_name)
+          goto_char(mark.location)
+        else
+          switch_to_buffer(mark.buffer)
+          mark.buffer.point_to_mark(mark)
+        end
       ensure
         mark.delete
       end

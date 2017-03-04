@@ -291,6 +291,9 @@ module Textbringer
       if @@current == self
         @@current = nil
       end
+      @marks.each do |mark|
+        mark.detach
+      end
     end
 
     def current?
@@ -1400,20 +1403,34 @@ module Textbringer
   end
 
   class Mark
-    attr_reader :buffer
+    attr_reader :buffer, :file_name
     attr_accessor :location
 
     def initialize(buffer, location)
       @buffer = buffer
+      @file_name = nil
       @location = location
     end
 
     def delete
-      @buffer.marks.delete(self)
+      if @buffer
+        @buffer.marks.delete(self)
+      end
     end
 
     def deleted?
       !@buffer.marks.include?(self)
+    end
+
+    def detach
+      if @buffer
+        @file_name = @buffer.file_name
+        @buffer = nil
+      end
+    end
+
+    def detached?
+      @buffer.nil?
     end
 
     def dup
