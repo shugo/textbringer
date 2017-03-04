@@ -52,6 +52,7 @@ module Textbringer
     @@list = []
     @@current = nil
     @@minibuffer = nil
+    @@global_mark_ring = nil
 
     def self.auto_detect_encodings
       @@auto_detect_encodings
@@ -88,6 +89,10 @@ module Textbringer
 
     def self.minibuffer
       @@minibuffer ||= Buffer.new(name: "*Minibuffer*")
+    end
+
+    def self.global_mark_ring
+      @@global_mark_ring ||= Ring.new(CONFIG[:global_mark_ring_max])
     end
 
     def self.last
@@ -786,6 +791,10 @@ module Textbringer
       @mark = new_mark
       @mark.location = pos
       @mark_ring.push(@mark)
+      global_mark_ring = Buffer.global_mark_ring
+      if global_mark_ring.empty? || global_mark_ring.current.buffer != self
+        global_mark_ring.push(@mark)
+      end
     end
 
     def pop_mark

@@ -228,6 +228,21 @@ module Textbringer
       Controller.current.recursive_edit
     end
 
+    define_command(:pop_global_mark) do
+      global_mark_ring = Buffer.global_mark_ring
+      if global_mark_ring.empty?
+        raise EditorError, "Global mark ring is empty"
+      end
+      mark = global_mark_ring.pop
+      if mark.detached?
+        find_file(mark.file_name)
+        goto_char(mark.location)
+      else
+        switch_to_buffer(mark.buffer)
+        mark.buffer.point_to_mark(mark)
+      end
+    end
+
     define_command(:shell_execute) do
       |cmd = read_from_minibuffer("Shell execute: "),
        buffer_name: "*Shell output*",
