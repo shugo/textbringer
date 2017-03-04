@@ -210,6 +210,7 @@ module Textbringer
       @gap_end = 0
       @marks = []
       @mark = nil
+      @mark_ring = Ring.new(CONFIG[:mark_ring_max])
       @current_line = 1
       @current_column = 1  # One-based character count
       @goal_column = nil   # Zero-based display width count
@@ -769,6 +770,23 @@ module Textbringer
     def set_mark(pos = @point)
       @mark ||= new_mark
       @mark.location = pos
+    end
+
+    def push_mark(pos = @point)
+      if @mark
+        @mark_ring.push(@mark.dup)
+      end
+      set_mark(pos)
+    end
+
+    def pop_mark
+      return if @mark_ring.empty?
+      @mark = @mark_ring.pop
+    end
+
+    def pop_to_mark
+      goto_char(mark)
+      pop_mark
     end
 
     def set_visible_mark(pos = @point)

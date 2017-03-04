@@ -31,5 +31,7 @@ class TestKillRing < Textbringer::TestCase
     assert_equal("baz", ring.current(1))
     assert_equal("bar", ring.current(1))
     assert_equal("quux", ring.current(1))
+    assert_equal("quux", ring.pop)
+    assert_equal("baz", ring.current)
   end
 end

@@ -22,6 +22,9 @@ module Textbringer
       :end_of_line,
       :beginning_of_buffer,
       :end_of_buffer,
+      :push_mark,
+      :pop_mark,
+      :pop_to_mark,
       :exchange_point_and_mark,
       :copy_region,
       :kill_region,
@@ -35,9 +38,14 @@ module Textbringer
       end
     end
 
-    define_command(:set_mark_command) do
-      Buffer.current.set_mark
-      message("Mark set")
+    define_command(:set_mark_command) do |arg = current_prefix_arg|
+      buffer = Buffer.current
+      if arg
+        buffer.pop_to_mark
+      else
+        buffer.push_mark
+        message("Mark set")
+      end
     end
 
     define_command(:goto_char) do
