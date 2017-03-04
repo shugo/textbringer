@@ -769,20 +769,25 @@ module Textbringer
     end
 
     def set_mark(pos = @point)
-      @mark ||= new_mark
-      @mark.location = pos
+      if @mark
+        @mark.location = pos
+      else
+        push_mark(pos)
+      end
     end
 
+    # Set mark at pos, and push the mark on the mark ring.
+    # Unlike Emacs, the new mark is pushed on the mark ring instead of
+    # the old one.
     def push_mark(pos = @point)
-      if @mark
-        @mark_ring.push(@mark.dup)
-      end
-      set_mark(pos)
+      @mark = new_mark
+      @mark.location = pos
+      @mark_ring.push(@mark)
     end
 
     def pop_mark
       return if @mark_ring.empty?
-      @mark = @mark_ring.pop
+      @mark = @mark_ring.current(1)
     end
 
     def pop_to_mark

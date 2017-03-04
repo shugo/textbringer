@@ -94,12 +94,12 @@ module Textbringer
       buffer = Buffer.current
       str = REGISTERS[register]
       if arg
-        buffer.set_mark
+        buffer.push_mark
       end
       pos = buffer.point
       insert(str)
       if !arg
-        buffer.set_mark
+        buffer.push_mark
         buffer.goto_char(pos)
       end
     end
