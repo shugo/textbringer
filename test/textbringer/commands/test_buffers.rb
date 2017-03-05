@@ -75,9 +75,9 @@ class TestBuffers < Textbringer::TestCase
     assert_equal("foo\n", Buffer.current.to_s)
     undo
     assert_equal("", Buffer.current.to_s)
-    self.redo
+    redo_command
     assert_equal("foo\n", Buffer.current.to_s)
-    self.redo
+    redo_command
     assert_equal("bar\nfoo\n", Buffer.current.to_s)
   end
 

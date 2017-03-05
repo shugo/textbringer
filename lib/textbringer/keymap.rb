@@ -97,7 +97,7 @@ module Textbringer
   GLOBAL_MAP.define_key(?\C-y, :yank)
   GLOBAL_MAP.define_key("\ey", :yank_pop)
   GLOBAL_MAP.define_key(?\C-_, :undo)
-  GLOBAL_MAP.define_key("\C-x\C-_", :redo)
+  GLOBAL_MAP.define_key("\C-x\C-_", :redo_command)
   GLOBAL_MAP.define_key("\C-t", :transpose_chars)
   GLOBAL_MAP.define_key("\C-j", :newline)
   GLOBAL_MAP.define_key("\C-m", :newline)
