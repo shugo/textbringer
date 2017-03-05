@@ -792,7 +792,7 @@ module Textbringer
       @mark_ring.push(@mark)
       global_mark_ring = Buffer.global_mark_ring
       if global_mark_ring.empty? || global_mark_ring.current.buffer != self
-        global_mark_ring.push(@mark)
+        push_global_mark(pos)
       end
     end
 
