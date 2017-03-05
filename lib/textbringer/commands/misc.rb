@@ -234,6 +234,9 @@ module Textbringer
         raise EditorError, "Global mark ring is empty"
       end
       mark = yield(global_mark_ring)
+      if mark.buffer&.current? && Buffer.current.point_at_mark?(mark)
+        mark = yield(global_mark_ring)
+      end
       if mark.detached?
         find_file(mark.file_name)
         goto_char(mark.location)
