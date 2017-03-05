@@ -28,12 +28,12 @@ module Textbringer
 
     define_syntax :string, /
       (?: (?<! [a-zA-Z] ) \? (:? [^\\\s] | \\ . ) ) |
-      (?: %[qQrwWsix]?\{ (?: [^\\}] | \\ .  )* \} ) |
-      (?: %[qQrwWsix]?\( (?: [^\\)] | \\ .  )* \) ) |
-      (?: %[qQrwWsix]?\[ (?: [^\\\]] | \\ .  )* \] ) |
-      (?: %[qQrwWsix]?< (?: [^\\>] | \\ .  )* > ) |
+      (?: %[qQrwWsiIx]?\{ (?: [^\\}] | \\ .  )* \} ) |
+      (?: %[qQrwWsiIx]?\( (?: [^\\)] | \\ .  )* \) ) |
+      (?: %[qQrwWsiIx]?\[ (?: [^\\\]] | \\ .  )* \] ) |
+      (?: %[qQrwWsiIx]?< (?: [^\\>] | \\ .  )* > ) |
       (?:
-         %[qQrwWsix]?
+         %[qQrwWsiIx]?
              (?<string_delimiter>[^{(\[<a-zA-Z0-9\s\u{0100}-\u{10ffff}])
              (?: (?! \k<string_delimiter> ) [^\\] | \\ .  )*
              \k<string_delimiter>
