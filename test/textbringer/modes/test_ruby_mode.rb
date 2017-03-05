@@ -295,6 +295,20 @@ h = {
   
 EOF
   end
+
+  def test_indent_line_keyword_symbol
+    @buffer.insert(<<EOF.chop)
+def foo
+  :end
+  end
+EOF
+    @ruby_mode.indent_line
+    assert_equal(<<EOF.chop, @buffer.to_s)
+def foo
+  :end
+end
+EOF
+  end
   
   def test_reindent_then_newline_and_indent
     @buffer.insert(<<EOF.chop)

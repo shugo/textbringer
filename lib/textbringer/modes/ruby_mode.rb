@@ -256,6 +256,8 @@ module Textbringer
         (line, column), event, text = tokens[i]
         case event
         when :on_kw
+          _, prev_event, _ = tokens[i - 1]
+          next if prev_event == :on_symbeg
           case text
           when "class", "module", "def", "if", "unless", "case",
             "do", "for", "while", "until", "begin"

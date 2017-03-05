@@ -8,7 +8,7 @@ module Textbringer
       call_name = call&.slice(0)
       first_arg = args&.slice(0) == :args && args[1]
       if call_name == :fcall && first_arg && call[1][0] == "define_command"
-        [:"def", args[1][0], call[1][1]]
+        [:def, args[1][0], call[1][1]]
       else
         super(call, args)
       end
