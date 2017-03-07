@@ -233,6 +233,7 @@ module Textbringer
   class TestCase < Test::Unit::TestCase
     setup do
       Controller.current = FakeController.new
+      Buffer.global_mark_ring.clear
       Buffer.kill_em_all
       KILL_RING.clear
       Window.setup_for_test
