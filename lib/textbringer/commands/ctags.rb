@@ -92,7 +92,7 @@ module Textbringer
     private
 
     def push_tag_mark_and_find_file(file)
-      Buffer.current.push_global_mark
+      Buffer.current.push_global_mark(force: true)
       find_file(file)
     end
   end
