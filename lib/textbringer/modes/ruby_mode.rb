@@ -70,7 +70,8 @@ module Textbringer
             (?> (?:.|\n)*? \k<heredoc_terminator> )
       ) |
       (?:
-        : [_a-zA-Z\u{0100}-\u{10ffff}]
+        (?<! : ) :
+            [_a-zA-Z\u{0100}-\u{10ffff}]
             [_a-zA-Z0-9\u{0100}-\u{10ffff}]*
       )
     /x
