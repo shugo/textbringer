@@ -60,7 +60,7 @@ module Textbringer
     end
 
     def each(&block)
-      @ring.each(block)
+      @ring.each(&block)
     end
 
     def to_a
