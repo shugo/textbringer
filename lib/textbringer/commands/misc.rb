@@ -248,14 +248,18 @@ module Textbringer
     private :goto_global_mark
 
     define_command(:previous_global_mark) do
+      if Buffer.current.push_global_mark
+        Buffer.global_mark_ring.pop
+      end
       goto_global_mark do |mark_ring|
         mark_ring.pop
       end
     end
 
     define_command(:next_global_mark) do
+      Buffer.current.push_global_mark
       goto_global_mark do |mark_ring|
-        mark_ring.current(-1)
+        mark_ring.rotate(-1)
       end
     end
 

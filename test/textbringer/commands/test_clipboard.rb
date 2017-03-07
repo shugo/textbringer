@@ -61,7 +61,7 @@ class TestClipboard < Textbringer::TestCase
     clipboard_yank
     assert_equal("あいうえお\nあいうえお\nかきくけこ\n", Buffer.current.to_s)
     assert_equal("かきくけこ\n", KILL_RING.current)
-    assert_equal("あいうえお\n", KILL_RING.current(1))
+    assert_equal("あいうえお\n", KILL_RING.rotate(1))
     assert_equal(2, KILL_RING.size)
 
     Clipboard.copy("")
@@ -69,7 +69,7 @@ class TestClipboard < Textbringer::TestCase
     assert_equal("あいうえお\nあいうえお\nかきくけこ\nあいうえお\n",
                  Buffer.current.to_s)
     assert_equal("あいうえお\n", KILL_RING.current)
-    assert_equal("かきくけこ\n", KILL_RING.current(1))
+    assert_equal("かきくけこ\n", KILL_RING.rotate(1))
     assert_equal(2, KILL_RING.size)
   end
 

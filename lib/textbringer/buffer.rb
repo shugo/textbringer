@@ -790,21 +790,44 @@ module Textbringer
       @mark = new_mark
       @mark.location = pos
       @mark_ring.push(@mark)
-      global_mark_ring = Buffer.global_mark_ring
-      if global_mark_ring.empty? || global_mark_ring.current.buffer != self
-        push_global_mark(pos)
+      if self != Buffer.minibuffer
+        global_mark_ring = Buffer.global_mark_ring
+        if global_mark_ring.empty? || global_mark_ring.current.buffer != self
+          push_global_mark(pos)
+        end
       end
     end
 
-    def push_global_mark(pos = @point)
-      mark = new_mark
-      mark.location = pos
-      Buffer.global_mark_ring.push(mark)
+    def on_global_mark_ring?
+      mark_ring = Buffer.global_mark_ring
+      if mark_ring.empty?
+        return false
+      end
+      current = mark_ring.current
+      if current&.buffer == self
+        return true
+      end
+      next_mark = mark_ring[-1]
+      if next_mark&.buffer ==  self
+        return true
+      end
+      false
+    end
+
+    def push_global_mark(pos = @point, force: false)
+      if force || !on_global_mark_ring?
+        mark = new_mark
+        mark.location = pos
+        Buffer.global_mark_ring.push(mark)
+        true
+      else
+        false
+      end
     end
 
     def pop_mark
       return if @mark_ring.empty?
-      @mark = @mark_ring.current(1)
+      @mark = @mark_ring.rotate(1)
     end
 
     def pop_to_mark
@@ -928,7 +951,7 @@ module Textbringer
 
     def yank_pop
       delete_region
-      insert_for_yank(KILL_RING.current(1))
+      insert_for_yank(KILL_RING.rotate(1))
     end
 
     def undo
@@ -1426,6 +1449,10 @@ module Textbringer
       @buffer = buffer
       @file_name = nil
       @location = location
+    end
+
+    def inspect
+      "#<Mark:#{@buffer&.name || @file_name}:#{@location}>"
     end
 
     def delete
