@@ -133,6 +133,12 @@ EOF
     assert_equal(5, buffer.current_column)
   end
 
+  def test_isearch_exit
+    isearch_forward
+    isearch_exit
+    assert_equal(nil, Controller.current.overriding_map)
+  end
+
   def test_isearch_abort
     isearch_forward
     assert_raise(Quit) do
