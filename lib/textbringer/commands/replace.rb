@@ -55,9 +55,10 @@ module Textbringer
             when ?n
               # do nothing
             when ?!
-              replace_match(to_str)
-              n += 1 + Buffer.current.replace_regexp_forward(regexp, to_str)
-              Buffer.current.merge_undo(2)
+              Buffer.current.composite_edit do
+                replace_match(to_str)
+                n += 1 + Buffer.current.replace_regexp_forward(regexp, to_str)
+              end
               break
             when ?q
               break

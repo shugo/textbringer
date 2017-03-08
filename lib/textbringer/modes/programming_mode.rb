@@ -35,18 +35,16 @@ module Textbringer
       return result if level.nil?
       @buffer.save_excursion do
         @buffer.beginning_of_line
-        has_space = @buffer.looking_at?(/[ \t]+/)
-        if has_space
-          s = @buffer.match_string(0)
-          break if /\t/ !~ s && s.size == level
-          @buffer.delete_region(@buffer.match_beginning(0),
-                                @buffer.match_end(0))
-        else
-          break if level == 0
-        end
-        @buffer.indent_to(level)
-        if has_space
-          @buffer.merge_undo(2)
+        @buffer.composite_edit do
+          if @buffer.looking_at?(/[ \t]+/)
+            s = @buffer.match_string(0)
+            break if /\t/ !~ s && s.size == level
+            @buffer.delete_region(@buffer.match_beginning(0),
+                                  @buffer.match_end(0))
+          else
+            break if level == 0
+          end
+          @buffer.indent_to(level)
         end
         result = true
       end
@@ -60,23 +58,18 @@ module Textbringer
     end
 
     def reindent_then_newline_and_indent
-      n = 1
-      if indent_line
-        n += 1
-      end
-      @buffer.save_excursion do
-        pos = @buffer.point
-        @buffer.beginning_of_line
-        if /\A[ \t]+\z/ =~ @buffer.substring(@buffer.point, pos)
-          @buffer.delete_region(@buffer.point, pos)
-          n += 1
+      @buffer.composite_edit do
+        indent_line
+        @buffer.save_excursion do
+          pos = @buffer.point
+          @buffer.beginning_of_line
+          if /\A[ \t]+\z/ =~ @buffer.substring(@buffer.point, pos)
+            @buffer.delete_region(@buffer.point, pos)
+          end
         end
+        @buffer.insert("\n")
+        indent_line
       end
-      @buffer.insert("\n")
-      if indent_line
-        n += 1
-      end
-      @buffer.merge_undo(n) if n > 1
     end
 
     def indent_region(s = @buffer.mark, e = @buffer.point)

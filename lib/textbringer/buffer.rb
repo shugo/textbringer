@@ -223,6 +223,8 @@ module Textbringer
       @undo_stack = []
       @redo_stack = []
       @undoing = false
+      @composite_edit_level = 0
+      @composite_edit_actions = []
       @version = 0
       @modified = false
       @mode = FundamentalMode.new(self)
@@ -1122,19 +1124,21 @@ module Textbringer
       b = match_beginning(0)
       e =  match_end(0)
       goto_char(b)
-      delete_region(b, e)
-      insert(new_str)
-      merge_undo(2)
+      composite_edit do
+        delete_region(b, e)
+        insert(new_str)
+      end
     end
 
     def replace_regexp_forward(regexp, to_str)
       result = 0
       rest = substring(point, point_max)
-      delete_region(point, point_max)
-      new_str = rest.gsub(new_regexp(regexp)) {
-        result += 1
-        m = Regexp.last_match
-        to_str.gsub(/\\(?:([0-9]+)|(&)|(\\))/) { |s|
+      composite_edit do
+        delete_region(point, point_max)
+        new_str = rest.gsub(new_regexp(regexp)) {
+          result += 1
+          m = Regexp.last_match
+          to_str.gsub(/\\(?:([0-9]+)|(&)|(\\))/) { |s|
           case
           when $1
             m[$1.to_i]
@@ -1143,10 +1147,10 @@ module Textbringer
           when $3
             "\\"
           end
+          }
         }
-      }
-      insert(new_str)
-      merge_undo(2)
+        insert(new_str)
+      end
       result
     end
 
@@ -1168,16 +1172,22 @@ module Textbringer
       /\A\0*\z/ =~ @contents[@gap_start...@gap_end] ? true : false
     end
 
-    def merge_undo(n)
-      return if @undoing || @undo_limit == 0
-      actions = @undo_stack.pop(n)
-      if actions
-        action = CompositeAction.new(self, actions.first.location)
-        actions.each do |i|
-          action.add_action(i)
+    def composite_edit
+      @composite_edit_level += 1
+      begin
+        yield
+      ensure
+        @composite_edit_level -= 1
+        if @composite_edit_level == 0 && !@composite_edit_actions.empty?
+          action = CompositeAction.new(self,
+                                       @composite_edit_actions.first.location)
+          @composite_edit_actions.each do |i|
+            action.add_action(i)
+          end
+          action.version = @composite_edit_actions.first.version
+          push_undo(action)
+          @composite_edit_actions.clear
         end
-        action.version = actions.first.version
-        @undo_stack.push(action)
       end
     end
 
@@ -1262,9 +1272,10 @@ module Textbringer
 
     def gsub(*args, &block)
       s = to_s.gsub(*args, &block)
-      delete_region(point_min, point_max)
-      insert(s)
-      merge_undo(2)
+      composite_edit do
+        delete_region(point_min, point_max)
+        insert(s)
+      end
       self
     end
 
@@ -1416,14 +1427,18 @@ module Textbringer
 
     def push_undo(action)
       return if @undoing || @undo_limit == 0
-      if @undo_stack.size >= @undo_limit
-        @undo_stack[0, @undo_stack.size + 1 - @undo_limit] = []
+      if @composite_edit_level > 0
+        @composite_edit_actions.push(action)
+      else
+        if @undo_stack.size >= @undo_limit
+          @undo_stack[0, @undo_stack.size + 1 - @undo_limit] = []
+        end
+        if !modified?
+          action.version = @version
+        end
+        @undo_stack.push(action)
+        @redo_stack.clear
       end
-      if !modified?
-        action.version = @version
-      end
-      @undo_stack.push(action)
-      @redo_stack.clear
     end
 
     def new_regexp(s)
