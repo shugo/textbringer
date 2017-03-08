@@ -1038,7 +1038,7 @@ module Textbringer
 
     def looking_at?(re)
       if re.is_a?(Regexp)
-        r = Regexp.new("\\G(?:#{re.source})", re.options)
+        r = /\G#{re}/
       else
         r = "\\G(?:#{re})"
       end
