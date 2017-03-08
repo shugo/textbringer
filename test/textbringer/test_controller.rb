@@ -78,4 +78,12 @@ class TestController < Textbringer::TestCase
     @controller.echo_input
     assert_equal("C-x RET-", Window.echo_area.message)
   end
+
+  def test_clear_message_if_echo_area_is_active
+    map = Keymap.new
+    map.define_key("a", -> { raise "error" })
+    push_keys "a"
+    read_from_minibuffer("", keymap: map)
+    assert_equal(nil, Window.echo_area.message)
+  end
 end
