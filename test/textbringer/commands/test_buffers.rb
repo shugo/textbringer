@@ -133,4 +133,15 @@ foo(bar, baz)
 EOF
     assert_equal(true, buffer.beginning_of_buffer?)
   end
+
+  def test_set_mark_command
+    set_mark_command
+    insert("foo\n")
+    set_mark_command
+    insert("bar\n")
+    set_mark_command(true)
+    assert_equal(4, Buffer.current.point)
+    set_mark_command(true)
+    assert_equal(0, Buffer.current.point)
+  end
 end
