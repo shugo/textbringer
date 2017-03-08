@@ -230,9 +230,6 @@ module Textbringer
 
     def goto_global_mark
       global_mark_ring = Buffer.global_mark_ring
-      if global_mark_ring.empty?
-        raise EditorError, "Global mark ring is empty"
-      end
       mark = yield(global_mark_ring)
       if mark.buffer&.current? && Buffer.current.point_at_mark?(mark)
         mark = yield(global_mark_ring)
@@ -248,6 +245,9 @@ module Textbringer
     private :goto_global_mark
 
     define_command(:previous_global_mark) do
+      if Buffer.global_mark_ring.empty?
+        raise EditorError, "Global mark ring is empty"
+      end
       if Buffer.current.push_global_mark
         Buffer.global_mark_ring.pop
       end
@@ -257,6 +257,9 @@ module Textbringer
     end
 
     define_command(:next_global_mark) do
+      if Buffer.global_mark_ring.empty?
+        raise EditorError, "Global mark ring is empty"
+      end
       Buffer.current.push_global_mark
       goto_global_mark do |mark_ring|
         mark_ring.rotate(-1)

@@ -138,6 +138,57 @@ class TestMisc < Textbringer::TestCase
     assert_equal([-4], Controller.current.prefix_arg)
   end
 
+  def test_global_mark
+    assert_raise(EditorError) do
+      previous_global_mark
+    end
+    assert_raise(EditorError) do
+      next_global_mark
+    end
+    buf1 = Buffer.new_buffer("*buf1*")
+    buf1.insert("foo\n")
+    buf1.push_global_mark
+    buf1.insert("bar\n")
+    buf2 = Buffer.new_buffer("*buf2*")
+    buf2.insert("foo")
+    buf2.push_global_mark
+    buf2.insert("bar")
+    buf3 = Buffer.new_buffer("*buf3*")
+    switch_to_buffer(buf3)
+    previous_global_mark
+    assert_equal(buf2, Buffer.current)
+    assert_equal(3, Buffer.current.point)
+    previous_global_mark
+    assert_equal(buf1, Buffer.current)
+    assert_equal(4, Buffer.current.point)
+    previous_global_mark
+    assert_equal(buf3, Buffer.current)
+    assert_equal(0, Buffer.current.point)
+    previous_global_mark
+    assert_equal(buf2, Buffer.current)
+    assert_equal(3, Buffer.current.point)
+    next_global_mark
+    assert_equal(buf3, Buffer.current)
+    assert_equal(0, Buffer.current.point)
+    next_global_mark
+    assert_equal(buf1, Buffer.current)
+    assert_equal(4, Buffer.current.point)
+    next_global_mark
+    assert_equal(buf2, Buffer.current)
+    assert_equal(3, Buffer.current.point)
+    next_global_mark
+    assert_equal(buf3, Buffer.current)
+    assert_equal(0, Buffer.current.point)
+    Tempfile.create("buf1") do |f|
+      f.close
+      buf1.save(f.path)
+      buf1.kill
+      next_global_mark
+      assert_equal(f.path, Buffer.current.file_name)
+      assert_equal(4, Buffer.current.point)
+    end
+  end
+
   def test_shell_execute
     shell_execute("#{ruby_install_name} -e 'p 1 + 1'")
     assert_equal("2\n", Buffer.current.to_s)
