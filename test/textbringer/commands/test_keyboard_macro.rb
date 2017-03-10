@@ -42,4 +42,17 @@ class TestKeyboardMacro < Textbringer::TestCase
     macro_foo(2)
     assert_equal("foo\nbar\nfoo\nfoo\n", Buffer.current.to_s)
   end
+
+  def test_insert_keyboard_macro
+    push_keys "\C-x(bar\r\C-x)"
+    recursive_edit
+    name_last_keyboard_macro("macro_bar")
+    insert_keyboard_macro("macro_bar")
+    assert_equal(<<'EOF', Buffer.current.to_s)
+bar
+define_command(:macro_bar) do |n = number_prefix_arg|
+  execute_keyboard_macro(["b","a","r","\r"], n)
+end
+EOF
+  end
 end
