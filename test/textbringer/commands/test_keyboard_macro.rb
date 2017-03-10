@@ -34,6 +34,9 @@ class TestKeyboardMacro < Textbringer::TestCase
   end
 
   def test_name_last_keyboard_macro
+    assert_raise(EditorError) do
+      name_last_keyboard_macro("macro_foo")
+    end
     push_keys "\C-x(foo\n\C-x)"
     recursive_edit
     name_last_keyboard_macro("macro_foo")
@@ -44,14 +47,18 @@ class TestKeyboardMacro < Textbringer::TestCase
   end
 
   def test_insert_keyboard_macro
-    push_keys "\C-x(bar\r\C-x)"
+    push_keys ["\C-x", "(", "b", "a", "z", :backspace, "r", "\r", "\C-x", ")"]
     recursive_edit
     name_last_keyboard_macro("macro_bar")
-    insert_keyboard_macro("macro_bar")
+    assert_raise(EditorError) do
+      insert_keyboard_macro("macro_baz")
+    end
+    push_keys "macro_bar\n"
+    insert_keyboard_macro
     assert_equal(<<'EOF', Buffer.current.to_s)
 bar
 define_command(:macro_bar) do |n = number_prefix_arg|
-  execute_keyboard_macro(["b","a","r","\r"], n)
+  execute_keyboard_macro(["b","a","z",:"backspace","r","\r"], n)
 end
 EOF
   end

@@ -44,6 +44,16 @@ module Textbringer
       read_from_minibuffer(prompt, completion_proc: f)
     end
 
+    module SymbolDump
+      refine Symbol do
+        def dump
+          ":" + to_s.dump
+        end
+      end
+    end
+
+    using SymbolDump
+
     define_command(:insert_keyboard_macro) do
       |name = read_keyboard_macro("Insert keyboard macro: ")|
       macro = KEYBOARD_MACROS[name]
