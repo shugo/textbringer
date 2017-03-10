@@ -60,7 +60,7 @@ module Textbringer
       if macro.nil?
         raise EditorError, "No such macro: #{name}"
       end
-      macro_literal = "[" + macro.map(&:dump).join(",") + "]"
+      macro_literal = "[" + macro.map { |key| key.dump }.join(",") + "]"
       insert(<<~EOF)
         define_command(:#{name}) do |n = number_prefix_arg|
           execute_keyboard_macro(#{macro_literal}, n)
