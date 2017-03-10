@@ -192,11 +192,13 @@ module Textbringer
       if @last_keyboard_macro.nil?
         raise EditorError, "Keyboard macro not defined"
       end
-      @calling_keyboard_macro = @last_keyboard_macro * n
-      begin
-        recursive_edit
-      ensure
-        @calling_keyboard_macro = nil
+      n.times do
+        @calling_keyboard_macro = @last_keyboard_macro.dup
+        begin
+          recursive_edit
+        ensure
+          @calling_keyboard_macro = nil
+        end
       end
     end
 
