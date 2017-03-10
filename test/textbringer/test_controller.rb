@@ -41,6 +41,15 @@ class TestController < Textbringer::TestCase
     assert_equal("b", @controller.read_char)
   end
 
+  def test_wait_input
+    def @window.wait_input(msecs)
+      "a"
+    end
+    assert_equal("a", @controller.wait_input(1000))
+    @controller.instance_variable_set(:@calling_keyboard_macro, ["b"])
+    assert_equal("b", @controller.wait_input(1000))
+  end
+
   def test_received_keyboard_quit?
     def @window.read_char_nonblock
       nil
