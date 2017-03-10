@@ -7,23 +7,25 @@ module Textbringer
   module Commands
     include Utils
 
-    @@command_list = []
+    @command_list = []
 
     def self.list
-      @@command_list
+      @command_list
     end
 
     def define_command(name, &block)
+      name = name.intern
       Commands.send(:define_method, name, &block)
-      @@command_list << name if !@@command_list.include?(name)
+      Commands.list << name if !Commands.list.include?(name)
       name
     end
     module_function :define_command
 
     def undefine_command(name)
-      if @@command_list.include?(name)
+      name = name.intern
+      if Commands.list.include?(name)
         Commands.send(:undef_method, name)
-        @@command_list.delete(name)
+        Commands.list.delete(name)
       end
     end
     module_function :undefine_command

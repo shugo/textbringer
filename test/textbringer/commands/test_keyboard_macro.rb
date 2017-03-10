@@ -32,4 +32,14 @@ class TestKeyboardMacro < Textbringer::TestCase
       call_last_keyboard_macro
     end
   end
+
+  def test_name_last_keyboard_macro
+    push_keys "\C-x(foo\n\C-x)"
+    recursive_edit
+    name_last_keyboard_macro("macro_foo")
+    push_keys "\C-x(bar\n\C-x)"
+    recursive_edit
+    macro_foo(2)
+    assert_equal("foo\nbar\nfoo\nfoo\n", Buffer.current.to_s)
+  end
 end

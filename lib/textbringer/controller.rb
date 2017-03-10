@@ -188,18 +188,22 @@ module Textbringer
       @recording_keyboard_macro = nil
     end
 
-    def call_last_keyboard_macro(n)
-      if @last_keyboard_macro.nil?
-        raise EditorError, "Keyboard macro not defined"
-      end
+    def execute_keyboard_macro(macro, n = 1)
       n.times do
-        @calling_keyboard_macro = @last_keyboard_macro.dup
+        @calling_keyboard_macro = macro.dup
         begin
           recursive_edit
         ensure
           @calling_keyboard_macro = nil
         end
       end
+    end
+
+    def call_last_keyboard_macro(n)
+      if @last_keyboard_macro.nil?
+        raise EditorError, "Keyboard macro not defined"
+      end
+      execute_keyboard_macro(@last_keyboard_macro, n)
     end
 
     def calling_keyboard_macro?
