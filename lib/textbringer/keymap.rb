@@ -4,6 +4,8 @@ require "curses"
 
 module Textbringer
   class Keymap
+    include Enumerable
+
     def initialize
       @map = {}
     end
@@ -35,8 +37,41 @@ module Textbringer
       end
     end
 
+    def each(prefixes = [], &block)
+      @map.each do |key, val|
+        if val.is_a?(Keymap)
+          val.each([*prefixes, key], &block)
+        else
+          yield([*prefixes, key], val)
+        end
+      end
+    end
+
     def handle_undefined_key
       @map.default_proc = Proc.new { |h, k| yield(k) }
+    end
+
+    def self.key_name(key)
+      case key
+      when Symbol
+        "<#{key}>"
+      when " "
+        "SPC"
+      when "\t"
+        "TAB"
+      when "\e"
+        "ESC"
+      when "\C-m"
+        "RET"
+      when /\A[\0-\x1f\x7f]\z/
+        "C-" + (key.ord ^ 0x40).chr.downcase
+      else
+        key.to_s
+      end
+    end
+
+    def self.key_sequence_string(key_sequence)
+      key_sequence.map { |key| key_name(key) }.join(" ")
     end
 
     private
@@ -143,6 +178,7 @@ module Textbringer
   GLOBAL_MAP.define_key("\C-x(", :start_keyboard_macro)
   GLOBAL_MAP.define_key("\C-x)", :end_keyboard_macro)
   GLOBAL_MAP.define_key("\C-xe", :call_last_keyboard_macro)
+  GLOBAL_MAP.define_key([:f1, "b"], :describe_bindings)
   GLOBAL_MAP.handle_undefined_key do |key|
     if key.is_a?(String) && /[\0-\x7f]/ !~ key 
       :self_insert

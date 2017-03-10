@@ -69,7 +69,7 @@ module Textbringer
               end
             else
               if cmd.nil?
-                keys = @key_sequence.map { |ch| key_name(ch) }.join(" ")
+                keys = Keymap.key_sequence_string(@key_sequence)
                 @key_sequence.clear
                 @prefix_arg = nil
                 message("#{keys} is undefined")
@@ -126,21 +126,6 @@ module Textbringer
       end
     end
 
-    def key_name(key)
-      case key
-      when Symbol
-        "<#{key}>"
-      when "\e"
-        "ESC"
-      when "\C-m"
-        "RET"
-      when /\A[\0-\b\v-\x1f\x7f]\z/
-        "C-" + (key.ord ^ 0x40).chr.downcase
-      else
-        key.to_s
-      end
-    end
-
     def echo_input
       return if executing_keyboard_macro?
       if @prefix_arg || !@key_sequence.empty?
@@ -157,7 +142,7 @@ module Textbringer
         end
         if !@key_sequence.empty?
           s << " " if !s.empty?
-          s << @key_sequence.map { |ch| key_name(ch) }.join(" ")
+          s << Keymap.key_sequence_string(@key_sequence)
         end
         s << "-"
         Window.echo_area.show(s)

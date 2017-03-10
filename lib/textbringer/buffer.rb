@@ -291,6 +291,15 @@ module Textbringer
       end
     end
 
+    def read_only_edit
+      self.read_only = false
+      begin
+        yield
+      ensure
+        self.read_only = true
+      end
+    end
+
     def kill
       @@table.delete(@name)
       @@list.delete(self)

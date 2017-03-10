@@ -63,14 +63,6 @@ class TestController < Textbringer::TestCase
     assert_equal(true, @controller.received_keyboard_quit?)
   end
 
-  def test_key_name
-    assert_equal("<f1>", @controller.key_name(:f1))
-    assert_equal("ESC", @controller.key_name("\e"))
-    assert_equal("C-x", @controller.key_name("\C-x"))
-    assert_equal("x", @controller.key_name("x"))
-    assert_equal("あ", @controller.key_name("あ"))
-  end
-
   def test_echo_input
     @controller.prefix_arg = [4]
     @controller.echo_input
