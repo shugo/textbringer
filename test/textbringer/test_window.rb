@@ -304,6 +304,14 @@ EOF
     Buffer.minibuffer.insert("baz")
     Window.echo_area.redisplay
     assert_equal("bar: baz\n", window_string(Window.echo_area.window))
+    Buffer.minibuffer.insert("x" + "あ" * 40)
+    Window.echo_area.redisplay
+    assert_equal("bar: " + "あ" * 37 + "\n",
+                 window_string(Window.echo_area.window))
+    Buffer.minibuffer.insert("x")
+    Window.echo_area.redisplay
+    assert_equal("bar: " + "あ" * 36 + "x\n",
+                 window_string(Window.echo_area.window))
     Window.echo_area.clear
     Window.echo_area.redisplay
     assert_equal("\n", window_string(Window.echo_area.window))

@@ -821,6 +821,7 @@ module Textbringer
 
     def clear
       @buffer.clear
+      @top_of_window.location = @buffer.point_min
       @message = nil
       @prompt = ""
     end
@@ -843,19 +844,25 @@ module Textbringer
         else
           prompt = escape(@prompt)
           @window.addstr(prompt)
+          framer
+          @buffer.point_to_mark(@top_of_window)
           y = x = 0
-          columns = @columns - Buffer.display_width(prompt)
-          beginning_of_line_and_count(1, columns)
           while !@buffer.end_of_buffer?
+            cury, curx = @window.cury, @window.curx
             if @buffer.point_at_mark?(saved)
-              y, x = @window.cury, @window.curx
+              y, x = cury, curx
             end
             c = @buffer.char_after
             if c == "\n"
               break
             end
-            @window.addstr(escape(c))
-            break if @window.curx == @columns
+            s = escape(c)
+            newx = curx + Buffer.display_width(s)
+            if newx > @columns
+              break
+            end
+            @window.addstr(s)
+            break if newx >= @columns
             @buffer.forward_char
           end
           if @buffer.point_at_mark?(saved)
@@ -887,6 +894,33 @@ module Textbringer
 
     def initialize_window(num_lines, num_columns, y, x)
       @window = Curses::Window.new(num_lines, num_columns, y, x)
+    end
+
+    def escape(s)
+      super(s).gsub(/\t/, "^I")
+    end
+
+    def framer
+      @buffer.save_point do |saved|
+        max_width = @columns - @window.curx
+        width = 0
+        loop do
+          c = @buffer.char_after
+          if c.nil?
+            width += 1
+          else
+            width += Buffer.display_width(escape(c))
+          end
+          if width > max_width
+            @buffer.forward_char
+            break
+          elsif width == max_width || @buffer.beginning_of_line?
+            break
+          end
+          @buffer.backward_char
+        end
+        @top_of_window.location = @buffer.point
+      end
     end
   end
 end
