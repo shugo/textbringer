@@ -184,7 +184,7 @@ module Textbringer
     end
 
     def self.redisplay
-      return if Controller.current.calling_keyboard_macro?
+      return if Controller.current.executing_keyboard_macro?
       return if Window.current.has_input?
       @@windows.each do |window|
         window.redisplay unless window.current?

@@ -37,7 +37,7 @@ class TestController < Textbringer::TestCase
       "a"
     end
     assert_equal("a", @controller.read_char)
-    @controller.instance_variable_set(:@calling_keyboard_macro, ["b"])
+    @controller.instance_variable_set(:@executing_keyboard_macro, ["b"])
     assert_equal("b", @controller.read_char)
   end
 
@@ -46,7 +46,7 @@ class TestController < Textbringer::TestCase
       "a"
     end
     assert_equal("a", @controller.wait_input(1000))
-    @controller.instance_variable_set(:@calling_keyboard_macro, ["b"])
+    @controller.instance_variable_set(:@executing_keyboard_macro, ["b"])
     assert_equal("b", @controller.wait_input(1000))
   end
 

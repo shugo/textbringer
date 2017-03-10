@@ -33,7 +33,7 @@ module Textbringer
       @echo_immediately = false
       @recording_keyboard_macro = nil
       @last_keyboard_macro = nil
-      @calling_keyboard_macro = nil
+      @executing_keyboard_macro = nil
     end
 
     def command_loop(tag)
@@ -92,8 +92,8 @@ module Textbringer
     end
 
     def wait_input(msecs)
-      if calling_keyboard_macro?
-        return @calling_keyboard_macro.first
+      if executing_keyboard_macro?
+        return @executing_keyboard_macro.first
       end
       Window.current.wait_input(msecs)
     end
@@ -142,7 +142,7 @@ module Textbringer
     end
 
     def echo_input
-      return if calling_keyboard_macro?
+      return if executing_keyboard_macro?
       if @prefix_arg || !@key_sequence.empty?
         if !@echo_immediately
           return if wait_input(1000)
@@ -190,11 +190,11 @@ module Textbringer
 
     def execute_keyboard_macro(macro, n = 1)
       n.times do
-        @calling_keyboard_macro = macro.dup
+        @executing_keyboard_macro = macro.dup
         begin
           recursive_edit
         ensure
-          @calling_keyboard_macro = nil
+          @executing_keyboard_macro = nil
         end
       end
     end
@@ -206,8 +206,8 @@ module Textbringer
       execute_keyboard_macro(@last_keyboard_macro, n)
     end
 
-    def calling_keyboard_macro?
-      !@calling_keyboard_macro.nil?
+    def executing_keyboard_macro?
+      !@executing_keyboard_macro.nil?
     end
 
     private
@@ -219,14 +219,14 @@ module Textbringer
     end
 
     def read_char_with_keyboard_macro(read_char_method)
-      if !calling_keyboard_macro?
+      if !executing_keyboard_macro?
         c = call_read_char_method(read_char_method)
         if @recording_keyboard_macro
           @recording_keyboard_macro.push(c)
         end
         c
       else
-        @calling_keyboard_macro.shift
+        @executing_keyboard_macro.shift
       end
     end
 
