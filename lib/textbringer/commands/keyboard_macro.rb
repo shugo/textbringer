@@ -13,7 +13,11 @@ module Textbringer
     end
 
     define_command(:call_last_keyboard_macro) do |n = number_prefix_arg|
+      key = Controller.current.last_key
       Controller.current.call_last_keyboard_macro(n)
+      map = Keymap.new
+      map.define_key(key, :call_last_keyboard_macro)
+      set_transient_map(map)
     end
   end
 end

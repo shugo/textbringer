@@ -2,7 +2,7 @@ require_relative "../../test_helper"
 
 class TestKeyboardMacro < Textbringer::TestCase
   def test_keyboard_macro
-    push_keys "\C-x(hello world\n\C-x)\C-xe\C-u3\C-xe"
+    push_keys "\C-x(hello world\n\C-x)\C-xee\C-u2\C-xe"
     recursive_edit
     assert_equal("hello world\n" * 5, Buffer.current.to_s)
   end

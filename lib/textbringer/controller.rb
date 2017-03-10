@@ -33,7 +33,7 @@ module Textbringer
       @echo_immediately = false
       @recording_keyboard_macro = nil
       @last_keyboard_macro = nil
-      @calling_keyboard_macro = []
+      @calling_keyboard_macro = nil
     end
 
     def command_loop(tag)
@@ -193,10 +193,15 @@ module Textbringer
         raise EditorError, "Keyboard macro not defined"
       end
       @calling_keyboard_macro = @last_keyboard_macro * n
+      begin
+        recursive_edit
+      ensure
+        @calling_keyboard_macro = nil
+      end
     end
 
     def calling_keyboard_macro?
-      !@calling_keyboard_macro.empty?
+      !@calling_keyboard_macro.nil?
     end
 
     private
