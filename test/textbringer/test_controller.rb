@@ -37,6 +37,8 @@ class TestController < Textbringer::TestCase
       "a"
     end
     assert_equal("a", @controller.read_char)
+    @controller.instance_variable_set(:@calling_keyboard_macro, ["b"])
+    assert_equal("b", @controller.read_char)
   end
 
   def test_received_keyboard_quit?

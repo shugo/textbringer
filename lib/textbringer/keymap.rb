@@ -140,6 +140,9 @@ module Textbringer
   GLOBAL_MAP.define_key("\C-xri", :insert_register)
   GLOBAL_MAP.define_key("\C-xrn", :number_to_register)
   GLOBAL_MAP.define_key("\C-xr+", :increment_register)
+  GLOBAL_MAP.define_key("\C-x(", :start_keyboard_macro)
+  GLOBAL_MAP.define_key("\C-x)", :end_keyboard_macro)
+  GLOBAL_MAP.define_key("\C-xe", :call_last_keyboard_macro)
   GLOBAL_MAP.handle_undefined_key do |key|
     if key.is_a?(String) && /[\0-\x7f]/ !~ key 
       :self_insert

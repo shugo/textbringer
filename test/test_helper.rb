@@ -114,14 +114,15 @@ module Textbringer
       @test_key_buffer = []
     end
 
-    def read_char_nonblock
+    private
+
+    def call_read_char_method(read_char_method)
       if @test_key_buffer.empty?
         nil
       else
         @test_key_buffer.shift
       end
     end
-    alias read_char read_char_nonblock
   end
 
   class FakeCursesWindow

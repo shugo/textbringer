@@ -8,6 +8,7 @@ module Textbringer
     attr_accessor :this_command, :last_command, :overriding_map
     attr_accessor :prefix_arg, :current_prefix_arg
     attr_reader :key_sequence, :last_key, :recursive_edit_level
+    attr_reader :last_keyboard_macro
 
     @@current = nil
 
@@ -20,6 +21,7 @@ module Textbringer
     end
 
     def initialize
+      @top_self = eval("self", TOPLEVEL_BINDING)
       @key_sequence = []
       @last_key = nil
       @recursive_edit_level = 0
@@ -29,6 +31,9 @@ module Textbringer
       @prefix_arg = nil
       @current_prefix_arg = nil
       @echo_immediately = false
+      @recording_keyboard_macro = nil
+      @last_keyboard_macro = nil
+      @calling_keyboard_macro = []
     end
 
     def command_loop(tag)
@@ -43,6 +48,9 @@ module Textbringer
             @key_sequence << @last_key
             cmd = key_binding(@key_sequence)
             if cmd.is_a?(Symbol) || cmd.respond_to?(:call)
+              if @recording_keyboard_macro && cmd == :end_keyboard_macro
+                @recording_keyboard_macro.pop(@key_sequence.size)
+              end
               @key_sequence.clear
               @this_command = cmd
               @current_prefix_arg = @prefix_arg
@@ -50,7 +58,7 @@ module Textbringer
               begin
                 run_hooks(:pre_command_hook, remove_on_error: true)
                 if cmd.is_a?(Symbol)
-                  send(cmd)
+                  @top_self.send(cmd)
                 else
                   cmd.call
                 end
@@ -71,6 +79,7 @@ module Textbringer
           rescue Exception => e
             show_exception(e)
             @prefix_arg = nil
+            @recording_keyboard_macro = nil
             Window.redisplay
             if Window.echo_area.active?
               wait_input(2000)
@@ -83,15 +92,18 @@ module Textbringer
     end
 
     def wait_input(msecs)
+      if calling_keyboard_macro?
+        return @calling_keyboard_macro.first
+      end
       Window.current.wait_input(msecs)
     end
 
     def read_char
-      Window.current.read_char
+      read_char_with_keyboard_macro(:read_char)
     end
 
     def read_char_nonblock
-      Window.current.read_char_nonblock
+      read_char_with_keyboard_macro(:read_char_nonblock)
     end
 
     def received_keyboard_quit?
@@ -130,6 +142,7 @@ module Textbringer
     end
 
     def echo_input
+      return if calling_keyboard_macro?
       if @prefix_arg || !@key_sequence.empty?
         if !@echo_immediately
           return if wait_input(1000)
@@ -156,12 +169,58 @@ module Textbringer
       end
     end
 
+    def start_keyboard_macro
+      if @recording_keyboard_macro
+        @recording_keyboard_macro = nil
+        raise EditorError, "Already recording keyboard macro"
+      end
+      @recording_keyboard_macro = []
+    end
+
+    def end_keyboard_macro
+      if @recording_keyboard_macro.nil?
+        raise EditorError, "Not recording keyboard macro"
+      end
+      if @recording_keyboard_macro.empty?
+        raise EditorError, "Empty keyboard macro"
+      end
+      @last_keyboard_macro = @recording_keyboard_macro
+      @recording_keyboard_macro = nil
+    end
+
+    def call_last_keyboard_macro(n)
+      if @last_keyboard_macro.nil?
+        raise EditorError, "Keyboard macro not defined"
+      end
+      @calling_keyboard_macro = @last_keyboard_macro * n
+    end
+
+    def calling_keyboard_macro?
+      !@calling_keyboard_macro.empty?
+    end
+
     private
 
     def key_binding(key_sequence)
       @overriding_map&.lookup(key_sequence) ||
       Buffer.current&.keymap&.lookup(key_sequence) ||
         GLOBAL_MAP.lookup(key_sequence)
+    end
+
+    def read_char_with_keyboard_macro(read_char_method)
+      if !calling_keyboard_macro?
+        c = call_read_char_method(read_char_method)
+        if @recording_keyboard_macro
+          @recording_keyboard_macro.push(c)
+        end
+        c
+      else
+        @calling_keyboard_macro.shift
+      end
+    end
+
+    def call_read_char_method(read_char_method)
+      Window.current.send(read_char_method)
     end
   end
 end
