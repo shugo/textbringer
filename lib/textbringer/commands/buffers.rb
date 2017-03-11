@@ -146,13 +146,15 @@ module Textbringer
       end
     end
 
-    define_command(:goto_char) do
-      |n = read_from_minibuffer("Go to char: ")|
-      Buffer.current.goto_char(n.to_i)
+    define_command(:goto_char
+                   doc: "Move point to pos.") do
+      |pos = read_from_minibuffer("Go to char: ")|
+      Buffer.current.goto_char(pos.to_i)
       Window.current.recenter_if_needed
     end
 
-    define_command(:goto_line) do
+    define_command(:goto_line
+                   pos: "Move point to line n.") do
       |n = read_from_minibuffer("Go to line: ")|
       Buffer.current.goto_line(n.to_i)
       Window.current.recenter_if_needed
