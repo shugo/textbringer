@@ -48,7 +48,7 @@ module Textbringer
         s << "#{cmd.name}"
         if !cmd.block.parameters.empty?
           s << "("
-          s << cmd.block.parameters.map { |_, name| name }.join(", ")
+          s << cmd.block.parameters.map { |_, param| param }.join(", ")
           s << ")"
         end
         s << "\n\n"

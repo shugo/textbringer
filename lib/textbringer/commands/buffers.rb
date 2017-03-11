@@ -2,43 +2,141 @@
 
 module Textbringer
   module Commands
-    [
-      :forward_char,
-      :backward_char,
-      :forward_word,
-      :backward_word,
-      :next_line,
-      :previous_line,
-      :delete_char,
-      :backward_delete_char,
-    ].each do |name|
-      define_command(name) do |n = number_prefix_arg|
-        Buffer.current.send(name, n)
-      end
+    define_command(:forward_char,
+                   doc: "Move point n characters forward.") do
+      |n = number_prefix_arg|
+      Buffer.current.forward_char(n)
+    end
+    
+    define_command(:backward_char,
+                   doc: "Move point n characters backward.") do
+      |n = number_prefix_arg|
+      Buffer.current.backward_char(n)
     end
 
-    [
-      :beginning_of_line,
-      :end_of_line,
-      :beginning_of_buffer,
-      :end_of_buffer,
-      :push_mark,
-      :pop_mark,
-      :pop_to_mark,
-      :exchange_point_and_mark,
-      :copy_region,
-      :kill_region,
-      :yank,
-      :newline,
-      :delete_region,
-      :transpose_chars
-    ].each do |name|
-      define_command(name) do
-        Buffer.current.send(name)
-      end
+    define_command(:forward_word,
+                   doc: "Move point n words forward.") do
+      |n = number_prefix_arg|
+      Buffer.current.forward_word(n)
     end
 
-    define_command(:set_mark_command) do |arg = current_prefix_arg|
+    define_command(:backward_word,
+                   doc: "Move point n words backward.") do
+      |n = number_prefix_arg|
+      Buffer.current.backward_word(n)
+    end
+    
+
+    define_command(:next_line,
+                   doc: "Move point n lines forward.") do
+      |n = number_prefix_arg|
+      Buffer.current.next_line(n)
+    end
+    
+    define_command(:previous_line,
+                   doc: "Move point n lines backward.") do
+      |n = number_prefix_arg|
+      Buffer.current.previous_line(n)
+    end
+    
+    define_command(:delete_char,
+                   doc: "Delete n characters forward.") do
+      |n = number_prefix_arg|
+      Buffer.current.delete_char(n)
+    end
+    
+    define_command(:backward_delete_char,
+                   doc: "Delete n characters backward.") do
+      |n = number_prefix_arg|
+      Buffer.current.backward_delete_char(n)
+    end
+
+    define_command(:beginning_of_line,
+                   doc: "Move point to the beginning of the current line.") do
+      Buffer.current.beginning_of_line
+    end
+
+    define_command(:end_of_line,
+                   doc: "Move point to the end of the current line.") do
+      Buffer.current.end_of_line
+    end
+
+    define_command(:beginning_of_buffer,
+                   doc: "Move point to the beginning of the buffer.") do
+      Buffer.current.beginning_of_buffer
+    end
+
+    define_command(:end_of_buffer,
+                   doc: "Move point to the end of the buffer.") do
+      Buffer.current.end_of_buffer
+    end
+
+    define_command(:push_mark,
+                   doc: <<~EOD) do
+        Set mark at pos, and push the mark on the mark ring.
+        Unlike Emacs, the new mark is pushed on the mark ring instead of
+        the old one.
+      EOD
+      |pos = Buffer.current.point|
+      Buffer.current.push_mark(pos)
+    end
+
+    define_command(:pop_mark,
+                   doc: "Pop the mark from the mark ring.") do
+      Buffer.current.pop_mark
+    end
+
+    define_command(:pop_to_mark,
+                   doc: <<~EOD) do
+        Move point to where the mark is, and pop the mark from
+        the mark ring.
+      EOD
+      Buffer.current.pop_to_mark
+    end
+
+    define_command(:exchange_point_and_mark,
+                   doc: "Exchange the positions of point and mark.") do
+      Buffer.current.exchange_point_and_mark
+    end
+
+    define_command(:copy_region,
+                   doc: "Copy the region to the kill ring.") do
+      Buffer.current.copy_region
+    end
+
+    define_command(:kill_region,
+                   doc: "Copy and delete the region.") do
+      Buffer.current.kill_region
+    end
+
+    define_command(:yank,
+                   doc: "Insert the last text copied in the kill ring.") do
+      Buffer.current.yank
+    end
+
+    define_command(:newline,
+                   doc: "Insert a newline.") do
+      Buffer.current.newline
+    end
+
+    define_command(:delete_region,
+                   doc: "Delete the region without copying.") do
+      Buffer.current.delete_region
+    end
+
+    define_command(:transpose_chars,
+                   doc: "Transpose characters.") do
+      Buffer.current.transpose_char
+    end
+
+    define_command(:set_mark_command,
+                   doc: <<~EOD) do
+        Set the mark at point.
+
+        With C-u, move point to where the mark is, and pop the mark from
+        the mark ring.
+      EOD
+      |arg = current_prefix_arg|
       buffer = Buffer.current
       if arg
         buffer.pop_to_mark
