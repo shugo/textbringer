@@ -8,6 +8,91 @@ class TestBuffers < Textbringer::TestCase
     assert_equal(3, Buffer.current.point)
   end
 
+  def test_backward_char
+    insert("hello world")
+    backward_char(6)
+    assert_equal(5, Buffer.current.point)
+  end
+
+  def test_forward_word
+    insert("hello world")
+    beginning_of_buffer
+    forward_word
+    assert_equal(5, Buffer.current.point)
+  end
+
+  def test_backward_word
+    insert("hello world")
+    backward_word
+    assert_equal(6, Buffer.current.point)
+  end
+
+  def test_next_line
+    insert("foo\nbar\nbaz\n")
+    beginning_of_buffer
+    next_line
+    assert_equal(2, Buffer.current.current_line)
+    assert_equal(1, Buffer.current.current_column)
+  end
+
+  def test_previous_line
+    insert("foo\nbar\nbaz\n")
+    previous_line
+    assert_equal(3, Buffer.current.current_line)
+    assert_equal(1, Buffer.current.current_column)
+  end
+
+  def test_delete_char
+    insert("foo")
+    beginning_of_buffer
+    delete_char
+    assert_equal("oo", Buffer.current.to_s)
+  end
+
+  def test_backward_delete_char
+    insert("foo")
+    backward_delete_char
+    assert_equal("fo", Buffer.current.to_s)
+  end
+
+  def test_push_mark
+    insert("foo")
+    push_mark
+    insert("bar")
+    assert_equal(3, Buffer.current.mark)
+  end
+
+  def test_pop_mark
+    insert("foo")
+    push_mark
+    insert("bar")
+    push_mark
+    insert("baz")
+    pop_mark
+    assert_equal(3, Buffer.current.mark)
+    assert_equal(9, Buffer.current.point)
+  end
+
+  def test_pop_to_mark
+    insert("foo")
+    push_mark
+    insert("bar")
+    push_mark
+    insert("baz")
+    pop_to_mark
+    assert_equal(3, Buffer.current.mark)
+    assert_equal(6, Buffer.current.point)
+  end
+
+  def test_exchange_point_and_mark
+    insert("foo")
+    push_mark
+    insert("bar")
+    exchange_point_and_mark
+    assert_equal(6, Buffer.current.mark)
+    assert_equal(3, Buffer.current.point)
+  end
+
   def test_kill_region
     insert("foo")
     set_mark_command
@@ -132,6 +217,22 @@ EOF
 foo(bar, baz)
 EOF
     assert_equal(true, buffer.beginning_of_buffer?)
+  end
+
+  def test_delete_region
+    insert("foo")
+    set_mark_command
+    insert("barbaz")
+    backward_char(3)
+    delete_region
+    assert_equal("foobaz", Buffer.current.to_s)
+  end
+
+  def test_transpose_chars
+    insert("retrun")
+    backward_char(2)
+    transpose_chars
+    assert_equal("return", Buffer.current.to_s)
   end
 
   def test_set_mark_command

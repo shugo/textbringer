@@ -126,7 +126,7 @@ module Textbringer
 
     define_command(:transpose_chars,
                    doc: "Transpose characters.") do
-      Buffer.current.transpose_char
+      Buffer.current.transpose_chars
     end
 
     define_command(:set_mark_command,

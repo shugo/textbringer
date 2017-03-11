@@ -9,4 +9,11 @@ class TestHelp < Textbringer::TestCase
     assert_match(/^C-h +backward_delete_char/, s)
     assert_match(/^C-x RET f +set_buffer_file_encoding/, s)
   end
+
+  def test_describe_command
+    describe_command("describe_command")
+    s = Buffer.current.to_s
+    assert_match(/^describe_command\(name\)/, s)
+    assert_match(/^Display the documentation of the command./, s)
+  end
 end

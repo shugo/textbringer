@@ -12,7 +12,8 @@ module Textbringer
       end
     end
 
-    define_command(:describe_bindings) do
+    define_command(:describe_bindings,
+                   doc: "Display the key bindings.") do
       show_help do |help|
         s = format("%-16s  %s\n", "Key", "Binding")
         s << format("%-16s  %s\n", "---", "-------")
@@ -36,7 +37,8 @@ module Textbringer
       end
     end
 
-    define_command(:describe_command) do
+    define_command(:describe_command,
+                   doc: "Display the documentation of the command.") do
       |name = read_command_name("Describe command: ")|
       cmd = Commands[name]
       if cmd.nil?
