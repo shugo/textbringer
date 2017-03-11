@@ -11,6 +11,9 @@ class TestHelp < Textbringer::TestCase
   end
 
   def test_describe_command
+    assert_raise(EditorError) do
+      describe_command("no_such_command")
+    end
     describe_command("describe_command")
     s = Buffer.current.to_s
     assert_match(/^describe_command\(name\)/, s)
