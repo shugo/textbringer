@@ -2,9 +2,18 @@
 
 module Textbringer
   module Commands
-    define_command(:describe_bindings) do
+    def show_help
       help = Buffer.find_or_new("*Help*", undo_limit: 0)
       help.read_only_edit do
+        help.clear
+        yield(help)
+        help.beginning_of_buffer
+        switch_to_buffer(help)
+      end
+    end
+
+    define_command(:describe_bindings) do
+      show_help do |help|
         s = format("%-16s  %s\n", "Key", "Binding")
         s << format("%-16s  %s\n", "---", "-------")
         s << "\n"
@@ -24,8 +33,28 @@ module Textbringer
                       command)
         end
         help.insert(s)
-        help.beginning_of_buffer
-        switch_to_buffer(help)
+      end
+    end
+
+    define_command(:describe_command) do
+      |name = read_command_name("Describe command: ")|
+      cmd = Commands[name]
+      if cmd.nil?
+        raise EditorError, "No such command: #{name}"
+      end
+      show_help do |help|
+        s = format("%s:%d\n", *cmd.block.source_location)
+        s << "\n"
+        s << "#{cmd.name}"
+        if !cmd.block.parameters.empty?
+          s << "("
+          s << cmd.block.parameters.map { |_, name| name }.join(", ")
+          s << ")"
+        end
+        s << "\n\n"
+        s << cmd.doc
+        s << "\n"
+        help.insert(s)
       end
     end
   end

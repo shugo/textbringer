@@ -2,7 +2,8 @@
 
 module Textbringer
   module Commands
-    define_command(:resize_window) do
+    define_command(:resize_window,
+                   doc: "Resize windows to fit the terminal size.") do
       Window.resize
     end
 
@@ -35,7 +36,12 @@ module Textbringer
       Window.other_window
     end
 
-    define_command(:enlarge_window) do |n = number_prefix_arg|
+    define_command(:enlarge_window,
+                   doc: <<~EOD) do
+        Make the current window n lines taller.
+        If n is negative, shrink the window -n lines.
+      EOD
+      |n = number_prefix_arg|
       Window.current.enlarge(n)
     end
 
