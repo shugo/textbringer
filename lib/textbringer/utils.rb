@@ -231,6 +231,34 @@ module Textbringer
       read_from_minibuffer(prompt + " (#{char_options}) ", keymap: map)
     end
 
+    def read_key_sequence(prompt)
+      buffer = Buffer.current
+      key_sequence = []
+      map = Keymap.new
+      map.define_key("\C-g", :abort_recursive_edit)
+      map.handle_undefined_key do |key|
+        -> {
+          key_sequence.push(key)
+          cmd = buffer.keymap&.lookup(key_sequence) ||
+            GLOBAL_MAP.lookup(key_sequence)
+          if !cmd.is_a?(Keymap)
+            exit_recursive_edit
+          end
+          Buffer.current.clear
+          keys = Keymap.key_sequence_string(key_sequence)
+          Buffer.current.insert("#{keys}-")
+        }
+      end
+      read_from_minibuffer(prompt, keymap: map)
+      if buffer.keymap&.lookup(key_sequence) ||
+          GLOBAL_MAP.lookup(key_sequence)
+        key_sequence
+      else
+        keys = Keymap.key_sequence_string(key_sequence)
+        raise EditorError, "#{keys} is undefined"
+      end
+    end
+
     HOOKS = Hash.new { |h, k| h[k] = [] }
 
     def add_hook(name, func)

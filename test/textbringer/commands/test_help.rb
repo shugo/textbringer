@@ -19,4 +19,11 @@ class TestHelp < Textbringer::TestCase
     assert_match(/^describe_command\(name\)/, s)
     assert_match(/^Display the documentation of the command./, s)
   end
+
+  def test_describe_key
+    describe_key([:f1, "k"])
+    s = Buffer.current.to_s
+    assert_match(/^<f1> k runs the command describe_key/, s)
+    assert_match(/^describe_key\(key\)/, s)
+  end
 end

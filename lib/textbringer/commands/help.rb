@@ -37,6 +37,22 @@ module Textbringer
       end
     end
 
+    def command_help(cmd)
+      s = format("%s:%d\n", *cmd.block.source_location)
+      s << "-" * (Window.columns - 2) + "\n"
+      s << "#{cmd.name}"
+      if !cmd.block.parameters.empty?
+        s << "("
+        s << cmd.block.parameters.map { |_, param| param }.join(", ")
+        s << ")"
+      end
+      s << "\n\n"
+      s << "-" * (Window.columns - 2) + "\n\n"
+      s << cmd.doc
+      s << "\n"
+      s
+    end
+
     define_command(:describe_command,
                    doc: "Display the documentation of the command.") do
       |name = read_command_name("Describe command: ")|
@@ -45,17 +61,22 @@ module Textbringer
         raise EditorError, "No such command: #{name}"
       end
       show_help do |help|
-        s = format("%s:%d\n", *cmd.block.source_location)
-        s << "\n"
-        s << "#{cmd.name}"
-        if !cmd.block.parameters.empty?
-          s << "("
-          s << cmd.block.parameters.map { |_, param| param }.join(", ")
-          s << ")"
-        end
-        s << "\n\n"
-        s << cmd.doc
-        s << "\n"
+        help.insert(command_help(cmd))
+      end
+    end
+
+    define_command(:describe_key,
+                   doc: <<~EOD) do
+        Display the documentation of the command invoked by key.
+      EOD
+      |key = read_key_sequence("Describe key: ")|
+      name = Buffer.current.keymap&.lookup(key) ||
+        GLOBAL_MAP.lookup(key)
+      cmd = Commands[name]
+      show_help do |help|
+        s = Keymap.key_sequence_string(key)
+        s << " runs the command #{name}, which is defined in\n"
+        s << command_help(cmd)
         help.insert(s)
       end
     end

@@ -195,13 +195,13 @@ module Textbringer
       !@executing_keyboard_macro.nil?
     end
 
-    private
-
     def key_binding(key_sequence)
       @overriding_map&.lookup(key_sequence) ||
       Buffer.current&.keymap&.lookup(key_sequence) ||
         GLOBAL_MAP.lookup(key_sequence)
     end
+
+    private
 
     def read_char_with_keyboard_macro(read_char_method)
       if !executing_keyboard_macro?
