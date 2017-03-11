@@ -160,13 +160,17 @@ module Textbringer
       Window.current.recenter_if_needed
     end
 
-    define_command(:self_insert) do |n = number_prefix_arg|
+    define_command(:self_insert,
+                   doc: "Insert the character typed.") do
+      |n = number_prefix_arg|
       c = Controller.current.last_key
       merge_undo = Controller.current.last_command == :self_insert
       Buffer.current.insert(c * n, merge_undo)
     end
 
-    define_command(:quoted_insert) do |n = number_prefix_arg|
+    define_command(:quoted_insert,
+                   doc: "Read a character, and insert it.") do
+      |n = number_prefix_arg|
       c = Controller.current.read_char
       if !c.is_a?(String)
         raise EditorError, "Invalid key"
@@ -174,17 +178,22 @@ module Textbringer
       Buffer.current.insert(c * n)
     end
 
-    define_command(:kill_line) do
+    define_command(:kill_line,
+                   doc: "Kill the rest of the current line.") do
       Buffer.current.kill_line(Controller.current.last_command == :kill_region)
       Controller.current.this_command = :kill_region
     end
 
-    define_command(:kill_word) do
+    define_command(:kill_word,
+                   doc: "Kill a word.") do
       Buffer.current.kill_word(Controller.current.last_command == :kill_region)
       Controller.current.this_command = :kill_region
     end
 
-    define_command(:yank_pop) do
+    define_command(:yank_pop,
+                   doc: <<~EOD) do
+        Rotate the kill ring, and replace the yanked text.
+      EOD
       if Controller.current.last_command != :yank
         raise EditorError, "Previous command was not a yank"
       end
@@ -192,17 +201,20 @@ module Textbringer
       Controller.current.this_command = :yank
     end
 
-    define_command(:undo) do
+    define_command(:undo,
+                   doc: "Undo changes.") do
       Buffer.current.undo
       message("Undo!") unless Window.echo_area.current?
     end
 
-    define_command(:redo_command) do
+    define_command(:redo_command,
+                   doc: "Redo changes reverted by undo.") do
       Buffer.current.redo
       message("Redo!") unless Window.echo_area.current?
     end
 
-    define_command(:back_to_indentation) do
+    define_command(:back_to_indentation,
+                   doc: "Move point to the first non-space character.") do
       buffer = Buffer.current
       buffer.beginning_of_line
       while /[ \t]/ =~ buffer.char_after
@@ -210,7 +222,10 @@ module Textbringer
       end
     end
 
-    define_command(:delete_indentation) do
+    define_command(:delete_indentation,
+                   doc: <<~EOD) do
+        Delete indentation and join the current line to the previous line.
+      EOD
       buffer = Buffer.current
       back_to_indentation
       pos = buffer.point
