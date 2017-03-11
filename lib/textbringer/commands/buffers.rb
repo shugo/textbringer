@@ -154,7 +154,7 @@ module Textbringer
     end
 
     define_command(:goto_line,
-                   pos: "Move point to line n.") do
+                   doc: "Move point to line n.") do
       |n = read_from_minibuffer("Go to line: ")|
       Buffer.current.goto_line(n.to_i)
       Window.current.recenter_if_needed
