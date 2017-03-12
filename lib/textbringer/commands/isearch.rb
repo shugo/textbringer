@@ -30,11 +30,13 @@ module Textbringer
       recursive_edit: false
     }
 
-    define_command(:isearch_forward) do |**options|
+    define_command(:isearch_forward,
+                   doc: "Incrementally search forward.") do |**options|
       isearch_mode(true, **options)
     end
 
-    define_command(:isearch_backward) do |**options|
+    define_command(:isearch_backward,
+                   doc: "Incrementally search backward.") do |**options|
       isearch_mode(false, **options)
     end
 
@@ -78,23 +80,27 @@ module Textbringer
       end
     end
 
-    define_command(:isearch_exit) do
+    define_command(:isearch_exit, doc: "Exit incremental search.") do
       isearch_done
     end
 
-    define_command(:isearch_abort) do
+    define_command(:isearch_abort, doc: "Abort incremental search.") do
       goto_char(Buffer.current[:isearch_start])
       isearch_done
       raise Quit
     end
 
-    define_command(:isearch_printing_char) do
+    define_command(:isearch_printing_char, doc: <<~EOD) do
+        Add the typed character to the search string and search.
+      EOD
       c = Controller.current.last_key
       ISEARCH_STATUS[:string].concat(c)
       isearch_search
     end
 
-    define_command(:isearch_delete_char) do
+    define_command(:isearch_delete_char, doc: <<~EOD) do
+        Delete the last character from the search string and search.
+      EOD
       ISEARCH_STATUS[:string].chop!
       isearch_search
     end
