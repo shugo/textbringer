@@ -4,7 +4,7 @@ require "editorconfig"
 
 module Textbringer
   module Commands
-    define_command(:find_file) do
+    define_command(:find_file, doc: "Open or create a file.") do
       |file_name = read_file_name("Find file: ")|
       config = EditorConfig.load_file(file_name)
       buffer = Buffer.find_file(file_name)
@@ -48,7 +48,7 @@ module Textbringer
       end
     end
 
-    define_command(:save_buffer) do
+    define_command(:save_buffer, doc: "Save the current buffer to a file.") do
       if Buffer.current.file_name.nil?
         Buffer.current.file_name = read_file_name("File to save in: ")
         next if Buffer.current.file_name.nil?
@@ -63,7 +63,8 @@ module Textbringer
       message("Wrote #{Buffer.current.file_name}")
     end
 
-    define_command(:write_file) do
+    define_command(:write_file,
+                   doc: "Save the current buffer as the specified file.") do
       |file_name = read_file_name("Write file: ")|
       if File.directory?(file_name)
         file_name = File.expand_path(Buffer.current.name, file_name)
@@ -78,23 +79,25 @@ module Textbringer
       message("Wrote #{Buffer.current.file_name}")
     end
 
-    define_command(:set_buffer_file_encoding) do
+    define_command(:set_buffer_file_encoding,
+                   doc: "Set the file encoding of the current buffer.") do
       |enc = read_from_minibuffer("File encoding: ",
                                   default: Buffer.current.file_encoding.name)|
       Buffer.current.file_encoding = enc
     end
 
-    define_command(:set_buffer_file_format) do
+    define_command(:set_buffer_file_format,
+                   doc: "Set the file format of the current buffer.") do
       |format = read_from_minibuffer("File format: ",
                                      default: Buffer.current.file_format.to_s)|
       Buffer.current.file_format = format
     end
 
-    define_command(:pwd) do
+    define_command(:pwd, doc: "Show the current working directory.") do
       message(Dir.pwd)
     end
 
-    define_command(:chdir) do
+    define_command(:chdir, doc: "Change the current working directory.") do
       |dir_name = read_file_name("Change directory: ")|
       Dir.chdir(dir_name)
     end
