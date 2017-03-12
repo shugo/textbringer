@@ -65,6 +65,10 @@ class TestCtags < Textbringer::TestCase
       assert_raise(EditorError) do
         find_tag
       end
+      re_search_forward(/quuuux/)
+      assert_raise(EditorError) do
+        find_tag
+      end
       end_of_buffer
       assert_raise(EditorError) do
         find_tag

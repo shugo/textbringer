@@ -2,7 +2,8 @@
 !_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
 Foo	foo.rb	/^class Foo$/;"	c
 bar	foo.rb	/^  def bar$/;"	f	class:Foo
-baz	foo.rb	/^  def baz$/;"	f	class:Foo
-foo	foo.rb	/^  def foo$/;"	f	class:Foo
+baz	foo.rb	?^  def baz$?;"	f	class:Foo
+foo	foo.rb	2;"	f	class:Foo
 foo	test.rb	/^def foo$/;"	f	class:Object
 quux	foo.rb	/^  def quux(re: \/\\Afoo\\z\/)$/;"	f	class:Foo
+quuux	foo.rb	abc;"	f	class:Foo
