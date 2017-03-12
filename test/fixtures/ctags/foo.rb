@@ -10,4 +10,7 @@ class Foo
   def baz
     puts "baz"
   end
+
+  def quux(re: /\Afoo\z/)
+  end
 end

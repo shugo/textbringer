@@ -55,7 +55,8 @@ module Textbringer
         push_tag_mark_and_find_file(file)
         beginning_of_buffer
         n.times do
-          re_search_forward("^" + Regexp.quote($1) + "$")
+          s = Regexp.quote($1.gsub(/\\([\\\/])/, "\\1"))
+          re_search_forward("^" + s + "$")
         end
         beginning_of_line
       when %r'\A\?\^(.*)\$\?\z'
