@@ -140,10 +140,10 @@ class TestMisc < Textbringer::TestCase
 
   def test_global_mark
     assert_raise(EditorError) do
-      previous_global_mark
+      next_global_mark
     end
     assert_raise(EditorError) do
-      next_global_mark
+      previous_global_mark
     end
     buf1 = Buffer.new_buffer("*buf1*")
     buf1.insert("foo\n")
@@ -155,35 +155,35 @@ class TestMisc < Textbringer::TestCase
     buf2.insert("bar")
     buf3 = Buffer.new_buffer("*buf3*")
     switch_to_buffer(buf3)
-    previous_global_mark
-    assert_equal(buf2, Buffer.current)
-    assert_equal(3, Buffer.current.point)
-    previous_global_mark
-    assert_equal(buf1, Buffer.current)
-    assert_equal(4, Buffer.current.point)
-    previous_global_mark
-    assert_equal(buf3, Buffer.current)
-    assert_equal(0, Buffer.current.point)
-    previous_global_mark
-    assert_equal(buf2, Buffer.current)
-    assert_equal(3, Buffer.current.point)
     next_global_mark
-    assert_equal(buf3, Buffer.current)
-    assert_equal(0, Buffer.current.point)
+    assert_equal(buf2, Buffer.current)
+    assert_equal(3, Buffer.current.point)
     next_global_mark
     assert_equal(buf1, Buffer.current)
     assert_equal(4, Buffer.current.point)
     next_global_mark
+    assert_equal(buf3, Buffer.current)
+    assert_equal(0, Buffer.current.point)
+    next_global_mark
     assert_equal(buf2, Buffer.current)
     assert_equal(3, Buffer.current.point)
-    next_global_mark
+    previous_global_mark
+    assert_equal(buf3, Buffer.current)
+    assert_equal(0, Buffer.current.point)
+    previous_global_mark
+    assert_equal(buf1, Buffer.current)
+    assert_equal(4, Buffer.current.point)
+    previous_global_mark
+    assert_equal(buf2, Buffer.current)
+    assert_equal(3, Buffer.current.point)
+    previous_global_mark
     assert_equal(buf3, Buffer.current)
     assert_equal(0, Buffer.current.point)
     Tempfile.create("buf1") do |f|
       f.close
       buf1.save(f.path)
       buf1.kill
-      next_global_mark
+      previous_global_mark
       assert_equal(f.path, Buffer.current.file_name)
       assert_equal(4, Buffer.current.point)
     end

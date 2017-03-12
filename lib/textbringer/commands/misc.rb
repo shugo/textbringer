@@ -244,7 +244,7 @@ module Textbringer
     end
     private :goto_global_mark
 
-    define_command(:previous_global_mark) do
+    define_command(:next_global_mark) do
       if Buffer.global_mark_ring.empty?
         raise EditorError, "Global mark ring is empty"
       end
@@ -256,7 +256,7 @@ module Textbringer
       end
     end
 
-    define_command(:next_global_mark) do
+    define_command(:previous_global_mark) do
       if Buffer.global_mark_ring.empty?
         raise EditorError, "Global mark ring is empty"
       end
