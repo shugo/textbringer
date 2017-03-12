@@ -146,6 +146,16 @@ class TestUtils < Textbringer::TestCase
     assert_equal("c", read_single_char("Choose", "abcde".chars))
   end
 
+  def test_read_key_sequence
+    push_keys("\C-x\C-f")
+    assert_equal(["\C-x", "\C-f"], read_key_sequence("Key: "))
+
+    push_keys("\C-c\C-a")
+    assert_raise(EditorError) do
+      read_key_sequence("Key: ")
+    end
+  end
+
   def test_hooks
     count = 0
     hook = -> { count += 1 }
