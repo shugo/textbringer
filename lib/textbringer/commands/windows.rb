@@ -7,37 +7,43 @@ module Textbringer
       Window.resize
     end
 
-    define_command(:recenter) do
+    define_command(:recenter,
+                   doc: "Center point in the current window.") do
       Window.current.recenter
       Window.redraw
     end
 
-    define_command(:scroll_up) do
+    define_command(:scroll_up,
+                   doc: "Scroll text of the current window upward.") do
       Window.current.scroll_up
     end
 
-    define_command(:scroll_down) do
+    define_command(:scroll_down,
+                   doc: "Scroll text of the current window downward.") do
       Window.current.scroll_down
     end
 
-    define_command(:delete_window) do
+    define_command(:delete_window,
+                   doc: "Delete the current window.") do
       Window.delete_window
     end
 
-    define_command(:delete_other_windows) do
+    define_command(:delete_other_windows,
+                   doc: "Delete windows other than the current one.") do
       Window.delete_other_windows
     end
 
-    define_command(:split_window) do
+    define_command(:split_window,
+                   doc: "Split the current window vertically.") do
       Window.current.split
     end
 
-    define_command(:other_window) do
+    define_command(:other_window,
+                   doc: "Switch to another window.") do
       Window.other_window
     end
 
-    define_command(:enlarge_window,
-                   doc: <<~EOD) do
+    define_command(:enlarge_window, doc: <<~EOD) do
         Make the current window n lines taller.
         If n is negative, shrink the window -n lines.
       EOD
@@ -45,34 +51,37 @@ module Textbringer
       Window.current.enlarge(n)
     end
 
-    define_command(:shrink_window) do |n = number_prefix_arg|
+    define_command(:shrink_window, doc: <<~EOD) do |n = number_prefix_arg|
+        Make the current window n lines smaller.
+        If n is negative, enlarge the window -n lines.
+      EOD
       Window.current.shrink(n)
     end
 
-    define_command(:shrink_window_if_larger_than_buffer) do
+    define_command(:shrink_window_if_larger_than_buffer, doc: <<~EOD) do
+        Shrink the current window if it's larger than the buffer.
+      EOD
       Window.current.shrink_if_larger_than_buffer
     end
 
-    define_command(:switch_to_buffer) do
-      |buffer_name = read_buffer("Switch to buffer: ")|
-      if buffer_name.is_a?(Buffer)
-        buffer = buffer_name
-      else
-        buffer = Buffer[buffer_name]
+    define_command(:switch_to_buffer, doc: <<~EOD) do
+        Display buffer in the current window.
+      EOD
+      |buffer = read_buffer("Switch to buffer: ")|
+      if buffer.is_a?(String)
+        buffer = Buffer[buffer]
       end
       if buffer
         Window.current.buffer = Buffer.current = buffer
       else
-        raise EditorError, "No such buffer: #{buffer_name}"
+        raise EditorError, "No such buffer: #{buffer}"
       end
     end
 
-    define_command(:kill_buffer) do
-      |name = read_buffer("Kill buffer: ", default: Buffer.current.name)|
-      if name.is_a?(Buffer)
-        buffer = name
-      else
-        buffer = Buffer[name]
+    define_command(:kill_buffer, doc: "Kill buffer.") do
+      |buffer = read_buffer("Kill buffer: ", default: Buffer.current.name)|
+      if buffer.is_a?(String)
+        buffer = Buffer[buffer]
       end
       if buffer.modified?
         next unless yes_or_no?("The last change is not saved; kill anyway?")
