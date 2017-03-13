@@ -582,5 +582,21 @@ EOF
       E
     EOF
     assert_equal(nil, m)
+
+    m = @ruby_mode.syntax_table[:string].match(<<~EOF)
+      s = <<EOS
+        hello
+        world
+      AEOS
+    EOF
+    assert_equal(nil, m)
+
+    m = @ruby_mode.syntax_table[:string].match(<<~EOF)
+      s = <<EOS
+        hello
+        world
+      EOSA
+    EOF
+    assert_equal(nil, m)
   end
 end
