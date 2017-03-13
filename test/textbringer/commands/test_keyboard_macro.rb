@@ -33,6 +33,18 @@ class TestKeyboardMacro < Textbringer::TestCase
     end
   end
 
+  def test_end_and_call_keyboard_macro
+    push_keys "\C-x(hello world\n\C-xee\C-u2\C-xe"
+    recursive_edit
+    assert_equal("hello world\n" * 5, Buffer.current.to_s)
+  end
+
+  def test_end_or_call_keyboard_macro
+    push_keys "\C-x(hello world\n".chars + [:f4, :f4, "\C-u", "2", :f4]
+    recursive_edit
+    assert_equal("hello world\n" * 4, Buffer.current.to_s)
+  end
+
   def test_name_last_keyboard_macro
     assert_raise(EditorError) do
       name_last_keyboard_macro("macro_foo")

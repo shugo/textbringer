@@ -5,6 +5,7 @@ module Textbringer
   RECURSIVE_EDIT_TAG = Object.new
 
   class Controller
+    attr_reader :this_command_keys
     attr_accessor :this_command, :last_command, :overriding_map
     attr_accessor :prefix_arg, :current_prefix_arg
     attr_reader :key_sequence, :last_key, :recursive_edit_level
@@ -25,6 +26,7 @@ module Textbringer
       @key_sequence = []
       @last_key = nil
       @recursive_edit_level = 0
+      @this_command_keys = nil
       @this_command = nil
       @last_command = nil
       @overriding_map = nil
@@ -48,10 +50,8 @@ module Textbringer
             @key_sequence << @last_key
             cmd = key_binding(@key_sequence)
             if cmd.is_a?(Symbol) || cmd.respond_to?(:call)
-              if @recording_keyboard_macro && cmd == :end_keyboard_macro
-                @recording_keyboard_macro.pop(@key_sequence.size)
-              end
-              @key_sequence.clear
+              @this_command_keys = @key_sequence
+              @key_sequence = []
               @this_command = cmd
               @current_prefix_arg = @prefix_arg
               @prefix_arg = nil
@@ -169,6 +169,7 @@ module Textbringer
       if @recording_keyboard_macro.empty?
         raise EditorError, "Empty keyboard macro"
       end
+      @recording_keyboard_macro.pop(@this_command_keys.size)
       @last_keyboard_macro = @recording_keyboard_macro
       @recording_keyboard_macro = nil
     end
@@ -189,6 +190,10 @@ module Textbringer
         raise EditorError, "Keyboard macro not defined"
       end
       execute_keyboard_macro(@last_keyboard_macro, n)
+    end
+
+    def recording_keyboard_macro?
+      !@recording_keyboard_macro.nil?
     end
 
     def executing_keyboard_macro?

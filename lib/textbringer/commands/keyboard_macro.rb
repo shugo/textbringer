@@ -22,6 +22,21 @@ module Textbringer
       set_transient_map(map)
     end
 
+    define_command(:end_and_call_keyboard_macro) do |n = number_prefix_arg|
+      if Controller.current.recording_keyboard_macro?
+        end_keyboard_macro
+      end
+      call_last_keyboard_macro(n)
+    end
+
+    define_command(:end_or_call_keyboard_macro) do |n = number_prefix_arg|
+      if Controller.current.recording_keyboard_macro?
+        end_keyboard_macro
+      else
+        call_last_keyboard_macro(n)
+      end
+    end
+
     def execute_keyboard_macro(macro, n = 1)
       Controller.current.execute_keyboard_macro(macro, n)
     end
