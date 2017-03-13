@@ -4,7 +4,8 @@ require "tmpdir"
 class TestRubyMode < Textbringer::TestCase
   setup do
     @buffer = Buffer.new_buffer("foo.rb")
-    @ruby_mode = RubyMode.new(@buffer)
+    @buffer.apply_mode(RubyMode)
+    @ruby_mode = @buffer.mode
     switch_to_buffer(@buffer)
   end
 
@@ -541,5 +542,45 @@ EOF
         Dir.chdir(pwd)
       end
     end
+  end
+
+  def test_syntax_string_here_document
+    m = @ruby_mode.syntax_table[:string].match(<<~EOF)
+      s = <<EOS
+        hello
+        world
+      EOS
+    EOF
+    assert_equal(<<~EOF.chop, m[0])
+      <<EOS
+        hello
+        world
+      EOS
+    EOF
+  end
+
+  def test_syntax_string_here_document_quoted
+    m = @ruby_mode.syntax_table[:string].match(<<~EOF)
+      s = <<'EOS'
+        hello
+        world
+      EOS
+    EOF
+    assert_equal(<<~EOF.chop, m[0])
+      <<'EOS'
+        hello
+        world
+      EOS
+    EOF
+  end
+
+  def test_syntax_string_here_document_unterminated
+    m = @ruby_mode.syntax_table[:string].match(<<~EOF)
+      s = <<EOS
+        hello
+        world
+      E
+    EOF
+    assert_equal(nil, m)
   end
 end

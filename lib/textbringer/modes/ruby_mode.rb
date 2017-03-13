@@ -74,8 +74,8 @@ module Textbringer
         (?<! class | class \s | [\]})"'.] | :: | \w )
             <<[\-~]?(?<heredoc_quote>['"`]?)
             (?<heredoc_terminator>
-              [_a-zA-Z\u{0100}-\u{10ffff}]
-              [_a-zA-Z0-9\u{0100}-\u{10ffff}]*
+              (?> [_a-zA-Z\u{0100}-\u{10ffff}]
+                  [_a-zA-Z0-9\u{0100}-\u{10ffff}]* )
             )
             \k<heredoc_quote>
             (?> (?:.|\n)*? \k<heredoc_terminator> )
