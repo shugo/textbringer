@@ -2,6 +2,15 @@
 
 module Textbringer
   module Commands
+    HELP_RING = Ring.new
+
+    def push_help_command(cmd)
+      if HELP_RING.empty? || HELP_RING.current != cmd
+        HELP_RING.push(cmd)
+      end
+    end
+    private :push_help_command
+
     def show_help
       help = Buffer.find_or_new("*Help*", undo_limit: 0)
       help.read_only_edit do
@@ -9,8 +18,10 @@ module Textbringer
         yield(help)
         help.beginning_of_buffer
         switch_to_buffer(help)
+        help_mode
       end
     end
+    private :show_help
 
     define_command(:describe_bindings,
                    doc: "Display the key bindings.") do
@@ -29,12 +40,13 @@ module Textbringer
           end
         end
         bindings.each do |key_sequence, command|
-          s << format("%-16s  %s\n",
+          s << format("%-16s  [%s]\n",
                       Keymap.key_sequence_string(key_sequence),
                       command)
         end
         help.insert(s)
       end
+      push_help_command([:describe_bindings])
     end
 
     def command_help(cmd)
@@ -63,6 +75,7 @@ module Textbringer
       show_help do |help|
         help.insert(command_help(cmd))
       end
+      push_help_command([:describe_command, name])
     end
 
     define_command(:describe_key,
@@ -78,6 +91,23 @@ module Textbringer
         s << " runs the command #{name}, which is defined in\n"
         s << command_help(cmd)
         help.insert(s)
+      end
+      push_help_command([:describe_key, key])
+    end
+
+    define_command(:help_go_back, doc: "Go back to the previous help.") do
+      if !HELP_RING.empty?
+        HELP_RING.rotate(1)
+        cmd, *args = HELP_RING.current
+        send(cmd, *args)
+      end
+    end
+
+    define_command(:help_go_forward, doc: "Go back to the next help.") do
+      if !HELP_RING.empty?
+        HELP_RING.rotate(-1)
+        cmd, *args = HELP_RING.current
+        send(cmd, *args)
       end
     end
   end

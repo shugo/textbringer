@@ -45,7 +45,9 @@ module Textbringer
 
     define_command(:enlarge_window, doc: <<~EOD) do
         Make the current window n lines taller.
+
         If n is negative, shrink the window -n lines.
+        See [shrink_window] for details.
       EOD
       |n = number_prefix_arg|
       Window.current.enlarge(n)
@@ -53,7 +55,9 @@ module Textbringer
 
     define_command(:shrink_window, doc: <<~EOD) do |n = number_prefix_arg|
         Make the current window n lines smaller.
+
         If n is negative, enlarge the window -n lines.
+        See [enlarge_window] for details.
       EOD
       Window.current.shrink(n)
     end
