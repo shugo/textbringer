@@ -26,4 +26,29 @@ class TestHelp < Textbringer::TestCase
     assert_match(/^<f1> k runs the command describe_key/, s)
     assert_match(/^describe_key\(key\)/, s)
   end
+
+  def test_help_commands
+    describe_bindings
+    re_search_forward(/enlarge_window/)
+    jump_to_link_command
+    assert_match(/^enlarge_window\(n\)/, Buffer.current.to_s)
+    jump_to_link_command
+    assert_match(%r'lib/textbringer/commands/windows\.rb\z',
+                 Buffer.current.file_name)
+    switch_to_buffer("*Help*")
+    re_search_forward(/shrink_window/)
+    jump_to_link_command
+    assert_match(/^shrink_window\(n\)/, Buffer.current.to_s)
+    end_of_buffer
+    jump_to_link_command
+    assert_match(/^shrink_window\(n\)/, Buffer.current.to_s)
+    help_go_back
+    assert_match(/^enlarge_window\(n\)/, Buffer.current.to_s)
+    help_go_back
+    assert_match(/^Key\s+Binding/, Buffer.current.to_s)
+    help_go_forward
+    assert_match(/^enlarge_window\(n\)/, Buffer.current.to_s)
+    help_go_forward
+    assert_match(/^shrink_window\(n\)/, Buffer.current.to_s)
+  end
 end

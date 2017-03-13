@@ -34,8 +34,6 @@ module Textbringer
             line_number = @buffer.match_string(2).to_i
             find_file(file_name)
             goto_line(line_number)
-          else
-            nil
           end
         end
       end
