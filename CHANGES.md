@@ -1,3 +1,14 @@
+## 0.1.9
+
+* Support registers.
+* Support plugins.
+* Support global mark ring.
+* Support keyboard macro.
+* Support help (describe_bindings, describe_command, and describe_key).
+* Add tbtags.
+* Add the commands back_to_indentation, indent_region, delete_indentation,
+  shrink_window, and shrink_window_if_larger_than_buffer.
+
 ## 0.1.8
 
 * Support syntax highlighting.
