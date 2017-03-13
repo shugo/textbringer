@@ -172,7 +172,7 @@ module Textbringer
         yield
       ensure
         @@windows.each do |win|
-          win.delete
+          win.close
         end
         @@windows.clear
         Curses.echo
@@ -281,6 +281,10 @@ module Textbringer
         @window.close
         @deleted = true
       end
+    end
+
+    def close
+      @window.close
     end
 
     def buffer=(buffer)
