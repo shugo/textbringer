@@ -171,6 +171,10 @@ module Textbringer
         @@started = true
         yield
       ensure
+        @@windows.each do |win|
+          win.delete
+        end
+        @@windows.clear
         Curses.echo
         Curses.noraw
         Curses.nl
