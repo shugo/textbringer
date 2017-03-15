@@ -213,11 +213,11 @@ EOF
   def test_s_current
     window = Window.current
     window.split
-    assert_equal(3, Window.windows.size)
+    assert_equal(3, Window.list(include_echo_area: true).size)
     Window.delete_window
     Window.current = window
     assert_not_equal(window, Window.current)
-    assert_equal(Window.windows.first, Window.current)
+    assert_equal(Window.list(include_echo_area: true).first, Window.current)
   end
 
   def test_s_readraw
@@ -319,12 +319,12 @@ EOF
 
   def test_s_start
     Buffer.kill_em_all
-    Window.windows.clear
+    Window.clear_list
     Window.start do
       assert_raise(EditorError) do
         Window.start
       end
-      windows = Window.windows
+      windows = Window.list(include_echo_area: true)
       assert_equal(2, windows.size)
       assert_equal(true, windows[0].current?)
       assert_equal(false, windows[0].echo_area?)
@@ -341,7 +341,7 @@ EOF
       assert_equal(1, windows[1].lines)
       assert_equal(80, windows[1].columns)
     end
-    assert_equal(0, Window.windows.size)
+    assert_equal(0, Window.list(include_echo_area: true).size)
   end
 
   def test_s_set_default_colors

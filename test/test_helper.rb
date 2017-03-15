@@ -216,17 +216,21 @@ module Textbringer
 
       def setup_for_test
         self.has_colors = true
-        @@windows.clear
+        @@list.clear
         window =
           Textbringer::Window.new(Window.lines - 1, Window.columns, 0, 0)
         window.buffer = Buffer.new_buffer("*scratch*")
-        @@windows.push(window)
+        @@list.push(window)
         Window.current = window
         @@echo_area = Textbringer::EchoArea.new(1, Window.columns,
                                                 Window.lines - 1, 0)
         Buffer.minibuffer.keymap = MINIBUFFER_LOCAL_MAP
         @@echo_area.buffer = Buffer.minibuffer
-        @@windows.push(@@echo_area)
+        @@list.push(@@echo_area)
+      end
+
+      def clear_list
+        @@list.clear
       end
     end
   end

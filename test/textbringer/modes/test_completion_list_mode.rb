@@ -9,7 +9,7 @@ class TestCompletionListMode < Textbringer::TestCase
 
   def test_jump_to_location
     COMPLETION[:original_buffer] = Buffer["*scratch*"]
-    COMPLETION[:completions_window] = Window.windows.first
+    COMPLETION[:completions_window] = Window.list.first
     @buffer.insert(<<EOF)
 foo
 bar

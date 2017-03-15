@@ -49,13 +49,17 @@ module Textbringer
     end
 
     @@started = false
-    @@windows = []
+    @@list = []
     @@current = nil
     @@echo_area = nil
     @@has_colors = false
 
-    def self.windows
-      @@windows
+    def self.list(include_echo_area: false)
+      if include_echo_area
+        @@list.dup
+      else
+        @@list.reject(&:echo_area?)
+      end
     end
 
     def self.current
@@ -64,7 +68,7 @@ module Textbringer
 
     def self.current=(window)
       if window.deleted?
-        window = @@windows.first
+        window = @@list.first
       end
       @@current.save_point if @@current && !@@current.deleted?
       @@current = window
@@ -76,19 +80,19 @@ module Textbringer
       if @@current.echo_area?
         raise EditorError, "Can't delete the echo area"
       end
-      if @@windows.size == 2
+      if @@list.size == 2
         raise EditorError, "Can't delete the sole window"
       end
-      i = @@windows.index(@@current)
+      i = @@list.index(@@current)
       if i == 0
-        window = @@windows[1]
+        window = @@list[1]
         window.move(0, 0)
       else
-        window = @@windows[i - 1]
+        window = @@list[i - 1]
       end
       window.resize(@@current.lines + window.lines, window.columns)
       @@current.delete
-      @@windows.delete_at(i)
+      @@list.delete_at(i)
       self.current = window
     end
 
@@ -96,7 +100,7 @@ module Textbringer
       if @@current.echo_area?
         raise EditorError, "Can't expand the echo area to full screen"
       end
-      @@windows.delete_if do |window|
+      @@list.delete_if do |window|
         if window.current? || window.echo_area?
           false
         else
@@ -109,10 +113,10 @@ module Textbringer
     end
 
     def self.other_window
-      i = @@windows.index(@@current)
+      i = @@list.index(@@current)
       begin
         i += 1
-        window = @@windows[i % @@windows.size]
+        window = @@list[i % @@list.size]
       end while !window.active?
       self.current = window
     end
@@ -161,20 +165,20 @@ module Textbringer
         window =
           Textbringer::Window.new(Window.lines - 1, Window.columns, 0, 0)
         window.buffer = Buffer.new_buffer("*scratch*")
-        @@windows.push(window)
+        @@list.push(window)
         Window.current = window
         @@echo_area = Textbringer::EchoArea.new(1, Window.columns,
                                                 Window.lines - 1, 0)
         Buffer.minibuffer.keymap = MINIBUFFER_LOCAL_MAP
         @@echo_area.buffer = Buffer.minibuffer
-        @@windows.push(@@echo_area)
+        @@list.push(@@echo_area)
         @@started = true
         yield
       ensure
-        @@windows.each do |win|
+        @@list.each do |win|
           win.close
         end
-        @@windows.clear
+        @@list.clear
         Curses.echo
         Curses.noraw
         Curses.nl
@@ -186,7 +190,7 @@ module Textbringer
     def self.redisplay
       return if Controller.current.executing_keyboard_macro?
       return if Window.current.has_input?
-      @@windows.each do |window|
+      @@list.each do |window|
         window.redisplay unless window.current?
       end
       current.redisplay
@@ -194,7 +198,7 @@ module Textbringer
     end
 
     def self.redraw
-      @@windows.each do |window|
+      @@list.each do |window|
         window.redraw unless window.current?
       end
       current.redraw
@@ -214,7 +218,7 @@ module Textbringer
     end
 
     def self.resize
-      @@windows.delete_if do |window|
+      @@list.delete_if do |window|
         if !window.echo_area? &&
             window.y > Window.lines - CONFIG[:window_min_height]
           window.delete
@@ -223,9 +227,9 @@ module Textbringer
           false
         end
       end
-      @@windows.each_with_index do |window, i|
+      @@list.each_with_index do |window, i|
         unless window.echo_area?
-          if i < @@windows.size - 2
+          if i < @@list.size - 2
             window.resize(window.lines, Window.columns)
           else
             window.resize(Window.lines - 1 - window.y, Window.columns)
@@ -275,7 +279,7 @@ module Textbringer
     def delete
       unless @deleted
         if current?
-          Window.current = @@windows.first
+          Window.current = @@list.first
         end
         delete_marks
         @window.close
@@ -575,23 +579,23 @@ module Textbringer
       resize(new_lines, columns)
       new_window = Window.new(old_lines - new_lines, columns, y + new_lines, x)
       new_window.buffer = buffer
-      i = @@windows.index(self)
-      @@windows.insert(i + 1, new_window)
+      i = @@list.index(self)
+      @@list.insert(i + 1, new_window)
     end
 
     def enlarge(n)
       if n > 0
         max_height = Window.lines -
-          CONFIG[:window_min_height] * (@@windows.size - 2) - 1
+          CONFIG[:window_min_height] * (@@list.size - 2) - 1
         new_lines = [lines + n, max_height].min
         needed_lines = new_lines - lines
         resize(new_lines, columns)
-        i = @@windows.index(self)
-        indices = (i + 1).upto(@@windows.size - 2).to_a +
+        i = @@list.index(self)
+        indices = (i + 1).upto(@@list.size - 2).to_a +
           (i - 1).downto(0).to_a
         indices.each do |j|
           break if needed_lines == 0
-          window = @@windows[j]
+          window = @@list[j]
           extended_lines = [
             window.lines - CONFIG[:window_min_height],
             needed_lines
@@ -600,20 +604,20 @@ module Textbringer
           needed_lines -= extended_lines
         end
         y = 0
-        @@windows.each do |win|
+        @@list.each do |win|
           win.move(y, win.x)
           y += win.lines
         end
-      elsif n < 0 && @@windows.size > 2
+      elsif n < 0 && @@list.size > 2
         new_lines = [lines + n, CONFIG[:window_min_height]].max
         diff = lines - new_lines
         resize(new_lines, columns)
-        i = @@windows.index(self)
-        if i < @@windows.size - 2
-          window = @@windows[i + 1]
+        i = @@list.index(self)
+        if i < @@list.size - 2
+          window = @@list[i + 1]
           window.move(window.y - diff, window.x)
         else
-          window = @@windows[i - 1]
+          window = @@list[i - 1]
           move(self.y + diff, self.x)
         end
         window.resize(window.lines + diff, window.columns)

@@ -80,7 +80,7 @@ module Textbringer
     def update_completions(xs)
       if xs.size > 1
         if COMPLETION[:original_buffer].nil?
-          COMPLETION[:completions_window] = Window.windows[-2]
+          COMPLETION[:completions_window] = Window.list.last
           COMPLETION[:original_buffer] =
             COMPLETION[:completions_window].buffer
         end
