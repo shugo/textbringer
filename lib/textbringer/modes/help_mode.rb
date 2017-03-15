@@ -10,6 +10,7 @@ module Textbringer
     HELP_MODE_MAP.define_key("\C-c\C-b", :help_go_back)
     HELP_MODE_MAP.define_key(?r, :help_go_forward)
     HELP_MODE_MAP.define_key("\C-c\C-f", :help_go_forward)
+    HELP_MODE_MAP.define_key("q", :bury_buffer)
 
     define_syntax :link, /
       (?: ^\S*?:\d+$ ) |
