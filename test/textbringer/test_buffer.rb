@@ -1414,6 +1414,15 @@ EOF
     assert_equal("*scratch*", Buffer.other.name)
   end
 
+  def test_s_last
+    foo = Buffer.new_buffer("foo")
+    assert_equal(foo, Buffer.last)
+    bar = Buffer.new_buffer("bar")
+    assert_equal(bar, Buffer.last)
+    Buffer.bury(foo)
+    assert_equal(foo, Buffer.last)
+  end
+
   def test_s_auto_detect_encodings
     old_encodings = Buffer.auto_detect_encodings
     begin

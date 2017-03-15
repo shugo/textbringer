@@ -83,7 +83,7 @@ module Textbringer
     end
 
     define_command(:bury_buffer, doc: <<~EOD) do
-        Put buffer at the end of Buffer.list.
+        Put buffer at the end of the buffer list.
       EOD
       |buffer = Buffer.current|
       if buffer.is_a?(String)
@@ -91,6 +91,12 @@ module Textbringer
       end
       Buffer.bury(buffer)
       Window.current.buffer = Buffer.current
+    end
+
+    define_command(:unbury_buffer, doc: <<~EOD) do
+        Switch to the last buffer in the buffer list.
+      EOD
+      switch_to_buffer(Buffer.last)
     end
 
     define_command(:kill_buffer, doc: "Kill buffer.") do

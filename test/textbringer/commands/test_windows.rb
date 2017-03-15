@@ -438,6 +438,10 @@ EOF
     assert_equal([foo, baz, scratch, bar], Buffer.list)
     assert_equal(foo, Buffer.current)
     assert_equal(foo, Window.current.buffer)
+    unbury_buffer
+    assert_equal([bar, foo, baz, scratch], Buffer.list)
+    assert_equal(bar, Buffer.current)
+    assert_equal(bar, Window.current.buffer)
   end
 
   def test_kill_buffer
