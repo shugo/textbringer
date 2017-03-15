@@ -1374,35 +1374,35 @@ EOF
     end
   end
 
-  def test_s_last
-    assert_equal(nil, Buffer.last)
+  def test_s_other
+    assert_equal("*scratch*", Buffer.other.name)
 
     Buffer.current = Buffer.new_buffer("foo")
     assert_equal("foo", Buffer.current.name)
-    assert_equal(nil, Buffer.last)
+    assert_equal("*scratch*", Buffer.other.name)
 
     Buffer.current = Buffer.new_buffer("bar")
     assert_equal("bar", Buffer.current.name)
-    assert_equal("foo", Buffer.last.name)
+    assert_equal("foo", Buffer.other.name)
 
     Buffer.current = Buffer.new_buffer("baz")
     assert_equal("baz", Buffer.current.name)
-    assert_equal("bar", Buffer.last.name)
+    assert_equal("bar", Buffer.other.name)
 
     Buffer.current.kill
-    Buffer.current = Buffer.last
+    Buffer.current = Buffer.other
     assert_equal("bar", Buffer.current.name)
-    assert_equal("foo", Buffer.last.name)
+    assert_equal("foo", Buffer.other.name)
 
     Buffer.current.kill
-    Buffer.current = Buffer.last
+    Buffer.current = Buffer.other
     assert_equal("foo", Buffer.current.name)
-    assert_equal(nil, Buffer.last)
+    assert_equal("*scratch*", Buffer.other.name)
 
     Buffer.current.kill
-    Buffer.current = Buffer.last
-    assert_equal(nil, Buffer.current)
-    assert_equal(nil, Buffer.last)
+    Buffer.current = Buffer.other
+    assert_equal("*scratch*", Buffer.current.name)
+    assert_equal("*scratch*", Buffer.other.name)
   end
 
   def test_s_auto_detect_encodings

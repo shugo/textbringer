@@ -92,11 +92,8 @@ module Textbringer
         message("Arioch! Arioch! Blood and souls for my Lord Arioch!")
       end
       buffer.kill
-      if Buffer.count == 0
-        buffer = Buffer.new_buffer("*scratch*")
-        switch_to_buffer(buffer)
-      elsif Buffer.current.nil?
-        switch_to_buffer(Buffer.last)
+      if Buffer.current.nil?
+        switch_to_buffer(Buffer.other)
       end
     end
   end

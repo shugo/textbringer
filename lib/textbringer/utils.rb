@@ -160,7 +160,7 @@ module Textbringer
       candidates.select { |i| i.start_with?(s) }
     end
 
-    def read_buffer(prompt, default: (Buffer.last || Buffer.current)&.name)
+    def read_buffer(prompt, default: Buffer.other.name)
       f = ->(s) { complete_for_minibuffer(s, Buffer.names) }
       read_from_minibuffer(prompt, completion_proc: f, default: default)
     end

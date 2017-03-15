@@ -72,7 +72,7 @@ module Textbringer
 
     def self.add(buffer)
       @@table[buffer.name] = buffer
-      @@list.unshift(buffer)
+      @@list.push(buffer)
     end
 
     def self.current
@@ -82,7 +82,7 @@ module Textbringer
     def self.current=(buffer)
       if buffer && buffer.name && @@table.key?(buffer.name)
         @@list.delete(buffer)
-        @@list.push(buffer)
+        @@list.unshift(buffer)
       end
       @@current = buffer
     end
@@ -95,12 +95,8 @@ module Textbringer
       @@global_mark_ring ||= Ring.new(CONFIG[:global_mark_ring_max])
     end
 
-    def self.last
-      if @@list.last == @@current
-        @@list[-2]
-      else
-        @@list.last
-      end
+    def self.other(buffer = @@current)
+      @@list.find { |buf|  buf != buffer } || Buffer.find_or_new("*scratch*")
     end
 
     def self.count
