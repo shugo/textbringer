@@ -8,6 +8,15 @@ class TestBuffer < Test::Unit::TestCase
     KILL_RING.clear
   end
 
+  def test_s_list
+    Buffer.new_buffer("foo")
+    Buffer.new_buffer("bar")
+    list = Buffer.list
+    assert_equal(["foo", "bar"], list.map(&:name))
+    list.pop
+    assert_equal(["foo", "bar"], Buffer.list.map(&:name))
+  end
+
   def test_insert
     buffer = Buffer.new("abc")
     assert_equal(buffer, buffer.insert("123"))

@@ -70,6 +70,10 @@ module Textbringer
       @@detect_encoding_proc = f
     end
 
+    def self.list
+      @@list.dup
+    end
+
     def self.add(buffer)
       @@table[buffer.name] = buffer
       @@list.push(buffer)
