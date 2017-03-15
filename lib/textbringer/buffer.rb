@@ -103,6 +103,12 @@ module Textbringer
       @@list.find { |buf|  buf != buffer } || Buffer.find_or_new("*scratch*")
     end
 
+    def self.bury(buffer = @@current)
+      @@list.delete(buffer)
+      @@list.push(buffer)
+      @@current = @@list.first
+    end
+
     def self.count
       @@table.size
     end

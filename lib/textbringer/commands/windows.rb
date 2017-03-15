@@ -82,6 +82,17 @@ module Textbringer
       end
     end
 
+    define_command(:bury_buffer, doc: <<~EOD) do
+        Put buffer at the end of Buffer.list.
+      EOD
+      |buffer = Buffer.current|
+      if buffer.is_a?(String)
+        buffer = Buffer[buffer]
+      end
+      Buffer.bury(buffer)
+      Window.current.buffer = Buffer.current
+    end
+
     define_command(:kill_buffer, doc: "Kill buffer.") do
       |buffer = read_buffer("Kill buffer: ", default: Buffer.current.name)|
       if buffer.is_a?(String)

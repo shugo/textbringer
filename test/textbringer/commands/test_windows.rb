@@ -418,6 +418,28 @@ EOF
     end
   end
 
+  def test_bury_buffer
+    scratch = Buffer["*scratch*"]
+    bury_buffer
+    assert_equal([scratch], Buffer.list)
+    assert_equal(scratch, Buffer.current)
+    assert_equal(scratch, Window.current.buffer)
+    foo = Buffer.new_buffer("foo")
+    bar = Buffer.new_buffer("bar")
+    baz = Buffer.new_buffer("baz")
+    assert_equal([scratch, foo, bar, baz], Buffer.list)
+    assert_equal(scratch, Buffer.current)
+    assert_equal(scratch, Window.current.buffer)
+    bury_buffer
+    assert_equal([foo, bar, baz, scratch], Buffer.list)
+    assert_equal(foo, Buffer.current)
+    assert_equal(foo, Window.current.buffer)
+    bury_buffer(bar)
+    assert_equal([foo, baz, scratch, bar], Buffer.list)
+    assert_equal(foo, Buffer.current)
+    assert_equal(foo, Window.current.buffer)
+  end
+
   def test_kill_buffer
     foo = Buffer.new_buffer("foo")
     switch_to_buffer(foo)
