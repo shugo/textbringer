@@ -5,7 +5,7 @@ module Textbringer
     define_generic_command :choose_completion
 
     COMPLETION_LIST_MODE_MAP = Keymap.new
-    COMPLETION_LIST_MODE_MAP.define_key("\n", :choose_completion_command)
+    COMPLETION_LIST_MODE_MAP.define_key("\C-m", :choose_completion_command)
 
     define_syntax :link, /^.+$/
 
