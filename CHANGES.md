@@ -1,3 +1,7 @@
+## 0.2.0
+
+* Add bury_buffer and unbury_buffer.
+
 ## 0.1.9
 
 * Support registers.
