@@ -62,6 +62,60 @@ EOF
     end
   end
 
+  def test_revert_buffer
+    mkcdtmpdir do |dir|
+      push_keys "yes"
+      assert_raise(EditorError) do
+        revert_buffer
+      end
+      
+      File.write("foo.txt", "あいうえお\n")
+
+      find_file("foo.txt")
+      assert_equal("あいうえお\n", Buffer.current.to_s)
+      assert_equal(Encoding::UTF_8, Buffer.current.file_encoding)
+
+      end_of_buffer
+      insert("かきくけこ\n")
+      push_keys "no\n"
+      revert_buffer
+      assert_equal("あいうえお\nかきくけこ\n", Buffer.current.to_s)
+      assert_equal(Encoding::UTF_8, Buffer.current.file_encoding)
+
+      push_keys "yes\n"
+      revert_buffer
+      assert_equal("あいうえお\n", Buffer.current.to_s)
+      assert_equal(Encoding::UTF_8, Buffer.current.file_encoding)
+    end
+  end
+
+  def test_revert_buffer_with_encoding
+    mkcdtmpdir do |dir|
+      push_keys "yes"
+      assert_raise(EditorError) do
+        revert_buffer_with_encoding("Windows-31j")
+      end
+      
+      File.write("foo.txt", "あいうえお\n".encode("euc-jp"))
+
+      find_file("foo.txt")
+      assert_equal("あいうえお\n", Buffer.current.to_s)
+      assert_equal(Encoding::EUC_JP, Buffer.current.file_encoding)
+
+      end_of_buffer
+      insert("かきくけこ\n")
+      push_keys "no\n"
+      revert_buffer_with_encoding("Windows-31J")
+      assert_equal("あいうえお\nかきくけこ\n", Buffer.current.to_s)
+      assert_equal(Encoding::EUC_JP, Buffer.current.file_encoding)
+
+      push_keys "yes\n"
+      revert_buffer_with_encoding("Windows-31J")
+      assert_equal("､｢､､､ｦ､ｨ､ｪ\n", Buffer.current.to_s)
+      assert_equal(Encoding::Windows_31J, Buffer.current.file_encoding)
+    end
+  end
+
   def test_save_buffer
     mkcdtmpdir do |dir|
       insert("foo")

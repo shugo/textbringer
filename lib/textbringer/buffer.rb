@@ -363,6 +363,47 @@ module Textbringer
                  new_file: false, read_only: !File.writable?(file_name))
     end
 
+    def revert(enc = nil)
+      if @file_name.nil?
+        raise EditorError, "Buffer has no file name"
+      end
+      clear
+      s, mtime = File.open(@file_name,
+                           external_encoding: Encoding::ASCII_8BIT,
+                           binmode: true) { |f|
+        f.flock(File::LOCK_SH)
+        [f.read, f.mtime]
+      }
+      enc ||= @@detect_encoding_proc.call(s) || Encoding::ASCII_8BIT
+      s.force_encoding(enc)
+      unless s.valid_encoding?
+        enc = Encoding::ASCII_8BIT
+        s.force_encoding(enc)
+      end
+      case s.encoding
+      when Encoding::UTF_8, Encoding::ASCII_8BIT
+        @contents = s
+      else
+        @contents = s.encode(Encoding::UTF_8)
+      end
+      @contents.force_encoding(Encoding::ASCII_8BIT)
+      self.file_encoding = enc
+      @file_mtime = mtime
+      case @contents
+      when /(?<!\r)\n/ 
+        @file_format = :unix
+      when /\r(?!\n)/
+        @file_format = :mac
+        @contents.gsub!(/\r/, "\n")
+      when /\r\n/
+        @file_format = :dos
+        @contents.gsub!(/\r/, "")
+      else
+        @file_format = CONFIG[:default_file_format]
+      end
+      @modified = false
+    end
+
     def save(file_name = @file_name)
       if file_name.nil?
         raise EditorError, "File name is not set"

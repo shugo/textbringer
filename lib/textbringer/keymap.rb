@@ -158,6 +158,7 @@ module Textbringer
   GLOBAL_MAP.define_key("\C-xk", :kill_buffer)
   GLOBAL_MAP.define_key("\C-x\C-mf", :set_buffer_file_encoding)
   GLOBAL_MAP.define_key("\C-x\C-mn", :set_buffer_file_format)
+  GLOBAL_MAP.define_key("\C-x\C-mr", :revert_buffer_with_encoding)
   GLOBAL_MAP.define_key("\e.", :find_tag)
   GLOBAL_MAP.define_key("\ex", :execute_command)
   GLOBAL_MAP.define_key("\e:", :eval_expression)

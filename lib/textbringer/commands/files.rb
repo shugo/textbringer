@@ -48,6 +48,29 @@ module Textbringer
       end
     end
 
+    define_command(:revert_buffer, doc: <<~EOD) do
+      Revert the contents of the current buffer from the file on disk.
+    EOD
+      unless yes_or_no?("Revert buffer from file?")
+        message("Cancelled")
+        next
+      end
+      Buffer.current.revert
+    end
+
+    define_command(:revert_buffer_with_encoding, doc: <<~EOD) do
+      Revert the contents of the current buffer from the file on disk
+      using the specified encoding.
+      If the specified encoding is not valid, fall back to ASCII-8BIT.
+    EOD
+      |encoding = read_from_minibuffer("File encoding: ")|
+      unless yes_or_no?("Revert buffer from file?")
+        message("Cancelled")
+        next
+      end
+      Buffer.current.revert(encoding)
+    end
+
     define_command(:save_buffer, doc: "Save the current buffer to a file.") do
       if Buffer.current.file_name.nil?
         Buffer.current.file_name = read_file_name("File to save in: ")
