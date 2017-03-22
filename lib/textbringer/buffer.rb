@@ -195,29 +195,11 @@ module Textbringer
                    file_encoding: CONFIG[:default_file_encoding],
                    file_mtime: nil, new_file: true, undo_limit: UNDO_LIMIT,
                    read_only: false)
-      case s.encoding
-      when Encoding::UTF_8, Encoding::ASCII_8BIT
-        @contents = s.frozen? ? s.dup : s
-      else
-        @contents = s.encode(Encoding::UTF_8)
-      end
-      @contents.force_encoding(Encoding::ASCII_8BIT)
+      set_contents(s, file_encoding)
       @name = name
       @file_name = file_name
       self.file_encoding = file_encoding
       @file_mtime = file_mtime
-      case @contents
-      when /(?<!\r)\n/ 
-        @file_format = :unix
-      when /\r(?!\n)/
-        @file_format = :mac
-        @contents.gsub!(/\r/, "\n")
-      when /\r\n/
-        @file_format = :dos
-        @contents.gsub!(/\r/, "")
-      else
-        @file_format = CONFIG[:default_file_format]
-      end
       @new_file = new_file
       @undo_limit = undo_limit
       @point = 0
@@ -346,21 +328,11 @@ module Textbringer
     end
 
     def self.open(file_name, name: File.basename(file_name))
-      s, mtime = File.open(file_name,
-                           external_encoding: Encoding::ASCII_8BIT,
-                           binmode: true) { |f|
-        f.flock(File::LOCK_SH)
-        [f.read, f.mtime]
-      }
-      enc = @@detect_encoding_proc.call(s) || Encoding::ASCII_8BIT
-      s.force_encoding(enc)
-      unless s.valid_encoding?
-        enc = Encoding::ASCII_8BIT
-        s.force_encoding(enc)
-      end
-      Buffer.new(s, name: name,
-                 file_name: file_name, file_encoding: enc, file_mtime: mtime,
-                 new_file: false, read_only: !File.writable?(file_name))
+      buffer = Buffer.new(name: name,
+                          file_name: file_name, new_file: false)
+      buffer.revert
+      buffer.read_only = !File.writable?(file_name)
+      buffer
     end
 
     def revert(enc = nil)
@@ -380,27 +352,8 @@ module Textbringer
         enc = Encoding::ASCII_8BIT
         s.force_encoding(enc)
       end
-      case s.encoding
-      when Encoding::UTF_8, Encoding::ASCII_8BIT
-        @contents = s
-      else
-        @contents = s.encode(Encoding::UTF_8)
-      end
-      @contents.force_encoding(Encoding::ASCII_8BIT)
-      self.file_encoding = enc
+      set_contents(s, enc)
       @file_mtime = mtime
-      case @contents
-      when /(?<!\r)\n/ 
-        @file_format = :unix
-      when /\r(?!\n)/
-        @file_format = :mac
-        @contents.gsub!(/\r/, "\n")
-      when /\r\n/
-        @file_format = :dos
-        @contents.gsub!(/\r/, "")
-      else
-        @file_format = CONFIG[:default_file_format]
-      end
       @modified = false
     end
 
@@ -1340,6 +1293,29 @@ module Textbringer
     end
 
     private
+
+    def set_contents(s, enc)
+      case s.encoding
+      when Encoding::UTF_8, Encoding::ASCII_8BIT
+        @contents = s.frozen? ? s.dup : s
+      else
+        @contents = s.encode(Encoding::UTF_8)
+      end
+      @contents.force_encoding(Encoding::ASCII_8BIT)
+      self.file_encoding = enc
+      case @contents
+      when /(?<!\r)\n/ 
+        @file_format = :unix
+      when /\r(?!\n)/
+        @file_format = :mac
+        @contents.gsub!(/\r/, "\n")
+      when /\r\n/
+        @file_format = :dos
+        @contents.gsub!(/\r/, "")
+      else
+        @file_format = CONFIG[:default_file_format]
+      end
+    end
 
     def adjust_gap(min_size = 0, pos = @point)
       if @gap_start < pos
