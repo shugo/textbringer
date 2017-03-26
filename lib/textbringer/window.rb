@@ -261,6 +261,7 @@ module Textbringer
       @bottom_of_window = nil
       @point_mark = nil
       @deleted = false
+      @raw_key_buffer = []
       @key_buffer = []
     end
 
@@ -349,14 +350,14 @@ module Textbringer
     end
 
     def wait_input(msecs)
-      unless @key_buffer.empty?
-        return @key_buffer.first
+      if !@raw_key_buffer.empty? || !@key_buffer.empty?
+        return @raw_key_buffer.first || @key_buffer.first
       end
       @window.timeout = msecs
       begin
         c = @window.get_char
         if c
-          @key_buffer.push(c)
+          @raw_key_buffer.push(c)
         end
         c
       ensure
@@ -365,14 +366,14 @@ module Textbringer
     end
 
     def has_input?
-      unless @key_buffer.empty?
+      if !@raw_key_buffer.empty? || !@key_buffer.empty?
         return true
       end
       @window.nodelay = true
       begin
         c = @window.get_char
         if c
-          @key_buffer.push(c)
+          @raw_key_buffer.push(c)
         end
         !c.nil?
       ensure
@@ -782,7 +783,11 @@ module Textbringer
         PDCurses.PDC_save_key_modifiers(1) if PDCurses.dll_loaded?
         begin
           need_retry = false
-          key = @window.get_char
+          if @raw_key_buffer.empty?
+            key = @window.get_char
+          else
+            key = @raw_key_buffer.shift
+          end
           if PDCurses.dll_loaded?
             mods = PDCurses.PDC_get_key_modifiers
             if key.is_a?(String) && key.ascii_only?
