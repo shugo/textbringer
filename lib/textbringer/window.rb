@@ -356,7 +356,7 @@ module Textbringer
       begin
         c = @window.get_char
         if c
-          Curses.unget_char(c)
+          @key_buffer.push(c)
         end
         c
       ensure
@@ -372,7 +372,7 @@ module Textbringer
       begin
         c = @window.get_char
         if c
-          Curses.unget_char(c)
+          @key_buffer.push(c)
         end
         !c.nil?
       ensure
