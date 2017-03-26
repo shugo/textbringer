@@ -1,3 +1,9 @@
+## 0.2.1
+
+* Add revert_buffer and revert_buffer_with_encoding.
+* Fixes for an ncurses issue on macOS that unget_wch() doesn't work with
+  multibyte characters.
+
 ## 0.2.0
 
 * Add bury_buffer and unbury_buffer.
