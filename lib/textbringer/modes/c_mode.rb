@@ -78,8 +78,8 @@ module Textbringer
   (?<singleline_comment> \/\/ .*(?:\\\n.*)*(?<!\\)\n )
 ) |
 (?<partial_comment>
-  (?<multiline_comment> \/\* (?:.|\n)* ) |
-  (?<singleline_comment> \/\/ .*? \\\n (?:.|\n)* )
+  (?<partial_multiline_comment> \/\* (?:.|\n)* ) |
+  (?<partial_singleline_comment> \/\/ .*? \\\n (?:.|\n)* )
 ) |
 (?<keyword>
   (?: #{KEYWORDS.join("|")} ) \b
