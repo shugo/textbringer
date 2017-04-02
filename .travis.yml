@@ -4,21 +4,21 @@ matrix:
     - os: linux
       dist: trusty
       sudo: false
-      rvm: 2.3.3
+      rvm: 2.3.4
     - os: linux
       dist: trusty
       sudo: false
-      rvm: 2.4.0
+      rvm: 2.4.1
     - os: linux
       dist: trusty
       sudo: false
       rvm: ruby-head
     - os: osx
       osx_image: xcode8.2
-      rvm: 2.3.3
+      rvm: 2.3.4
     - os: osx
       osx_image: xcode8.2
-      rvm: 2.4.0
+      rvm: 2.4.1
     - os: osx
       osx_image: xcode8.2
       rvm: ruby-head
