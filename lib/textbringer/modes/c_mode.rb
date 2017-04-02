@@ -177,10 +177,9 @@ module Textbringer
 
     def lex(s)
       tokens = []
-      pos = 0
       line = 1
       column = 0
-      while pos < s.size && s.index(TOKEN_REGEXP, pos)
+      s.scan(TOKEN_REGEXP) do
         text = $&
         token_name = TOKEN_NAMES.find { |name| $~[name] }
         if text.empty?
@@ -194,7 +193,6 @@ module Textbringer
         else
           column += text.size
         end
-        pos += text.size
       end
       tokens
     end

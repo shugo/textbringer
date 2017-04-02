@@ -928,7 +928,8 @@ module Textbringer
           if width > max_width
             @buffer.forward_char
             break
-          elsif width == max_width || @buffer.beginning_of_line?
+          elsif width == max_width || @buffer.beginning_of_line? ||
+              @buffer.point_at_mark?(@top_of_window)
             break
           end
           @buffer.backward_char
