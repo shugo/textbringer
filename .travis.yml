@@ -15,10 +15,10 @@ matrix:
       rvm: ruby-head
     - os: osx
       osx_image: xcode8.2
-      rvm: 2.3.4
+      rvm: 2.3.3
     - os: osx
       osx_image: xcode8.2
-      rvm: 2.4.1
+      rvm: 2.4.0
     - os: osx
       osx_image: xcode8.2
       rvm: ruby-head
