@@ -226,39 +226,39 @@ EOF
     end
   end
 
-  def test_read_char
+  def test_read_event
     @window.window.push_key("a")
-    assert_equal("a", @window.read_char)
+    assert_equal("a", @window.read_event)
 
     @window.window.push_key(Curses::KEY_RIGHT)
-    assert_equal(:right, @window.read_char)
+    assert_equal(:right, @window.read_event)
 
     @window.window.push_key(PDCurses::ALT_0 + 3)
-    assert_equal("\e", @window.read_char)
-    assert_equal("3", @window.read_char)
+    assert_equal("\e", @window.read_event)
+    assert_equal("3", @window.read_event)
 
     @window.window.push_key(PDCurses::ALT_A + 5)
-    assert_equal("\e", @window.read_char)
-    assert_equal("f", @window.read_char)
+    assert_equal("\e", @window.read_event)
+    assert_equal("f", @window.read_event)
 
     PDCurses.PDC_set_key_modifiers(PDCurses::KEY_MODIFIER_CONTROL)
     @window.window.push_key("a")
-    assert_equal("\C-a", @window.read_char)
+    assert_equal("\C-a", @window.read_event)
     @window.window.push_key("?")
-    assert_equal("\x7f", @window.read_char)
+    assert_equal("\x7f", @window.read_event)
 
     PDCurses.PDC_set_key_modifiers(PDCurses::KEY_MODIFIER_ALT)
     @window.window.push_key("\0")
     @window.window.push_key("a")
-    assert_equal("\e", @window.read_char)
-    assert_equal("a", @window.read_char)
+    assert_equal("\e", @window.read_event)
+    assert_equal("a", @window.read_event)
   ensure
     PDCurses.PDC_set_key_modifiers(0)
   end
 
-  def test_read_char_nonblock
+  def test_read_event_nonblock
     @window.window.push_key("a")
-    assert_equal("a", @window.read_char_nonblock)
+    assert_equal("a", @window.read_event_nonblock)
   end
 
   def test_wait_input
@@ -270,7 +270,7 @@ EOF
     PDCurses.PDC_set_key_modifiers(PDCurses::KEY_MODIFIER_ALT)
     @window.window.push_key("\0")
     @window.window.push_key("a")
-    assert_equal("\e", @window.read_char)
+    assert_equal("\e", @window.read_event)
     assert_equal("a", @window.wait_input(1))
   ensure
     PDCurses.PDC_set_key_modifiers(0)
@@ -285,7 +285,7 @@ EOF
     PDCurses.PDC_set_key_modifiers(PDCurses::KEY_MODIFIER_ALT)
     @window.window.push_key("\0")
     @window.window.push_key("a")
-    assert_equal("\e", @window.read_char)
+    assert_equal("\e", @window.read_event)
     assert_equal(true, @window.has_input?)
   ensure
     PDCurses.PDC_set_key_modifiers(0)

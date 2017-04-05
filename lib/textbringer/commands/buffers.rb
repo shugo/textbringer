@@ -171,7 +171,7 @@ module Textbringer
     define_command(:quoted_insert,
                    doc: "Read a character, and insert it.") do
       |n = number_prefix_arg|
-      c = Controller.current.read_char
+      c = Controller.current.read_event
       if !c.is_a?(String)
         raise EditorError, "Invalid key"
       end

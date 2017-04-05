@@ -43,7 +43,7 @@ module Textbringer
         loop do
           begin
             echo_input
-            c = read_char
+            c = read_event
             break if c.nil?
             Window.echo_area.clear_message
             @last_key = c
@@ -98,16 +98,16 @@ module Textbringer
       Window.current.wait_input(msecs)
     end
 
-    def read_char
-      read_char_with_keyboard_macro(:read_char)
+    def read_event
+      read_event_with_keyboard_macro(:read_event)
     end
 
-    def read_char_nonblock
-      read_char_with_keyboard_macro(:read_char_nonblock)
+    def read_event_nonblock
+      read_event_with_keyboard_macro(:read_event_nonblock)
     end
 
     def received_keyboard_quit?
-      while key = read_char_nonblock
+      while key = read_event_nonblock
         if GLOBAL_MAP.lookup([key]) == :keyboard_quit
           return true
         end
@@ -208,9 +208,9 @@ module Textbringer
 
     private
 
-    def read_char_with_keyboard_macro(read_char_method)
+    def read_event_with_keyboard_macro(read_event_method)
       if !executing_keyboard_macro?
-        c = call_read_char_method(read_char_method)
+        c = call_read_event_method(read_event_method)
         if @recording_keyboard_macro
           @recording_keyboard_macro.push(c)
         end
@@ -220,8 +220,8 @@ module Textbringer
       end
     end
 
-    def call_read_char_method(read_char_method)
-      Window.current.send(read_char_method)
+    def call_read_event_method(read_event_method)
+      Window.current.send(read_event_method)
     end
   end
 end

@@ -32,13 +32,13 @@ class TestController < Textbringer::TestCase
     assert_equal(nil, @controller.prefix_arg)
   end
 
-  def test_read_char
-    def @window.read_char
+  def test_read_event
+    def @window.read_event
       "a"
     end
-    assert_equal("a", @controller.read_char)
+    assert_equal("a", @controller.read_event)
     @controller.instance_variable_set(:@executing_keyboard_macro, ["b"])
-    assert_equal("b", @controller.read_char)
+    assert_equal("b", @controller.read_event)
   end
 
   def test_wait_input
@@ -51,13 +51,13 @@ class TestController < Textbringer::TestCase
   end
 
   def test_received_keyboard_quit?
-    def @window.read_char_nonblock
+    def @window.read_event_nonblock
       nil
     end
     assert_equal(false, @controller.received_keyboard_quit?)
 
-    @window.singleton_class.send(:undef_method, :read_char_nonblock)
-    def @window.read_char_nonblock
+    @window.singleton_class.send(:undef_method, :read_event_nonblock)
+    def @window.read_event_nonblock
       "\C-g"
     end
     assert_equal(true, @controller.received_keyboard_quit?)

@@ -116,7 +116,7 @@ module Textbringer
 
     private
 
-    def call_read_char_method(read_char_method)
+    def call_read_event_method(read_event_method)
       if @test_key_buffer.empty?
         nil
       else

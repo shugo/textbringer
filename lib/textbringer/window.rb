@@ -322,7 +322,7 @@ module Textbringer
       self == @@current
     end
 
-    def read_char
+    def read_event
       key = get_char
       if key.is_a?(Integer)
         if PDCurses.dll_loaded?
@@ -340,10 +340,10 @@ module Textbringer
       end
     end
 
-    def read_char_nonblock
+    def read_event_nonblock
       @window.nodelay = true
       begin
-        read_char
+        read_event
       ensure
         @window.nodelay = false
       end

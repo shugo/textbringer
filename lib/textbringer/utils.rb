@@ -49,8 +49,16 @@ module Textbringer
       sleep(secs)
     end
 
+    def read_event
+      Controller.current.read_event
+    end
+
     def read_char
-      Controller.current.read_char
+      event = Controller.current.read_event
+      if !event.is_a?(String)
+        raise EditorError, "Non character event: #{event.inspect}"
+      end
+      event
     end
 
     def received_keyboard_quit?

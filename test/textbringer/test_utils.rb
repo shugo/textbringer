@@ -42,9 +42,18 @@ class TestUtils < Textbringer::TestCase
     end
   end
 
+  def test_read_event
+    push_keys([?a, :up])
+    assert_equal("a", read_event)
+    assert_equal(:up, read_event)
+  end
+
   def test_read_char
-    push_keys("a")
+    push_keys([?a, :up])
     assert_equal("a", read_char)
+    assert_raise(EditorError) do
+      read_char
+    end
   end
 
   def test_read_from_minibuffer
