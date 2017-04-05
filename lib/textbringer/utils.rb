@@ -49,6 +49,10 @@ module Textbringer
       sleep(secs)
     end
 
+    def next_tick(*args, &block)
+      Controller.current.next_tick(*args, &block)
+    end
+
     def read_event
       Controller.current.read_event
     end

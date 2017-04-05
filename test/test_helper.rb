@@ -114,6 +114,10 @@ module Textbringer
       @test_key_buffer = []
     end
 
+    def read_event
+      read_event_nonblock
+    end
+
     private
 
     def call_read_event_method(read_event_method)

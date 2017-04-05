@@ -36,6 +36,14 @@ module Textbringer
       @recording_keyboard_macro = nil
       @last_keyboard_macro = nil
       @executing_keyboard_macro = nil
+      @next_tick_queue = []
+      @next_tick_queue_mutex = Mutex.new
+      @next_tick_input, @next_tick_output = IO.pipe
+    end
+
+    def close
+      @next_tick_input.close
+      @next_tick_output.close
     end
 
     def command_loop(tag)
@@ -92,14 +100,44 @@ module Textbringer
     end
 
     def wait_input(msecs)
+      # TODO: Check @next_tick_queue
       if executing_keyboard_macro?
         return @executing_keyboard_macro.first
       end
       Window.current.wait_input(msecs)
     end
 
+    def next_tick(&block)
+      @next_tick_queue_mutex.synchronize do
+        @next_tick_queue.push(block)
+      end
+      @next_tick_output.write("\n")
+    end
+
     def read_event
-      read_event_with_keyboard_macro(:read_event)
+      event = read_event_nonblock
+      if event
+        return event
+      end
+      loop do
+        files, = IO.select([STDIN, @next_tick_input])
+        if files.include?(STDIN)
+          event = read_event_nonblock
+          if !event.nil?
+            return event
+          end
+        end
+        if files.include?(@next_tick_input)
+          c = @next_tick_input.read_nonblock(1, exception: false)
+          if !c.nil? && c != :wait_readable
+            block = @next_tick_queue_mutex.synchronize {
+              @next_tick_queue.shift
+            }
+            block.call
+            Window.redisplay
+          end
+        end
+      end
     end
 
     def read_event_nonblock

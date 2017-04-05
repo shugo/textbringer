@@ -16,40 +16,44 @@ end
 $VERBOSE = nil
 
 Controller.current = Controller.new
-Window.start do
-  begin
-    Plugin.load_plugins
-    load_user_config
-    ruby_mode
-    if ARGV.size > 0
-      ARGV.each do |arg|
-        find_file(arg)
+begin
+  Window.start do
+    begin
+      Plugin.load_plugins
+      load_user_config
+      ruby_mode
+      if ARGV.size > 0
+        ARGV.each do |arg|
+          find_file(arg)
+        end
       end
-    end
-    if Buffer.dumped_buffers_exist?(CONFIG[:buffer_dump_dir])
-      Window.redisplay
-      if yes_or_no?("Dumped buffers found; restore them?")
-        buffers = Buffer.load_dumped_buffers(CONFIG[:buffer_dump_dir])
-        switch_to_buffer(buffers.last)
+      if Buffer.dumped_buffers_exist?(CONFIG[:buffer_dump_dir])
+        Window.redisplay
+        if yes_or_no?("Dumped buffers found; restore them?")
+          buffers = Buffer.load_dumped_buffers(CONFIG[:buffer_dump_dir])
+          switch_to_buffer(buffers.last)
+        end
       end
+    rescue Exception => e
+      show_exception(e)
     end
-  rescue Exception => e
-    show_exception(e)
-  end
-  Window.redisplay
-  begin
-    trap(:CONT) { Window.redraw }
-  rescue ArgumentError
-  end
-  begin
-    loop do
-      Controller.current.command_loop(TOP_LEVEL_TAG)
-      Window.redisplay
+    Window.redisplay
+    begin
+      trap(:CONT) { Window.redraw }
+    rescue ArgumentError
     end
-  rescue Exception => e
-    if !e.is_a?(SystemExit)
-      Buffer.dump_unsaved_buffers(CONFIG[:buffer_dump_dir])
+    begin
+      loop do
+        Controller.current.command_loop(TOP_LEVEL_TAG)
+        Window.redisplay
+      end
+    rescue Exception => e
+      if !e.is_a?(SystemExit)
+        Buffer.dump_unsaved_buffers(CONFIG[:buffer_dump_dir])
+      end
+      raise
     end
-    raise
   end
+ensure
+  Controller.current.close
 end
