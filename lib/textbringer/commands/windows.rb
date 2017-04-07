@@ -100,11 +100,12 @@ module Textbringer
     end
 
     define_command(:kill_buffer, doc: "Kill buffer.") do
-      |buffer = read_buffer("Kill buffer: ", default: Buffer.current.name)|
+      |buffer = read_buffer("Kill buffer: ", default: Buffer.current.name),
+        force: false|
       if buffer.is_a?(String)
         buffer = Buffer[buffer]
       end
-      if buffer.modified?
+      if !force && buffer.modified?
         next unless yes_or_no?("The last change is not saved; kill anyway?")
         message("Arioch! Arioch! Blood and souls for my Lord Arioch!")
       end
