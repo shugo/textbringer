@@ -109,6 +109,7 @@ module Textbringer
   GLOBAL_MAP.define_key(?\C-d, :delete_char)
   GLOBAL_MAP.define_key(:backspace, :backward_delete_char)
   GLOBAL_MAP.define_key(?\C-h, :backward_delete_char)
+  GLOBAL_MAP.define_key(?\C-?, :backward_delete_char)
   GLOBAL_MAP.define_key(?\C-a, :beginning_of_line)
   GLOBAL_MAP.define_key(:home, :beginning_of_line)
   GLOBAL_MAP.define_key(?\C-e, :end_of_line)
