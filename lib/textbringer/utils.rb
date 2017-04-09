@@ -49,6 +49,18 @@ module Textbringer
       sleep(secs)
     end
 
+    def background
+      Thread.start do
+        begin
+          yield
+        rescue Exception => e
+          next_tick do
+            raise e
+          end
+        end
+      end
+    end
+
     def next_tick(*args, &block)
       Controller.current.next_tick(*args, &block)
     end
