@@ -120,14 +120,19 @@ module Textbringer
         return event
       end
       loop do
-        files, = IO.select([STDIN, @next_tick_input])
+        if Window.echo_area.active?
+          wait_files = [STDIN]
+        else
+          wait_files = [STDIN, @next_tick_input]
+        end
+        files, = IO.select(wait_files)
         if files.include?(STDIN)
           event = read_event_nonblock
           if !event.nil?
             return event
           end
         end
-        if files.include?(@next_tick_input)
+        if !Window.echo_area.active? && files.include?(@next_tick_input)
           c = @next_tick_input.read_nonblock(1, exception: false)
           if !c.nil? && c != :wait_readable
             block = @next_tick_queue_mutex.synchronize {
