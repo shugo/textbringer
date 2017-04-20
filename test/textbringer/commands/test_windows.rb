@@ -448,6 +448,7 @@ EOF
     foo = Buffer.new_buffer("foo")
     switch_to_buffer(foo)
     insert("foo")
+    split_window
 
     push_keys("no\n")
     kill_buffer("foo")
@@ -458,6 +459,9 @@ EOF
     kill_buffer(foo)
     assert_not_equal(foo, Buffer.current)
     assert_equal(nil, Buffer["foo"])
+    Window.list(include_echo_area: true).each do |window|
+      assert_not_equal(foo, window.buffer)
+    end
 
     buffers = Buffer.to_a
     buffers.each do |buffer|

@@ -113,6 +113,11 @@ module Textbringer
       if Buffer.current.nil?
         switch_to_buffer(Buffer.other)
       end
+      Window.list(include_echo_area: true).each do |window|
+        if window.buffer == buffer
+          window.buffer = Buffer.current
+        end
+      end
     end
   end
 end
