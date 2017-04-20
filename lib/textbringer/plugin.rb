@@ -2,9 +2,11 @@
 
 module Textbringer
   module Plugin
-    def self.directory
-      File.expand_path("~/.textbringer/plugins")
+    class << self
+      attr_accessor :directory
     end
+
+    @directory = File.expand_path("~/.textbringer/plugins")
 
     def self.load_plugins
       files = Gem.find_files("textbringer_plugin.rb").group_by { |file|

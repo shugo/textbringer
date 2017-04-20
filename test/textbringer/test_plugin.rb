@@ -39,9 +39,19 @@ class TestMode < Textbringer::TestCase
       EOF
 
       FindFilesExt.files = [foo_0_10_0, foo_0_9_0, bar_0_1_0]
+
+      baz = File.expand_path("non_gem_plugins/baz/textbringer_plugin.rb", dir)
+      FileUtils.mkdir_p(File.dirname(baz))
+      File.write(baz, <<~EOF)
+        $BAZ_VERSION = "0.1.0dev"
+      EOF
+
+      Plugin.directory = File.expand_path("non_gem_plugins", dir)
+      
       Plugin.load_plugins
       assert_equal("0.10.0", $FOO_VERSION)
       assert_equal("0.1.0", $BAR_VERSION)
+      assert_equal("0.1.0dev", $BAZ_VERSION)
     end
   end
 end
