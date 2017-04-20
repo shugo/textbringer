@@ -26,6 +26,7 @@ module Textbringer
     def define_command(name, doc: "No documentation", &block)
       name = name.intern
       Commands.send(:define_method, name, &block)
+      Commands.send(:module_function, name)
       Commands.command_table[name] = Command.new(name, block, doc)
       name
     end
