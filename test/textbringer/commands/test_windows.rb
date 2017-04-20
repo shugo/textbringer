@@ -97,7 +97,7 @@ class TestWindows < Textbringer::TestCase
     scroll_up
     Window.redisplay
     assert_equal(41, Buffer.current.current_line)
-    assert_raise(EditorError) do
+    assert_raise(RangeError) do
       scroll_up
     end
   end
@@ -113,7 +113,7 @@ class TestWindows < Textbringer::TestCase
     scroll_down
     Window.redisplay
     assert_equal(21, Buffer.current.current_line)
-    assert_raise(EditorError) do
+    assert_raise(RangeError) do
       scroll_down
     end
   end

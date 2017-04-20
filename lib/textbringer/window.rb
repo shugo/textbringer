@@ -553,7 +553,7 @@ module Textbringer
 
     def scroll_up
       if @bottom_of_window.location == @buffer.point_max
-        raise EditorError, "End of buffer"
+        raise RangeError, "End of buffer"
       end
       @buffer.point_to_mark(@bottom_of_window)
       @buffer.previous_line
@@ -563,7 +563,7 @@ module Textbringer
 
     def scroll_down
       if @top_of_window.location == @buffer.point_min
-        raise EditorError, "Beginning of buffer"
+        raise RangeError, "Beginning of buffer"
       end
       @buffer.point_to_mark(@top_of_window)
       @buffer.next_line
