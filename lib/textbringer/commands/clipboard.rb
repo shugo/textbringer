@@ -6,17 +6,6 @@ end
 
 require "clipboard"
 
-class Fiddle::Pointer
-  def put_bytes(offset, str, index = 0, length = nil)
-    len = length || str.bytesize - index
-    self[offset, len] = str[index, len]
-  end
-
-  def get_bytes(offset, len)
-    self[offset, len]
-  end
-end
-
 module Textbringer
   module Commands
     CLIPBOARD_AVAILABLE =
