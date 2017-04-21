@@ -1,3 +1,13 @@
+## 0.2.2
+
+* Rename read_char to read_event and add read_char as a new method.
+* Add next_tick and background for background threads.
+* Add the force: option to kill_buffer.
+* bind C-? ([delete] on Mac) to backward_delete_char.
+  Pull request #23 by moguno.
+* Make commands module_functions.
+* Use fiddley instead of ffi.
+
 ## 0.2.1
 
 * Add revert_buffer and revert_buffer_with_encoding.
