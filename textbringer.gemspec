@@ -24,7 +24,7 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency "curses", "~> 1.2"
   spec.add_runtime_dependency "unicode-display_width", "~> 1.1"
   spec.add_runtime_dependency "clipboard", "~> 1.1"
-  spec.add_runtime_dependency "ffi"
+  spec.add_runtime_dependency "fiddley" # for clipboard on Windows
   spec.add_runtime_dependency "editorconfig"
 
   spec.add_development_dependency "bundler", "~> 1.14"
