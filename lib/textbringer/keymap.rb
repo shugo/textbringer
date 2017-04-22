@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "curses"
-
 module Textbringer
   class Keymap
     include Enumerable
