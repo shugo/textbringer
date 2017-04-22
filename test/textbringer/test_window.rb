@@ -233,27 +233,27 @@ EOF
     @window.window.push_key(Curses::KEY_RIGHT)
     assert_equal(:right, @window.read_event)
 
-    @window.window.push_key(PDCurses::ALT_0 + 3)
+    @window.window.push_key(Curses::ALT_0 + 3)
     assert_equal("\e", @window.read_event)
     assert_equal("3", @window.read_event)
 
-    @window.window.push_key(PDCurses::ALT_A + 5)
+    @window.window.push_key(Curses::ALT_A + 5)
     assert_equal("\e", @window.read_event)
     assert_equal("f", @window.read_event)
 
-    PDCurses.PDC_set_key_modifiers(PDCurses::KEY_MODIFIER_CONTROL)
+    Curses.set_key_modifiers(Curses::PDC_KEY_MODIFIER_CONTROL)
     @window.window.push_key("a")
     assert_equal("\C-a", @window.read_event)
     @window.window.push_key("?")
     assert_equal("\x7f", @window.read_event)
 
-    PDCurses.PDC_set_key_modifiers(PDCurses::KEY_MODIFIER_ALT)
+    Curses.set_key_modifiers(Curses::PDC_KEY_MODIFIER_ALT)
     @window.window.push_key("\0")
     @window.window.push_key("a")
     assert_equal("\e", @window.read_event)
     assert_equal("a", @window.read_event)
   ensure
-    PDCurses.PDC_set_key_modifiers(0)
+    Curses.set_key_modifiers(0)
   end
 
   def test_read_event_nonblock
@@ -267,13 +267,13 @@ EOF
     @window.window.push_key("a")
     assert_equal("a", @window.wait_input(1))
 
-    PDCurses.PDC_set_key_modifiers(PDCurses::KEY_MODIFIER_ALT)
+    Curses.set_key_modifiers(Curses::PDC_KEY_MODIFIER_ALT)
     @window.window.push_key("\0")
     @window.window.push_key("a")
     assert_equal("\e", @window.read_event)
     assert_equal("a", @window.wait_input(1))
   ensure
-    PDCurses.PDC_set_key_modifiers(0)
+    Curses.set_key_modifiers(0)
   end
 
   def test_has_input?
@@ -282,13 +282,13 @@ EOF
     @window.window.push_key("a")
     assert_equal(true, @window.has_input?)
 
-    PDCurses.PDC_set_key_modifiers(PDCurses::KEY_MODIFIER_ALT)
+    Curses.set_key_modifiers(Curses::PDC_KEY_MODIFIER_ALT)
     @window.window.push_key("\0")
     @window.window.push_key("a")
     assert_equal("\e", @window.read_event)
     assert_equal(true, @window.has_input?)
   ensure
-    PDCurses.PDC_set_key_modifiers(0)
+    Curses.set_key_modifiers(0)
   end
 
   def test_echo_area_redisplay

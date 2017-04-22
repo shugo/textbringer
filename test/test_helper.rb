@@ -1,6 +1,7 @@
 require "simplecov"
 require "test/unit"
 require "tmpdir"
+require "curses"
 
 SimpleCov.profiles.define "textbringer" do
   add_filter "/test/"
@@ -24,6 +25,36 @@ if ENV["UPLOAD_TO_CODECOV"]
   end
   SimpleCov::Formatter::Codecov.send(:prepend, IgnoreFormatError)
   SimpleCov.formatter = SimpleCov::Formatter::Codecov
+end
+
+module Curses
+  if !defined?(Curses.get_key_modifiers)
+    @key_modifiers = 0
+
+    def self.save_key_modifiers(flag)
+    end
+
+    def self.get_key_modifiers
+      @key_modifiers
+    end
+
+    def self.set_key_modifiers(key_modifiers)
+      @key_modifiers = key_modifiers
+    end
+
+    KEY_OFFSET = 0xec00
+    ALT_0 = KEY_OFFSET + 0x97
+    ALT_9 = KEY_OFFSET + 0xa0
+    ALT_A = KEY_OFFSET + 0xa1
+    ALT_Z = KEY_OFFSET + 0xba
+    ALT_NUMBER_BASE = ALT_0 - ?0.ord
+    ALT_ALPHA_BASE = ALT_A - ?a.ord
+
+    PDC_KEY_MODIFIER_SHIFT   = 1
+    PDC_KEY_MODIFIER_CONTROL = 2
+    PDC_KEY_MODIFIER_ALT     = 4
+    PDC_KEY_MODIFIER_NUMLOCK = 8
+  end
 end
 
 require "textbringer"
@@ -190,23 +221,6 @@ module Textbringer
   end
   ::Curses.send(:remove_const, :Window)
   ::Curses.const_set(:Window, FakeCursesWindow)
-
-  module PDCurses
-    self.dll_loaded = true
-
-    @key_modifiers = 0
-
-    def PDCurses.PDC_save_key_modifiers(flag)
-    end
-
-    def PDCurses.PDC_get_key_modifiers
-      @key_modifiers
-    end
-
-    def PDCurses.PDC_set_key_modifiers(key_modifiers)
-      @key_modifiers = key_modifiers
-    end
-  end
   
   class Window
     class << self
