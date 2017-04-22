@@ -28,20 +28,12 @@ if ENV["UPLOAD_TO_CODECOV"]
 end
 
 module Curses
-  if !defined?(Curses.get_key_modifiers)
-    @key_modifiers = 0
-
-    def self.save_key_modifiers(flag)
+  if defined?(Curses.get_key_modifiers)
+    class << self
+      undef get_key_modifiers
+      undef save_key_modifiers
     end
-
-    def self.get_key_modifiers
-      @key_modifiers
-    end
-
-    def self.set_key_modifiers(key_modifiers)
-      @key_modifiers = key_modifiers
-    end
-
+  else
     KEY_OFFSET = 0xec00
     ALT_0 = KEY_OFFSET + 0x97
     ALT_9 = KEY_OFFSET + 0xa0
@@ -54,6 +46,19 @@ module Curses
     PDC_KEY_MODIFIER_CONTROL = 2
     PDC_KEY_MODIFIER_ALT     = 4
     PDC_KEY_MODIFIER_NUMLOCK = 8
+  end
+
+  @key_modifiers = 0
+
+  def self.save_key_modifiers(flag)
+  end
+
+  def self.get_key_modifiers
+    @key_modifiers
+  end
+
+  def self.set_key_modifiers(key_modifiers)
+    @key_modifiers = key_modifiers
   end
 end
 
