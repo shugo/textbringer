@@ -16,7 +16,7 @@ module Textbringer
 
     define_command(:suspend_textbringer) do
       Curses.close_screen
-      Process.kill(:STOP, $$)
+      Process.kill(:STOP, 0)
     end
 
     define_command(:execute_command) do
