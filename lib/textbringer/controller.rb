@@ -115,6 +115,9 @@ module Textbringer
     end
 
     def read_event
+      if executing_keyboard_macro?
+        return @executing_keyboard_macro.shift
+      end
       event = read_event_nonblock
       if event
         return event
@@ -253,7 +256,7 @@ module Textbringer
     def read_event_with_keyboard_macro(read_event_method)
       if !executing_keyboard_macro?
         c = call_read_event_method(read_event_method)
-        if @recording_keyboard_macro
+        if c && @recording_keyboard_macro
           @recording_keyboard_macro.push(c)
         end
         c
