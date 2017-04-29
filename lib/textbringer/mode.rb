@@ -20,9 +20,9 @@ module Textbringer
       attr_reader :syntax_table
     end
 
-    def self.define_generic_command(name)
+    def self.define_generic_command(name, **options)
       command_name = (name.to_s + "_command").intern
-      define_command(command_name) do |*args|
+      define_command(command_name, **options) do |*args|
         begin
           Buffer.current.mode.send(name, *args)
         rescue NoMethodError => e
@@ -34,6 +34,12 @@ module Textbringer
           end
         end
       end
+    end
+
+    def self.define_local_command(name, **options, &block)
+      define_generic_command(name, **options)
+      define_method(name, &block)
+      name
     end
 
     def self.define_syntax(face_name, re)
