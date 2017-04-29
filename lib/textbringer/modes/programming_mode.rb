@@ -74,12 +74,17 @@ module Textbringer
 
     def indent_region(s = @buffer.mark, e = @buffer.point)
       s, e = Buffer.region_boundaries(s, e)
-      @buffer.save_excursion do
-        @buffer.goto_char(s)
-        while @buffer.point < e
-          indent_line
-          @buffer.forward_line
+      end_mark = @buffer.new_mark(e)
+      begin
+        @buffer.save_excursion do
+          @buffer.goto_char(s)
+          until @buffer.end_of_buffer? || @buffer.point_after_mark?(end_mark)
+            indent_line
+            @buffer.forward_line
+          end
         end
+      ensure
+        end_mark.delete
       end
     end
 
