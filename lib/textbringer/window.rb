@@ -353,7 +353,7 @@ module Textbringer
     def highlight
       @highlight_on = {}
       @highlight_off = {}
-      return if !@@has_colors || !CONFIG[:syntax_highlight]
+      return if !@@has_colors || !CONFIG[:syntax_highlight] || @buffer.binary?
       syntax_table = @buffer.mode.syntax_table
       return if syntax_table.empty?
       if @buffer.bytesize < CONFIG[:highlight_buffer_size_limit]
