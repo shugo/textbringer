@@ -26,7 +26,7 @@ module Textbringer
         begin
           Buffer.current.mode.send(name, *args)
         rescue NoMethodError => e
-          if e.receiver == Buffer.current.mode && e.name == name
+          if (e.receiver rescue nil) == Buffer.current.mode && e.name == name
             raise EditorError,
               "#{command_name} is not supported in the current mode"
           else
