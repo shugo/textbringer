@@ -8,7 +8,7 @@ class TestMode < Textbringer::TestCase
       @@files = files
     end
 
-    def find_files(*args)
+    def find_latest_files(*args)
       @@files || super(*args)
     end
   end
@@ -38,7 +38,7 @@ class TestMode < Textbringer::TestCase
         $BAR_VERSION = "0.1.0"
       EOF
 
-      FindFilesExt.files = [foo_0_10_0, foo_0_9_0, bar_0_1_0]
+      FindFilesExt.files = [foo_0_10_0, bar_0_1_0]
 
       baz = File.expand_path("non_gem_plugins/baz/textbringer_plugin.rb", dir)
       FileUtils.mkdir_p(File.dirname(baz))
