@@ -5,7 +5,7 @@ install:
   - gem install bundler --no-document
   - bundle install
   - ps: [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-  - ps: Invoke-WebRequest -Uri http://curl.haxx.se/ca/cacert.pem -OutFile C:\projects\textbringer\cacert.pem
+  - ps: Invoke-WebRequest -Uri https://curl.haxx.se/ca/cacert.pem -OutFile C:\projects\textbringer\cacert.pem
 build: off
 test_script:
   - rake
