@@ -1,3 +1,10 @@
+## 0.2.3
+
+* Add the on_modified callback to Buffer.
+* Use Gem.find_latest_files to find plugins.
+* Turn off synatx highlighting when the buffer is binary.
+* Add define_local_command.
+
 ## 0.2.2
 
 * Rename read_char to read_event and add read_char as a new method.
