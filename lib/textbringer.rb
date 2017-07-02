@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative "textbringer/version"
 require_relative "textbringer/config"
 require_relative "textbringer/errors"
