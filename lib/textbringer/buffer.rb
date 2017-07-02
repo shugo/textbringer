@@ -12,7 +12,6 @@ module Textbringer
     attr_accessor :mode, :keymap
     attr_reader :name, :file_name, :file_encoding, :file_format, :point, :marks
     attr_reader :current_line, :current_column, :visible_mark
-    attr_writer :modified
 
     GAP_SIZE = 256
     UNDO_LIMIT = 1000
@@ -226,6 +225,7 @@ module Textbringer
       @match_offsets = []
       @visible_mark = nil
       @read_only = read_only
+      @on_modified_callbacks = []
     end
 
     def inspect
@@ -307,8 +307,19 @@ module Textbringer
       @@current == self
     end
 
+    def modified=(modified)
+      @modified = modified
+      if @composite_edit_level == 0 && modified
+        fire_on_modified_callbacks
+      end
+    end
+
     def modified?
       @modified
+    end
+
+    def on_modified(&callback)
+      @on_modified_callbacks.push(callback)
     end
 
     def [](name)
@@ -527,7 +538,7 @@ module Textbringer
           push_undo(InsertAction.new(self, pos, s))
         end
       end
-      @modified = true
+      self.modified = true
       @goal_column = nil
       self
     end
@@ -569,7 +580,7 @@ module Textbringer
           end
         end
         push_undo(DeleteAction.new(self, s, s, str))
-        @modified = true
+        self.modified = true
       elsif n < 0
         str = substring(pos, s)
         update_line_and_column(@point, pos)
@@ -584,7 +595,7 @@ module Textbringer
         end
         @point = @gap_start = pos
         push_undo(DeleteAction.new(self, s, pos, str))
-        @modified = true
+        self.modified = true
       end
       @goal_column = nil
     end
@@ -906,7 +917,7 @@ module Textbringer
           end
         end
         push_undo(DeleteAction.new(self, old_pos, s, str)) 
-        @modified = true
+        self.modified = true
       end
     end
 
@@ -920,7 +931,7 @@ module Textbringer
       @current_line = 1
       @current_column = 1
       @goal_column = nil
-      @modified = true
+      self.modified = true
       @undo_stack.clear
       @redo_stack.clear
     end
@@ -1202,6 +1213,7 @@ module Textbringer
           @composite_edit_actions.clear
         end
       end
+      fire_on_modified_callbacks
     end
 
     def apply_mode(mode_class)
@@ -1488,6 +1500,12 @@ module Textbringer
     def check_read_only_flag
       if @read_only
         raise ReadOnlyError, "Buffer is read only: #{self.inspect}"
+      end
+    end
+
+    def fire_on_modified_callbacks
+      @on_modified_callbacks.each do |callback|
+        callback.call(self)
       end
     end
   end
