@@ -225,7 +225,7 @@ module Textbringer
       @match_offsets = []
       @visible_mark = nil
       @read_only = read_only
-      @on_modified_callbacks = []
+      @callbacks = {}
     end
 
     def inspect
@@ -301,6 +301,11 @@ module Textbringer
       @marks.each do |mark|
         mark.detach
       end
+      fire_callbacks(:on_killed)
+    end
+
+    def on_killed(&callback)
+      add_callback(:on_killed, callback)
     end
 
     def current?
@@ -310,7 +315,7 @@ module Textbringer
     def modified=(modified)
       @modified = modified
       if @composite_edit_level == 0 && modified
-        fire_on_modified_callbacks
+        fire_callbacks(:on_modified)
       end
     end
 
@@ -319,7 +324,7 @@ module Textbringer
     end
 
     def on_modified(&callback)
-      @on_modified_callbacks.push(callback)
+      add_callback(:on_modified, callback)
     end
 
     def [](name)
@@ -1213,7 +1218,7 @@ module Textbringer
           @composite_edit_actions.clear
         end
       end
-      fire_on_modified_callbacks
+      fire_callbacks(:on_modified)
     end
 
     def apply_mode(mode_class)
@@ -1503,8 +1508,13 @@ module Textbringer
       end
     end
 
-    def fire_on_modified_callbacks
-      @on_modified_callbacks.each do |callback|
+    def add_callback(name, callback)
+      @callbacks[name] ||= []
+      @callbacks[name].push(callback)
+    end
+
+    def fire_callbacks(name)
+      @callbacks[name]&.each do |callback|
         callback.call(self)
       end
     end
