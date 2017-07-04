@@ -8,7 +8,7 @@ module Textbringer
 
     def message(msg, log: true, sit_for: nil, sleep_for: nil)
       str = msg.to_s
-      if log && Buffer.current.name != "*Messages*"
+      if log && Buffer.current&.name != "*Messages*"
         buffer = Buffer["*Messages*"] ||
           Buffer.new_buffer("*Messages*", undo_limit: 0).tap { |b|
             b[:top_of_window] = b.new_mark
@@ -85,7 +85,7 @@ module Textbringer
       if e.is_a?(SystemExit)
         raise
       end
-      if Buffer.current.name != "*Backtrace*"
+      if Buffer.current&.name != "*Backtrace*"
         buffer = Buffer.find_or_new("*Backtrace*", undo_limit: 0)
         if !buffer.mode.is_a?(BacktraceMode)
           buffer.apply_mode(BacktraceMode)
