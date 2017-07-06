@@ -301,21 +301,26 @@ module Textbringer
       @marks.each do |mark|
         mark.detach
       end
-      fire_callbacks(:on_killed)
+      fire_callbacks(:killed)
     end
 
     def on_killed(&callback)
-      add_callback(:on_killed, callback)
+      add_callback(:killed, callback)
     end
 
     def current?
       @@current == self
     end
 
+    def on(name, &callback)
+      @callbacks[name] ||= []
+      @callbacks[name].push(callback)
+    end
+
     def modified=(modified)
       @modified = modified
       if @composite_edit_level == 0 && modified
-        fire_callbacks(:on_modified)
+        fire_callbacks(:modified)
       end
     end
 
@@ -324,7 +329,7 @@ module Textbringer
     end
 
     def on_modified(&callback)
-      add_callback(:on_modified, callback)
+      add_callback(:modified, callback)
     end
 
     def [](name)
@@ -1218,7 +1223,7 @@ module Textbringer
           @composite_edit_actions.clear
         end
       end
-      fire_callbacks(:on_modified)
+      fire_callbacks(:modified)
     end
 
     def apply_mode(mode_class)
@@ -1506,11 +1511,6 @@ module Textbringer
       if @read_only
         raise ReadOnlyError, "Buffer is read only: #{self.inspect}"
       end
-    end
-
-    def add_callback(name, callback)
-      @callbacks[name] ||= []
-      @callbacks[name].push(callback)
     end
 
     def fire_callbacks(name)
