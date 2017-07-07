@@ -1,3 +1,7 @@
+## 0.2.4
+
+* Remove Buffer#on_modified and add Buffer#on instead.
+
 ## 0.2.3
 
 * Add the on_modified callback to Buffer.
