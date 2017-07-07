@@ -931,6 +931,13 @@ module Textbringer
       end
     end
 
+    def replace(s)
+      composite_edit do
+        delete_region(point_min, point_max)
+        insert(s)
+      end
+    end
+
     def clear
       check_read_only_flag
       @contents = String.new

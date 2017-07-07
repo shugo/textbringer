@@ -588,6 +588,15 @@ EOF
     assert_equal(1, mark2.location)
   end
 
+  def test_replace
+    buffer = Buffer.new("foo")
+    assert_equal("foo", buffer.to_s)
+    buffer.replace("bar")
+    assert_equal("bar", buffer.to_s)
+    buffer.undo
+    assert_equal("foo", buffer.to_s)
+  end
+
   def test_clear
     buffer = Buffer.new("hello world")
     buffer.forward_char(3)
