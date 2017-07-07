@@ -61,8 +61,26 @@ module Textbringer
       end
     end
 
-    def next_tick(*args, &block)
-      Controller.current.next_tick(*args, &block)
+    def next_tick(&block)
+      Controller.current.next_tick(&block)
+    end
+
+    def next_tick!
+      q = Queue.new
+      next_tick do
+        begin
+          result = yield
+          q.push([:ok, result])
+        rescue Exception => e
+          q.push([:error, e])
+        end
+      end
+      status, value = q.pop
+      if status == :error
+        raise value 
+      else
+        value
+      end
     end
 
     def read_event
