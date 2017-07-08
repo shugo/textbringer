@@ -1,3 +1,8 @@
+## 0.2.5
+
+* Add next_tick!.
+* Add Buffer#replace.
+
 ## 0.2.4
 
 * Remove Buffer#on_modified and add Buffer#on instead.
