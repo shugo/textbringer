@@ -21,6 +21,12 @@ class TestMode < Textbringer::TestCase
 
   def test_load_plugins
     Dir.mktmpdir do |dir|
+      FileUtils.mkdir_p(File.expand_path("error-1.0.0/lib", dir))
+      error_1_0_0 = File.expand_path("error-1.0.0/lib/textbringer_plugin.rb",
+                                     dir)
+      File.write(error_1_0_0, <<~EOF)
+        raise "error"
+      EOF
       FileUtils.mkdir_p(File.expand_path("foo-0.9.0/lib", dir))
       foo_0_9_0 = File.expand_path("foo-0.9.0/lib/textbringer_plugin.rb", dir)
       File.write(foo_0_9_0, <<~EOF)
@@ -38,7 +44,7 @@ class TestMode < Textbringer::TestCase
         $BAR_VERSION = "0.1.0"
       EOF
 
-      FindFilesExt.files = [foo_0_10_0, bar_0_1_0]
+      FindFilesExt.files = [error_1_0_0, foo_0_10_0, bar_0_1_0]
 
       baz = File.expand_path("non_gem_plugins/baz/textbringer_plugin.rb", dir)
       FileUtils.mkdir_p(File.dirname(baz))

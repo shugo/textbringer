@@ -12,7 +12,11 @@ module Textbringer
       files = Gem.find_latest_files("textbringer_plugin.rb", false) +
         Dir.glob(File.join(directory, "*/**/textbringer_plugin.rb"))
       files.each do |file|
-        load(file)
+        begin
+          load(file)
+        rescue Exception => e
+          show_exception(e)
+        end
       end
     end
   end
