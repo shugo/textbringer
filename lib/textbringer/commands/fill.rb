@@ -21,12 +21,17 @@ module Textbringer
             next
           end
           w = Buffer.display_width(c)
-          if column + w > fill_column || column >= fill_column
-            output << "\n"
+          if c == "\n"
+            output << c
             column = 0
+          else
+            if column + w > fill_column || column >= fill_column
+              output << "\n"
+              column = 0
+            end
+            output << c
+            column += w
           end
-          output << c
-          column += w
         end
         buffer.composite_edit do
           buffer.delete_region(s, e)
@@ -50,6 +55,9 @@ module Textbringer
       begin
         buffer.forward_line
       end while !buffer.end_of_buffer? && !buffer.looking_at?(/^[ \t]*$/)
+      if buffer.beginning_of_line?
+        buffer.backward_char
+      end
       fill_region(s, buffer.point)
     end
   end
