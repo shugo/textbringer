@@ -16,6 +16,7 @@ module Textbringer
     highlight_buffer_size_limit: 102400,
     shell_file_name: ENV["SHELL"],
     shell_command_switch: "-c",
-    grep_command: "grep -nH -e"
+    grep_command: "grep -nH -e",
+    fill_column: 70
   }
 end

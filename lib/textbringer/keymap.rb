@@ -180,6 +180,7 @@ module Textbringer
   GLOBAL_MAP.define_key("\C-x)", :end_keyboard_macro)
   GLOBAL_MAP.define_key("\C-xe", :end_and_call_keyboard_macro)
   GLOBAL_MAP.define_key(:f4, :end_or_call_keyboard_macro)
+  GLOBAL_MAP.define_key("\eq", :fill_paragraph)
   GLOBAL_MAP.define_key([:f1, "b"], :describe_bindings)
   GLOBAL_MAP.define_key([:f1, "f"], :describe_command)
   GLOBAL_MAP.define_key([:f1, "k"], :describe_key)
