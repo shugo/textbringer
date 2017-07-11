@@ -36,9 +36,10 @@ module Textbringer
             w = Buffer.display_width(c)
             if column + w > fill_column || column >= fill_column
               if /\w/ =~ prev_c && /\w/ =~ c
-                if output.sub!(/([^\w\n])(\w*)\z/, "\\1\n")
-                  output << $2
-                  column = Buffer.display_width($2)
+                if output.sub!(/(?:([^\w \t\n])|(\w)[ \t]+)(\w*)\z/,
+                               "\\1\\2\n")
+                  output << $3
+                  column = Buffer.display_width($3)
                 end
               else
                 output << "\n"
