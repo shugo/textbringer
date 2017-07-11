@@ -46,8 +46,10 @@ module Textbringer
                 column = 0
               end
             end
-            output << c
-            column += w
+            if column > 0 || /[^ \t]/ =~ c
+              output << c
+              column += w
+            end
           end
           prev_c = c
         end
