@@ -265,9 +265,14 @@ module Textbringer
       Buffer.kill_em_all
       KILL_RING.clear
       Window.setup_for_test
+      @buffer = Buffer.current
     end
 
     private
+
+    def buffer
+      @buffer
+    end
 
     def push_keys(keys)
       if keys.is_a?(String)

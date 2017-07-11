@@ -4,7 +4,7 @@ module Textbringer
   module Commands
     define_command(:fill_region,
                    doc: "Fill paragraph.") do
-      |s = buffer.point, e = buffer.mark|
+      |s = Buffer.current.point, e = Buffer.current.mark|
       s, e = Buffer.region_boundaries(s, e)
       buffer = Buffer.current
       buffer.save_excursion do
