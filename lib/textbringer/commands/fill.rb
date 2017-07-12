@@ -1,18 +1,26 @@
 # frozen_string_literal: true
 
 module Textbringer
-  module Commands
-    define_command(:fill_region,
-                   doc: "Fill paragraph.") do
-      |s = Buffer.current.point, e = Buffer.current.mark|
-      s, e = Buffer.region_boundaries(s, e)
-      buffer = Buffer.current
-      buffer.save_excursion do
-        str = buffer.substring(s, e)
-        buffer.goto_char(s)
-        pos = buffer.point
-        buffer.beginning_of_line
-        column = Buffer.display_width(buffer.substring(buffer.point, pos))
+  module FillExtension
+    refine Buffer do
+      def fill_region(s = Buffer.current.point, e = Buffer.current.mark)
+        s, e = Buffer.region_boundaries(s, e)
+        save_excursion do
+          str = substring(s, e)
+          goto_char(s)
+          pos = point
+          beginning_of_line
+          column = Buffer.display_width(substring(point, pos))
+          composite_edit do
+            delete_region(s, e)
+            insert(fill_string(str, column))
+          end
+        end
+      end
+
+      private
+
+      def fill_string(str, column)
         input = StringIO.new(str)
         output = String.new
         fill_column = CONFIG[:fill_column]
@@ -53,11 +61,18 @@ module Textbringer
           end
           prev_c = c
         end
-        buffer.composite_edit do
-          buffer.delete_region(s, e)
-          buffer.insert(output)
-        end
+        output
       end
+    end
+  end
+
+  module Commands
+    using FillExtension
+
+    define_command(:fill_region,
+                   doc: "Fill paragraph.") do
+      |s = Buffer.current.point, e = Buffer.current.mark|
+      Buffer.current.fill_region(s, e)
     end
 
     define_command(:fill_paragraph,
