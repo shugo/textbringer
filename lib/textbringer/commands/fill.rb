@@ -28,40 +28,60 @@ module Textbringer
         while c = input.getc
           if column < fill_column && c == "\n"
             if /\w/ =~ prev_c
-              next_c = input.getc
-              input.ungetc(next_c)
-              if /\w/ =~ next_c
-                output << " "
-                column += 1
-              end
+              column = insert_space_between_words(input, output, column)
             end
             next
           end
           if c == "\n"
-            output << c
-            column = 0
+            column = insert_newline(output)
           else
             w = Buffer.display_width(c)
             if column + w > fill_column || column >= fill_column
               if /\w/ =~ prev_c && /\w/ =~ c
-                if output.sub!(/(?:([^\w \t\n])|(\w)[ \t]+)(\w*)\z/,
-                               "\\1\\2\n")
-                  output << $3
-                  column = Buffer.display_width($3)
-                end
+                column = insert_newline_before_word(output, column)
               else
-                output << "\n"
-                column = 0
+                column = insert_newline(output)
               end
             end
-            if column > 0 || /[^ \t]/ =~ c
-              output << c
-              column += w
-            end
+            column = insert_char(output, column, c, w)
           end
           prev_c = c
         end
         output
+      end
+
+      def insert_space_between_words(input, output, column)
+        c = input.getc
+        input.ungetc(c)
+        if /\w/ =~ c
+          output << " "
+          column + 1
+        else
+          column
+        end
+      end
+
+      def insert_newline_before_word(output, column)
+        if output.sub!(/(?:([^\w \t\n])|(\w)[ \t]+)(\w*)\z/, "\\1\\2\n")
+          output << $3
+          Buffer.display_width($3)
+        else
+          column
+        end
+      end
+
+      def insert_newline(output)
+        output << "\n"
+        0
+      end
+
+      def insert_char(output, column, c, w)
+        if column == 0 && /[ \t]/ =~ c
+          column
+        else
+          output << c
+          column + w
+        end
       end
     end
   end
