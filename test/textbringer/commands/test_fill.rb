@@ -38,6 +38,25 @@ foo bar baz
 EOF
   end
 
+  def test_fill_region_japanese
+    set_mark_command
+    buffer.insert("あ" * 105)
+    fill_region
+    assert_equal(3.times.map { "あ" * 35 }.join("\n"), buffer.to_s)
+  end
+
+  def test_fill_region_join_japanese
+    set_mark_command
+    6.times do
+      buffer.insert("あ" * 10 + "\n")
+    end
+    fill_region
+    assert_equal(<<EOF, buffer.to_s)
+あああああああああああああああああああああああああああああああああああ
+あああああああああああああああああああああああああ
+EOF
+  end
+
   def test_fill_paragraph
     buffer.insert(<<EOF)
 ## WARNING
