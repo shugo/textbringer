@@ -26,6 +26,18 @@ APIs are undocumented and unstable.  There is no compatibility even in the same 
 EOF
   end
 
+  def test_fill_region_insert_space
+    set_mark_command
+    buffer.insert(<<EOF)
+foo bar
+baz
+EOF
+    fill_region
+    assert_equal(<<EOF, buffer.to_s)
+foo bar baz
+EOF
+  end
+
   def test_fill_paragraph
     buffer.insert(<<EOF)
 ## WARNING

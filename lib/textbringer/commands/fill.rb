@@ -42,13 +42,13 @@ module Textbringer
         fill_column = CONFIG[:fill_column]
         prev_c = nil
         while c = input.getc
-          if column < fill_column && c == "\n"
-            if /\w/ =~ prev_c
-              column = insert_space_between_words(input, output, column)
-            end
-            next
-          end
           if c == "\n"
+            if column < fill_column && !input.eof?
+              if /\w/ =~ prev_c
+                column = insert_space_between_words(input, output, column)
+              end
+              next
+            end
             column = insert_newline(output)
           else
             w = Buffer.display_width(c)
