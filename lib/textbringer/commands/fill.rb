@@ -11,10 +11,7 @@ module Textbringer
           pos = point
           beginning_of_line
           column = Buffer.display_width(substring(point, pos))
-          composite_edit do
-            delete_region(s, e)
-            insert(fill_string(str, column))
-          end
+          replace(fill_string(str, column), start: s, end: e)
         end
       end
 
