@@ -595,6 +595,10 @@ EOF
     assert_equal("bar", buffer.to_s)
     buffer.undo
     assert_equal("foo", buffer.to_s)
+
+    buffer = Buffer.new("foo bar baz")
+    buffer.replace("quux", start: 4, end: 7)
+    assert_equal("foo quux baz", buffer.to_s)
   end
 
   def test_clear

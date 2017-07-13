@@ -931,10 +931,11 @@ module Textbringer
       end
     end
 
-    def replace(s)
+    def replace(str, start: point_min, end: point_max)
       composite_edit do
-        delete_region(point_min, point_max)
-        insert(s)
+        delete_region(start, binding.local_variable_get(:end))
+        goto_char(start)
+        insert(str)
       end
     end
 
