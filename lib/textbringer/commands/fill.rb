@@ -18,6 +18,25 @@ module Textbringer
         end
       end
 
+      def fill_paragraph
+        beginning_of_line
+        while !beginning_of_buffer? &&
+            !looking_at?(/^[ \t]*$/)
+          backward_line
+        end 
+        while looking_at?(/^[ \t]*$/)
+          forward_line
+        end
+        s = point
+        begin
+          forward_line
+        end while !end_of_buffer? && !looking_at?(/^[ \t]*$/)
+        if beginning_of_line?
+          backward_char
+        end
+        fill_region(s, point)
+      end
+
       private
 
       def fill_string(str, column)
@@ -97,23 +116,7 @@ module Textbringer
 
     define_command(:fill_paragraph,
                    doc: "Fill paragraph.") do
-      buffer = Buffer.current
-      buffer.beginning_of_line
-      while !buffer.beginning_of_buffer? &&
-          !buffer.looking_at?(/^[ \t]*$/)
-        buffer.backward_line
-      end 
-      while buffer.looking_at?(/^[ \t]*$/)
-        buffer.forward_line
-      end
-      s = buffer.point
-      begin
-        buffer.forward_line
-      end while !buffer.end_of_buffer? && !buffer.looking_at?(/^[ \t]*$/)
-      if buffer.beginning_of_line?
-        buffer.backward_char
-      end
-      fill_region(s, buffer.point)
+      Buffer.current.fill_paragraph
     end
   end
 end
