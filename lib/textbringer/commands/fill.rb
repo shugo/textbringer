@@ -44,7 +44,7 @@ module Textbringer
         while c = input.getc
           if c == "\n"
             if column < fill_column && !input.eof?
-              if /\w/ =~ prev_c
+              if /(?=[\u{0000}-\u{00FF}])[[:graph:]]/ =~ prev_c
                 column = insert_space_between_words(input, output, column)
               end
               next
@@ -69,7 +69,7 @@ module Textbringer
       def insert_space_between_words(input, output, column)
         c = input.getc
         input.ungetc(c)
-        if /\w/ =~ c
+        if /(?=[\u{0000}-\u{00FF}])[[:graph:]]/ =~ c
           output << " "
           column + 1
         else
@@ -87,6 +87,7 @@ module Textbringer
       end
 
       def insert_newline(output)
+        output.sub!(/[ \t]\z/, "")
         output << "\n"
         0
       end

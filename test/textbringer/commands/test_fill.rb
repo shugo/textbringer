@@ -57,6 +57,57 @@ EOF
 EOF
   end
 
+  def test_fill_region_join_comma
+    set_mark_command
+    buffer.insert(<<EOF)
+foo bar,
+baz quux.
+EOF
+    fill_region
+    assert_equal(<<EOF, buffer.to_s)
+foo bar, baz quux.
+EOF
+  end
+
+  def test_fill_region_join_period
+    set_mark_command
+    buffer.insert(<<EOF)
+foo bar.
+baz quux.
+EOF
+    fill_region
+#    assert_equal(<<EOF, buffer.to_s)
+#foo bar.  baz quux.
+#EOF
+    assert_equal(<<EOF, buffer.to_s)
+foo bar. baz quux.
+EOF
+  end
+
+  def test_fill_region_join_comma_and_japanese
+    set_mark_command
+    buffer.insert(<<EOF)
+foo bar,
+ふがふが。
+EOF
+    fill_region
+    assert_equal(<<EOF, buffer.to_s)
+foo bar,ふがふが。
+EOF
+  end
+
+  def test_fill_region_join_period_and_japanese
+    set_mark_command
+    buffer.insert(<<EOF)
+foo bar.
+ふがふが。
+EOF
+    fill_region
+    assert_equal(<<EOF, buffer.to_s)
+foo bar.ふがふが。
+EOF
+  end
+
   def test_fill_paragraph
     buffer.insert(<<EOF)
 ## WARNING
@@ -73,9 +124,9 @@ EOF
 ## WARNING
 
 Textbringer is beta software, and you may lose your text.  Unsaved
-buffers will be dumped in ~/.textbringer/buffer_dump on crash.APIs are
-undocumented and unstable.  There is no compatibility even in the same
-minor versions.
+buffers will be dumped in ~/.textbringer/buffer_dump on crash. APIs
+are undocumented and unstable.  There is no compatibility even in the
+same minor versions.
 
 ## Installation
 EOF
