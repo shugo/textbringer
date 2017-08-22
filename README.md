@@ -9,6 +9,10 @@
 Textbringer is a member of a demon race that takes on the form of an Emacs-like
 text editor.
 
+## Screenshot
+
+![Screenshot](screenshot.png)
+
 ## Demo
 
 * FizzBuzz: https://asciinema.org/a/103357
