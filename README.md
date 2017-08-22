@@ -41,7 +41,11 @@ Install ncursesw before installing curses.gem, on which textbringer depends.
 
     $ textbringer
 
-You can quit the editor by C-x C-c.
+You can quit the editor by `Ctrl-x Ctrl-c`.
+
+Many commands and key bindings are similar to [Emacs](https://www.gnu.org/software/emacs/).
+
+Type `F1 b` or `Alt+x describe_bindings RET` to see key bindings.
 
 ## Configuration
 
