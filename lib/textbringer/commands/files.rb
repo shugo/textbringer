@@ -63,7 +63,7 @@ module Textbringer
       using the specified encoding.
       If the specified encoding is not valid, fall back to ASCII-8BIT.
     EOD
-      |encoding = read_from_minibuffer("File encoding: ")|
+      |encoding = read_encoding("File encoding: ")|
       unless yes_or_no?("Revert buffer from file?")
         message("Cancelled")
         next
@@ -104,8 +104,8 @@ module Textbringer
 
     define_command(:set_buffer_file_encoding,
                    doc: "Set the file encoding of the current buffer.") do
-      |enc = read_from_minibuffer("File encoding: ",
-                                  default: Buffer.current.file_encoding.name)|
+      |enc = read_encoding("File encoding: ",
+                           default: Buffer.current.file_encoding.name)|
       Buffer.current.file_encoding = enc
     end
 

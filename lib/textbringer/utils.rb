@@ -215,6 +215,13 @@ module Textbringer
       read_from_minibuffer(prompt, completion_proc: f)
     end
 
+    def read_encoding(prompt, **opts)
+      f = ->(s) {
+        complete_for_minibuffer(s.upcase, Encoding.list.map(&:name))
+      }
+      read_from_minibuffer(prompt, completion_proc: f, **opts)
+    end
+
     def yes_or_no?(prompt)
       loop {
         s = read_from_minibuffer(prompt + " (yes or no) ")
