@@ -194,7 +194,8 @@ module Textbringer
           end
         }
       }
-      file = read_from_minibuffer(prompt, completion_proc: f, default: default)
+      file = read_from_minibuffer(prompt, completion_proc: f,
+                                  initial_value: default)
       File.expand_path(file)
     end
 
