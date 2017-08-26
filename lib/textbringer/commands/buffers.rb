@@ -119,6 +119,14 @@ module Textbringer
       Buffer.current.newline
     end
 
+    define_command(:open_line,
+                   doc: "Insert a newline leaving point before it.") do
+      buffer = Buffer.current
+      buffer.save_excursion do
+        buffer.newline
+      end
+    end
+
     define_command(:delete_region,
                    doc: "Delete the region without copying.") do
       Buffer.current.delete_region

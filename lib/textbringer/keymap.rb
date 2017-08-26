@@ -135,6 +135,7 @@ module Textbringer
   GLOBAL_MAP.define_key("\C-t", :transpose_chars)
   GLOBAL_MAP.define_key("\C-j", :newline)
   GLOBAL_MAP.define_key("\C-m", :newline)
+  GLOBAL_MAP.define_key("\C-o", :open_line)
   GLOBAL_MAP.define_key("\em", :back_to_indentation)
   GLOBAL_MAP.define_key("\e^", :delete_indentation)
   GLOBAL_MAP.define_key("\C-l", :recenter)
