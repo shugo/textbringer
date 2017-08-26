@@ -1,11 +1,7 @@
 ## 0.2.5
 
-* Add the following new commands:
-    * fill_paragraph
-    * fill_region
-    * open_line
-* Complete encoding names in set_buffer_file_encoding and
-  revert_buffer_with_encoding.
+* Add next_tick!.
+* Add Buffer#replace.
 
 ## 0.2.4
 
