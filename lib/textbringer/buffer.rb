@@ -42,7 +42,20 @@ module Textbringer
 
     NKF_DETECT_ENCODING = ->(s) {
       e = NKF.guess(s)
-      e == Encoding::US_ASCII ? Encoding::UTF_8 : e
+      case e
+      when Encoding::US_ASCII
+        Encoding::UTF_8
+      when Encoding::ASCII_8BIT
+        s.force_encoding(Encoding::UTF_8)
+        if s.valid_encoding?
+          Encoding::UTF_8
+        else
+          s.force_encoding(Encoding::ASCII_8BIT)
+          Encoding::ASCII_8BIT
+        end
+      else
+        e
+      end
     }
 
     @@detect_encoding_proc = DEFAULT_DETECT_ENCODING
