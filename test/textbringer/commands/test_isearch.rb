@@ -146,4 +146,20 @@ EOF
     end
     assert_equal(nil, Controller.current.overriding_map)
   end
+
+  def test_isearch_yank_word_or_char
+    buffer = Buffer.current
+    buffer.insert(<<EOF)
+foo
+bar-baz
+bar-quux
+bar-baz
+bar-quux
+EOF
+    buffer.beginning_of_buffer
+    push_keys("bar\C-w\C-w\C-s\n")
+    isearch_forward(recursive_edit: true)
+    assert_equal(4, buffer.current_line)
+    assert_equal(8, buffer.current_column)
+  end
 end
