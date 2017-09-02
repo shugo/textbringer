@@ -18,6 +18,7 @@ module Textbringer
     ISEARCH_MODE_MAP.define_key(?\C-h, :isearch_delete_char)
     ISEARCH_MODE_MAP.define_key(?\C-s, :isearch_repeat_forward)
     ISEARCH_MODE_MAP.define_key(?\C-r, :isearch_repeat_backward)
+    ISEARCH_MODE_MAP.define_key(?\C-w, :isearch_yank_word_or_char)
     ISEARCH_MODE_MAP.define_key(?\C-m, :isearch_exit)
     ISEARCH_MODE_MAP.define_key(?\C-g, :isearch_abort)
     
@@ -103,6 +104,16 @@ module Textbringer
       EOD
       ISEARCH_STATUS[:string].chop!
       isearch_search
+    end
+
+    define_command(:isearch_yank_word_or_char, doc: <<~EOD) do
+        Yank next word or character onto the end of the search string.
+      EOD
+      buffer = Buffer.current
+      if buffer.looking_at?(/(\p{Letter}|\p{Number})+|\s+|./)
+        ISEARCH_STATUS[:string].concat(buffer.match_string(0))
+        isearch_search
+      end
     end
 
     def isearch_search
