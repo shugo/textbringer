@@ -14,5 +14,5 @@ environment:
   UPLOAD_TO_CODECOV: 1
   SSL_CERT_FILE: C:\projects\textbringer\cacert.pem
   matrix:
+    - ruby_version: "23"
     - ruby_version: "23-x64"
-    - ruby_version: "23-x86"
