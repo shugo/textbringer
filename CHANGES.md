@@ -1,3 +1,7 @@
+## 0.2.7
+
+* Add isearch_yank_word_or_char.
+
 ## 0.2.6
 
 * Add the following new commands:
