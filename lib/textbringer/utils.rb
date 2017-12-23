@@ -311,7 +311,7 @@ module Textbringer
 
     HOOKS = Hash.new { |h, k| h[k] = [] }
 
-    def add_hook(name, func)
+    def add_hook(name, func = Proc.new)
       HOOKS[name].unshift(func)
     end
 
