@@ -354,8 +354,7 @@ module Textbringer
       @highlight_on = {}
       @highlight_off = {}
       return if !@@has_colors || !CONFIG[:syntax_highlight] || @buffer.binary?
-      syntax_table = @buffer.mode.syntax_table
-      return if syntax_table.empty?
+      syntax_table = @buffer.mode.syntax_table || DEFAULT_SYNTAX_TABLE
       if @buffer.bytesize < CONFIG[:highlight_buffer_size_limit]
         base_pos = @buffer.point_min
         s = @buffer.to_s

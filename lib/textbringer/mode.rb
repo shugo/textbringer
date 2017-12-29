@@ -6,6 +6,10 @@ module Textbringer
     include Commands
     
     @@mode_list = []
+
+    DEFAULT_SYNTAX_TABLE = {
+      tab: /\t+/
+    }
     
     def self.list
       @@mode_list
@@ -61,7 +65,7 @@ module Textbringer
         Buffer.current.apply_mode(child)
       end
       @@mode_list.push(child)
-      child.instance_variable_set(:@syntax_table, {})
+      child.instance_variable_set(:@syntax_table, DEFAULT_SYNTAX_TABLE.dup)
     end
 
     attr_reader :buffer
