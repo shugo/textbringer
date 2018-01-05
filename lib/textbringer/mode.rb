@@ -8,7 +8,7 @@ module Textbringer
     @@mode_list = []
 
     DEFAULT_SYNTAX_TABLE = {
-      tab: /\t+/
+      control: /[\0-\t\v-\x1f\x7f]+/
     }
     
     def self.list
