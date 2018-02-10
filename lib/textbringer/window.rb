@@ -363,6 +363,7 @@ module Textbringer
         len = columns * (lines - 1) / 2 * 3
         s = @buffer.substring(@buffer.point, @buffer.point + len).scrub("")
       end
+      return if !s.valid_encoding?
       re_str = syntax_table.map { |name, re|
         "(?<#{name}>#{re})"
       }.join("|")
@@ -676,6 +677,9 @@ module Textbringer
     end
 
     def escape(s)
+      if !s.valid_encoding?
+        s = s.b
+      end
       if @buffer.binary?
         s.gsub(/[\0-\b\v-\x1f\x7f]/) { |c|
           "^" + (c.ord ^ 0x40).chr
