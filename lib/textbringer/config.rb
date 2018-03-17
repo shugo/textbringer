@@ -13,7 +13,7 @@ module Textbringer
     global_mark_ring_max: 16,
     window_min_height: 4,
     syntax_highlight: true,
-    highlight_buffer_size_limit: 102400,
+    highlight_buffer_size_limit: 1024,
     shell_file_name: ENV["SHELL"],
     shell_command_switch: "-c",
     grep_command: "grep -nH -e",
