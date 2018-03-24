@@ -31,7 +31,12 @@ module Textbringer
         @map[key_sequence.first]
       else
         k, *ks = key_sequence
-        @map[k]&.lookup(ks)
+        km = @map[k]
+        if km.is_a?(Keymap)
+          km.lookup(ks)
+        else
+          nil
+        end
       end
     end
 
