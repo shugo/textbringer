@@ -234,12 +234,12 @@ module Textbringer
               break
             end
           end
+          @buffer.looking_at?(/[ \t]*/)
+          base_indentation = @buffer.match_string(0).
+            gsub(/\t/, " " * @buffer[:tab_width]).size
         else
-          @buffer.backward_line
+          base_indentation = 0
         end
-        @buffer.looking_at?(/[ \t]*/)
-        base_indentation = @buffer.match_string(0).
-          gsub(/\t/, " " * @buffer[:tab_width]).size
         @buffer.goto_char(bol_pos)
         if line.nil? ||
           @buffer.looking_at?(/[ \t]*([}\])]|(end|else|elsif|when|rescue|ensure)\b)/)

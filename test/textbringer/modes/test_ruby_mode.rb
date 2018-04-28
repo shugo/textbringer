@@ -310,6 +310,20 @@ def foo
 end
 EOF
   end
+
+  def test_indent_line_at_toplevel
+    @buffer.insert(<<EOF.chop)
+foo(bar,
+    baz)
+    quux
+EOF
+    @ruby_mode.indent_line
+    assert_equal(<<EOF.chop, @buffer.to_s)
+foo(bar,
+    baz)
+quux
+EOF
+  end
   
   def test_reindent_then_newline_and_indent
     @buffer.insert(<<EOF.chop)
