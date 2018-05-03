@@ -1,3 +1,7 @@
+## 0.2.8
+
+* Highlight control characters.
+
 ## 0.2.7
 
 * Add isearch_yank_word_or_char.
