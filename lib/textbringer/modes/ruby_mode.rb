@@ -151,7 +151,7 @@ module Textbringer
           prefix = File.exist?("Gemfile") ? "bundle exec " : ""
           prefix + "rake"
         elsif @buffer.file_name
-          "ruby " + @buffer.file_name
+          ruby_install_name + " " + @buffer.file_name
         else
           nil
         end
