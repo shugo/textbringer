@@ -107,7 +107,7 @@ module Textbringer
     using FillExtension
 
     define_command(:fill_region,
-                   doc: "Fill paragraph.") do
+                   doc: "Fill region.") do
       |s = Buffer.current.point, e = Buffer.current.mark|
       Buffer.current.fill_region(s, e)
     end
