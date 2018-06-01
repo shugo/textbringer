@@ -418,6 +418,19 @@ EOF
     end
   end
 
+  def test_list_buffers
+    Buffer.new_buffer("foo")
+    Buffer.new_buffer("bar")
+    list_buffers
+    assert_equal("*Buffer List*", Buffer.current.name)
+    assert_equal(<<~EOF.chomp, Buffer.current.to_s)
+      *scratch*
+      foo
+      bar
+      *Buffer List*
+    EOF
+  end
+
   def test_bury_buffer
     scratch = Buffer["*scratch*"]
     bury_buffer
