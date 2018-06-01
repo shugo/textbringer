@@ -158,6 +158,7 @@ module Textbringer
   GLOBAL_MAP.define_key("\C-z", :suspend_textbringer)
   GLOBAL_MAP.define_key("\C-x\C-f", :find_file)
   GLOBAL_MAP.define_key("\C-xb", :switch_to_buffer)
+  GLOBAL_MAP.define_key("\C-x\C-b", :list_buffers)
   GLOBAL_MAP.define_key("\C-x\C-s", :save_buffer)
   GLOBAL_MAP.define_key("\C-x\C-w", :write_file)
   GLOBAL_MAP.define_key("\C-xk", :kill_buffer)

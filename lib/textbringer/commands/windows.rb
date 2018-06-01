@@ -82,6 +82,20 @@ module Textbringer
       end
     end
 
+    define_command(:list_buffers, doc: <<~EOD) do
+        List the existing buffers.
+      EOD
+      buffer = Buffer.find_or_new("*Buffer List*",
+                                  undo_limit: 0, read_only: true)
+      buffer.apply_mode(BufferListMode)
+      buffer.read_only_edit do
+        buffer.clear
+        buffer.insert(Buffer.list.map(&:name).join("\n"))
+        buffer.beginning_of_buffer
+      end
+      switch_to_buffer(buffer)
+    end
+
     define_command(:bury_buffer, doc: <<~EOD) do
         Put buffer at the end of the buffer list.
       EOD
