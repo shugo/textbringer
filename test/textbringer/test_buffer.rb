@@ -1901,4 +1901,16 @@ Bar
 Baz
 EOF
   end
+
+  def test_looking_at?
+    buffer = Buffer.new(<<EOF.chomp)
+foo
+bar
+baz
+EOF
+    buffer.end_of_buffer
+    buffer.beginning_of_line
+    assert_equal(true, buffer.looking_at?(/.*/))
+    assert_equal("baz", buffer.match_string(0))
+  end
 end

@@ -58,13 +58,15 @@ module Textbringer
       end
     }
 
-    @@detect_encoding_proc = DEFAULT_DETECT_ENCODING
+    if !defined?(@@detect_encoding_proc)
+      @@detect_encoding_proc = DEFAULT_DETECT_ENCODING
 
-    @@table = {}
-    @@list = []
-    @@current = nil
-    @@minibuffer = nil
-    @@global_mark_ring = nil
+      @@table = {}
+      @@list = []
+      @@current = nil
+      @@minibuffer = nil
+      @@global_mark_ring = nil
+    end
 
     def self.auto_detect_encodings
       @@auto_detect_encodings
@@ -1104,14 +1106,15 @@ module Textbringer
       @match_offsets = []
       method = forward ? :index : :rindex
       adjust_gap(0, point_max)
+      s = @contents[0...@gap_start]
       if @binary
         offset = pos
       else
-        offset = @contents[0...pos].force_encoding(Encoding::UTF_8).size
-        @contents.force_encoding(Encoding::UTF_8)
+        offset = s.byteslice(0, pos).force_encoding(Encoding::UTF_8).size
+        s.force_encoding(Encoding::UTF_8)
       end
       begin
-        i = @contents.send(method, re, offset)
+        i = s.send(method, re, offset)
         if i
           m = Regexp.last_match
           if m.nil?
@@ -1143,8 +1146,6 @@ module Textbringer
         else
           nil
         end
-      ensure
-        @contents.force_encoding(Encoding::ASCII_8BIT)
       end
     end
 
