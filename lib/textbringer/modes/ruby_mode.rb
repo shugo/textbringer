@@ -200,6 +200,10 @@ module Textbringer
 
     private
 
+    def space_width(s)
+      s.gsub(/\t/, " " * @buffer[:tab_width]).size
+    end
+
     def calculate_indentation
       if @buffer.current_line == 1
         return 0
@@ -207,8 +211,18 @@ module Textbringer
       @buffer.save_excursion do
         @buffer.beginning_of_line
         bol_pos = @buffer.point
-        tokens = Ripper.lex(@buffer.substring(@buffer.point_min,
-                                              @buffer.point))
+        if @buffer.re_search_backward(/^([ \t]*).*<<\w/,
+                                      raise_error: false) ||
+            @buffer.re_search_backward(/^([ \t]*)(class|module|def|end)\b/,
+                                       raise_error: false)
+          base_indentation = space_width(@buffer.match_string(1))
+        else
+          @buffer.beginning_of_buffer
+          base_indentation = 0
+        end
+        start_pos = @buffer.point
+        start_line = @buffer.current_line
+        tokens = Ripper.lex(@buffer.substring(start_pos, bol_pos))
         _, event, text = tokens.last
         if event == :on_tstring_beg ||
             event == :on_heredoc_beg ||
@@ -222,7 +236,7 @@ module Textbringer
           return column + 1
         end
         if line
-          @buffer.goto_line(line)
+          @buffer.goto_line(start_line - 1 + line)
           while !@buffer.beginning_of_buffer?
             if @buffer.save_excursion {
               @buffer.backward_char
@@ -235,17 +249,16 @@ module Textbringer
             end
           end
           @buffer.looking_at?(/[ \t]*/)
-          base_indentation = @buffer.match_string(0).
-            gsub(/\t/, " " * @buffer[:tab_width]).size
-        else
-          base_indentation = 0
+          base_indentation = space_width(@buffer.match_string(0))
         end
         @buffer.goto_char(bol_pos)
-        if line.nil? ||
-          @buffer.looking_at?(/[ \t]*([}\])]|(end|else|elsif|when|rescue|ensure)\b)/)
+        if line.nil?
           indentation = base_indentation
         else
           indentation = base_indentation + @buffer[:indent_level]
+        end
+        if @buffer.looking_at?(/[ \t]*([}\])]|(end|else|elsif|when|rescue|ensure)\b)/)
+          indentation -= @buffer[:indent_level]
         end
         _, last_event, last_text = tokens.reverse_each.find { |_, e, _|
           e != :on_sp && e != :on_nl && e != :on_ignored_nl

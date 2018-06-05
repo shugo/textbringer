@@ -179,9 +179,15 @@ EOF
     }
 quux
 EOF
-    assert_raise(EditorError) do
-      @ruby_mode.indent_line
-    end
+    @ruby_mode.indent_line
+    assert_equal(<<EOF.chop, @buffer.to_s)
+  def foo
+    bar do
+      baz {
+      end
+    }
+      quux
+EOF
   end
   
   def test_indent_line_unmatch_2
@@ -193,9 +199,15 @@ EOF
     end
 quux
 EOF
-    assert_raise(EditorError) do
-      @ruby_mode.indent_line
+    @ruby_mode.indent_line
+    assert_equal(<<EOF.chop, @buffer.to_s)
+  def foo
+    bar {
+      baz do
+      }
     end
+    quux
+EOF
   end
   
   def test_indent_line_multiline_args
