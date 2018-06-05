@@ -211,7 +211,7 @@ module Textbringer
       @buffer.save_excursion do
         @buffer.beginning_of_line
         bol_pos = @buffer.point
-        if @buffer.re_search_backward(/^([ \t]*).*<<\w/,
+        if @buffer.re_search_backward(/^([ \t]*).*<<[\-~]?['"`]?[_a-zA-Z\u{0100}-\u{10ffff}]/,
                                       raise_error: false) ||
             @buffer.re_search_backward(/^([ \t]*)(class|module|def|end)\b/,
                                        raise_error: false)
