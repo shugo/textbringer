@@ -200,8 +200,25 @@ module Textbringer
 
     private
 
+    INDENT_BEG_RE = /^([ \t]*)(class|module|def|if|unless|case|while|until|for|begin|end)\b/
+
     def space_width(s)
       s.gsub(/\t/, " " * @buffer[:tab_width]).size
+    end
+
+    def beginning_of_indentation
+      loop do
+        @buffer.re_search_backward(INDENT_BEG_RE)
+        space = @buffer.match_string(1)
+        s = @buffer.substring(@buffer.point_min, @buffer.point)
+        if PartialLiteralAnalyzer.in_literal?(s)
+          next
+        end
+        return space_width(space)
+      end
+    rescue SearchError
+      @buffer.beginning_of_buffer
+      0
     end
 
     def calculate_indentation
@@ -211,15 +228,7 @@ module Textbringer
       @buffer.save_excursion do
         @buffer.beginning_of_line
         bol_pos = @buffer.point
-        if @buffer.re_search_backward(/^([ \t]*).*<<[\-~]?['"`]?[_a-zA-Z\u{0100}-\u{10ffff}]/,
-                                      raise_error: false) ||
-            @buffer.re_search_backward(/^([ \t]*)(class|module|def|end)\b/,
-                                       raise_error: false)
-          base_indentation = space_width(@buffer.match_string(1))
-        else
-          @buffer.beginning_of_buffer
-          base_indentation = 0
-        end
+        base_indentation = beginning_of_indentation
         start_pos = @buffer.point
         start_line = @buffer.current_line
         tokens = Ripper.lex(@buffer.substring(start_pos, bol_pos))
@@ -318,6 +327,33 @@ module Textbringer
         end
       end
       return nil
+    end
+
+    class PartialLiteralAnalyzer < Ripper
+      def self.in_literal?(src)
+        new(src).in_literal?
+      end
+
+      def in_literal?
+        @literal_level = 0
+        parse
+        @literal_level > 0
+      end
+
+      private
+
+      %w(embdoc heredoc tstring regexp
+      symbols qsymbols words qwords).each do |name|
+        define_method("on_#{name}_beg") do |token|
+          @literal_level += 1
+        end
+      end
+
+      %w(embdoc heredoc tstring regexp).each do |name|
+        define_method("on_#{name}_end") do |token|
+          @literal_level -= 1
+        end
+      end
     end
   end
 end
