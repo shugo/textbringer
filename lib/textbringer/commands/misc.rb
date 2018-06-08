@@ -330,5 +330,13 @@ module Textbringer
                                   initial_value: CONFIG[:grep_command] + " ")|
       shell_execute(cmd, buffer_name: "*grep*", mode: BacktraceMode)
     end
+
+    define_command(:jit_pause) do
+      RubyVM::MJIT.pause
+    end
+
+    define_command(:jit_resume) do
+      RubyVM::MJIT.resume
+    end
   end
 end
