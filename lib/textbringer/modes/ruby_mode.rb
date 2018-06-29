@@ -200,7 +200,7 @@ module Textbringer
 
     private
 
-    INDENT_BEG_RE = /^([ \t]*)(class|module|def|if|unless|case|while|until|for|begin|end)\b/
+    INDENT_BEG_RE = /^([ \t]*)((class|module|def|if|unless|case|while|until|for|begin|end)\b|\})/
 
     def space_width(s)
       s.gsub(/\t/, " " * @buffer[:tab_width]).size
