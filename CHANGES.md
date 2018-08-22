@@ -1,3 +1,10 @@
+## 0.2.9
+
+* Add the following new commands:
+    * list_buffers
+    * jit_pause
+    * jit_resume
+
 ## 0.2.8
 
 * Highlight control characters.
