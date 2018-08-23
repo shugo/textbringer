@@ -275,8 +275,8 @@ module Textbringer
         }
         if (last_event == :on_op && last_text != "|") ||
             last_event == :on_period ||
-            (last_event == :on_comma &&
-             event != :on_lbrace && event != :on_lbracket)
+            (last_event == :on_comma && event != :on_lbrace &&
+             event != :on_lparen && event != :on_lbracket)
           indentation += @buffer[:indent_level]
         end
         indentation

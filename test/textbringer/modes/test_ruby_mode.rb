@@ -101,6 +101,20 @@ foo(
 EOF
   end
 
+  def test_indent_line_paren_with_newline_and_comma
+    @buffer.insert(<<EOF.chop)
+foo(
+  123,
+456
+EOF
+    @ruby_mode.indent_line
+    assert_equal(<<EOF.chop, @buffer.to_s)
+foo(
+  123,
+  456
+EOF
+  end
+
   def test_indent_line_modifier
     @buffer.insert(<<EOF)
 def foo(x)
