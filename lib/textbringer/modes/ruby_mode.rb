@@ -240,8 +240,9 @@ module Textbringer
             event == :on_tstring_content
           return nil
         end
-        line, column, event, = find_nearest_beginning_token(tokens)
-        if event == :on_lparen
+        i = find_nearest_beginning_token(tokens)
+        (line, column), event, = i ? tokens[i] : nil
+        if event == :on_lparen && tokens.dig(i + 1, 1) != :on_ignored_nl
           return column + 1
         end
         if line
@@ -291,7 +292,7 @@ module Textbringer
     def find_nearest_beginning_token(tokens)
       stack = []
       (tokens.size - 1).downto(0) do |i|
-        (line, column), event, text = tokens[i]
+        (line, ), event, text = tokens[i]
         case event
         when :on_kw
           _, prev_event, _ = tokens[i - 1]
@@ -305,7 +306,7 @@ module Textbringer
               next if t && !(t[1] == :on_op && t[2] == "=")
             end
             if stack.empty?
-              return line, column, event, text
+              return i
             end
             if stack.last != "end"
               raise EditorError, "#{@buffer.name}:#{line}: Unmatched #{text}"
@@ -318,7 +319,7 @@ module Textbringer
           stack.push(text)
         when :on_lbrace, :on_lparen, :on_lbracket, :on_tlambeg
           if stack.empty?
-            return line, column, event, text
+            return i
           end
           if stack.last != BLOCK_END[text]
             raise EditorError, "#{@buffer.name}:#{line}: Unmatched #{text}"
