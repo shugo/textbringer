@@ -146,6 +146,18 @@ f = ->(x, y) {
 EOF
   end
   
+  def test_indent_line_method_chain
+    @buffer.insert(<<EOF.chop)
+foo
+.baz
+EOF
+    @ruby_mode.indent_line
+    assert_equal(<<EOF.chop, @buffer.to_s)
+foo
+  .baz
+EOF
+  end
+  
   def test_indent_line_op_cont
     @buffer.insert(<<EOF.chop)
 foo = bar +

@@ -227,6 +227,7 @@ module Textbringer
       end
       @buffer.save_excursion do
         @buffer.beginning_of_line
+        start_with_period = @buffer.looking_at?(/[ \t]*\./)
         bol_pos = @buffer.point
         base_indentation = beginning_of_indentation
         start_pos = @buffer.point
@@ -273,7 +274,8 @@ module Textbringer
         _, last_event, last_text = tokens.reverse_each.find { |_, e, _|
           e != :on_sp && e != :on_nl && e != :on_ignored_nl
         }
-        if (last_event == :on_op && last_text != "|") ||
+        if start_with_period ||
+            (last_event == :on_op && last_text != "|") ||
             last_event == :on_period ||
             (last_event == :on_comma && event != :on_lbrace &&
              event != :on_lparen && event != :on_lbracket)
