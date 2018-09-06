@@ -556,6 +556,7 @@ EOF
         FileUtils.mkdir_p("app/models/")
         FileUtils.touch("app/models/sword.rb")
         FileUtils.touch("app/models/shield.rb")
+        FileUtils.touch("app/models/armor.rb")
         FileUtils.mkdir_p("lib/roles")
         FileUtils.touch("lib/roles/fighter.rb")
         FileUtils.touch("lib/roles/monk.rb")
@@ -567,6 +568,8 @@ EOF
         FileUtils.touch("test/roles/test_fighter.rb")
         FileUtils.touch("test/test_monk.rb")
         FileUtils.touch("test/roles/test_white_mage.rb")
+        FileUtils.mkdir_p("spec/models")
+        FileUtils.touch("spec/models/armor_spec.rb")
 
         find_file("app/models/sword.rb")
         assert_equal(File.expand_path("app/models/sword.rb"),
@@ -596,6 +599,16 @@ EOF
         assert_raise(EditorError) do
           toggle_test_command
         end
+
+        find_file("app/models/armor.rb")
+        assert_equal(File.expand_path("app/models/armor.rb"),
+                     Buffer.current.file_name)
+        toggle_test_command
+        assert_equal(File.expand_path("spec/models/armor_spec.rb"),
+                     Buffer.current.file_name)
+        toggle_test_command
+        assert_equal(File.expand_path("app/models/armor.rb"),
+                     Buffer.current.file_name)
 
         find_file("foo")
         ruby_mode

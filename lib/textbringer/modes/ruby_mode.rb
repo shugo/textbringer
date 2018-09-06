@@ -160,39 +160,14 @@ module Textbringer
     def toggle_test
       case @buffer.file_name
       when %r'(.*)/test/(.*/)?test_(.*?)\.rb\z'
-        base = $1
-        namespace = $2
-        name = $3
-        if namespace
-          paths = Dir.glob("#{base}/{lib,app}/**/#{namespace}#{name}.rb")
-          if !paths.empty?
-            find_file(paths.first)
-            return
-          end
-        end
-        paths = Dir.glob("#{base}/{lib,app}/**/#{name}.rb")
-        if !paths.empty?
-          find_file(paths.first)
-          return
-        end
-        raise EditorError, "Test subject not found"
+        path = find_test_target_path($1, $2, $3)
+        find_file(path)
+      when %r'(.*)/spec/(.*/)?(.*?)_spec\.rb\z'
+        path = find_test_target_path($1, $2, $3)
+        find_file(path)
       when %r'(.*)/(?:lib|app)/(.*/)?(.*?)\.rb\z'
-        base = $1
-        namespace = $2
-        name = $3
-        if namespace
-          paths = Dir.glob("#{base}/test/**/#{namespace}test_#{name}.rb")
-          if !paths.empty?
-            find_file(paths.first)
-            return
-          end
-        end
-        paths = Dir.glob("#{base}/test/**/test_#{name}.rb")
-        if !paths.empty?
-          find_file(paths.first)
-          return
-        end
-        raise EditorError, "Test not found"
+        path = find_test_path($1, $2, $3)
+        find_file(path)
       else
         raise EditorError, "Unknown file type"
       end
@@ -332,6 +307,34 @@ module Textbringer
       return nil
     end
 
+    def find_test_target_path(base, namespace, name)
+      patterns = []
+      if namespace
+        patterns.push("#{base}/{lib,app}/**/#{namespace}#{name}.rb")
+      end
+      patterns.push("#{base}/{lib,app}/**/#{name}.rb")
+      find_first_path(patterns) or raise EditorError, "Test target not found"
+    end
+
+    def find_test_path(base, namespace, name)
+      patterns = []
+      if namespace
+        patterns.push("#{base}/test/**/#{namespace}test_#{name}.rb")
+        patterns.push("#{base}/spec/**/#{namespace}#{name}_spec.rb")
+      end
+      patterns.push("#{base}/test/**/test_#{name}.rb")
+      patterns.push("#{base}/spec/**/#{name}_spec.rb")
+      find_first_path(patterns) or raise EditorError, "Test not found"
+    end
+
+    def find_first_path(patterns)
+      patterns.each do |pattern|
+        paths = Dir.glob(pattern)
+        return paths.first if !paths.empty?
+      end
+      nil
+    end
+    
     class PartialLiteralAnalyzer < Ripper
       def self.in_literal?(src)
         new(src).in_literal?
