@@ -1,3 +1,8 @@
+## 0.3.0
+
+* toggle_test_command supports RSpec now.
+* Improve auto indentation in the Ruby mode.
+
 ## 0.2.9
 
 * Add the following new commands:
