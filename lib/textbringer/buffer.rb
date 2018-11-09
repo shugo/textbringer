@@ -1328,7 +1328,15 @@ module Textbringer
     end
 
     def gsub(*args, &block)
-      s = to_s.gsub(*args, &block)
+      if block
+        s = to_s.gsub(*args) { |*params|
+          set_block_backref(block, $~)
+          block.call(*params)
+        }
+      else
+        s = to_s.gsub(*args)
+      end
+
       composite_edit do
         delete_region(point_min, point_max)
         insert(s)
@@ -1538,6 +1546,17 @@ module Textbringer
     def fire_callbacks(name)
       @callbacks[name]&.each do |callback|
         callback.call(self)
+      end
+    end
+
+    def set_block_backref(block, backref)
+      Thread.current[:__textbringer_backref] = backref
+      begin
+        block.binding.eval(<<-EOC)
+          $~ = Thread.current[:__textbringer_backref]
+        EOC
+      ensure
+        Thread.current[:__textbringer_backref] = nil
       end
     end
   end

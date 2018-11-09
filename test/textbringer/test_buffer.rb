@@ -1902,6 +1902,20 @@ Baz
 EOF
   end
 
+  def test_gsub_with_block
+    buffer = Buffer.new(<<EOF)
+foo
+bar
+baz
+EOF
+    assert_equal(buffer, buffer.gsub(/b(.*)/) { "B#$1" })
+    assert_equal(<<EOF, buffer.to_s)
+foo
+Bar
+Baz
+EOF
+  end
+
   def test_looking_at?
     buffer = Buffer.new(<<EOF.chomp)
 foo
