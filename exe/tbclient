@@ -8,7 +8,7 @@ wait = true
 uri = "drbunix:" + File.expand_path("server.sock", "~/.textbringer")
 
 opt = OptionParser.new
-opt.on('--uri') do |val|
+opt.on('--uri URI') do |val|
   uri = val
 end
 opt.on('-e', '--eval') do
