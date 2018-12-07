@@ -8,19 +8,20 @@ wait = true
 uri = "drbunix:" + File.expand_path("server.sock", "~/.textbringer")
 
 opt = OptionParser.new
-opt.on('--uri URI') do |val|
+opt.banner = "Usage: tbclient [OPTIONS] FILE"
+opt.on("--uri URI", "Specify the URI of the server") do |val|
   uri = val
 end
-opt.on('-e', '--eval') do
+opt.on("-e", "--eval", "Evaluate FILE as a Ruby expression") do
   eval = true
 end
-opt.on('-n', '--no-wait') do
+opt.on("-n", "--no-wait", "Don't wait for the server") do
   wait = false
 end
 args = ARGV.dup
 opt.parse!(args)
 if args.empty?
-  STDERR.puts("Usage: tbclient filename")
+  STDERR.puts(opt.help)
   exit 1
 end
 arg = args.first
@@ -28,6 +29,6 @@ tb = DRbObject.new_with_uri(uri)
 if eval
   tb.eval(arg)
 else
-  tb.visit_file(arg, wait: wait)
+  tb.visit_file(File.expand_path(arg), wait: wait)
 end
 
