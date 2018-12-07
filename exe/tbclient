@@ -1,0 +1,33 @@
+#!/usr/bin/env ruby
+
+require "drb"
+require "optparse"
+
+eval = false
+wait = true
+uri = "drbunix:" + File.expand_path("server.sock", "~/.textbringer")
+
+opt = OptionParser.new
+opt.on('--uri') do |val|
+  uri = val
+end
+opt.on('-e', '--eval') do
+  eval = true
+end
+opt.on('-n', '--no-wait') do
+  wait = false
+end
+args = ARGV.dup
+opt.parse!(args)
+if args.empty?
+  STDERR.puts("Usage: tbclient filename")
+  exit 1
+end
+arg = args.first
+tb = DRbObject.new_with_uri(uri)
+if eval
+  tb.eval(arg)
+else
+  tb.visit_file(arg, wait: wait)
+end
+
