@@ -36,12 +36,13 @@ module Textbringer
     def execute_command(mid, *args)
       foreground do
         Commands.send(mid, *args)
+        nil
       end
     end
 
     def eval(s)
       foreground do
-        Controller.current.instance_eval(s)
+        Controller.current.instance_eval(s).inspect
       end
     end
 
@@ -58,8 +59,11 @@ module Textbringer
 
     def foreground
       next_tick! do
-        yield
-        Window.redisplay
+        begin
+          yield
+        ensure
+          Window.redisplay
+        end
       end
     end
   end

@@ -27,7 +27,7 @@ end
 arg = args.first
 tb = DRbObject.new_with_uri(uri)
 if eval
-  tb.eval(arg)
+  puts tb.eval(arg)
 else
   tb.visit_file(File.expand_path(arg), wait: wait)
 end
