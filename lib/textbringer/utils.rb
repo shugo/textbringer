@@ -54,20 +54,22 @@ module Textbringer
         begin
           yield
         rescue Exception => e
-          next_tick do
+          foreground do
             raise e
           end
         end
       end
     end
 
-    def next_tick(&block)
+    def foreground(&block)
       Controller.current.next_tick(&block)
     end
 
-    def next_tick!
+    alias next_tick foreground
+
+    def foreground!
       q = Queue.new
-      next_tick do
+      foreground do
         begin
           result = yield
           q.push([:ok, result])
@@ -82,6 +84,8 @@ module Textbringer
         value
       end
     end
+
+    alias next_tick! foreground!
 
     def read_event
       Controller.current.read_event
