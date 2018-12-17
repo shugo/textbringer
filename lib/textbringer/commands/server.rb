@@ -9,7 +9,7 @@ module Textbringer
       uri = CONFIG[:server_uri] ||
         "drbunix:" + File.expand_path("server.sock", "~/.textbringer")
       options = CONFIG[:server_options] || { UNIXFileMode: 0600 }
-      DRb.start_service(uri, Proxy.new, options)
+      DRb.start_service(uri, Server.new, options)
     end
 
     define_command(:server_kill,
@@ -32,23 +32,16 @@ module Textbringer
     end
   end
 
-  class Proxy
-    def execute_command(mid, *args)
-      foreground do
-        Commands.send(mid, *args)
-        nil
-      end
-    end
-
+  class Server
     def eval(s)
-      foreground do
+      redisplay do
         Controller.current.instance_eval(s).inspect
       end
     end
 
     def visit_file(filename, wait: true)
       queue = Queue.new if wait
-      foreground do
+      redisplay do
         find_file(filename)
         Buffer.current[:client_wait_queue] = queue if wait
       end
@@ -57,8 +50,8 @@ module Textbringer
 
     private
 
-    def foreground
-      next_tick! do
+    def redisplay
+      foreground! do
         begin
           yield
         ensure
