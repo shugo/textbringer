@@ -4,6 +4,7 @@ require "nkf"
 require "unicode/display_width"
 require "json"
 require "fileutils"
+require "editorconfig"
 
 module Textbringer
   class Buffer
@@ -398,6 +399,13 @@ module Textbringer
         raise EditorError, "File name is not set"
       end
       file_name = File.expand_path(file_name)
+      config = EditorConfig.load_file(file_name)
+      if config["trim_trailing_whitespace"]
+        trim_trailing_whitespace
+      end
+      if config["insert_final_newline"]
+        insert_final_newline
+      end
       begin
         File.open(file_name, "w",
                   external_encoding: @file_encoding, binmode: true) do |f|
@@ -666,7 +674,7 @@ module Textbringer
         end
       end
     end
-    
+
     def forward_line(n = 1)
       if n > 0
         n.times do
@@ -683,7 +691,7 @@ module Textbringer
         end
       end
     end
-    
+
     def backward_line(n = 1)
       forward_line(-n)
     end
@@ -941,7 +949,7 @@ module Textbringer
             m.location = s
           end
         end
-        push_undo(DeleteAction.new(self, old_pos, s, str)) 
+        push_undo(DeleteAction.new(self, old_pos, s, str))
         self.modified = true
       end
     end
@@ -1344,6 +1352,26 @@ module Textbringer
       self
     end
 
+    def trim_trailing_whitespace
+      save_excursion do
+        beginning_of_buffer
+        composite_edit do
+          while re_search_forward(/[ \t]+$/, raise_error: false)
+            replace_match("")
+          end
+        end
+      end
+    end
+
+    def insert_final_newline
+      save_excursion do
+        end_of_buffer
+        if char_before != "\n"
+          insert("\n")
+        end
+      end
+    end
+
     private
 
     def set_contents(s, enc)
@@ -1356,7 +1384,7 @@ module Textbringer
       @contents.force_encoding(Encoding::ASCII_8BIT)
       self.file_encoding = enc
       case @contents
-      when /(?<!\r)\n/ 
+      when /(?<!\r)\n/
         @file_format = :unix
       when /\r(?!\n)/
         @file_format = :mac
@@ -1399,7 +1427,7 @@ module Textbringer
       if pos <= @gap_start
         pos
       else
-        gap_size + pos 
+        gap_size + pos
       end
     end
 
