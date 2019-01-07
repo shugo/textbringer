@@ -4,13 +4,13 @@ module Textbringer
   class Mode
     extend Commands
     include Commands
-    
+
     @@mode_list = []
 
     DEFAULT_SYNTAX_TABLE = {
       control: /[\0-\t\v-\x1f\x7f\u{3000}]+/
     }
-    
+
     def self.list
       @@mode_list
     end

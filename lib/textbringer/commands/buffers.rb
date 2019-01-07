@@ -7,7 +7,7 @@ module Textbringer
       |n = number_prefix_arg|
       Buffer.current.forward_char(n)
     end
-    
+
     define_command(:backward_char,
                    doc: "Move point n characters backward.") do
       |n = number_prefix_arg|
@@ -25,26 +25,25 @@ module Textbringer
       |n = number_prefix_arg|
       Buffer.current.backward_word(n)
     end
-    
 
     define_command(:next_line,
                    doc: "Move point n lines forward.") do
       |n = number_prefix_arg|
       Buffer.current.next_line(n)
     end
-    
+
     define_command(:previous_line,
                    doc: "Move point n lines backward.") do
       |n = number_prefix_arg|
       Buffer.current.previous_line(n)
     end
-    
+
     define_command(:delete_char,
                    doc: "Delete n characters forward.") do
       |n = number_prefix_arg|
       Buffer.current.delete_char(n)
     end
-    
+
     define_command(:backward_delete_char,
                    doc: "Delete n characters backward.") do
       |n = number_prefix_arg|

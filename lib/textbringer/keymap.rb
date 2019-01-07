@@ -193,7 +193,7 @@ module Textbringer
   GLOBAL_MAP.define_key([:f1, "k"], :describe_key)
   GLOBAL_MAP.define_key("\C-x#", :server_edit_done)
   GLOBAL_MAP.handle_undefined_key do |key|
-    if key.is_a?(String) && /[\0-\x7f]/ !~ key 
+    if key.is_a?(String) && /[\0-\x7f]/ !~ key
       :self_insert
     else
       nil

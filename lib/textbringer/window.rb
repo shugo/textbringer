@@ -479,7 +479,7 @@ module Textbringer
         @window.noutrefresh
       end
     end
-    
+
     def redraw
       @window.redraw
       @mode_line.redraw

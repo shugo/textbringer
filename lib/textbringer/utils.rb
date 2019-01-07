@@ -79,7 +79,7 @@ module Textbringer
       end
       status, value = q.pop
       if status == :error
-        raise value 
+        raise value
       else
         value
       end

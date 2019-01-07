@@ -20,7 +20,7 @@ module Textbringer
         while !beginning_of_buffer? &&
             !looking_at?(/^[ \t]*$/)
           backward_line
-        end 
+        end
         while looking_at?(/^[ \t]*$/)
           forward_line
         end

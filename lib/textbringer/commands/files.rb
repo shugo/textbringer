@@ -122,7 +122,7 @@ module Textbringer
 
     define_command(:chdir, doc: "Change the current working directory.") do
       |dir_name = read_file_name("Change directory: ",
-                                 default: Buffer.current.file_name && 
+                                 default: Buffer.current.file_name &&
                                  File.dirname(Buffer.current.file_name))|
       Dir.chdir(dir_name)
     end

@@ -8,7 +8,7 @@ module Textbringer
     end
     ISEARCH_MODE_MAP.define_key(?\t, :isearch_printing_char)
     ISEARCH_MODE_MAP.handle_undefined_key do |key|
-      if key.is_a?(String) && /[\0-\x7f]/ !~ key 
+      if key.is_a?(String) && /[\0-\x7f]/ !~ key
         :isearch_printing_char
       else
         nil
@@ -21,7 +21,7 @@ module Textbringer
     ISEARCH_MODE_MAP.define_key(?\C-w, :isearch_yank_word_or_char)
     ISEARCH_MODE_MAP.define_key(?\C-m, :isearch_exit)
     ISEARCH_MODE_MAP.define_key(?\C-g, :isearch_abort)
-    
+
     ISEARCH_STATUS = {
       forward: true,
       string: "",

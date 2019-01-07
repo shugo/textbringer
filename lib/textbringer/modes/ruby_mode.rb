@@ -259,7 +259,7 @@ module Textbringer
         indentation
       end
     end
-    
+
     BLOCK_END = {
       "{" => "}",
       "(" => ")",
@@ -334,7 +334,7 @@ module Textbringer
       end
       nil
     end
-    
+
     class PartialLiteralAnalyzer < Ripper
       def self.in_literal?(src)
         new(src).in_literal?

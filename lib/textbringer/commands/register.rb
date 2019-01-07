@@ -4,7 +4,7 @@ module Textbringer
   module Commands
     class BufferPosition
       attr_reader :buffer, :mark
-      
+
       def initialize(buffer, mark)
         @buffer = buffer
         @mark = mark
@@ -118,7 +118,7 @@ module Textbringer
       when Integer
         REGISTERS[register] = i + prefix_numeric_value(n)
       when String
-        append_to_register(register, 
+        append_to_register(register,
                            Buffer.current.mark, Buffer.current.point, n)
       else
         raise ArgumentError, "Register doesn't contain a number or text"

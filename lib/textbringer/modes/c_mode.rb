@@ -35,7 +35,7 @@ module Textbringer
       (?: " (?: [^\\"] | \\ (?:.|\n)  )* " ) |
       (?: ' (?: [^\\'] | \\ (?:.|\n)  )* ' )
     /x
-    
+
     def initialize(buffer)
       super(buffer)
       @buffer[:indent_level] = CONFIG[:c_indent_level]
@@ -68,7 +68,7 @@ module Textbringer
       :partial_comment,
       :unknown
     ]
-    
+
     TOKEN_REGEXP = /\G(?:
 (?<preprocessing_directive>
   ^[ \t\f\v]*(?:\#|%:).*(?:\\\n.*)*[^\\]\n
