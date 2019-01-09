@@ -1,3 +1,7 @@
+## 0.3.1
+
+* Depend on curses 1.2.6 or later for mingw.
+
 ## 0.3.0
 
 * toggle_test_command supports RSpec now.
