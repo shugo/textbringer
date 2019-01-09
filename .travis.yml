@@ -37,14 +37,12 @@ cache: bundler
 before_install:
   - gem update --system
   - gem install bundler-audit
-  - bundle update --bundler
 script:
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then
         xvfb-run bundle exec rake test;
     else
         bundle exec rake test;
     fi
-  - bundle-audit check --update
 env:
   global:
     UPLOAD_TO_CODECOV: 1
