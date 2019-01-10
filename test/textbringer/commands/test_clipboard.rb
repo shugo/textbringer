@@ -1,8 +1,11 @@
 require_relative "../../test_helper"
 
 class TestClipboard < Textbringer::TestCase
+  setup do
+    omit if !CLIPBOARD_AVAILABLE || on_windows?
+  end
+
   def test_clipboard_copy_region
-    omit unless CLIPBOARD_AVAILABLE
     insert("あいうえお\n")
     set_mark_command
     insert("かきくけこ\n")
@@ -13,7 +16,6 @@ class TestClipboard < Textbringer::TestCase
   end
 
   def test_clipboard_kill_region
-    omit unless CLIPBOARD_AVAILABLE
     insert("あいうえお\n")
     set_mark_command
     insert("かきくけこ\n")
@@ -24,7 +26,6 @@ class TestClipboard < Textbringer::TestCase
   end
 
   def test_clipboard_kill_line
-    omit unless CLIPBOARD_AVAILABLE
     insert("あいうえお\n")
     insert("かきくけこ\n")
     beginning_of_buffer
@@ -35,7 +36,6 @@ class TestClipboard < Textbringer::TestCase
   end
 
   def test_clipboard_kill_word
-    omit unless CLIPBOARD_AVAILABLE
     insert("あいうえお\n")
     insert("かきくけこ\n")
     beginning_of_buffer

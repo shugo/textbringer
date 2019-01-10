@@ -412,8 +412,8 @@ module Textbringer
           f.flock(File::LOCK_EX)
           write_to_file(f)
           f.flush
-          @file_mtime = f.mtime
         end
+        @file_mtime = File.mtime(file_name)
       rescue Errno::EISDIR
         if @name
           file_name = File.expand_path(@name, file_name)

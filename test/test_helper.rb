@@ -294,11 +294,15 @@ module Textbringer
     end
 
     def omit_on_windows(&block)
-      if /mswin32|mingw32/ =~ RUBY_PLATFORM
+      if on_windows?
         omit(&block)
       else
         yield
       end
+    end
+
+    def on_windows?
+      /mswin32|mingw32/ =~ RUBY_PLATFORM
     end
   end
 end
