@@ -34,14 +34,14 @@ module Textbringer
 
   class Server
     def eval(s)
-      redisplay do
+      with_redisplay do
         Controller.current.instance_eval(s).inspect
       end
     end
 
     def visit_file(filename, wait: true)
       queue = Queue.new if wait
-      redisplay do
+      with_redisplay do
         find_file(filename)
         Buffer.current[:client_wait_queue] = queue if wait
       end
@@ -50,7 +50,7 @@ module Textbringer
 
     private
 
-    def redisplay
+    def with_redisplay
       foreground! do
         begin
           yield
