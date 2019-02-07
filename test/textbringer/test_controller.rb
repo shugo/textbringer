@@ -6,6 +6,10 @@ class TestController < Textbringer::TestCase
     @controller = Controller.new
   end
 
+  teardown do
+    @controller.close
+  end
+
   def test_undefined_key
     push_keys "\C-x\C-a\n"
     map = Keymap.new

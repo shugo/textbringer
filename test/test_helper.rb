@@ -276,6 +276,10 @@ module Textbringer
       @buffer = Buffer.current
     end
 
+    teardown do
+      Controller.current.close
+    end
+
     private
 
     def buffer
