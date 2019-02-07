@@ -277,7 +277,7 @@ module Textbringer
           case text
           when "class", "module", "def", "if", "unless", "case",
             "do", "for", "while", "until", "begin"
-            if /\A(if|unless|while|until)\z/ =~ text
+            if /\A(if|unless|while|until)\z/.match?(text)
               ts = tokens[0...i].reverse_each.take_while { |(l,_),| l == line }
               t = ts.find { |_, e| e != :on_sp }
               next if t && !(t[1] == :on_op && t[2] == "=")

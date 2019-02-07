@@ -524,7 +524,7 @@ module Textbringer
       if pos < 0 || pos > size
         raise RangeError, "Out of buffer"
       end
-      if !@binary && /[\x80-\xbf]/n =~ byte_after(pos)
+      if !@binary && /[\x80-\xbf]/n.match?(byte_after(pos))
         raise ArgumentError, "Position is in the middle of a character"
       end
       @goal_column = nil
@@ -578,12 +578,12 @@ module Textbringer
 
     def newline
       indentation = save_point { |saved|
-        if /[ \t]/ =~ char_after
+        if /[ \t]/.match?(char_after)
           next ""
         end
         beginning_of_line
         s = @point
-        while /[ \t]/ =~ char_after
+        while /[ \t]/.match?(char_after)
           forward_char
         end
         str = substring(s, @point)

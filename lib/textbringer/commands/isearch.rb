@@ -118,7 +118,7 @@ module Textbringer
 
     def isearch_search
       forward = ISEARCH_STATUS[:forward]
-      options = if /\A[A-Z]/ =~ ISEARCH_STATUS[:string]
+      options = if /\A[A-Z]/.match?(ISEARCH_STATUS[:string])
                   nil
                 else
                   Regexp::IGNORECASE

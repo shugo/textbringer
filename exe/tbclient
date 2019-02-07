@@ -31,4 +31,3 @@ if eval
 else
   tb.visit_file(File.expand_path(arg), wait: wait)
 end
-
