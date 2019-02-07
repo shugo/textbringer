@@ -154,6 +154,14 @@ module Textbringer
       read_event_nonblock
     end
 
+    def call_next_block
+      @next_tick_input.getc
+      block = @next_tick_queue_mutex.synchronize {
+        @next_tick_queue.shift
+      }
+      block.call
+    end
+
     private
 
     def call_read_event_method(read_event_method)
