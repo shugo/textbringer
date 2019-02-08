@@ -1,6 +1,12 @@
+## 0.3.2
+
+* Drop Ruby 2.3 support.
+* Support C-x u.
+
 ## 0.3.1
 
 * Depend on curses 1.2.6 or later for mingw.
+* Add tbclient.
 
 ## 0.3.0
 
