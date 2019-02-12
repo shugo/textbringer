@@ -205,7 +205,7 @@ module Textbringer
     end
 
     # s might not be copied.
-    def initialize(s = String.new, name: nil,
+    def initialize(s = +"", name: nil,
                    file_name: nil,
                    file_encoding: CONFIG[:default_file_encoding],
                    file_mtime: nil, new_file: true, undo_limit: UNDO_LIMIT,
@@ -964,7 +964,7 @@ module Textbringer
 
     def clear
       check_read_only_flag
-      @contents = String.new
+      @contents = +""
       @point = @gap_start = @gap_end = 0
       @marks.each do |m|
         m.location = 0

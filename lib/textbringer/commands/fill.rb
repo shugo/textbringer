@@ -38,7 +38,7 @@ module Textbringer
 
       def fill_string(str, column)
         input = StringIO.new(str)
-        output = String.new
+        output = +""
         fill_column = CONFIG[:fill_column]
         prev_c = nil
         while c = input.getc

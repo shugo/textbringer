@@ -183,7 +183,7 @@ module Textbringer
       @x = x
       @curx = 0
       @cury = 0
-      @contents = @lines.times.map { String.new }
+      @contents = @lines.times.map { +"" }
       @key_buffer = []
     end
 

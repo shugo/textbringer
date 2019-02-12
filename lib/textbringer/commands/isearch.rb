@@ -43,7 +43,7 @@ module Textbringer
 
     def isearch_mode(forward, recursive_edit: false)
       ISEARCH_STATUS[:forward] = forward
-      ISEARCH_STATUS[:string] = String.new
+      ISEARCH_STATUS[:string] = +""
       ISEARCH_STATUS[:recursive_edit] = recursive_edit
       Controller.current.overriding_map = ISEARCH_MODE_MAP
       run_hooks(:isearch_mode_hook)

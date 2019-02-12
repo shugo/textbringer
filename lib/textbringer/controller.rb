@@ -178,7 +178,7 @@ module Textbringer
           return if wait_input(1000)
         end
         @echo_immediately = true
-        s = String.new
+        s = +""
         if @prefix_arg
           s << "C-u"
           if @prefix_arg != [4]
