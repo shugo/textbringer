@@ -1233,7 +1233,7 @@ module Textbringer
     end
 
     def gap_filled_with_nul?
-      /\A\0*\z/ =~ @contents[@gap_start...@gap_end] ? true : false
+      /\A\0*\z/.match?(@contents[@gap_start...@gap_end])
     end
 
     def composite_edit
