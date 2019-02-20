@@ -282,31 +282,35 @@ module Textbringer
         if CONFIG[:shell_file_name]
           cmd = [CONFIG[:shell_file_name], CONFIG[:shell_command_switch], cmd]
         end
-        Open3.popen2e(*cmd, opts) do |input, output, wait_thread|
+        Open3.popen3(*cmd, opts) do |input, output, error, wait_thread|
           input.close
-          loop do
-            status = output.wait_readable(0.5)
-            if status
-              begin
-                s = output.read_nonblock(1024).force_encoding("utf-8").
-                  scrub("\u{3013}").gsub(/\r\n/, "\n")
-                buffer.insert(s)
-                Window.redisplay
-              rescue EOFError
-                break
-              rescue Errno::EAGAIN, Errno::EWOULDBLOCK
-                next
+          catch(:finish) do
+            loop do
+              rs, = IO.select([output, error], nil, nil, 0.5)
+              Window.redisplay
+              rs&.each do |r|
+                begin
+                  s = r.read_nonblock(1024).force_encoding("utf-8").
+                    scrub("\u{3013}").gsub(/\r\n/, "\n")
+                  buffer.insert(s)
+                  Window.redisplay
+                rescue EOFError
+                  throw(:finish)
+                rescue Errno::EAGAIN, Errno::EWOULDBLOCK
+                  Window.redisplay
+                  next
+                end
               end
-            end
-            if received_keyboard_quit?
-              if signals.empty?
-                keyboard_quit
-              else
-                sig = signals.shift
-                pid = wait_thread.pid
-                pid = -pid if /mswin32|mingw32/ !~ RUBY_PLATFORM
-                message("Send #{sig} to #{pid}")
-                Process.kill(sig, pid)
+              if received_keyboard_quit?
+                if signals.empty?
+                  keyboard_quit
+                else
+                  sig = signals.shift
+                  pid = wait_thread.pid
+                  pid = -pid if /mswin32|mingw32/ !~ RUBY_PLATFORM
+                  message("Send #{sig} to #{pid}")
+                  Process.kill(sig, pid)
+                end
               end
             end
           end
