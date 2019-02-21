@@ -1,6 +1,4 @@
-# Textbringer
-
-![Textbringer](logo/logo.png)
+# ![Textbringer](logo/logo.png)
 
 [![Gem Version](https://badge.fury.io/rb/textbringer.svg)](https://badge.fury.io/rb/textbringer)
 [![Build Status](https://travis-ci.org/shugo/textbringer.svg?branch=master)](https://travis-ci.org/shugo/textbringer)
