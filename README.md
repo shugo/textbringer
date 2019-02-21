@@ -1,5 +1,7 @@
 # Textbringer
 
+![Textbringer](logo/logo.png)
+
 [![Gem Version](https://badge.fury.io/rb/textbringer.svg)](https://badge.fury.io/rb/textbringer)
 [![Build Status](https://travis-ci.org/shugo/textbringer.svg?branch=master)](https://travis-ci.org/shugo/textbringer)
 [![Build status](https://ci.appveyor.com/api/projects/status/n20vtpfgcgii5jtc?svg=true)](https://ci.appveyor.com/project/shugo31737/textbringer)
@@ -115,3 +117,8 @@ Bug reports and pull requests are welcome on GitHub at https://github.com/shugo/
 ## License
 
 The gem is available as open source under the terms of the [MIT License](http://opensource.org/licenses/MIT).
+
+
+## Credit
+
+Logo made with [DesignEvo](https://www.designevo.com/en/).
