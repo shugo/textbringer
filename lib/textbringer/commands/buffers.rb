@@ -254,5 +254,17 @@ module Textbringer
       buffer.push_mark(buffer.point_max)
       buffer.beginning_of_buffer
     end
+
+    define_command(:zap_to_char,
+                   doc: <<~EOD) do
+        Kill up to and including count-th occurrence of char.
+      EOD
+      |char = read_char, count: number_prefix_arg|
+
+      buffer = Buffer.current
+      s = buffer.point
+      e = buffer.re_search_forward(Regexp.quote(char), count: count)
+      buffer.kill_region(s, e)
+    end
   end
 end

@@ -145,6 +145,7 @@ module Textbringer
   GLOBAL_MAP.define_key("\em", :back_to_indentation)
   GLOBAL_MAP.define_key("\e^", :delete_indentation)
   GLOBAL_MAP.define_key("\C-xh", :mark_whole_buffer)
+  GLOBAL_MAP.define_key("\ez", :zap_to_char)
   GLOBAL_MAP.define_key("\C-l", :recenter)
   GLOBAL_MAP.define_key("\C-v", :scroll_up)
   GLOBAL_MAP.define_key(:npage, :scroll_up)

@@ -1065,24 +1065,14 @@ module Textbringer
       end
     end
 
-    def re_search_forward(s, raise_error: true)
-      re = new_regexp(s)
-      i = byteindex(true, re, @point)
-      if i.nil?
-        if raise_error
-          raise SearchError, "Search failed"
-        else
-          return nil
-        end
+    def re_search_forward(s, raise_error: true, count: 1)
+      if count < 0
+        return re_search_backward(s, raise_error: raise_error, count: -count)
       end
-      goto_char(match_end(0))
-    end
-
-    def re_search_backward(s, raise_error: true)
       re = new_regexp(s)
       pos = @point
-      begin
-        i = byteindex(false, re, pos)
+      count.times do
+        i = byteindex(true, re, pos)
         if i.nil?
           if raise_error
             raise SearchError, "Search failed"
@@ -1090,15 +1080,38 @@ module Textbringer
             return nil
           end
         end
-        pos = get_pos(pos, -1)
-      rescue RangeError
-        if raise_error
-          raise SearchError, "Search failed"
-        else
-          return nil
-        end
-      end while match_end(0) > @point
-      goto_char(match_beginning(0))
+        pos = match_end(0)
+      end
+      goto_char(pos)
+    end
+
+    def re_search_backward(s, raise_error: true, count: 1)
+      if count < 0
+        return re_search_forward(s, raise_error: raise_error, count: -count)
+      end
+      re = new_regexp(s)
+      pos = @point
+      count.times do
+        begin
+          i = byteindex(false, re, pos)
+          if i.nil?
+            if raise_error
+              raise SearchError, "Search failed"
+            else
+              return nil
+            end
+          end
+          pos = get_pos(pos, -1)
+        rescue RangeError
+          if raise_error
+            raise SearchError, "Search failed"
+          else
+            return nil
+          end
+        end while match_end(0) > @point
+        pos = match_beginning(0)
+      end
+      goto_char(pos)
     end
 
     def looking_at?(re)

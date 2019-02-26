@@ -253,4 +253,11 @@ EOF
     assert_equal(Buffer.current.point_min, Buffer.current.point)
     assert_equal(Buffer.current.point_max, Buffer.current.mark)
   end
+
+  def test_zap_to_char
+    insert("foo:bar:baz")
+    beginning_of_buffer
+    zap_to_char(?:, count: 2)
+    assert_equal("baz", Buffer.current.to_s)
+  end
 end
