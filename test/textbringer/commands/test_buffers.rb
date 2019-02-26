@@ -259,5 +259,9 @@ EOF
     beginning_of_buffer
     zap_to_char(?:, count: 2)
     assert_equal("baz", Buffer.current.to_s)
+    end_of_buffer
+    insert(":quux:quuux:quuuux")
+    zap_to_char(?:, count: -2)
+    assert_equal("baz:quux", Buffer.current.to_s)
   end
 end

@@ -1092,8 +1092,9 @@ module Textbringer
       re = new_regexp(s)
       pos = @point
       count.times do
+        p = pos
         begin
-          i = byteindex(false, re, pos)
+          i = byteindex(false, re, p)
           if i.nil?
             if raise_error
               raise SearchError, "Search failed"
@@ -1101,14 +1102,14 @@ module Textbringer
               return nil
             end
           end
-          pos = get_pos(pos, -1)
+          p = get_pos(p, -1)
         rescue RangeError
           if raise_error
             raise SearchError, "Search failed"
           else
             return nil
           end
-        end while match_end(0) > @point
+        end while match_end(0) > pos
         pos = match_beginning(0)
       end
       goto_char(pos)
