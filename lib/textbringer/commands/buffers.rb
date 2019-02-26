@@ -244,5 +244,15 @@ module Textbringer
       buffer.insert(" ")
       buffer.backward_char
     end
+
+    define_command(:mark_whole_buffer,
+                   doc: <<~EOD) do
+        Put point at beginning and mark at end of buffer.
+      EOD
+      buffer = Buffer.current
+      buffer.push_mark
+      buffer.push_mark(buffer.point_max)
+      buffer.beginning_of_buffer
+    end
   end
 end

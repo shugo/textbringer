@@ -245,4 +245,12 @@ EOF
     set_mark_command(true)
     assert_equal(0, Buffer.current.point)
   end
+
+  def test_mark_whole_buffer
+    insert("foo\nbar\n")
+    Buffer.current.backward_line
+    mark_whole_buffer
+    assert_equal(Buffer.current.point_min, Buffer.current.point)
+    assert_equal(Buffer.current.point_max, Buffer.current.mark)
+  end
 end
