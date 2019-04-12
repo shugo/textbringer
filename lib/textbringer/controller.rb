@@ -128,7 +128,7 @@ module Textbringer
         else
           wait_files = [STDIN, @next_tick_input]
         end
-        files, = IO.select(wait_files, [], [], 1)
+        files, = IO.select(wait_files, nil, nil, 1)
         # KEY_RESIZE may be returned even if STDIN is not included in files.
         event = read_event_nonblock
         if event
