@@ -15,6 +15,11 @@ end
 
 $VERBOSE = nil
 
+unless STDIN.tty?
+  STDERR.puts("textbringer: standard input is not a tty")
+  exit 1
+end
+
 Controller.current = Controller.new
 begin
   Window.start do
