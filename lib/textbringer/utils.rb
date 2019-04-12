@@ -104,7 +104,7 @@ module Textbringer
     end
 
     def show_exception(e)
-      if e.is_a?(SystemExit)
+      if e.is_a?(SystemExit) || e.is_a?(SignalException)
         raise
       end
       if Buffer.current&.name != "*Backtrace*"
