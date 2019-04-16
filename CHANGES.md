@@ -1,3 +1,9 @@
+## 1.0.0
+
+* Add mark_whole_buffer.
+* Add zap_to_char.
+* Exit on SIGTERM, SIGHUP etc.
+
 ## 0.3.2
 
 * Drop Ruby 2.3 support.
