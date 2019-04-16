@@ -18,14 +18,6 @@ text editor.
 * Ruby Programming: https://asciinema.org/a/100156
 * Japanese Text Editing: https://asciinema.org/a/100166
 
-## WARNING
-
-Textbringer is beta software, and you may lose your text.  Unsaved buffers will
-be dumped in ~/.textbringer/buffer_dump on crash.
-
-APIs are undocumented and unstable.  There is no compatibility even in the same
-minor versions.
-
 ## Installation
 
     $ gem install textbringer
