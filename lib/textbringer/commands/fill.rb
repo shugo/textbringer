@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "stringio"
+
 module Textbringer
   module FillExtension
     refine Buffer do
