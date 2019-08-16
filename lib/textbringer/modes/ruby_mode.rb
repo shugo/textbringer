@@ -209,6 +209,9 @@ module Textbringer
         start_line = @buffer.current_line
         tokens = Ripper.lex(@buffer.substring(start_pos, bol_pos))
         _, event, text = tokens.last
+        if event == :on_nl
+          _, event, text = tokens[-2]
+        end
         if event == :on_tstring_beg ||
             event == :on_heredoc_beg ||
             event == :on_regexp_beg ||
