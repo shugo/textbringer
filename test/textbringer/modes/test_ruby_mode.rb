@@ -573,23 +573,23 @@ EOF
 
         find_file("app/models/sword.rb")
         assert_equal(File.expand_path("app/models/sword.rb"),
-                     File.expand_path(Buffer.current.file_name))
+                     Buffer.current.file_name)
         toggle_test_command
         assert_equal(File.expand_path("test/models/test_sword.rb"),
-                     File.expand_path(Buffer.current.file_name))
+                     Buffer.current.file_name)
         toggle_test_command
         assert_equal(File.expand_path("app/models/sword.rb"),
-                     File.expand_path(Buffer.current.file_name))
+                     Buffer.current.file_name)
 
         find_file("lib/roles/monk.rb")
         assert_equal(File.expand_path("lib/roles/monk.rb"),
-                     File.expand_path(Buffer.current.file_name))
+                     Buffer.current.file_name)
         toggle_test_command
         assert_equal(File.expand_path("test/test_monk.rb"),
-                     File.expand_path(Buffer.current.file_name))
+                     Buffer.current.file_name)
         toggle_test_command
         assert_equal(File.expand_path("lib/roles/monk.rb"),
-                     File.expand_path(Buffer.current.file_name))
+                     Buffer.current.file_name)
 
         find_file("lib/roles/black_mage.rb")
         assert_raise(EditorError) do
@@ -602,13 +602,13 @@ EOF
 
         find_file("app/models/armor.rb")
         assert_equal(File.expand_path("app/models/armor.rb"),
-                     File.expand_path(Buffer.current.file_name))
+                     Buffer.current.file_name)
         toggle_test_command
         assert_equal(File.expand_path("spec/models/armor_spec.rb"),
-                     File.expand_path(Buffer.current.file_name))
+                     Buffer.current.file_name)
         toggle_test_command
         assert_equal(File.expand_path("app/models/armor.rb"),
-                     File.expand_path(Buffer.current.file_name))
+                     Buffer.current.file_name)
 
         find_file("foo")
         ruby_mode
