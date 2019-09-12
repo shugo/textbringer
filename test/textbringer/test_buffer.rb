@@ -1828,11 +1828,15 @@ EOF
       assert_equal(false, Buffer.dumped_buffers_exist?(dir))
       Buffer.dump_unsaved_buffers(dir)
       assert_equal(true, Buffer.dumped_buffers_exist?(dir))
-      paths = [buffer, buffer3].map { |b|
+      expected_paths = [buffer, buffer3].map { |b|
         File.expand_path(b.object_id.to_s, dir)
-      }
-      assert_equal(paths.flat_map { |i| [i, i + ".metadata"] }.sort,
-                   Dir.glob(File.expand_path("*", dir)).sort)
+      }.flat_map { |i|
+        [i, i + ".metadata"]
+      }.sort
+      actual_paths = Dir.glob(File.expand_path("*", dir)).map { |i|
+        File.expand_path(i)
+      }.sort
+      assert_equal(expected_paths, actual_paths)
 
       Buffer.kill_em_all
       Buffer.load_dumped_buffers(dir)
