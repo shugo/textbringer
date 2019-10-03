@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 module Textbringer
   module Commands
     HELP_RING = Ring.new

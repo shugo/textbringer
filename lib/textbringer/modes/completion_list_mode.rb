@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 module Textbringer
   class CompletionListMode < Mode
     define_generic_command :choose_completion

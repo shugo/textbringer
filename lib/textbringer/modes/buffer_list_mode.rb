@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 module Textbringer
   class BufferListMode < Mode
     BUFFER_LIST_MODE_MAP = Keymap.new

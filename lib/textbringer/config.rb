@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 module Textbringer
   CONFIG = {
     east_asian_ambiguous_width: 1,

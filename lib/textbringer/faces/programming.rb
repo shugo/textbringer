@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 module Textbringer
   Face.define :comment, foreground: "yellow"
   Face.define :preprocessing_directive, foreground: "green"

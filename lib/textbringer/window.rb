@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 require "curses"
 require "unicode/display_width"
 

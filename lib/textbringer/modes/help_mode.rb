@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 module Textbringer
   class HelpMode < Mode
     define_generic_command :jump_to_link

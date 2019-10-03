@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 module Textbringer
   CONFIG[:c_indent_level] = 4
   CONFIG[:c_indent_tabs_mode] = true

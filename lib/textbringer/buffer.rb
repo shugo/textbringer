@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 require "nkf"
 require "unicode/display_width"
 require "json"
