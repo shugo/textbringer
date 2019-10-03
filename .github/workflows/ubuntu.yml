@@ -16,7 +16,7 @@ jobs:
         version: ${{ matrix.ruby }}
     - name: Install dependencies
       run: |
-        apt install libncursesw5-dev
+        sudo apt install libncursesw5-dev
         gem install bundler --no-document
         bundle install
     - name: Run test
