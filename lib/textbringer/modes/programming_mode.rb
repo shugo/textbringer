@@ -30,7 +30,7 @@ module Textbringer
     def indent_line
       result = false
       level = calculate_indentation
-      return result if level.nil?
+      return result if level.nil? || level < 0
       @buffer.save_excursion do
         @buffer.beginning_of_line
         @buffer.composite_edit do
