@@ -224,7 +224,7 @@ EOF
       baz {
       end
     }
-    quux
+      quux
 EOF
   end
   
