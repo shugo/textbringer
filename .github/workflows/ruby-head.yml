@@ -1,0 +1,27 @@
+name: ruby-head
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - name: Set up RVM
+      run: |
+        curl -sSL https://get.rvm.io | bash
+    - name: Set up Ruby
+      run: |
+        source $HOME/.rvm/scripts/rvm
+        rvm install ruby-head --binary
+        rvm --default use ruby-head
+    - name: Install dependencies
+      run: |
+        sudo apt install libncursesw5-dev
+        gem install bundler --no-document
+        bundle install
+    - name: Run test
+      run: xvfb-run bundle exec rake test
+      env:
+       UPLOAD_TO_CODECOV: 1
+       CODECOV_TOKEN: ${{secrets.CODECOV_TOKEN}}
