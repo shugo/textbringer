@@ -1,8 +1,9 @@
 # ![Textbringer](logo/logo.png)
 
 [![Gem Version](https://badge.fury.io/rb/textbringer.svg)](https://badge.fury.io/rb/textbringer)
-[![Build Status](https://travis-ci.org/shugo/textbringer.svg?branch=master)](https://travis-ci.org/shugo/textbringer)
-[![Build status](https://ci.appveyor.com/api/projects/status/n20vtpfgcgii5jtc?svg=true)](https://ci.appveyor.com/project/shugo31737/textbringer)
+[![ubuntu]https://github.com/shugo/textbringer/workflows/ubuntu/badge.svg](https://github.com/shugo/textbringer/actions?query=workflow%3Aubuntu)
+[![windows]https://github.com/shugo/textbringer/workflows/windows/badge.svg](https://github.com/shugo/textbringer/actions?query=workflow%3Awindows)
+[![macos]https://github.com/shugo/textbringer/workflows/macos/badge.svg](https://github.com/shugo/textbringer/actions?query=workflow%3Amacos)
 [![codecov](https://codecov.io/gh/shugo/textbringer/branch/master/graph/badge.svg)](https://codecov.io/gh/shugo/textbringer)
 
 Textbringer is a member of a demon race that takes on the form of an Emacs-like
