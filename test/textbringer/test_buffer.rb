@@ -2,7 +2,7 @@ require_relative "../test_helper"
 require "tempfile"
 require "tmpdir"
 
-class TestBuffer < Test::Unit::TestCase
+class TestBuffer < Textbringer::TestCase
   setup do
     Buffer.kill_em_all
     KILL_RING.clear
@@ -1831,8 +1831,10 @@ EOF
       paths = [buffer, buffer3].map { |b|
         File.expand_path(b.object_id.to_s, dir)
       }
-      assert_equal(paths.flat_map { |i| [i, i + ".metadata"] }.sort,
-                   Dir.glob(File.expand_path("*", dir)).sort)
+      omit_on_windows do
+        assert_equal(paths.flat_map { |i| [i, i + ".metadata"] }.sort,
+                     Dir.glob(File.expand_path("*", dir)).sort)
+      end
 
       Buffer.kill_em_all
       Buffer.load_dumped_buffers(dir)
