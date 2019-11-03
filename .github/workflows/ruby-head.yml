@@ -17,11 +17,14 @@ jobs:
         rvm --default use ruby-head
     - name: Install dependencies
       run: |
+        source $HOME/.rvm/scripts/rvm
         sudo apt install libncursesw5-dev
         gem install bundler --no-document
         bundle install
     - name: Run test
-      run: xvfb-run bundle exec rake test
+      run: |
+        source $HOME/.rvm/scripts/rvm
+        xvfb-run bundle exec rake test
       env:
        UPLOAD_TO_CODECOV: 1
        CODECOV_TOKEN: ${{secrets.CODECOV_TOKEN}}
