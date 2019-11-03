@@ -549,7 +549,7 @@ EOF
   end
 
   def test_toggle_test
-    return if on_windows?
+    omit_if(on_windows?)
     Dir.mktmpdir do |dir|
       pwd = Dir.pwd
       Dir.chdir(dir)
