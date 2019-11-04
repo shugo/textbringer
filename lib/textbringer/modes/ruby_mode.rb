@@ -244,7 +244,7 @@ module Textbringer
         else
           indentation = base_indentation + @buffer[:indent_level]
         end
-        if @buffer.looking_at?(/[ \t]*([}\])]|(end|else|elsif|when|rescue|ensure)\b)/)
+        if @buffer.looking_at?(/[ \t]*([}\])]|(end|else|elsif|when|in|rescue|ensure)\b)/)
           indentation -= @buffer[:indent_level]
         end
         _, last_event, last_text = tokens.reverse_each.find { |_, e, _|
