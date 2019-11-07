@@ -1,3 +1,8 @@
+## 1.0.1
+
+* Support pattern matching in the Ruby mode.
+* Bug fixes.
+
 ## 1.0.0
 
 * Add mark_whole_buffer.
