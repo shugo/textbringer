@@ -19,6 +19,7 @@ module Textbringer
     ISEARCH_MODE_MAP.define_key(?\C-w, :isearch_yank_word_or_char)
     ISEARCH_MODE_MAP.define_key(?\C-m, :isearch_exit)
     ISEARCH_MODE_MAP.define_key(?\C-g, :isearch_abort)
+    ISEARCH_MODE_MAP.define_key(?\C-q, :isearch_quoted_insert)
 
     ISEARCH_STATUS = {
       forward: true,
@@ -112,6 +113,14 @@ module Textbringer
         ISEARCH_STATUS[:string].concat(buffer.match_string(0))
         isearch_search
       end
+    end
+
+    define_command(:isearch_quoted_insert, doc: <<~EOD) do
+        Read a character, and add it to the search string and search.
+      EOD
+      c = Controller.current.read_event
+      ISEARCH_STATUS[:string].concat(c)
+      isearch_search
     end
 
     def isearch_search
