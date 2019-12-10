@@ -217,15 +217,9 @@ EOF
     }
 quux
 EOF
-    @ruby_mode.indent_line
-    assert_equal(<<EOF.chop, @buffer.to_s)
-  def foo
-    bar do
-      baz {
-      end
-    }
-      quux
-EOF
+    assert_raise(EditorError) do
+      @ruby_mode.indent_line
+    end
   end
   
   def test_indent_line_unmatch_2
@@ -237,15 +231,9 @@ EOF
     end
 quux
 EOF
-    @ruby_mode.indent_line
-    assert_equal(<<EOF.chop, @buffer.to_s)
-  def foo
-    bar {
-      baz do
-      }
+    assert_raise(EditorError) do
+      @ruby_mode.indent_line
     end
-    quux
-EOF
   end
   
   def test_indent_line_multiline_args
@@ -372,6 +360,46 @@ EOF
 foo(bar,
     baz)
 quux
+EOF
+  end
+
+  def test_indent_line_after_hash_assignment
+    @buffer.insert(<<EOF.chop)
+  def foo
+    h =
+      {
+        x: 1,
+        y: 2,
+      }
+bar
+EOF
+    @ruby_mode.indent_line
+    assert_equal(<<EOF.chop, @buffer.to_s)
+  def foo
+    h =
+      {
+        x: 1,
+        y: 2,
+      }
+    bar
+EOF
+  end
+
+  def test_indent_line_after_class
+    @buffer.insert(<<EOF.chop)
+  class Foo
+    def foo
+    end
+  end
+Foo.new.foo
+EOF
+    @ruby_mode.indent_line
+    assert_equal(<<EOF.chop, @buffer.to_s)
+  class Foo
+    def foo
+    end
+  end
+  Foo.new.foo
 EOF
   end
   

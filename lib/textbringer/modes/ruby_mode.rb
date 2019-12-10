@@ -173,7 +173,7 @@ module Textbringer
 
     private
 
-    INDENT_BEG_RE = /^([ \t]*)(class|module|def|if|unless|case|while|until|for|begin|end)\b/
+    INDENT_BEG_RE = /^([ \t]*)(class|module|def|if|unless|case|while|until|for|begin)\b/
 
     def space_width(s)
       s.gsub(/\t/, " " * @buffer[:tab_width]).size
@@ -217,7 +217,7 @@ module Textbringer
             event == :on_tstring_content
           return nil
         end
-        i = find_nearest_beginning_token(tokens)
+        i, extra_end_count = find_nearest_beginning_token(tokens)
         (line, column), event, = i ? tokens[i] : nil
         if event == :on_lparen && tokens.dig(i + 1, 1) != :on_ignored_nl
           return column + 1
@@ -240,7 +240,8 @@ module Textbringer
         end
         @buffer.goto_char(bol_pos)
         if line.nil?
-          indentation = base_indentation
+          indentation =
+            base_indentation - extra_end_count * @buffer[:indent_level]
         else
           indentation = base_indentation + @buffer[:indent_level]
         end
@@ -305,7 +306,7 @@ module Textbringer
           stack.pop
         end
       end
-      return nil
+      return nil, stack.size
     end
 
     def find_test_target_path(base, namespace, name)
