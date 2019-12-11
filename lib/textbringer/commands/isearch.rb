@@ -1,6 +1,6 @@
 module Textbringer
   module Commands
-    ISEARCH_MODE_MAP = Keymap.new
+    define_keymap :ISEARCH_MODE_MAP
     (?\x20..?\x7e).each do |c|
       ISEARCH_MODE_MAP.define_key(c, :isearch_printing_char)
     end

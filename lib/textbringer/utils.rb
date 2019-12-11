@@ -238,7 +238,7 @@ module Textbringer
       }
     end
 
-    Y_OR_N_MAP = Keymap.new
+    define_keymap :Y_OR_N_MAP
     Y_OR_N_MAP.define_key(?y, :self_insert_and_exit_minibuffer)
     Y_OR_N_MAP.define_key(?n, :self_insert_and_exit_minibuffer)
     Y_OR_N_MAP.define_key(?\C-g, :abort_recursive_edit)

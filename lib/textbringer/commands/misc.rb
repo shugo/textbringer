@@ -139,7 +139,7 @@ module Textbringer
       end
     end
 
-    UNIVERSAL_ARGUMENT_MAP = Keymap.new
+    define_keymap :UNIVERSAL_ARGUMENT_MAP
     (?0..?9).each do |c|
       UNIVERSAL_ARGUMENT_MAP.define_key(c, :digit_argument)
       GLOBAL_MAP.define_key("\e#{c}", :digit_argument)

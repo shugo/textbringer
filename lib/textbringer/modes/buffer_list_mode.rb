@@ -1,6 +1,6 @@
 module Textbringer
   class BufferListMode < Mode
-    BUFFER_LIST_MODE_MAP = Keymap.new
+    define_keymap :BUFFER_LIST_MODE_MAP
     BUFFER_LIST_MODE_MAP.define_key("\C-m", :this_window_command)
 
     def initialize(buffer)

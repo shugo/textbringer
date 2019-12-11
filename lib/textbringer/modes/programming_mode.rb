@@ -11,7 +11,7 @@ module Textbringer
     define_generic_command :compile
     define_generic_command :toggle_test
 
-    PROGRAMMING_MODE_MAP = Keymap.new
+    define_keymap :PROGRAMMING_MODE_MAP
     PROGRAMMING_MODE_MAP.define_key("\t", :indent_line_command)
     PROGRAMMING_MODE_MAP.define_key("\C-m",
                                     :reindent_then_newline_and_indent_command)

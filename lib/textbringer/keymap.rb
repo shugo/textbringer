@@ -1,3 +1,11 @@
+class Module
+  def define_keymap(name)
+    unless const_defined?(name, false)
+      const_set(name, Textbringer::Keymap.new)
+    end
+  end
+end
+
 module Textbringer
   class Keymap
     include Enumerable
@@ -91,7 +99,7 @@ module Textbringer
     end
   end
 
-  GLOBAL_MAP = Keymap.new
+  define_keymap :GLOBAL_MAP
   GLOBAL_MAP.define_key(:resize, :resize_window)
   GLOBAL_MAP.define_key(:right, :forward_char)
   GLOBAL_MAP.define_key(?\C-f, :forward_char)
@@ -201,7 +209,7 @@ module Textbringer
     end
   end
 
-  MINIBUFFER_LOCAL_MAP = Keymap.new
+  define_keymap :MINIBUFFER_LOCAL_MAP
   MINIBUFFER_LOCAL_MAP.define_key("\C-j", :exit_recursive_edit)
   MINIBUFFER_LOCAL_MAP.define_key("\C-m", :exit_recursive_edit)
   MINIBUFFER_LOCAL_MAP.define_key(?\t, :complete_minibuffer)

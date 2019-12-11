@@ -2,7 +2,7 @@ module Textbringer
   class HelpMode < Mode
     define_generic_command :jump_to_link
 
-    HELP_MODE_MAP = Keymap.new
+    define_keymap :HELP_MODE_MAP
     HELP_MODE_MAP.define_key(?\C-m, :jump_to_link_command)
     HELP_MODE_MAP.define_key(?l, :help_go_back)
     HELP_MODE_MAP.define_key("\C-c\C-b", :help_go_back)
