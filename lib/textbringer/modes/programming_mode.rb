@@ -15,7 +15,7 @@ module Textbringer
     PROGRAMMING_MODE_MAP.define_key("\t", :indent_line_command)
     PROGRAMMING_MODE_MAP.define_key("\C-m",
                                     :reindent_then_newline_and_indent_command)
-    PROGRAMMING_MODE_MAP.define_key("\e\C-\\", :indent_region_command)
+    PROGRAMMING_MODE_MAP.define_key("\M-\C-\\", :indent_region_command)
     PROGRAMMING_MODE_MAP.define_key("\C-c\C-n", :forward_definition_command)
     PROGRAMMING_MODE_MAP.define_key("\C-c\C-p", :backward_definition_command)
     PROGRAMMING_MODE_MAP.define_key("\C-c\C-c", :compile_command)

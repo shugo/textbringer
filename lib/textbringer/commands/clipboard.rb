@@ -11,12 +11,12 @@ module Textbringer
       (ENV["DISPLAY"] && system("which xclip > /dev/null 2>&1"))
 
     if CLIPBOARD_AVAILABLE
-      GLOBAL_MAP.define_key("\ew", :clipboard_copy_region)
+      GLOBAL_MAP.define_key("\M-w", :clipboard_copy_region)
       GLOBAL_MAP.define_key("\C-w", :clipboard_kill_region)
       GLOBAL_MAP.define_key(?\C-k, :clipboard_kill_line)
-      GLOBAL_MAP.define_key("\ed", :clipboard_kill_word)
+      GLOBAL_MAP.define_key("\M-d", :clipboard_kill_word)
       GLOBAL_MAP.define_key("\C-y", :clipboard_yank)
-      GLOBAL_MAP.define_key("\ey", :clipboard_yank_pop)
+      GLOBAL_MAP.define_key("\M-y", :clipboard_yank_pop)
     end
 
     define_command(:clipboard_copy_region, doc: <<~EOD) do

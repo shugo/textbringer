@@ -91,7 +91,7 @@ module Textbringer
   using DabbrevExtension
 
   module Commands
-    GLOBAL_MAP.define_key("\e/", :dabbrev_expand_command)
+    GLOBAL_MAP.define_key("\M-/", :dabbrev_expand_command)
 
     define_command(:dabbrev_expand_command) do
       contd = Controller.current.last_command == :dabbrev_expand_command
