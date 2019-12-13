@@ -80,7 +80,16 @@ module Textbringer
     end
 
     def self.key_sequence_string(key_sequence)
-      key_sequence.map { |key| key_name(key) }.join(" ")
+      ks = key_sequence.dup
+      key_names = []
+      while key = ks.shift
+        if key == "\e" && !ks.empty?
+          key_names.push("M-" + key_name(ks.shift))
+        else
+          key_names.push(key_name(key))
+        end
+      end
+      key_names.join(" ")
     end
 
     private
