@@ -10,6 +10,7 @@ module Textbringer
     define_generic_command :backward_definition
     define_generic_command :compile
     define_generic_command :toggle_test
+    define_generic_command :indent_new_comment_line
 
     define_keymap :PROGRAMMING_MODE_MAP
     PROGRAMMING_MODE_MAP.define_key("\t", :indent_line_command)
@@ -20,6 +21,7 @@ module Textbringer
     PROGRAMMING_MODE_MAP.define_key("\C-c\C-p", :backward_definition_command)
     PROGRAMMING_MODE_MAP.define_key("\C-c\C-c", :compile_command)
     PROGRAMMING_MODE_MAP.define_key("\C-c\C-t", :toggle_test_command)
+    PROGRAMMING_MODE_MAP.define_key("\ej", :indent_new_comment_line_command)
 
     def initialize(buffer)
       super(buffer)
@@ -84,6 +86,26 @@ module Textbringer
       ensure
         end_mark.delete
       end
+    end
+
+    def indent_new_comment_line
+      if comment_start.nil?
+        @buffer.newline
+        return
+      end
+      s = @buffer.save_excursion {
+        @buffer.beginning_of_line
+        if @buffer.looking_at?(/^[ \t]*#{comment_start}+[ \t]*/)
+          @buffer.match_string(0)
+        else
+          ""
+        end
+      }
+      @buffer.insert("\n" + s)
+    end
+
+    def comment_start
+      nil
     end
 
     private

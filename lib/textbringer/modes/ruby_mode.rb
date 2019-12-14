@@ -85,6 +85,10 @@ module Textbringer
       )
     /x
 
+    def comment_start
+      "#"
+    end
+
     def initialize(buffer)
       super(buffer)
       @buffer[:indent_level] = CONFIG[:ruby_indent_level]

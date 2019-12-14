@@ -705,4 +705,15 @@ EOF
     EOF
     assert_equal(nil, m)
   end
+
+  def test_indent_new_comment_line
+    @buffer.insert(<<EOF.chop)
+  ### foo
+EOF
+    @ruby_mode.indent_new_comment_line
+    assert_equal(<<EOF.chop, @buffer.to_s)
+  ### foo
+  ### 
+EOF
+  end
 end

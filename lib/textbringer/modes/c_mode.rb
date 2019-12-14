@@ -34,6 +34,10 @@ module Textbringer
       (?: ' (?: [^\\'] | \\ (?:.|\n)  )* ' )
     /x
 
+    def comment_start
+      "//"
+    end
+
     def initialize(buffer)
       super(buffer)
       @buffer[:indent_level] = CONFIG[:c_indent_level]
