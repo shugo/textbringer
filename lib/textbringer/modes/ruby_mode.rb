@@ -184,7 +184,6 @@ module Textbringer
     end
 
     def beginning_of_indentation
-      raise SearchError # workaround
       loop do
         @buffer.re_search_backward(INDENT_BEG_RE)
         space = @buffer.match_string(1)
@@ -199,6 +198,22 @@ module Textbringer
       0
     end
 
+    def lex(source)
+      s = source
+      lineno = 1
+      tokens = []
+      loop do
+        lexer = Ripper::Lexer.new(s, "-", lineno)
+        tokens.concat(lexer.lex)
+        return tokens if lexer.errors.empty?
+        last_line = tokens.dig(-1, 0, 0)
+        return tokens if last_line.nil?
+        s = source.sub(/(.*\n?){#{last_line}}/, "")
+        return tokens if last_line + 1 <= lineno
+        lineno = last_line + 1
+      end
+    end
+
     def calculate_indentation
       if @buffer.current_line == 1
         return 0
@@ -210,7 +225,7 @@ module Textbringer
         base_indentation = beginning_of_indentation
         start_pos = @buffer.point
         start_line = @buffer.current_line
-        tokens = Ripper.lex(@buffer.substring(start_pos, bol_pos))
+        tokens = lex(@buffer.substring(start_pos, bol_pos))
         _, event, text = tokens.last
         if event == :on_nl
           _, event, text = tokens[-2]

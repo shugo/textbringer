@@ -402,6 +402,24 @@ EOF
   Foo.new.foo
 EOF
   end
+
+  def test_indent_line_extra_end
+    @buffer.insert(<<EOF.chop)
+        if foo
+        end
+      end
+    end
+end
+EOF
+    @ruby_mode.indent_line
+    assert_equal(<<EOF.chop, @buffer.to_s)
+        if foo
+        end
+      end
+    end
+  end
+EOF
+  end
   
   def test_reindent_then_newline_and_indent
     @buffer.insert(<<EOF.chop)
