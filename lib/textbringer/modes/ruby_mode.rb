@@ -180,6 +180,7 @@ module Textbringer
     end
 
     def beginning_of_indentation
+      raise SearchError # workaround
       loop do
         @buffer.re_search_backward(INDENT_BEG_RE)
         space = @buffer.match_string(1)
