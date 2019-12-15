@@ -49,12 +49,12 @@ module Textbringer
       when /\A\d+\z/
         push_tag_mark_and_find_file(file)
         goto_line(addr.to_i)
-      when %r'\A/\^(.*)\$/\z'
+      when %r'\A/\^(.*)(\$?)/\z'
+        re = "^" + Regexp.quote($1.gsub(/\\([\\\/])/, "\\1")) + $2.to_s
         push_tag_mark_and_find_file(file)
         beginning_of_buffer
         n.times do
-          s = Regexp.quote($1.gsub(/\\([\\\/])/, "\\1"))
-          re_search_forward("^" + s + "$")
+          re_search_forward(re)
         end
         beginning_of_line
       when %r'\A\?\^(.*)\$\?\z'
