@@ -124,5 +124,11 @@ module Textbringer
                                  File.dirname(Buffer.current.file_name))|
       Dir.chdir(dir_name)
     end
+
+    define_command(:find_alternate_file, doc: "Find an alternate file.") do
+      |file_name = read_file_name("Find alternate file: ",
+                                  default: Buffer.current.file_name)|
+      find_file(file_name)
+    end
   end
 end
