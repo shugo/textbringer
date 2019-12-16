@@ -199,15 +199,15 @@ module Textbringer
     end
 
     def lex(source)
+      line_count = source.count("\n")
       s = source
       lineno = 1
       tokens = []
       loop do
         lexer = Ripper::Lexer.new(s, "-", lineno)
         tokens.concat(lexer.lex)
-        return tokens if lexer.errors.empty?
         last_line = tokens.dig(-1, 0, 0)
-        return tokens if last_line.nil?
+        return tokens if last_line.nil? || last_line >= line_count
         s = source.sub(/(.*\n?){#{last_line}}/, "")
         return tokens if last_line + 1 <= lineno
         lineno = last_line + 1
