@@ -95,7 +95,7 @@ module Textbringer
       end
       s = @buffer.save_excursion {
         @buffer.beginning_of_line
-        if @buffer.looking_at?(/^[ \t]*#{comment_start}+[ \t]*/)
+        if @buffer.looking_at?(/[ \t]*#{comment_start}+[ \t]*/)
           @buffer.match_string(0)
         else
           ""
