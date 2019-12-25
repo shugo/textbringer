@@ -314,9 +314,9 @@ module Textbringer
           when "end"
             stack.push(text)
           end
-        when :on_rbrace, :on_rparen, :on_rbracket
+        when :on_rbrace, :on_rparen, :on_rbracket, :on_embexpr_end
           stack.push(text)
-        when :on_lbrace, :on_lparen, :on_lbracket, :on_tlambeg
+        when :on_lbrace, :on_lparen, :on_lbracket, :on_tlambeg, :on_embexpr_beg
           if stack.empty?
             return i
           end
