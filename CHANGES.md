@@ -1,3 +1,11 @@
+## 1.0.2
+
+* Add isearch_quoted_insert.
+* Use M- notation instead of ESC in define_key and help.
+* Add indent_new_comment_line_command.
+* Add find_alternate_file.
+* Fix indentation bugs in the Ruby mode.
+
 ## 1.0.1
 
 * Support pattern matching in the Ruby mode.
