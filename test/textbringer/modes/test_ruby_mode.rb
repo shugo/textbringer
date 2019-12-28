@@ -438,6 +438,38 @@ EOF
   }
 EOF
   end
+
+  def test_indent_line_embedded_string
+    @buffer.insert(<<EOF.chop)
+        if foo
+          "#{123}"
+end
+EOF
+    @ruby_mode.indent_line
+    assert_equal(<<EOF.chop, @buffer.to_s)
+        if foo
+          "#{123}"
+        end
+EOF
+  end
+
+  def test_indent_line_def_in_brace_and_paren
+    @buffer.insert(<<EOF.chop)
+        foo(bar {
+          def baz
+          end
+        })
+quux
+EOF
+    @ruby_mode.indent_line
+    assert_equal(<<EOF.chop, @buffer.to_s)
+        foo(bar {
+          def baz
+          end
+        })
+        quux
+EOF
+  end
   
   def test_reindent_then_newline_and_indent
     @buffer.insert(<<EOF.chop)

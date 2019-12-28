@@ -283,6 +283,7 @@ module Textbringer
     end
 
     BLOCK_END = {
+      '#{' => "}",
       "{" => "}",
       "(" => ")",
       "[" => "]"
@@ -326,7 +327,7 @@ module Textbringer
           stack.pop
         end
       end
-      return nil, stack.size
+      return nil, stack.grep_v(/[)\]]/).size
     end
 
     def find_test_target_path(base, namespace, name)
