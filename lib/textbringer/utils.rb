@@ -66,6 +66,9 @@ module Textbringer
     alias next_tick foreground
 
     def foreground!
+      if Thread.current == Thread.main
+        return yield
+      end
       q = Queue.new
       foreground do
         begin
