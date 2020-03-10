@@ -1,3 +1,8 @@
+## 1.0.3
+
+* Fix indentation bugs.
+* Fix a bug of fourground! when it is called in the main thread.
+
 ## 1.0.2
 
 * Add isearch_quoted_insert.
