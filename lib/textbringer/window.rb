@@ -455,7 +455,11 @@ module Textbringer
               end
             end
           end
-          @window.addstr(c)
+          if c == "\uFEFF"
+            # ncurses on macOS prints U+FEFF as space, so ignore it
+          else
+            @window.addstr(c)
+          end
           break if newx == columns && cury == lines - 2
           @buffer.forward_char
         end
