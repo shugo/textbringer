@@ -21,27 +21,36 @@ module Textbringer
     end
     private :show_help
 
-    define_command(:describe_bindings,
-                   doc: "Display the key bindings.") do
-      show_help do |help|
-        s = format("%-16s  %s\n", "Key", "Binding")
-        s << format("%-16s  %s\n", "---", "-------")
-        s << "\n"
-        bindings = {}
-        [
-          GLOBAL_MAP,
-          Buffer.current.keymap,
-          Controller.current.overriding_map
-        ].each do |map|
-          map&.each do |key_sequence, command|
-            bindings[key_sequence] = command
-          end
-        end
-        bindings.each do |key_sequence, command|
+    def keymap_bindings(keymap)
+      s = format("%-16s  %s\n", "Key", "Binding")
+      s << format("%-16s  %s\n", "---", "-------")
+      s << "\n"
+      keymap.each do |key_sequence, command|
+        if command != :self_insert
           s << format("%-16s  [%s]\n",
                       Keymap.key_sequence_string(key_sequence),
                       command)
         end
+      end
+      s
+    end
+
+    define_command(:describe_bindings,
+                   doc: "Display the key bindings.") do
+      show_help do |help|
+        s = ""
+        if Controller.current.overriding_map
+          s << "Overriding Bindings:\n"
+          s << keymap_bindings(Controller.current.overriding_map)
+          s << "\n"
+        end
+        if Buffer.current.keymap
+          s << "Current Buffer Bindings:\n"
+          s << keymap_bindings(Buffer.current.keymap)
+          s << "\n"
+        end
+        s << "Global Bindings:\n"
+        s << keymap_bindings(GLOBAL_MAP)
         help.insert(s)
       end
       push_help_command([:describe_bindings])
