@@ -189,6 +189,11 @@ module Textbringer
     end
 
     def read_file_name(prompt, default: nil)
+      if Buffer.current.file_name
+        default = File.dirname(Buffer.current.file_name) + "/"
+      else
+        default = Dir.pwd + "/"
+      end
       f = ->(s) {
         s = File.expand_path(s) if s.start_with?("~")
         Dir.glob(s + "*").map { |file|
