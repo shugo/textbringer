@@ -86,12 +86,13 @@ module Textbringer
 
     define_command(:write_file,
                    doc: "Save the current buffer as the specified file.") do
-      |file_name = read_file_name("Write file: ")|
+      |file_name = read_file_name("Write file: ",
+                                  default: Buffer.current.file_name)|
       if File.directory?(file_name)
         file_name = File.expand_path(Buffer.current.name, file_name)
       end
       if File.exist?(file_name)
-        unless y_or_n?("File `#{file_name}' exists; overwrite?")
+        unless y_or_n?("File exists; overwrite?")
           message("Cancelled")
           next
         end
