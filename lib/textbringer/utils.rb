@@ -108,7 +108,7 @@ module Textbringer
       if e.is_a?(SystemExit) || e.is_a?(SignalException)
         raise
       end
-      if Buffer.current&.name != "*Backtrace*"
+      if !e.is_a?(Quit) && Buffer.current&.name != "*Backtrace*"
         buffer = Buffer.find_or_new("*Backtrace*", undo_limit: 0)
         if !buffer.mode.is_a?(BacktraceMode)
           buffer.apply_mode(BacktraceMode)
