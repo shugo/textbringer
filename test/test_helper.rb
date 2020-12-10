@@ -314,7 +314,7 @@ module Textbringer
     end
 
     def on_windows?
-      /mswin32|mingw32/ =~ RUBY_PLATFORM
+      /mswin|mingw/ =~ RUBY_PLATFORM
     end
   end
 end

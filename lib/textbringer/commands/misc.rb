@@ -276,7 +276,7 @@ module Textbringer
       Window.redisplay
       signals = [:INT, :TERM, :KILL]
       begin
-        opts = /mswin32|mingw32/ =~ RUBY_PLATFORM ? {} : {pgroup: true}
+        opts = /mswin|mingw/ =~ RUBY_PLATFORM ? {} : {pgroup: true}
         if CONFIG[:shell_file_name]
           cmd = [CONFIG[:shell_file_name], CONFIG[:shell_command_switch], cmd]
         end
