@@ -1,3 +1,8 @@
+## 1.0.4
+
+* Support Ruby 3.0.
+* Do not record backtrace of Quit (C-g).
+
 ## 1.0.3
 
 * Fix indentation bugs.
