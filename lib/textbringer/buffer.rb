@@ -410,6 +410,7 @@ module Textbringer
           f.flock(File::LOCK_EX)
           write_to_file(f)
           f.flush
+          f.fsync
         end
         @file_mtime = File.mtime(file_name)
       rescue Errno::EISDIR
