@@ -199,8 +199,9 @@ module Textbringer
           end
         }
       }
+      initial_value = default&.sub(%r"\A#{Regexp.quote(Dir.pwd)}/", "")
       file = read_from_minibuffer(prompt, completion_proc: f,
-                                  initial_value: default)
+                                  initial_value: initial_value)
       File.expand_path(file)
     end
 
