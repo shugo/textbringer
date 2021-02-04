@@ -1,0 +1,3 @@
+lib/textbringer/input_methods/t_code_input_method/mazegaki.dic
+lib/textbringer/input_methods/t_code_input_method/bushu.rev
+  These files came from https://github.com/kanchoku/tc

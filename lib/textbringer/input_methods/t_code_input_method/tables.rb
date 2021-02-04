@@ -48,5 +48,14 @@ module Textbringer
       "替沼?辞献■■■■■ゅ修究答養復並浦ユ冷ぬ展警型誰組選党択体例満津準遊戸ひょ価与",
       "還更占箱矢■■■■■志抜航層深担陸巻競護根様独止堂銀以ヌ営治字材過諸単身ピ勝反ズ"
     ]
+
+    BUSHU_PATH = File.expand_path("bushu.rev", __dir__)
+    BUSHU_TABLE = {}
+    File.open(BUSHU_PATH) do |f|
+      f.each_line do |line|
+        x, *xs = line.chomp.chars
+        BUSHU_TABLE[xs.sort.join] = x
+      end
+    end
   end
 end
