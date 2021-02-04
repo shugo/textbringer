@@ -23,7 +23,7 @@ module Textbringer
       else
         c = KANJI_TABLE[key_index][@prev_key_index]
         @prev_key_index = nil
-        c
+        c == "■" ? nil : c
       end
     end
   end

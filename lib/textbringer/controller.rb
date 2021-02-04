@@ -264,8 +264,7 @@ module Textbringer
     end
 
     def call_read_event_method(read_event_method)
-      event = Window.current.send(read_event_method)
-      event&.then {
+      Window.current.send(read_event_method)&.then { |event|
         Buffer.current.filter_event(event)
       }
     end
