@@ -12,7 +12,7 @@ class TestWindow < Textbringer::TestCase
   def test_redisplay
     @window.redisplay
     expected_mode_line = format("%-#{@columns}s",
-                                "foo [UTF-8/unix] <EOF> 1,1 (Fundamental)")
+                                "-- foo [UTF-8/unix] <EOF> 1,1 (Fundamental)")
     assert_match(expected_mode_line, @window.mode_line.contents[0])
     assert(@window.window.contents.all?(&:empty?))
 
@@ -83,17 +83,17 @@ class TestWindow < Textbringer::TestCase
     @buffer.beginning_of_line
     @window.redisplay
     expected = format("%-#{@columns}s",
-                      "foo [+][UTF-8/unix] U+0061 1,1 (Fundamental)")
+                      "-- foo [+][UTF-8/unix] U+0061 1,1 (Fundamental)")
     assert_match(expected, @window.mode_line.contents[0])
     @buffer.forward_char
     @window.redisplay
     expected = format("%-#{@columns}s",
-                      "foo [+][UTF-8/unix] U+3042 1,2 (Fundamental)")
+                      "-- foo [+][UTF-8/unix] U+3042 1,2 (Fundamental)")
     assert_match(expected, @window.mode_line.contents[0])
     @buffer.forward_char
     @window.redisplay
     expected = format("%-#{@columns}s",
-                      "foo [+][UTF-8/unix] U+29E3D 1,3 (Fundamental)")
+                      "-- foo [+][UTF-8/unix] U+29E3D 1,3 (Fundamental)")
     assert_match(expected, @window.mode_line.contents[0])
   end
 
