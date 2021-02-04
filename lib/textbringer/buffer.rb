@@ -11,6 +11,7 @@ module Textbringer
     attr_accessor :mode, :keymap
     attr_reader :name, :file_name, :file_encoding, :file_format, :point, :marks
     attr_reader :current_line, :current_column, :visible_mark
+    attr_reader :input_method
 
     GAP_SIZE = 256
     UNDO_LIMIT = 1000
@@ -240,6 +241,7 @@ module Textbringer
       @visible_mark = nil
       @read_only = read_only
       @callbacks = {}
+      @input_method = nil
     end
 
     def inspect
@@ -1382,6 +1384,27 @@ module Textbringer
         if char_before != "\n"
           insert("\n")
         end
+      end
+    end
+
+    def toggle_input_method
+      @input_method ||= InputMethod.find(CONFIG[:default_input_method])
+      @input_method.toggle
+    end
+
+    def filter_event(event)
+      if @input_method
+        @input_method.filter_event(event)
+      else
+        event
+      end
+    end
+
+    def input_method_status
+      if @input_method&.enabled?
+        @input_method.status
+      else
+        "--"
       end
     end
 

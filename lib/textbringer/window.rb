@@ -649,7 +649,7 @@ module Textbringer
       @mode_line.setpos(0, 0)
       attrs = @@has_colors ? Face[:mode_line].attributes : Curses::A_REVERSE
       @mode_line.attrset(attrs)
-      @mode_line.addstr("#{@buffer.name} ")
+      @mode_line.addstr("#{@buffer.input_method_status} #{@buffer.name} ")
       @mode_line.addstr("[+]") if @buffer.modified?
       @mode_line.addstr("[RO]") if @buffer.read_only?
       @mode_line.addstr("[#{@buffer.file_encoding.name}/")

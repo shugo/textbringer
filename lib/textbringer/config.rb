@@ -15,6 +15,7 @@ module Textbringer
     shell_file_name: ENV["SHELL"],
     shell_command_switch: "-c",
     grep_command: "grep -nH -e",
-    fill_column: 70
+    fill_column: 70,
+    default_input_method: "t_code"
   }
 end
