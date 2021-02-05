@@ -542,9 +542,16 @@ module Textbringer
       @top_of_window.location = 0
     end
 
-    def split
+    def split(other_lines = nil)
       old_lines = lines
-      new_lines = (old_lines / 2.0).ceil
+      if other_lines
+        if other_lines < CONFIG[:window_min_height]
+          raise EditorError, "Window too small"
+        end
+        new_lines = lines - other_lines
+      else
+        new_lines = (old_lines / 2.0).ceil
+      end
       if new_lines < CONFIG[:window_min_height]
         raise EditorError, "Window too small"
       end
