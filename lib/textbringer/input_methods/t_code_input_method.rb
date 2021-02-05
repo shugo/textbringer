@@ -99,14 +99,22 @@ module Textbringer
       s = buffer.substring(pos, buffer.point)
       c = mazegaki_lookup(s)
       if c
+        @mazegaki_original_text = buffer.substring(pos, buffer.point)
         candidates = c.split("/").reject(&:empty?)
-        buffer.save_excursion do
-          buffer.goto_char(pos)
+        if candidates.size == 1
+          buffer.delete_region(pos, buffer.point)
           buffer.insert("△")
-          buffer.backward_char
-          @mazegaki_start_pos = pos
-          @mazegaki_candidates = candidates
-          @mazegaki_candidates_page = 0
+          buffer.insert(candidates[0])
+        else
+          buffer.save_excursion do
+            buffer.goto_char(pos)
+            buffer.insert("△")
+          end
+        end
+        @mazegaki_start_pos = pos
+        @mazegaki_candidates = candidates
+        @mazegaki_candidates_page = 0
+        if candidates.size > 1
           show_mazegaki_candidates
         end
       end
@@ -144,6 +152,7 @@ module Textbringer
     end
 
     def process_mazegaki_conversion(event, key_index)
+      buffer = Buffer.current
       case event
       when " "
         return mazegaki_next_page
@@ -153,22 +162,25 @@ module Textbringer
         return mazegaki_relimit_right
       end
       begin
-        buffer = Buffer.current
+        if event == "\C-m"
+          buffer.delete_region(@mazegaki_start_pos, buffer.point)
+          buffer.insert(@mazegaki_candidates[0])
+          return nil
+        end
         if key_index
           mazegaki_limit = MAZEGAKI_STROKE_PRIORITY_LIST.size
           i = MAZEGAKI_STROKE_PRIORITY_LIST.index(key_index)
-          offset = @mazegaki_candidates_page * mazegaki_limit + i
-          c = @mazegaki_candidates[offset]
-          if c
-            buffer.delete_region(@mazegaki_start_pos, buffer.point)
-            insert(c)
-            return nil
+          if i
+            offset = @mazegaki_candidates_page * mazegaki_limit + i
+            c = @mazegaki_candidates[offset]
+            if c
+              buffer.delete_region(@mazegaki_start_pos, buffer.point)
+              buffer.insert(c)
+              return nil
+            end
           end
         end
-        buffer.save_excursion do
-          buffer.goto_char(@mazegaki_start_pos)
-          buffer.delete_char
-        end
+        restore_original_text
         nil
       ensure
         @mazegaki_start_pos = nil
@@ -185,6 +197,12 @@ module Textbringer
       end
     end
 
+    def restore_original_text
+      buffer = Buffer.current
+      buffer.delete_region(@mazegaki_start_pos, buffer.point)
+      buffer.insert(@mazegaki_original_text)
+    end
+
     def mazegaki_next_page
       @mazegaki_candidates_page += 1
       if @mazegaki_candidates_page * mazegaki_limit >
@@ -199,28 +217,23 @@ module Textbringer
     def mazegaki_relimit_left
       buffer = Buffer.current
       start_pos = nil
+      restore_original_text
       buffer.save_excursion do
-        mark = buffer.new_mark
-        begin
-          buffer.goto_char(@mazegaki_start_pos)
-          buffer.delete_char
-          s = buffer.substring(buffer.point, mark.location)
-          (MAZEGAKI_MAX_WORD_LEN - s.size).times do
-            break if buffer.beginning_of_buffer?
-            buffer.backward_char
-            s = buffer.substring(buffer.point, mark.location)
-            if mazegaki_lookup(s)
-              start_pos = buffer.point
-              break
-            end
+        pos = buffer.point
+        buffer.goto_char(@mazegaki_start_pos)
+        s = buffer.substring(buffer.point, pos)
+        (MAZEGAKI_MAX_WORD_LEN - s.size).times do
+          break if buffer.beginning_of_buffer?
+          buffer.backward_char
+          s = buffer.substring(buffer.point, pos)
+          if mazegaki_lookup(s)
+            start_pos = buffer.point
+            break
           end
-          if start_pos.nil?
-            buffer.goto_char(@mazegaki_start_pos)
-            buffer.insert("△")
-            raise EditorError, "Can't relimit left"
-          end
-        ensure
-          mark.delete
+        end
+        if start_pos.nil?
+          message("Can't relimit left")
+          start_pos = @mazegaki_start_pos
         end
       end
       mazegaki_convert(start_pos)
@@ -231,27 +244,22 @@ module Textbringer
     def mazegaki_relimit_right
       buffer = Buffer.current
       start_pos = nil
+      restore_original_text
       buffer.save_excursion do
-        mark = buffer.new_mark
-        begin
-          buffer.goto_char(@mazegaki_start_pos)
-          buffer.delete_char
-          loop do
-            break if buffer.point >= mark.location
-            buffer.forward_char
-            s = buffer.substring(buffer.point, mark.location)
-            if mazegaki_lookup(s)
-              start_pos = buffer.point
-              break
-            end
+        pos = buffer.point
+        buffer.goto_char(@mazegaki_start_pos)
+        loop do
+          break if buffer.point >= pos
+          buffer.forward_char
+          s = buffer.substring(buffer.point, pos)
+          if mazegaki_lookup(s)
+            start_pos = buffer.point
+            break
           end
-          if start_pos.nil?
-            buffer.goto_char(@mazegaki_start_pos)
-            buffer.insert("△")
-            raise EditorError, "Can't relimit right"
-          end
-        ensure
-          mark.delete
+        end
+        if start_pos.nil?
+          message("Can't relimit right")
+          start_pos = @mazegaki_start_pos
         end
       end
       mazegaki_convert(start_pos)
