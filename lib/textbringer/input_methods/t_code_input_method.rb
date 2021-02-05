@@ -86,6 +86,7 @@ module Textbringer
         end
       end
     end
+
     def mazegaki_convert(with_inflection = false)
       @mazegaki_convert_with_inflection = with_inflection
       buffer = Buffer.current
@@ -145,6 +146,10 @@ module Textbringer
     def process_mazegaki_conversion(event, key_index)
       if event == " "
         @mazegaki_conversion_candidates_page += 1
+        if @mazegaki_conversion_candidates_page * mazegaki_limit >
+            @mazegaki_conversion_candidates.size
+          @mazegaki_conversion_candidates_page = 0
+        end
         show_mazegaki_candidates
         Window.redisplay
         return nil
@@ -152,9 +157,9 @@ module Textbringer
       begin
         buffer = Buffer.current
         if key_index
-          limit = MAZEGAKI_STROKE_PRIORITY_LIST.size
+          mazegaki_limit = MAZEGAKI_STROKE_PRIORITY_LIST.size
           i = MAZEGAKI_STROKE_PRIORITY_LIST.index(key_index)
-          offset = @mazegaki_conversion_candidates_page * limit + i
+          offset = @mazegaki_conversion_candidates_page * mazegaki_limit + i
           c = @mazegaki_conversion_candidates[offset]
           if c
             buffer.delete_region(@mazegaki_conversion_start_pos, buffer.point)
@@ -175,9 +180,8 @@ module Textbringer
     end
 
     def show_mazegaki_candidates
-      limit = MAZEGAKI_STROKE_PRIORITY_LIST.size
-      offset = @mazegaki_conversion_candidates_page * limit
-      candidates = @mazegaki_conversion_candidates[offset, limit]
+      offset = @mazegaki_conversion_candidates_page * mazegaki_limit
+      candidates = @mazegaki_conversion_candidates[offset, mazegaki_limit]
       xs = Array.new(40, "-")
       candidates.each_with_index do |s, i|
         xs[MAZEGAKI_STROKE_PRIORITY_LIST[i]] = s
@@ -185,12 +189,19 @@ module Textbringer
       max_width = candidates.map { |s|
         Buffer.display_width(s)
       }.max
+      page = @mazegaki_conversion_candidates_page + 1
+      page_count =
+        (@mazegaki_conversion_candidates.size.to_f / mazegaki_limit).ceil
       message = xs.map { |s|
         s + " " * (max_width - Buffer.display_width(s))
       }.each_slice(10).map { |ys|
         ys.join(" ")
-      }.join("\n")
+      }.join("\n") + "   (#{page}/#{page_count})"
       show_help(message)
+    end
+
+    def mazegaki_limit
+      MAZEGAKI_STROKE_PRIORITY_LIST.size
     end
 
     def show_stroke
