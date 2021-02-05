@@ -181,6 +181,10 @@ module Textbringer
         @delete_help_window = false
         @help_window = nil
         @prev_buffer = nil
+        if @clear_echo_area
+          Window.echo_area.clear_message
+          @clear_echo_area = false
+        end
         Window.redisplay
       end
     end
@@ -272,12 +276,30 @@ module Textbringer
       page = @mazegaki_conversion_candidates_page + 1
       page_count =
         (@mazegaki_conversion_candidates.size.to_f / mazegaki_limit).ceil
-      message = xs.map { |s|
-        s + " " * (max_width - Buffer.display_width(s))
-      }.each_slice(10).map { |ys|
-        ys.join(" ")
+      message = xs.map.with_index { |s, i|
+        space = " " * (max_width - Buffer.display_width(s))
+        if i % 10 < 5
+          s + space
+        else
+          space + s
+        end
+      }.each_slice(10).map.with_index { |ys, i|
+        if i == 0
+          " " + ys[0, 4].join(" ") + "  " + ys[4, 2].join("  ") + "  " +
+            ys[6, 4].join(" ")
+        else
+          "[" + ys[0, 4].join(" ") + "] " + ys[4, 2].join("  ") + " [" +
+            ys[6, 4].join(" ") + "]"
+        end
       }.join("\n") + "   (#{page}/#{page_count})"
-      show_help(message)
+      if !Window.current.echo_area? &&
+          @mazegaki_conversion_candidates_page == 0 &&
+          candidates.size <= 5
+        message(message.lines[2].chomp)
+        @clear_echo_area = true
+      else
+        show_help(message)
+      end
     end
 
     def mazegaki_limit
