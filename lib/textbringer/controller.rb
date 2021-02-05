@@ -265,7 +265,11 @@ module Textbringer
 
     def call_read_event_method(read_event_method)
       Window.current.send(read_event_method)&.then { |event|
-        Buffer.current.filter_event(event)
+        if @key_sequence.empty?
+          Buffer.current.filter_event(event)
+        else
+          event
+        end
       }
     end
   end
