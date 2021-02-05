@@ -1,5 +1,8 @@
 module Textbringer
   class InputMethod
+    extend Commands
+    include Commands
+
     def self.find(name)
       class_name = name.split(/_/).map(&:capitalize).join + "InputMethod"
       Textbringer.const_get(class_name).new

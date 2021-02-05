@@ -43,24 +43,26 @@ module Textbringer
       Buffer.current = window.buffer
     end
 
-    def self.delete_window
-      if @@current.echo_area?
+    def self.delete_window(target = @@current)
+      if target.echo_area?
         raise EditorError, "Can't delete the echo area"
       end
       if @@list.size == 2
         raise EditorError, "Can't delete the sole window"
       end
-      i = @@list.index(@@current)
+      i = @@list.index(target)
       if i == 0
         window = @@list[1]
         window.move(0, 0)
       else
         window = @@list[i - 1]
       end
-      window.resize(@@current.lines + window.lines, window.columns)
-      @@current.delete
+      window.resize(target.lines + window.lines, window.columns)
+      target.delete
       @@list.delete_at(i)
-      self.current = window
+      if target == @@current
+        self.current = window
+      end
     end
 
     def self.delete_other_windows

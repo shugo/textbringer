@@ -173,6 +173,14 @@ module Textbringer
       ensure
         @mazegaki_conversion_start_pos = nil
         @mazegaki_conversion_candidates = nil
+        if @delete_help_window
+          Window.delete_window(@help_window)
+        elsif @prev_buffer
+          @help_window.buffer = @prev_buffer
+        end
+        @delete_help_window = false
+        @help_window = nil
+        @prev_buffer = nil
         Window.redisplay
       end
     end
@@ -308,6 +316,7 @@ module Textbringer
       end
       if Window.list.size == 1
         Window.list.first.split(message.lines.size + 1)
+        @delete_help_window = true
       end
       if Window.current.echo_area?
         window = Window.list.last
@@ -316,6 +325,8 @@ module Textbringer
         i = (windows.index(Window.current) + 1) % windows.size
         window = windows[i]
       end
+      @help_window = window
+      @prev_buffer = window.buffer
       window.buffer = buffer
     end
   end
