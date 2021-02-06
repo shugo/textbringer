@@ -1,3 +1,7 @@
+## 1.0.5
+
+* Support the Japanese input method T-Code.
+
 ## 1.0.4
 
 * Support Ruby 3.0.
