@@ -89,7 +89,6 @@ module Textbringer
 
     def start_mazegaki_conversion(with_inflection = false)
       @mazegaki_convert_with_inflection = with_inflection
-      buffer = Buffer.current
       pos = find_mazegaki_start_pos
       mazegaki_convert(pos)
     end
@@ -101,10 +100,13 @@ module Textbringer
       if c
         @mazegaki_original_text = buffer.substring(pos, buffer.point)
         candidates = c.split("/").reject(&:empty?)
-        if candidates.size == 1
+        case candidates.size
+        when 1
           buffer.delete_region(pos, buffer.point)
-          buffer.insert("△")
-          buffer.insert(candidates[0])
+          buffer.insert("△" + candidates[0])
+        when 2
+          buffer.delete_region(pos, buffer.point)
+          buffer.insert("△{" + candidates.join(",") + "}")
         else
           buffer.save_excursion do
             buffer.goto_char(pos)
@@ -163,6 +165,7 @@ module Textbringer
       end
       begin
         if event == "\C-m"
+
           buffer.delete_region(@mazegaki_start_pos, buffer.point)
           buffer.insert(@mazegaki_candidates[0])
           return nil
@@ -185,14 +188,7 @@ module Textbringer
       ensure
         @mazegaki_start_pos = nil
         @mazegaki_candidates = nil
-        if @delete_help_window
-          Window.delete_window(@help_window)
-        elsif @prev_buffer
-          @help_window.buffer = @prev_buffer
-        end
-        @delete_help_window = false
-        @help_window = nil
-        @prev_buffer = nil
+        hide_help_window
         Window.redisplay
       end
     end
@@ -201,6 +197,18 @@ module Textbringer
       buffer = Buffer.current
       buffer.delete_region(@mazegaki_start_pos, buffer.point)
       buffer.insert(@mazegaki_original_text)
+      hide_help_window
+    end
+
+    def hide_help_window
+      if @delete_help_window
+        Window.delete_window(@help_window)
+      elsif @prev_buffer
+        @help_window.buffer = @prev_buffer
+      end
+      @delete_help_window = false
+      @help_window = nil
+      @prev_buffer = nil
     end
 
     def mazegaki_next_page
