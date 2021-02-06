@@ -51,6 +51,7 @@ module Textbringer
         raise EditorError, "Can't delete the sole window"
       end
       i = @@list.index(target)
+      return if i.nil?
       if i == 0
         window = @@list[1]
         window.move(0, 0)
