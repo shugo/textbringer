@@ -42,7 +42,9 @@ module Textbringer
     def handle_event(event)
       key_index = KEY_TABLE[event]
       if @mazegaki_start_pos
-        return process_mazegaki_conversion(event, key_index)
+        if process_mazegaki_conversion(event, key_index)
+          return nil
+        end
       end
       if key_index.nil?
         @prev_key_index = nil
@@ -120,7 +122,7 @@ module Textbringer
         @mazegaki_start_pos = pos
         @mazegaki_candidates = candidates
         @mazegaki_candidates_page = 0
-        if candidates.size > 1
+        if candidates.size > 2
           show_mazegaki_candidates
         end
       end
@@ -187,11 +189,15 @@ module Textbringer
         return mazegaki_relimit_right
       end
       begin
-        if event == "\C-m" && @mazegaki_candidates.size == 1
-          mazegaki_finish(@mazegaki_candidates[0])
-          return nil
-        end
-        if key_index
+        if @mazegaki_candidates.size == 1
+          if event == "\C-m"
+            mazegaki_finish(@mazegaki_candidates[0])
+            return true
+          elsif key_index
+            mazegaki_finish(@mazegaki_candidates[0])
+            return false
+          end
+        elsif key_index
           mazegaki_limit = MAZEGAKI_STROKE_PRIORITY_LIST.size
           i = MAZEGAKI_STROKE_PRIORITY_LIST.index(key_index)
           if i
@@ -199,12 +205,12 @@ module Textbringer
             c = @mazegaki_candidates[offset]
             if c
               mazegaki_finish(c)
-              return nil
+              return true
             end
           end
         end
         mazegaki_reset
-        nil
+        true
       ensure
         @mazegaki_start_pos = nil
         @mazegaki_candidates = nil
@@ -242,6 +248,9 @@ module Textbringer
     end
 
     def mazegaki_next_page
+      if @mazegaki_candidates.size <= mazegaki_limit
+        return nil
+      end
       @mazegaki_candidates_page += 1
       if @mazegaki_candidates_page * mazegaki_limit >
           @mazegaki_candidates.size
