@@ -92,7 +92,10 @@ module Textbringer
 
     def start_mazegaki_conversion(with_inflection = false)
       @mazegaki_convert_with_inflection = with_inflection
-      pos, yomi = find_mazegaki_start_pos
+      pos, yomi = find_mazegaki_start_pos(with_inflection)
+      if pos.nil?
+        raise EditorError, "No mazegaki conversion candidate"
+      end
       mazegaki_convert(pos, yomi)
     end
 
@@ -130,8 +133,8 @@ module Textbringer
       nil
     end
 
-    def mazegaki_lookup_yomi(s)
-      if !@mazegaki_convert_with_inflection
+    def mazegaki_lookup_yomi(s, with_inflectin)
+      if !with_inflectin
         return MAZEGAKI_DIC.key?(s) ? s : nil
       end
       yomi = s.dup
@@ -155,7 +158,7 @@ module Textbringer
       candidates
     end
 
-    def find_mazegaki_start_pos
+    def find_mazegaki_start_pos(with_inflection)
       buffer = Buffer.current
       buffer.save_excursion do
         pos = buffer.point
@@ -165,14 +168,11 @@ module Textbringer
           break if buffer.beginning_of_buffer?
           buffer.backward_char
           s = buffer.substring(buffer.point, pos)
-          y = mazegaki_lookup_yomi(s)
+          y = mazegaki_lookup_yomi(s, with_inflection)
           if y
             start_pos = buffer.point
             yomi = y
           end
-        end
-        if start_pos.nil?
-          raise EditorError, "No mazegaki conversion candidate"
         end
         return start_pos, yomi
       end
@@ -276,7 +276,7 @@ module Textbringer
           break if buffer.beginning_of_buffer?
           buffer.backward_char
           s = buffer.substring(buffer.point, pos)
-          yomi = mazegaki_lookup_yomi(s)
+          yomi = mazegaki_lookup_yomi(s, @mazegaki_convert_with_inflection)
           if yomi
             start_pos = buffer.point
             break
@@ -304,10 +304,18 @@ module Textbringer
           break if buffer.point >= pos
           buffer.forward_char
           s = buffer.substring(buffer.point, pos)
-          yomi = mazegaki_lookup_yomi(s)
+          yomi = mazegaki_lookup_yomi(s, @mazegaki_convert_with_inflection)
           if yomi
             start_pos = buffer.point
             break
+          end
+        end
+      end
+      if start_pos.nil?
+        if !@mazegaki_convert_with_inflection
+          start_pos, yomi = find_mazegaki_start_pos(true)
+          if start_pos
+            @mazegaki_convert_with_inflection = true
           end
         end
         if start_pos.nil?
