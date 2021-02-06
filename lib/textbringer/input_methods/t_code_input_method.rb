@@ -182,11 +182,14 @@ module Textbringer
       buffer = Buffer.current
       case event
       when " "
-        return mazegaki_next_page
+        mazegaki_next_page
+        return true
       when "<"
-        return mazegaki_relimit_left
+        mazegaki_relimit_left
+        return true
       when ">"
-        return mazegaki_relimit_right
+        mazegaki_relimit_right
+        return true
       end
       begin
         if @mazegaki_candidates.size == 1
@@ -249,7 +252,7 @@ module Textbringer
 
     def mazegaki_next_page
       if @mazegaki_candidates.size <= mazegaki_limit
-        return nil
+        return
       end
       @mazegaki_candidates_page += 1
       if @mazegaki_candidates_page * mazegaki_limit >
@@ -258,7 +261,6 @@ module Textbringer
       end
       show_mazegaki_candidates
       Window.redisplay
-      return nil
     end
 
     def mazegaki_relimit_left
@@ -288,7 +290,6 @@ module Textbringer
       end
       mazegaki_convert(start_pos, yomi)
       Window.redisplay
-      return nil
     end
 
     def mazegaki_relimit_right
@@ -317,7 +318,6 @@ module Textbringer
       end
       mazegaki_convert(start_pos, yomi)
       Window.redisplay
-      return nil
     end
 
     def show_mazegaki_candidates
