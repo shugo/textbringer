@@ -61,7 +61,7 @@ module Textbringer
         when ?◇
           start_mazegaki_conversion(false)
         when ?◈
-          mazegaki_convert(true)
+          start_mazegaki_conversion(true)
         when ?⑤
           show_stroke
         else
