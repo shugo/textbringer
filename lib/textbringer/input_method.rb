@@ -19,6 +19,10 @@ module Textbringer
       @enabled = !@enabled
     end
 
+    def disable
+      @enabled = false
+    end
+
     def enabled?
       @enabled
     end

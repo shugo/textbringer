@@ -179,6 +179,7 @@ module Textbringer
         Window.current.buffer = Buffer.current = old_buffer
         Buffer.minibuffer[:completion_proc] = old_completion_proc
         Buffer.minibuffer.keymap = old_minibuffer_map
+        Buffer.minibuffer.disable_input_method
         Controller.current.current_prefix_arg = old_current_prefix_arg
         if COMPLETION[:original_buffer]
           COMPLETION[:completions_window].buffer = COMPLETION[:original_buffer]

@@ -1392,6 +1392,10 @@ module Textbringer
       @input_method.toggle
     end
 
+    def disable_input_method
+      @input_method&.disable
+    end
+
     def filter_event(event)
       if @input_method
         @input_method.filter_event(event)
