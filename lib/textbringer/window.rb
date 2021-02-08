@@ -458,8 +458,9 @@ module Textbringer
               end
             end
           end
-          if c == "\uFEFF"
-            # ncurses on macOS prints U+FEFF as space, so ignore it
+          if Buffer.display_width(c) == 0
+            # ncurses on macOS prints U+FEFF, U+FE0F etc. as space,
+            # so ignore it
           else
             @window.addstr(c)
           end
