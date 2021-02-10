@@ -406,8 +406,10 @@ module Textbringer
         window = windows[i]
       end
       @help_window = window
-      @prev_buffer = window.buffer
-      window.buffer = buffer
+      if window.buffer != buffer
+        @prev_buffer = window.buffer
+        window.buffer = buffer
+      end
     end
   end
 end
