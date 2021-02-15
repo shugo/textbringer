@@ -416,6 +416,8 @@ EOF
     assert_raise(EditorError) do
       switch_to_buffer("baz")
     end
+    switch_to_buffer("baz", true)
+    assert_equal("baz", Buffer.current.name)
   end
 
   def test_list_buffers

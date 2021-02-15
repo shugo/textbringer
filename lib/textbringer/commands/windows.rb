@@ -69,9 +69,13 @@ module Textbringer
     define_command(:switch_to_buffer, doc: <<~EOD) do
         Display buffer in the current window.
       EOD
-      |buffer = read_buffer("Switch to buffer: ")|
+      |buffer = read_buffer("Switch to buffer: "), arg = current_prefix_arg|
       if buffer.is_a?(String)
-        buffer = Buffer[buffer]
+        if arg
+          buffer = Buffer.find_or_new(buffer)
+        else
+          buffer = Buffer[buffer]
+        end
       end
       if buffer
         Window.current.buffer = Buffer.current = buffer
