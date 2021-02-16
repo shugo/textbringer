@@ -13,6 +13,11 @@ module Textbringer
     def initialize
       super
       @prev_key_index = nil
+      @mazegaki_start_pos = nil
+      @mazegaki_candidates = nil
+      @delete_help_window = false
+      @help_window = nil
+      @prev_buffer = nil
       setup_dictionaries
     end
 
