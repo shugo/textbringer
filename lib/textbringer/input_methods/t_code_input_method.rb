@@ -179,7 +179,6 @@ module Textbringer
     end
 
     def process_mazegaki_conversion(event, key_index)
-      buffer = Buffer.current
       case event
       when " "
         mazegaki_next_page

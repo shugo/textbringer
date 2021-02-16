@@ -44,7 +44,7 @@ module Textbringer
     end
 
     def handle_event(event)
-      raise EditorError, "subclass must override InputMethod#handle"
+      raise EditorError, "subclass must override InputMethod#handle_event"
     end
   end
 end
