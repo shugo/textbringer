@@ -185,4 +185,12 @@ EOF
       Dir.chdir(d)
     end
   end
+
+  def test_make_directory
+    mkcdtmpdir do
+      make_directory("foo/bar")
+      find_file("foo.txt")
+      assert(File.directory?("foo/bar"))
+    end
+  end
 end

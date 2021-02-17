@@ -1,4 +1,5 @@
 require "editorconfig"
+require "fileutils"
 
 module Textbringer
   module Commands
@@ -130,6 +131,13 @@ module Textbringer
       |file_name = read_file_name("Find alternate file: ",
                                   default: Buffer.current.file_name)|
       find_file(file_name)
+    end
+
+    define_command(:make_directory, doc: "Create a new directory.") do
+      |dir_name = read_file_name("Make directory: ",
+                                 default: Buffer.current.file_name &&
+                                 File.dirname(Buffer.current.file_name))|
+      FileUtils.mkdir_p(dir_name)
     end
   end
 end
