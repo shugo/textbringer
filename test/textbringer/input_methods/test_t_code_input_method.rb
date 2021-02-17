@@ -24,6 +24,13 @@ class TestTCodeInputMethod < Textbringer::TestCase
     assert_equal("", @buffer.to_s)
   end
 
+  def test_bushu_composition_failure
+    @buffer.insert("五日")
+    assert_equal(nil, @im.handle_event(?j))
+    assert_equal(nil, @im.handle_event(?f))
+    assert_equal("五日", @buffer.to_s)
+  end
+
   def test_mazegaki_conversion_from_many
     @buffer.insert("かんじ")
     assert_equal(nil, @im.handle_event(?f))
@@ -38,6 +45,29 @@ class TestTCodeInputMethod < Textbringer::TestCase
 EOF
     assert_equal(nil, @im.handle_event(?e))
     assert_equal("漢字", @buffer.to_s)
+  end
+
+  def test_mazegaki_conversion_pagination
+    @buffer.insert("こう")
+    assert_equal(nil, @im.handle_event(?f))
+    assert_equal(nil, @im.handle_event(?j))
+    
+    assert_equal("△こう", @buffer.to_s)
+    assert_equal(<<EOF.chop, Buffer["*T-Code Help*"].to_s)
+ -  -  -  -   -    -   -  -  -  -
+[効 公 候 光] 功  塙 [坑 喉 垢 好]
+[倖 佼 交 仰] 侯  后 [厚 勾 口 向]
+[-  -  -  - ] -    - [ -  -  -  -]   (1/6)
+EOF
+    assert_equal(nil, @im.handle_event(" "))
+    assert_equal(<<EOF.chop, Buffer["*T-Code Help*"].to_s)
+ -  -  -  -   -    -   -  -  -  -
+[康 広 巷 幸] 庚  控 [抗 慌 拘 攻]
+[巧 宏 孔 孝] 工  恒 [弘 廣 後 恰]
+[-  -  -  - ] -    - [ -  -  -  -]   (2/6)
+EOF
+    assert_equal(nil, @im.handle_event(?w))
+    assert_equal("広", @buffer.to_s)
   end
 
   def test_mazegaki_conversion_from_two
@@ -58,6 +88,27 @@ EOF
     assert_equal("△漢字", @buffer.to_s)
     assert_equal(nil, @im.handle_event(?\C-m))
     assert_equal("漢字", @buffer.to_s)
+  end
+
+  def test_mazegaki_conversion_automatic_finish
+    @buffer.insert("漢じ")
+    assert_equal(nil, @im.handle_event(?f))
+    assert_equal(nil, @im.handle_event(?j))
+    
+    assert_equal("△漢字", @buffer.to_s)
+    assert_equal(nil, @im.handle_event(?k))
+    assert_equal("漢字", @buffer.to_s)
+    assert_equal(?の, @im.handle_event(?d))
+  end
+
+  def test_mazegaki_conversion_cancel
+    @buffer.insert("漢じ")
+    assert_equal(nil, @im.handle_event(?f))
+    assert_equal(nil, @im.handle_event(?j))
+    
+    assert_equal("△漢字", @buffer.to_s)
+    assert_equal(nil, @im.handle_event(?\C-g))
+    assert_equal("漢じ", @buffer.to_s)
   end
 
   def test_mazegaki_conversion_with_inflection
@@ -93,6 +144,15 @@ EOF
     assert_equal("△機関車", @buffer.to_s)
     assert_equal(nil, @im.handle_event(?\C-m))
     assert_equal("機関車", @buffer.to_s)
+  end
+
+  def test_mazegaki_conversion_failure
+    @buffer.insert("ん")
+    assert_equal(nil, @im.handle_event(?f))
+    assert_raise(EditorError) do
+      @im.handle_event(?j)
+    end
+    assert_equal("ん", @buffer.to_s)
   end
 
   def test_show_stroke
