@@ -20,7 +20,7 @@ module Textbringer
       class_name = name.split(/_/).map(&:capitalize).join + "InputMethod"
       Textbringer.const_get(class_name).new
     rescue NameError
-      "No such input method: #{name}"
+      raise EditorError, "No such input method: #{name}"
     end
 
     def initialize
