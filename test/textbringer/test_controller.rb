@@ -45,6 +45,18 @@ class TestController < Textbringer::TestCase
     assert_equal("b", @controller.read_event)
   end
 
+  def test_read_event_wait_next_tick
+    called = false
+    @controller.next_tick do
+      called = true
+    end
+    @window.define_singleton_method(:read_event) do
+      called ? "a" : nil
+    end
+    assert_equal("a", @controller.read_event)
+    assert(called)
+  end
+
   def test_wait_input
     def @window.wait_input(msecs)
       "a"
