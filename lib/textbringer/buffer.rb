@@ -1387,8 +1387,12 @@ module Textbringer
       end
     end
 
-    def toggle_input_method
-      @input_method ||= InputMethod.find(CONFIG[:default_input_method])
+    def toggle_input_method(name)
+      if name.nil?
+        @input_method ||= InputMethod.find(CONFIG[:default_input_method])
+      else
+        @input_method = InputMethod.find(name)
+      end
       @input_method.toggle
     end
 

@@ -3,7 +3,7 @@ require_relative "../../test_helper"
 class TestTCodeInputMethod < Textbringer::TestCase
   setup do
     @buffer = Buffer.new_buffer("test")
-    @buffer.toggle_input_method
+    @buffer.toggle_input_method("t_code")
     @im = @buffer.input_method
     switch_to_buffer(@buffer)
   end

@@ -3,6 +3,19 @@ module Textbringer
     extend Commands
     include Commands
 
+    @@list = []
+
+    def self.inherited(subclass)
+      name = subclass.name.sub(/Textbringer::/, "").sub(/InputMethod/, "").
+        gsub(/([A-Z]+)([A-Z][a-z])/, '\1_\2').gsub(/([a-z\d])([A-Z])/, '\1_\2').
+        downcase
+      @@list.push(name)
+    end
+
+    def self.list
+      @@list
+    end
+
     def self.find(name)
       class_name = name.split(/_/).map(&:capitalize).join + "InputMethod"
       Textbringer.const_get(class_name).new

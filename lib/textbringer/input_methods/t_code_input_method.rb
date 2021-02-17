@@ -41,7 +41,7 @@ module Textbringer
     end
 
     def status
-      "あ"
+      "漢"
     end
 
     def handle_event(event)
