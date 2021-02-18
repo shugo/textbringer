@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Textbringer
   class HiraganaInputMethod < InputMethod
     HIRAGANA_TABLE = {
@@ -27,7 +29,7 @@ module Textbringer
 
     def initialize
       super
-      @input_buffer = ""
+      @input_buffer = +""
     end
 
     def status
@@ -37,7 +39,7 @@ module Textbringer
     def handle_event(event)
       if !event.is_a?(String)
         if !@input_buffer.empty?
-          @input_buffer = ""
+          @input_buffer = +""
         end
         return event
       end
@@ -54,7 +56,7 @@ module Textbringer
 
     def flush(s)
       if !@input_buffer.empty?
-        @input_buffer = ""
+        @input_buffer = +""
       end
       if s.size == 1
         s
