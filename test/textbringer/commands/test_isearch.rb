@@ -162,4 +162,16 @@ EOF
     assert_equal(4, buffer.current_line)
     assert_equal(8, buffer.current_column)
   end
+
+  def test_isearch_toggle_input_method
+    buffer = Buffer.current
+    buffer.insert(<<EOF)
+foo一
+foo二
+EOF
+    buffer.beginning_of_buffer
+    push_keys("foo\C-\\\n")
+    isearch_forward(recursive_edit: true)
+    assert_instance_of(TCodeInputMethod, buffer.input_method)
+  end
 end

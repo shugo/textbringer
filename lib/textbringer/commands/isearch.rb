@@ -21,6 +21,7 @@ module Textbringer
     ISEARCH_MODE_MAP.define_key(?\C-m, :isearch_exit)
     ISEARCH_MODE_MAP.define_key(?\C-g, :isearch_abort)
     ISEARCH_MODE_MAP.define_key(?\C-q, :isearch_quoted_insert)
+    ISEARCH_MODE_MAP.define_key(?\C-\\, :isearch_toggle_input_method)
 
     ISEARCH_STATUS = {
       forward: true,
@@ -164,6 +165,12 @@ module Textbringer
         ISEARCH_STATUS[:string] = ISEARCH_STATUS[:last_string]
       end
       isearch_search
+    end
+
+    define_command(:isearch_toggle_input_method,
+                   doc: "Toggle input method.") do
+      toggle_input_method
+      message(isearch_prompt + ISEARCH_STATUS[:string], log: false)
     end
   end
 end

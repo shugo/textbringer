@@ -1,7 +1,7 @@
 module Textbringer
   module Commands
     define_command(:toggle_input_method,
-                   doc: "Toggel input method") do |name = nil|
+                   doc: "Toggel input method.") do |name = nil|
       if name.nil? && current_prefix_arg
         name = read_input_method_name("Input method: ")
       end
