@@ -1,3 +1,9 @@
+## 1.0.6
+
+* Add the Hiragana input method.
+* Add make_directory.
+* Bug fixes.
+
 ## 1.0.5
 
 * Support the Japanese input method T-Code.
