@@ -21,7 +21,7 @@ module Textbringer
         if | unless | then | elsif | else | case | when | while | until |
         for | break | next | redo | retry | in | do | return | yield |
         super | self | nil | true | false | and | or | not | alias
-      ) \b | defined\? )
+      ) \b (?![!?]) | defined\? )
     /x
 
     define_syntax :string, /
