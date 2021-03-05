@@ -305,6 +305,9 @@ module Textbringer
               t = ts.find { |_, e| e != :on_sp }
               next if t && !(t[1] == :on_op && t[2] == "=")
             end
+            if text == "def" && endless_method_def?(tokens.drop(i))
+              next
+            end
             if stack.empty?
               return i
             end
@@ -328,6 +331,32 @@ module Textbringer
         end
       end
       return nil, stack.grep_v(/[)\]]/).size
+    end
+
+    def endless_method_def?(tokens)
+      tokens.shift # def
+      tokens.shift while tokens[0][1] == :on_sp
+      _, event = tokens.shift
+      return false if event != :on_ident
+      tokens.shift while tokens[0][1] == :on_sp
+      if tokens[0][1] == :on_lparen
+        tokens.shift
+        count = 1
+        while count > 0
+          _, event = tokens.shift
+          return false if event.nil?
+          case event
+          when :on_lparen
+            count +=1
+          when :on_rparen
+            count -=1
+          end
+        end
+        tokens.shift while tokens[0][1] == :on_sp
+      end
+      tokens[0][1] == :on_op && tokens[0][2] == "="
+    rescue NoMethodError # no token
+      return false
     end
 
     def find_test_target_path(base, namespace, name)
