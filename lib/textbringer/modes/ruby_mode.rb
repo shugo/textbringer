@@ -300,12 +300,11 @@ module Textbringer
           case text
           when "class", "module", "def", "if", "unless", "case",
             "do", "for", "while", "until", "begin"
-            if /\A(if|unless|while|until)\z/.match?(text)
-              ts = tokens[0...i].reverse_each.take_while { |(l,_),| l == line }
-              t = ts.find { |_, e| e != :on_sp }
-              next if t && !(t[1] == :on_op && t[2] == "=")
+            if /\A(if|unless|while|until)\z/.match?(text) &&
+                modifier?(tokens, i)
+              next
             end
-            if text == "def" && endless_method_def?(tokens.drop(i))
+            if text == "def" && endless_method_def?(tokens, i)
               next
             end
             if stack.empty?
@@ -333,17 +332,24 @@ module Textbringer
       return nil, stack.grep_v(/[)\]]/).size
     end
 
-    def endless_method_def?(tokens)
-      tokens.shift # def
-      tokens.shift while tokens[0][1] == :on_sp
-      _, event = tokens.shift
+    def modifier?(tokens, i)
+      (line,), = tokens[i]
+      ts = tokens[0...i].reverse_each.take_while { |(l,_),| l == line }
+      t = ts.find { |_, e| e != :on_sp }
+      t && !(t[1] == :on_op && t[2] == "=")
+    end
+
+    def endless_method_def?(tokens, i)
+      ts = tokens.drop(i + 1)
+      ts.shift while ts[0][1] == :on_sp
+      _, event = ts.shift
       return false if event != :on_ident
-      tokens.shift while tokens[0][1] == :on_sp
-      if tokens[0][1] == :on_lparen
-        tokens.shift
+      ts.shift while ts[0][1] == :on_sp
+      if ts[0][1] == :on_lparen
+        ts.shift
         count = 1
         while count > 0
-          _, event = tokens.shift
+          _, event = ts.shift
           return false if event.nil?
           case event
           when :on_lparen
@@ -352,9 +358,9 @@ module Textbringer
             count -=1
           end
         end
-        tokens.shift while tokens[0][1] == :on_sp
+        ts.shift while ts[0][1] == :on_sp
       end
-      tokens[0][1] == :on_op && tokens[0][2] == "="
+      ts[0][1] == :on_op && ts[0][2] == "="
     rescue NoMethodError # no token
       return false
     end
