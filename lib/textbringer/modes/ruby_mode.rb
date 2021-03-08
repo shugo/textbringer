@@ -273,6 +273,7 @@ module Textbringer
         }
         if start_with_period ||
             (last_event == :on_op && last_text != "|") ||
+            (last_event == :on_kw && /\A(and|or)\z/.match?(last_text)) ||
             last_event == :on_period ||
             (last_event == :on_comma && event != :on_lbrace &&
              event != :on_lparen && event != :on_lbracket)

@@ -471,7 +471,7 @@ EOF
 EOF
   end
   
-  def test_indent_endless_method_definition
+  def test_indent_line_endless_method_definition
     @buffer.insert(<<EOF.chop)
   def foo = 1
 bar
@@ -483,7 +483,7 @@ EOF
 EOF
   end
   
-  def test_indent_endless_method_definition_with_params
+  def test_indent_line_endless_method_definition_with_params
     @buffer.insert(<<EOF.chop)
   def foo(x, y = (x + 1) * 2) = [x, y]
 bar
@@ -492,6 +492,18 @@ EOF
     assert_equal(<<EOF.chop, @buffer.to_s)
   def foo(x, y = (x + 1) * 2) = [x, y]
   bar
+EOF
+  end
+
+  def test_indent_line_and
+    @buffer.insert(<<EOF.chop)
+x = y and
+z
+EOF
+    @ruby_mode.indent_line
+    assert_equal(<<EOF.chop, @buffer.to_s)
+x = y and
+  z
 EOF
   end
   
