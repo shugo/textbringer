@@ -6,6 +6,7 @@ module Textbringer
     BUSHU_PATH = File.expand_path("bushu.rev", data_dir)
     BUSHU_DIC = {} unless defined?(BUSHU_DIC)
     MAZEGAKI_PATH = File.expand_path("mazegaki.dic", data_dir)
+    SKK_JISYO_PATH = File.expand_path("SKK-JISYO.L", data_dir)
     MAZEGAKI_DIC = {} unless defined?(MAZEGAKI_DIC)
     MAZEGAKI_MAX_WORD_LEN = 12 # じょうほうしょりがっかい
     MAZEGAKI_MAX_SUFFIX_LEN = 4
@@ -35,6 +36,14 @@ module Textbringer
           f.each_line do |line|
             x, y = line.split
             MAZEGAKI_DIC[x] = y
+          end
+        end
+        File.open(SKK_JISYO_PATH) do |f|
+          f.each_line do |line|
+            next if /^;/.match?(line)
+            x, y = line.split
+            key = x.sub(/\A(\p{hiragana}+)[a-z]\z/, "\\1—")
+            MAZEGAKI_DIC[key] ||= y
           end
         end
       end
@@ -158,7 +167,9 @@ module Textbringer
       end
       c = MAZEGAKI_DIC[s]
       return nil if c.nil?
-      candidates = c.split("/").reject(&:empty?)
+      candidates = c.split("/").map { |i|
+        i.sub(/;.*/, "")
+      }.reject(&:empty?)
       return nil if candidates.empty?
       candidates
     end
