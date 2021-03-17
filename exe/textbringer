@@ -5,8 +5,8 @@ require "textbringer"
 include Textbringer
 include Commands
 
-def load_user_config
-  config_file = File.expand_path("~/.textbringer.rb")
+def load_user_config(path)
+  config_file = File.expand_path(path)
   begin
     load(config_file)
   rescue LoadError
@@ -24,8 +24,9 @@ Controller.current = Controller.new
 begin
   Window.start do
     begin
+      load_user_config("~/.textbringer/init.rb")
       Plugin.load_plugins
-      load_user_config
+      load_user_config("~/.textbringer.rb")
       ruby_mode
       if ARGV.size > 0
         ARGV.each do |arg|
