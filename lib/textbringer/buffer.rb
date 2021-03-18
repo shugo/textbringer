@@ -1681,6 +1681,7 @@ module Textbringer
     def initialize(buffer, location, string)
       super(buffer, location)
       @string = string
+      @copied = false
     end
 
     def undo
@@ -1694,6 +1695,10 @@ module Textbringer
     end
 
     def merge(s)
+      unless @copied
+        @string = @string.dup
+        @copied = true
+      end
       @string.concat(s)
     end
   end

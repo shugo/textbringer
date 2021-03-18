@@ -43,6 +43,17 @@ class TestBuffer < Textbringer::TestCase
     assert_equal("123", buffer.to_s)
   end
 
+  def test_insert_not_to_modify_arg
+    buffer = Buffer.new
+    s = "a"
+    buffer.insert(s)
+    buffer.insert("b", true)
+    assert_equal("ab", buffer.to_s)
+    assert_equal("a", s)
+    buffer.undo
+    assert_equal("", buffer.to_s)
+  end
+
   def test_newline
     buffer = Buffer.new("abc")
     buffer.end_of_buffer
