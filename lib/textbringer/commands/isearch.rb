@@ -139,7 +139,7 @@ module Textbringer
       re = Regexp.new(Regexp.quote(ISEARCH_STATUS[:string]), options)
       last_pos = ISEARCH_STATUS[:last_pos]
       offset = forward ? last_pos : last_pos - ISEARCH_STATUS[:string].bytesize
-      if Buffer.current.byteindex(forward, re, offset)
+      if offset >= 0 && Buffer.current.byteindex(forward, re, offset)
         if Buffer.current != Buffer.minibuffer
           message(isearch_prompt + ISEARCH_STATUS[:string], log: false)
         end
