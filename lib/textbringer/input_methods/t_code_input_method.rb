@@ -87,21 +87,40 @@ module Textbringer
       end
     end
 
+    def with_target_buffer(&block)
+      if isearch_mode?
+        @isearch_buffer ||= Buffer.new
+        if @isearch_buffer.to_s != ISEARCH_STATUS[:string]
+          @isearch_buffer.replace(ISEARCH_STATUS[:string])
+        end
+        block.call(@isearch_buffer)
+        ISEARCH_STATUS[:string] = @isearch_buffer.to_s
+        if Buffer.current != Buffer.minibuffer
+          message(isearch_prompt + ISEARCH_STATUS[:string], log: false)
+          Window.redisplay
+        end
+      else
+        block.call(Buffer.current)
+      end
+    end
+
     def bushu_compose
-      buffer = Buffer.current
-      buffer.save_excursion do
+      with_target_buffer do |buffer|
+        pos = buffer.point
         s = 2.times.map {
           buffer.backward_char
           buffer.char_after
         }.sort.join
         c = BUSHU_DIC[s]
         if c
-          buffer.delete_char(2)
-          c
+          buffer.replace(c, start: buffer.point, end: pos)
         else
-          nil
+          buffer.goto_char(pos)
         end
       end
+      isearch_search if isearch_mode?
+      Window.redisplay
+      nil
     end
 
     def start_mazegaki_conversion(with_inflection = false)
@@ -114,37 +133,40 @@ module Textbringer
     end
 
     def mazegaki_convert(pos, yomi)
-      buffer = Buffer.current
-      candidates = mazegaki_lookup_candidates(yomi)
-      if candidates
-        @mazegaki_yomi = yomi
-        @mazegaki_suffix = buffer.substring(pos + yomi.bytesize, buffer.point)
-        case candidates.size
-        when 1
-          buffer.composite_edit do
-            buffer.delete_region(pos, buffer.point)
-            buffer.insert("△" + candidates[0] + @mazegaki_suffix)
+      with_target_buffer do |buffer|
+        candidates = mazegaki_lookup_candidates(yomi)
+        if candidates
+          @mazegaki_yomi = yomi
+          @mazegaki_suffix = buffer.substring(pos + yomi.bytesize,
+                                              buffer.point)
+          case candidates.size
+          when 1
+            buffer.composite_edit do
+              buffer.delete_region(pos, buffer.point)
+              buffer.insert("△" + candidates[0] + @mazegaki_suffix)
+            end
+          when 2
+            buffer.composite_edit do
+              buffer.delete_region(pos, buffer.point)
+              buffer.insert("△{" + candidates.join(",") + "}" +
+                            @mazegaki_suffix)
+            end
+          else
+            buffer.save_excursion do
+              buffer.goto_char(pos)
+              buffer.insert("△")
+            end
           end
-        when 2
-          buffer.composite_edit do
-            buffer.delete_region(pos, buffer.point)
-            buffer.insert("△{" + candidates.join(",") + "}" + @mazegaki_suffix)
-          end
-        else
-          buffer.save_excursion do
-            buffer.goto_char(pos)
-            buffer.insert("△")
+          @mazegaki_start_pos = pos
+          @mazegaki_candidates = candidates
+          @mazegaki_candidates_page = 0
+          if candidates.size > 2
+            show_mazegaki_candidates
           end
         end
-        @mazegaki_start_pos = pos
-        @mazegaki_candidates = candidates
-        @mazegaki_candidates_page = 0
-        if candidates.size > 2
-          show_mazegaki_candidates
-        end
+        Window.redisplay
+        nil
       end
-      Window.redisplay
-      nil
     end
 
     def mazegaki_lookup_yomi(s, with_inflectin)
@@ -175,22 +197,23 @@ module Textbringer
     end
 
     def find_mazegaki_start_pos(with_inflection)
-      buffer = Buffer.current
-      buffer.save_excursion do
-        pos = buffer.point
-        start_pos = nil
-        yomi = nil
-        MAZEGAKI_MAX_WORD_LEN.times do
-          break if buffer.beginning_of_buffer?
-          buffer.backward_char
-          s = buffer.substring(buffer.point, pos)
-          y = mazegaki_lookup_yomi(s, with_inflection)
-          if y
-            start_pos = buffer.point
-            yomi = y
+      with_target_buffer do |buffer|
+        buffer.save_excursion do
+          pos = buffer.point
+          start_pos = nil
+          yomi = nil
+          MAZEGAKI_MAX_WORD_LEN.times do
+            break if buffer.beginning_of_buffer?
+            buffer.backward_char
+            s = buffer.substring(buffer.point, pos)
+            y = mazegaki_lookup_yomi(s, with_inflection)
+            if y
+              start_pos = buffer.point
+              yomi = y
+            end
           end
+          return start_pos, yomi
         end
-        return start_pos, yomi
       end
     end
 
@@ -237,21 +260,24 @@ module Textbringer
     end
 
     def mazegaki_reset
-      buffer = Buffer.current
-      buffer.undo
-      pos = @mazegaki_start_pos +
-        @mazegaki_yomi.bytesize + @mazegaki_suffix.bytesize
-      buffer.goto_char(pos)
-      hide_help_window
+      with_target_buffer do |buffer|
+        buffer.undo
+        pos = @mazegaki_start_pos +
+          @mazegaki_yomi.bytesize + @mazegaki_suffix.bytesize
+        buffer.goto_char(pos)
+        hide_help_window
+      end
     end
 
     def mazegaki_finish(s)
       mazegaki_reset
-      buffer = Buffer.current
-      buffer.composite_edit do
-        buffer.delete_region(@mazegaki_start_pos, buffer.point)
-        buffer.insert(s + @mazegaki_suffix)
+      with_target_buffer do |buffer|
+        buffer.composite_edit do
+          buffer.delete_region(@mazegaki_start_pos, buffer.point)
+          buffer.insert(s + @mazegaki_suffix)
+        end
       end
+      isearch_search if isearch_mode?
     end
 
     def hide_help_window
@@ -279,68 +305,70 @@ module Textbringer
     end
 
     def mazegaki_relimit_left
-      buffer = Buffer.current
-      yomi = nil
-      start_pos = nil
-      mazegaki_reset
-      buffer.save_excursion do
-        pos = buffer.point
-        buffer.goto_char(@mazegaki_start_pos)
-        s = buffer.substring(buffer.point, pos)
-        (MAZEGAKI_MAX_WORD_LEN - s.size).times do
-          break if buffer.beginning_of_buffer?
-          buffer.backward_char
+      with_target_buffer do |buffer|
+        yomi = nil
+        start_pos = nil
+        mazegaki_reset
+        buffer.save_excursion do
+          pos = buffer.point
+          buffer.goto_char(@mazegaki_start_pos)
           s = buffer.substring(buffer.point, pos)
-          yomi = mazegaki_lookup_yomi(s, @mazegaki_convert_with_inflection)
-          if yomi
-            start_pos = buffer.point
-            break
+          (MAZEGAKI_MAX_WORD_LEN - s.size).times do
+            break if buffer.beginning_of_buffer?
+            buffer.backward_char
+            s = buffer.substring(buffer.point, pos)
+            yomi = mazegaki_lookup_yomi(s, @mazegaki_convert_with_inflection)
+            if yomi
+              start_pos = buffer.point
+              break
+            end
+          end
+          if start_pos.nil?
+            message("Can't relimit left")
+            start_pos = @mazegaki_start_pos
+            yomi = @mazegaki_yomi
           end
         end
-        if start_pos.nil?
-          message("Can't relimit left")
-          start_pos = @mazegaki_start_pos
-          yomi = @mazegaki_yomi
-        end
+        mazegaki_convert(start_pos, yomi)
+        Window.redisplay
       end
-      mazegaki_convert(start_pos, yomi)
-      Window.redisplay
     end
 
     def mazegaki_relimit_right
-      buffer = Buffer.current
-      start_pos = nil
-      yomi = nil
-      mazegaki_reset
-      buffer.save_excursion do
-        pos = buffer.point
-        buffer.goto_char(@mazegaki_start_pos)
-        loop do
-          break if buffer.point >= pos
-          buffer.forward_char
-          s = buffer.substring(buffer.point, pos)
-          yomi = mazegaki_lookup_yomi(s, @mazegaki_convert_with_inflection)
-          if yomi
-            start_pos = buffer.point
-            break
-          end
-        end
-      end
-      if start_pos.nil?
-        if !@mazegaki_convert_with_inflection
-          start_pos, yomi = find_mazegaki_start_pos(true)
-          if start_pos
-            @mazegaki_convert_with_inflection = true
+      with_target_buffer do |buffer|
+        start_pos = nil
+        yomi = nil
+        mazegaki_reset
+        buffer.save_excursion do
+          pos = buffer.point
+          buffer.goto_char(@mazegaki_start_pos)
+          loop do
+            break if buffer.point >= pos
+            buffer.forward_char
+            s = buffer.substring(buffer.point, pos)
+            yomi = mazegaki_lookup_yomi(s, @mazegaki_convert_with_inflection)
+            if yomi
+              start_pos = buffer.point
+              break
+            end
           end
         end
         if start_pos.nil?
-          message("Can't relimit right")
-          start_pos = @mazegaki_start_pos
-          yomi = @mazegaki_yomi
+          if !@mazegaki_convert_with_inflection
+            start_pos, yomi = find_mazegaki_start_pos(true)
+            if start_pos
+              @mazegaki_convert_with_inflection = true
+            end
+          end
+          if start_pos.nil?
+            message("Can't relimit right")
+            start_pos = @mazegaki_start_pos
+            yomi = @mazegaki_yomi
+          end
         end
+        mazegaki_convert(start_pos, yomi)
+        Window.redisplay
       end
-      mazegaki_convert(start_pos, yomi)
-      Window.redisplay
     end
 
     def show_mazegaki_candidates

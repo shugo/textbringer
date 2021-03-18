@@ -20,8 +20,8 @@ class TestTCodeInputMethod < Textbringer::TestCase
   def test_bushu_composition
     @buffer.insert("五口")
     assert_equal(nil, @im.handle_event(?j))
-    assert_equal(?吾, @im.handle_event(?f))
-    assert_equal("", @buffer.to_s)
+    assert_equal(nil, @im.handle_event(?f))
+    assert_equal("吾", @buffer.to_s)
   end
 
   def test_bushu_composition_failure

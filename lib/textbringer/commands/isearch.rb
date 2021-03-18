@@ -58,6 +58,10 @@ module Textbringer
       end
     end
 
+    def isearch_mode?
+      Controller.current.overriding_map == ISEARCH_MODE_MAP
+    end
+
     def isearch_prompt
       if ISEARCH_STATUS[:forward]
         "I-search: "
