@@ -173,7 +173,7 @@ module Textbringer
       if !with_inflectin
         return MAZEGAKI_DIC.key?(s) ? s : nil
       end
-      yomi = s.dup
+      yomi = s.sub(/\p{hiragana}\z/, "")
       (MAZEGAKI_MAX_SUFFIX_LEN + 1).times do
         return yomi if MAZEGAKI_DIC.key?(yomi + "—")
         break if !yomi.sub!(/\p{hiragana}\z/, "")
@@ -342,14 +342,19 @@ module Textbringer
         buffer.save_excursion do
           pos = buffer.point
           buffer.goto_char(@mazegaki_start_pos)
-          loop do
-            break if buffer.point >= pos
-            buffer.forward_char
-            s = buffer.substring(buffer.point, pos)
-            yomi = mazegaki_lookup_yomi(s, @mazegaki_convert_with_inflection)
-            if yomi
-              start_pos = buffer.point
-              break
+          if @mazegaki_convert_with_inflection && @mazegaki_yomi &&
+              (yomi = mazegaki_lookup_yomi(@mazegaki_yomi, true))
+            start_pos = @mazegaki_start_pos
+          else
+            loop do
+              break if buffer.point >= pos
+              buffer.forward_char
+              s = buffer.substring(buffer.point, pos)
+              yomi = mazegaki_lookup_yomi(s, @mazegaki_convert_with_inflection)
+              if yomi
+                start_pos = buffer.point
+                break
+              end
             end
           end
         end

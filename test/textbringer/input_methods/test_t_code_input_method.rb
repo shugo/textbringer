@@ -131,6 +131,32 @@ EOF
     assert_equal("△おもう", @buffer.to_s)
     assert_equal(nil, @im.handle_event(?d))
     assert_equal("思う", @buffer.to_s)
+
+    @buffer.clear
+    @buffer.insert("かえる")
+    assert_equal(nil, @im.handle_event(?f))
+    assert_equal(nil, @im.handle_event(?j))
+    assert_equal("△蛙", @buffer.to_s)
+    assert_equal(nil, @im.handle_event(?>))
+    assert_equal("かえ△る", @buffer.to_s)
+    assert_equal(nil, @im.handle_event(?>))
+    assert_equal("△かえる", @buffer.to_s)
+    assert_equal(nil, @im.handle_event(?s))
+    assert_equal("帰る", @buffer.to_s)
+
+    @buffer.clear
+    @buffer.insert("かえる")
+    assert_equal(nil, @im.handle_event(?f))
+    assert_equal(nil, @im.handle_event(?j))
+    assert_equal("△蛙", @buffer.to_s)
+    assert_equal(nil, @im.handle_event(?>))
+    assert_equal("かえ△る", @buffer.to_s)
+    assert_equal(nil, @im.handle_event(?>))
+    assert_equal("△かえる", @buffer.to_s)
+    assert_equal(nil, @im.handle_event(?>))
+    assert_equal("△かえる", @buffer.to_s)
+    assert_equal(nil, @im.handle_event(?l))
+    assert_equal("買える", @buffer.to_s)
   end
 
   def test_relimit_left
