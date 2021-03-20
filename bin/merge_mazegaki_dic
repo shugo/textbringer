@@ -1,0 +1,21 @@
+#!/usr/bin/env ruby
+
+MAZEGAKI_DIC = Hash.new([])
+
+ARGF.each_line do |line|
+  next if /^\p{ascii}/.match?(line)
+  x, y = line.split
+  key = x.sub(/\A(\p{hiragana}+)[a-z>]\z/, "\\1—")
+  values = y.split("/").map { |i|
+    i.sub(/;.*/, "")
+  }.reject(&:empty?)
+  MAZEGAKI_DIC[key] |= values
+end
+
+MAZEGAKI_DIC.sort_by { |key,|
+  key
+}.each do |key, values|
+  puts "#{key} /#{values.join('/')}/"
+end
+
+

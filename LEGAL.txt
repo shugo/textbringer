@@ -1,6 +1,7 @@
-lib/textbringer/input_methods/t_code_input_method/mazegaki.dic
-lib/textbringer/input_methods/t_code_input_method/bushu.rev
-  These files came from https://github.com/kanchoku/tc
+* lib/textbringer/input_methods/t_code_input_method/bushu.rev
+    The file came from https://github.com/kanchoku/tc
 
-lib/textbringer/input_methods/t_code_input_method/SKK-JISYO.L
-  The file came from http://openlab.ring.gr.jp/skk/wiki/wiki.cgi?page=SKK%BC%AD%BD%F1
+* lib/textbringer/input_methods/t_code_input_method/mazegaki.dic
+    The file is generated from the following files:
+      * mazegaki.dic from https://github.com/kanchoku/tc
+      * SKK-JISYO.L from http://openlab.ring.gr.jp/skk/wiki/wiki.cgi?page=SKK%BC%AD%BD%F1
