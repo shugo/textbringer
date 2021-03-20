@@ -39,8 +39,8 @@ class TestTCodeInputMethod < Textbringer::TestCase
     assert_equal("△かんじ", @buffer.to_s)
     assert_equal(<<EOF.chop, Buffer["*T-Code Help*"].to_s)
  -    -    -    -     -        -     -    -    -    -
-[-    -    漢字 監事] -        - [   -    -    -    -]
-[換字 幹事 完治 寛治] 感じ     - [   -    -    -    -]
+[官寺 莞爾 漢字 監事] 完爾     - [   -    -    -    -]
+[換字 幹事 完治 寛治] 感じ     - [完児 冠辞    -    -]
 [-    -    -    -   ] -        - [   -    -    -    -]   (1/1)
 EOF
     assert_equal(nil, @im.handle_event(?e))
@@ -57,14 +57,14 @@ EOF
  -  -  -  -   -    -   -  -  -  -
 [効 公 候 光] 功  塙 [坑 喉 垢 好]
 [倖 佼 交 仰] 侯  后 [厚 勾 口 向]
-[-  -  -  - ] -    - [ -  -  -  -]   (1/6)
+[-  -  -  - ] -    - [ -  -  -  -]   (1/12)
 EOF
     assert_equal(nil, @im.handle_event(" "))
     assert_equal(<<EOF.chop, Buffer["*T-Code Help*"].to_s)
  -  -  -  -   -    -   -  -  -  -
 [康 広 巷 幸] 庚  控 [抗 慌 拘 攻]
 [巧 宏 孔 孝] 工  恒 [弘 廣 後 恰]
-[-  -  -  - ] -    - [ -  -  -  -]   (2/6)
+[-  -  -  - ] -    - [ -  -  -  -]   (2/12)
 EOF
     assert_equal(nil, @im.handle_event(?w))
     assert_equal("広", @buffer.to_s)
@@ -165,7 +165,7 @@ EOF
     assert_equal(nil, @im.handle_event(?j))
     assert_equal("△機関車", @buffer.to_s)
     assert_equal(nil, @im.handle_event(?>))
-    assert_equal("き△{官舎,感謝}", @buffer.to_s)
+    assert_equal("き△かんしゃ", @buffer.to_s)
     assert_equal(nil, @im.handle_event(?<))
     assert_equal("△機関車", @buffer.to_s)
     assert_equal(nil, @im.handle_event(?\C-m))
