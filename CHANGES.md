@@ -1,3 +1,8 @@
+## 1.0.7
+
+* Support endless method definitions in ruby-mode.
+* Updated mazegaki.dic.
+
 ## 1.0.6
 
 * Add the Hiragana input method.
