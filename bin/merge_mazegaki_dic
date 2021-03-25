@@ -8,7 +8,9 @@ ARGF.each_line do |line|
   key = x.sub(/\A(\p{hiragana}+)[a-z>]\z/, "\\1—")
   values = y.split("/").map { |i|
     i.sub(/;.*/, "")
-  }.reject(&:empty?)
+  }.reject { |i|
+    i.empty? || i == key
+  }
   MAZEGAKI_DIC[key] |= values
 end
 

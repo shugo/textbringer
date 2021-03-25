@@ -39,8 +39,8 @@ class TestTCodeInputMethod < Textbringer::TestCase
     assert_equal("△かんじ", @buffer.to_s)
     assert_equal(<<EOF.chop, Buffer["*T-Code Help*"].to_s)
  -    -    -    -     -        -     -    -    -    -
-[官寺 莞爾 漢字 監事] 完爾     - [   -    -    -    -]
-[換字 幹事 完治 寛治] 感じ     - [完児 冠辞    -    -]
+[官寺 莞爾 漢字 監事] 完爾  幹士 [侃司 寛司 幹司    -]
+[換字 幹事 完治 寛治] 感じ  幹二 [完児 冠辞 神路 寛二]
 [-    -    -    -   ] -        - [   -    -    -    -]   (1/1)
 EOF
     assert_equal(nil, @im.handle_event(?e))
@@ -124,6 +124,8 @@ EOF
     @buffer.insert("おもう")
     assert_equal(nil, @im.handle_event(?f))
     assert_equal(nil, @im.handle_event(?j))
+    assert_equal("△小間生", @buffer.to_s)
+    assert_equal(nil, @im.handle_event(?>))
     assert_equal("お△もう", @buffer.to_s)
     assert_equal(nil, @im.handle_event(?>))
     assert_equal("おも△う", @buffer.to_s)

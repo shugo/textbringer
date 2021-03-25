@@ -4,4 +4,5 @@
 * lib/textbringer/input_methods/t_code_input_method/mazegaki.dic
     The file is generated from the following files:
       * mazegaki.dic from https://github.com/kanchoku/tc
-      * SKK-JISYO.L from http://openlab.ring.gr.jp/skk/wiki/wiki.cgi?page=SKK%BC%AD%BD%F1
+      * SKK-JISYO.L, SKK-JISYO.geo, SKK-JISYO.jinmei, SKK-JISYO.mazegaki
+        from http://openlab.ring.gr.jp/skk/wiki/wiki.cgi?page=SKK%BC%AD%BD%F1
