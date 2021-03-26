@@ -1,3 +1,8 @@
+## 1.0.8
+
+* Updated mazegaki.dic
+* Add licenses of dictionary data to LEGAL.txt
+
 ## 1.0.7
 
 * Support endless method definitions in ruby-mode.
