@@ -1,8 +1,44 @@
 * lib/textbringer/input_methods/t_code_input_method/bushu.rev
-    The file came from https://github.com/kanchoku/tc
+    The file came from https://github.com/kanchoku/tc, and licensed under GPLv2
+    or later in tc.el:
+
+    ;; Copyright (C) 1989--2002 Kaoru Maeda, Yasushi Saito and KITAJIMA Akira.
+    
+    ;; Author: Kaoru Maeda <maeda@src.ricoh.co.jp>
+    ;;      Yasushi Saito <yasushi@cs.washington.edu>
+    ;;      KITAJIMA Akira <kitajima@isc.osakac.ac.jp>
+    ;; Maintainer: KITAJIMA Akira
+    ;; Keyword: input method, japanese
+    
+    ;; $Id: tc.el,v 1.60 2003/03/29 03:42:27 kitajima Exp $
+    
+    ;; This program is free software; you can redistribute it and/or modify
+    ;; it under the terms of the GNU General Public License as published by
+    ;; the Free Software Foundation; either version 2 of the License, or
+    ;; (at your option) any later version.
+    
+    ;; This program is distributed in the hope that it will be useful,
+    ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+    ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    ;; GNU General Public License for more details.
+    
+    ;; You should have received a copy of the GNU General Public License
+    ;; along with this program; if not, write to the Free Software
+    ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA.
 
 * lib/textbringer/input_methods/t_code_input_method/mazegaki.dic
     The file is generated from the following files:
-      * mazegaki.dic from https://github.com/kanchoku/tc
+      * mazegaki.dic from https://github.com/kanchoku/tc, licensed under GPLv2
+        or later
       * SKK-JISYO.L, SKK-JISYO.geo, SKK-JISYO.jinmei, SKK-JISYO.mazegaki
-        from http://openlab.ring.gr.jp/skk/wiki/wiki.cgi?page=SKK%BC%AD%BD%F1
+        from http://openlab.ring.gr.jp/skk/wiki/wiki.cgi?page=SKK%BC%AD%BD%F1,
+        licensed under GPLv2 or later in
+        http://openlab.jp/skk/skk/dic/READMEs/committers.txt:
+
+        ** GPL が適用される辞書
+
+        SKK-JISYO.{SML}, SKK-JISYO.JIS2, SKK-JISYO.JIS3_4, SKK-JISYO.geo,
+        SKK-JISYO.law, SKK-JISYO.wrong, SKK-JISYO.jinmei, SKK-JISYO.lisp
+        については the Free Software Foundation の発行している the GNU General
+        Public License version 2 以降が適用されます。詳細については COPYING を
+        ご覧下さい。
