@@ -22,8 +22,12 @@ module Textbringer
     end
 
     def setup_dictionaries
+      data_dir = CONFIG[:t_code_data_dir] ||
+        File.expand_path("~/.textbringer/tcode")
+      bushu_path = File.join(data_dir, "bushu.rev")
+      mazegaki_path = File.join(data_dir, "mazegaki.dic")
       if BUSHU_DIC.empty?
-        File.open(BUSHU_PATH) do |f|
+        File.open(bushu_path) do |f|
           f.each_line do |line|
             x, *xs = line.chomp.chars
             BUSHU_DIC[xs.sort.join] = x
@@ -31,7 +35,7 @@ module Textbringer
         end
       end
       if MAZEGAKI_DIC.empty?
-        File.open(MAZEGAKI_PATH) do |f|
+        File.open(mazegaki_path) do |f|
           f.each_line do |line|
             x, y = line.split
             MAZEGAKI_DIC[x] = y

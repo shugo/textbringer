@@ -39,11 +39,11 @@ class TestTCodeInputMethod < Textbringer::TestCase
     assert_equal("△かんじ", @buffer.to_s)
     assert_equal(<<EOF.chop, Buffer["*T-Code Help*"].to_s)
  -    -    -    -     -        -     -    -    -    -
-[官寺 莞爾 漢字 監事] 完爾  幹士 [侃司 寛司 幹司    -]
-[換字 幹事 完治 寛治] 感じ  幹二 [完児 冠辞 神路 寛二]
+[-    -    -    -   ] -        - [   -    -    -    -]
+[幹事 換字 感じ 漢字] 監事     - [   -    -    -    -]
 [-    -    -    -   ] -        - [   -    -    -    -]   (1/1)
 EOF
-    assert_equal(nil, @im.handle_event(?e))
+    assert_equal(nil, @im.handle_event(?f))
     assert_equal("漢字", @buffer.to_s)
   end
 
@@ -57,14 +57,14 @@ EOF
  -  -  -  -   -    -   -  -  -  -
 [効 公 候 光] 功  塙 [坑 喉 垢 好]
 [倖 佼 交 仰] 侯  后 [厚 勾 口 向]
-[-  -  -  - ] -    - [ -  -  -  -]   (1/12)
+[-  -  -  - ] -    - [ -  -  -  -]   (1/2)
 EOF
     assert_equal(nil, @im.handle_event(" "))
     assert_equal(<<EOF.chop, Buffer["*T-Code Help*"].to_s)
  -  -  -  -   -    -   -  -  -  -
-[康 広 巷 幸] 庚  控 [抗 慌 拘 攻]
+[康 広 巷 幸] 庚   - [抗 慌  -  -]
 [巧 宏 孔 孝] 工  恒 [弘 廣 後 恰]
-[-  -  -  - ] -    - [ -  -  -  -]   (2/12)
+[-  -  -  - ] -    - [ -  -  -  -]   (2/2)
 EOF
     assert_equal(nil, @im.handle_event(?w))
     assert_equal("広", @buffer.to_s)
@@ -124,8 +124,6 @@ EOF
     @buffer.insert("おもう")
     assert_equal(nil, @im.handle_event(?f))
     assert_equal(nil, @im.handle_event(?j))
-    assert_equal("△小間生", @buffer.to_s)
-    assert_equal(nil, @im.handle_event(?>))
     assert_equal("お△もう", @buffer.to_s)
     assert_equal(nil, @im.handle_event(?>))
     assert_equal("おも△う", @buffer.to_s)
@@ -140,8 +138,6 @@ EOF
     assert_equal(nil, @im.handle_event(?j))
     assert_equal("△蛙", @buffer.to_s)
     assert_equal(nil, @im.handle_event(?>))
-    assert_equal("かえ△る", @buffer.to_s)
-    assert_equal(nil, @im.handle_event(?>))
     assert_equal("△かえる", @buffer.to_s)
     assert_equal(nil, @im.handle_event(?s))
     assert_equal("帰る", @buffer.to_s)
@@ -152,12 +148,10 @@ EOF
     assert_equal(nil, @im.handle_event(?j))
     assert_equal("△蛙", @buffer.to_s)
     assert_equal(nil, @im.handle_event(?>))
-    assert_equal("かえ△る", @buffer.to_s)
-    assert_equal(nil, @im.handle_event(?>))
     assert_equal("△かえる", @buffer.to_s)
     assert_equal(nil, @im.handle_event(?>))
     assert_equal("△かえる", @buffer.to_s)
-    assert_equal(nil, @im.handle_event(?l))
+    assert_equal(nil, @im.handle_event(?d))
     assert_equal("買える", @buffer.to_s)
   end
 

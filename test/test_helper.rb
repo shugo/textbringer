@@ -321,3 +321,5 @@ end
 
 include Textbringer
 include Commands
+
+CONFIG[:t_code_data_dir] = File.expand_path("fixtures/tcode", __dir__)
