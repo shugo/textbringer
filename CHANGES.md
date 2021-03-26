@@ -1,3 +1,7 @@
+## 1.0.9
+
+* Remove mazegaki.dic and bushu.rev
+
 ## 1.0.8
 
 * Updated mazegaki.dic
