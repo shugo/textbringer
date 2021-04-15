@@ -1,5 +1,7 @@
 #!/usr/bin/env ruby
 
+# Usage: merge_mazegaki_dic /path/to/mazegaki.dic /path/to/skkdic/SKK-JISYO.* > ~/.textbringer/tcode/mazegaki.dic
+
 MAZEGAKI_DIC = Hash.new([])
 
 ARGF.each_line do |line|
