@@ -1,5 +1,7 @@
 #!/usr/bin/env ruby
 
+$VERBOSE = nil
+
 require "textbringer"
 
 include Textbringer
@@ -12,8 +14,6 @@ def load_user_config(path)
   rescue LoadError
   end
 end
-
-$VERBOSE = nil
 
 unless STDIN.tty?
   STDERR.puts("textbringer: standard input is not a tty")
