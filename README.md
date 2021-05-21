@@ -4,7 +4,6 @@
 [![ubuntu](https://github.com/shugo/textbringer/workflows/ubuntu/badge.svg)](https://github.com/shugo/textbringer/actions?query=workflow%3Aubuntu)
 [![windows](https://github.com/shugo/textbringer/workflows/windows/badge.svg)](https://github.com/shugo/textbringer/actions?query=workflow%3Awindows)
 [![macos](https://github.com/shugo/textbringer/workflows/macos/badge.svg)](https://github.com/shugo/textbringer/actions?query=workflow%3Amacos)
-[![codecov](https://codecov.io/gh/shugo/textbringer/branch/master/graph/badge.svg)](https://codecov.io/gh/shugo/textbringer)
 
 Textbringer is a member of a demon race that takes on the form of an Emacs-like
 text editor.

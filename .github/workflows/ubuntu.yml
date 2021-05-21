@@ -20,6 +20,3 @@ jobs:
         bundle install
     - name: Run test
       run: xvfb-run bundle exec rake test
-      env:
-       UPLOAD_TO_CODECOV: 1
-       CODECOV_TOKEN: ${{secrets.CODECOV_TOKEN}}
