@@ -429,7 +429,6 @@ EOF
       *scratch*
       foo
       bar
-      *Buffer List*
     EOF
   end
 
