@@ -1312,6 +1312,19 @@ EOF
     assert_equal("", buffer.to_s)
   end
 
+  def test_undo_composite_edit
+    buffer = Buffer.new
+    buffer.composite_edit do
+      buffer.insert("foo")
+      buffer.insert("bar")
+    end
+    assert_equal("foobar", buffer.to_s)
+    assert_equal(true, buffer.modified?)
+    buffer.undo
+    assert_equal("", buffer.to_s)
+    assert_equal(false, buffer.modified?)
+  end
+
   def test_undo_limit
     Tempfile.create("test_buffer", binmode: true) do |f|
       buffer = Buffer.new(<<EOF, undo_limit: 4)

@@ -1587,14 +1587,14 @@ module Textbringer
 
     def push_undo(action)
       return if @undoing || @undo_limit == 0
+      if !modified?
+        action.version = @version
+      end
       if @composite_edit_level > 0
         @composite_edit_actions.push(action)
       else
         if @undo_stack.size >= @undo_limit
           @undo_stack[0, @undo_stack.size + 1 - @undo_limit] = []
-        end
-        if !modified?
-          action.version = @version
         end
         @undo_stack.push(action)
         @redo_stack.clear
