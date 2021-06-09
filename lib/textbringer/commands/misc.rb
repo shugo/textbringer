@@ -6,7 +6,12 @@ module Textbringer
     end
 
     define_command(:exit_textbringer) do |status = 0|
-      if Buffer.any? { |buffer| /\A\*/ !~ buffer.name && buffer.modified? }
+      unsaved_buffers = Buffer.filter { |buffer|
+        /\A\*/ !~ buffer.name && buffer.modified?
+      }
+      if !unsaved_buffers.empty?
+        list_buffers(unsaved_buffers)
+        Window.redisplay
         return unless yes_or_no?("Unsaved buffers exist; exit anyway?")
       end
       exit(status)

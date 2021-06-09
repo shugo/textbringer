@@ -84,7 +84,7 @@ module Textbringer
       end
     end
 
-    define_command(:list_buffers, doc: <<~EOD) do
+    define_command(:list_buffers, doc: <<~EOD) do |buffers = Buffer.list|
         List the existing buffers.
       EOD
       buffer = Buffer.find_or_new("*Buffer List*",
@@ -92,7 +92,7 @@ module Textbringer
       buffer.apply_mode(BufferListMode)
       buffer.read_only_edit do
         buffer.clear
-        buffer.insert(Buffer.list.map(&:name).join("\n"))
+        buffer.insert(buffers.map(&:name).join("\n"))
         buffer.beginning_of_buffer
       end
       switch_to_buffer(buffer)
