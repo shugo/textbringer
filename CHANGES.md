@@ -1,3 +1,8 @@
+## 1.1.0
+
+* Show unsaved buffers on exit
+* Bug fixes.
+
 ## 1.0.9
 
 * Remove mazegaki.dic and bushu.rev
