@@ -506,6 +506,18 @@ x = y and
   z
 EOF
   end
+
+  def test_indent_line_label
+    @buffer.insert(<<EOF.chop)
+foo x:
+1
+EOF
+    @ruby_mode.indent_line
+    assert_equal(<<EOF.chop, @buffer.to_s)
+foo x:
+  1
+EOF
+  end
   
   def test_reindent_then_newline_and_indent
     @buffer.insert(<<EOF.chop)
