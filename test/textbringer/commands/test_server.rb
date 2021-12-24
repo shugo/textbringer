@@ -54,11 +54,13 @@ class TestServer < Textbringer::TestCase
   end
 
   def test_server_sock_mode_no_options
-    CONFIG[:server_options] = nil
-    server_start
-    assert_equal(0600, File.stat(@sock_path).mode & 0777)
-  ensure
-    server_kill
+    omit_on_windows do
+      CONFIG[:server_options] = nil
+      server_start
+      assert_equal(0600, File.stat(@sock_path).mode & 0777)
+    ensure
+      server_kill
+    end
   end
 
   def test_server_sock_mode_empty_options
