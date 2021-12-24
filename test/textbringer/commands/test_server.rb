@@ -1,9 +1,17 @@
 require_relative "../../test_helper"
 require "tempfile"
+require "tmpdir"
+require "fileutils"
 
 class TestServer < Textbringer::TestCase
   setup do
-    CONFIG[:server_uri] = "druby://localhost:8787"
+    @dir = Dir.mktmpdir
+    @sock_path = File.expand_path("server.sock", @dir)
+    CONFIG[:server_uri] = "drbunix:" + @sock_path
+  end
+
+  teardown do
+    FileUtils.remove_entry(@dir)
   end
 
   def test_visit_file
@@ -37,6 +45,30 @@ class TestServer < Textbringer::TestCase
       Controller.current.call_next_block
       assert_equal('"foo"', t.value)
     end
+  ensure
+    server_kill
+  end
+
+  def test_server_sock_mode_no_options
+    CONFIG[:server_options] = nil
+    server_start
+    assert_equal(0600, File.stat(@sock_path).mode & 0777)
+  ensure
+    server_kill
+  end
+
+  def test_server_sock_mode_empty_options
+    CONFIG[:server_options] = {}
+    server_start
+    assert_equal(0600, File.stat(@sock_path).mode & 0777)
+  ensure
+    server_kill
+  end
+
+  def test_server_sock_mode_specified_options
+    CONFIG[:server_options] = { UNIXFileMode: 0700 }
+    server_start
+    assert_equal(0700, File.stat(@sock_path).mode & 0777)
   ensure
     server_kill
   end

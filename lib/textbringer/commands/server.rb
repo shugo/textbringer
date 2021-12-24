@@ -6,7 +6,7 @@ module Textbringer
                    doc: "Start Textbringer server.") do
       uri = CONFIG[:server_uri] ||
         "drbunix:" + File.expand_path("server.sock", "~/.textbringer")
-      options = CONFIG[:server_options] || { UNIXFileMode: 0600 }
+      options = { UNIXFileMode: 0600 }.merge(CONFIG[:server_options] || {})
       DRb.start_service(uri, Server.new, options)
     end
 
