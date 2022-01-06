@@ -1,3 +1,7 @@
+## 1.1.1
+
+* Bug fixes.
+
 ## 1.1.0
 
 * Show unsaved buffers on exit
