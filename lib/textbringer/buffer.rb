@@ -268,7 +268,7 @@ module Textbringer
 
     def file_encoding=(enc)
       @file_encoding = Encoding.find(enc)
-      @binary = enc == Encoding::ASCII_8BIT
+      @binary = @file_encoding == Encoding::ASCII_8BIT
     end
 
     def binary?

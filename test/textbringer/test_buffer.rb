@@ -1748,6 +1748,8 @@ EOF
                  buffer.byte_after)
     assert_equal("\xe3".force_encoding(Encoding::ASCII_8BIT),
                  buffer.char_after)
+    buffer = Buffer.new(data, file_encoding: "ascii-8bit")
+    assert_equal(true, buffer.binary?)
   end
 
   def test_get_line_and_column
