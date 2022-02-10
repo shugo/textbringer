@@ -687,6 +687,8 @@ module Textbringer
       else
         "U+%04X" % c.ord
       end
+    rescue ArgumentError
+      "0x" + c.unpack("H*")[0]
     end
 
     def escape(s)
