@@ -223,8 +223,10 @@ module Textbringer
     end
 
     def read_encoding(prompt, **opts)
+      encoding_names = (Encoding.list.map(&:name) + Encoding.aliases.keys).
+        map(&:downcase).uniq
       f = ->(s) {
-        complete_for_minibuffer(s.upcase, Encoding.list.map(&:name))
+        complete_for_minibuffer(s.downcase, encoding_names)
       }
       read_from_minibuffer(prompt, completion_proc: f, **opts)
     end
