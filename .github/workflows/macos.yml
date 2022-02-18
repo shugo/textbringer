@@ -5,6 +5,7 @@ on: [push]
 jobs:
   build:
     runs-on: macos-latest
+    timeout-minutes: 10
     steps:
     - uses: actions/checkout@master
     - name: Install dependencies
