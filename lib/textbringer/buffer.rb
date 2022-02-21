@@ -1125,49 +1125,71 @@ module Textbringer
       byteindex(true, r, @point) == @point
     end
 
-    def byteindex(forward, re, pos)
-      @match_offsets = []
-      method = forward ? :index : :rindex
-      adjust_gap(0, point_max)
-      s = @contents[0...@gap_start]
-      if @binary
-        offset = pos
-      else
-        offset = s.byteslice(0, pos).force_encoding(Encoding::UTF_8).size
-        s.force_encoding(Encoding::UTF_8)
-      end
-      begin
-        i = s.send(method, re, offset)
+    if String.instance_methods.include?(:byteindex)
+      def byteindex(forward, re, pos)
+        @match_offsets = []
+        method = forward ? :byteindex : :byterindex
+        adjust_gap(0, point_max)
+        s = @contents[0...@gap_start]
+        unless binary?
+          s.force_encoding(Encoding::UTF_8)
+        end
+        i = s.send(method, re, pos)
         if i
           m = Regexp.last_match
-          if m.nil?
-            # A bug of rindex
-            @match_offsets.push([pos, pos])
-            pos
-          else
-            b = m.pre_match.bytesize
-            e = b + m.to_s.bytesize
-            if e <= bytesize
-              @match_offsets.push([b, e])
-              match_beg = m.begin(0)
-              match_str = m.to_s
-              (1 .. m.size - 1).each do |j|
-                cb, ce = m.offset(j)
-                if cb.nil?
-                  @match_offsets.push([nil, nil])
-                else
-                  bb = b + match_str[0, cb - match_beg].bytesize
-                  be = b + match_str[0, ce - match_beg].bytesize
-                  @match_offsets.push([bb, be])
-                end
-              end
-              b
-            else
-              nil
-            end
+          (0 .. m.size - 1).each do |j|
+            @match_offsets.push(m.byteoffset(j))
           end
+          i
         else
           nil
+        end
+      end
+    else
+      def byteindex(forward, re, pos)
+        @match_offsets = []
+        method = forward ? :index : :rindex
+        adjust_gap(0, point_max)
+        s = @contents[0...@gap_start]
+        if @binary
+          offset = pos
+        else
+          offset = s.byteslice(0, pos).force_encoding(Encoding::UTF_8).size
+          s.force_encoding(Encoding::UTF_8)
+        end
+        begin
+          i = s.send(method, re, offset)
+          if i
+            m = Regexp.last_match
+            if m.nil?
+              # A bug of rindex
+              @match_offsets.push([pos, pos])
+              pos
+            else
+              b = m.pre_match.bytesize
+              e = b + m.to_s.bytesize
+              if e <= bytesize
+                @match_offsets.push([b, e])
+                match_beg = m.begin(0)
+                match_str = m.to_s
+                (1 .. m.size - 1).each do |j|
+                  cb, ce = m.offset(j)
+                  if cb.nil?
+                    @match_offsets.push([nil, nil])
+                  else
+                    bb = b + match_str[0, cb - match_beg].bytesize
+                    be = b + match_str[0, ce - match_beg].bytesize
+                    @match_offsets.push([bb, be])
+                  end
+                end
+                b
+              else
+                nil
+              end
+            end
+          else
+            nil
+          end
         end
       end
     end
