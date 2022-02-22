@@ -58,6 +58,8 @@ module Textbringer
       end
     }
 
+    STRING_HAS_BYTE_BASED_METHODS = String.instance_methods.include?(:bytesplice)
+
     if !defined?(@@detect_encoding_proc)
       @@detect_encoding_proc = DEFAULT_DETECT_ENCODING
 
@@ -269,6 +271,13 @@ module Textbringer
     def file_encoding=(enc)
       @file_encoding = Encoding.find(enc)
       @binary = @file_encoding == Encoding::ASCII_8BIT
+      if STRING_HAS_BYTE_BASED_METHODS
+        if @binary
+          @contents.force_encoding(Encoding::ASCII_8BIT)
+        else
+          @contents.force_encoding(Encoding::UTF_8)
+        end
+      end
     end
 
     def binary?
@@ -437,20 +446,26 @@ module Textbringer
     end
 
     def to_s
-      result = (@contents[0...@gap_start] + @contents[@gap_end..-1])
-      result.force_encoding(Encoding::UTF_8) unless @binary
+      result = @contents.byteslice(0...@gap_start) +
+        @contents.byteslice(@gap_end..-1)
+      if !@binary && !STRING_HAS_BYTE_BASED_METHODS
+        result.force_encoding(Encoding::UTF_8)
+      end
       result
     end
 
     def substring(s, e)
       result =
         if s > @gap_start || e <= @gap_start
-          @contents[user_to_gap(s)...user_to_gap(e)]
+          @contents.byteslice(user_to_gap(s)...user_to_gap(e))
         else
           len = @gap_start - s
-          @contents[user_to_gap(s), len] + @contents[@gap_end, e - s - len]
+          @contents.byteslice(user_to_gap(s), len) +
+            @contents.byteslice(@gap_end, e - s - len)
         end
-      result.force_encoding(Encoding::UTF_8) unless @binary
+      if !@binary && !STRING_HAS_BYTE_BASED_METHODS
+        result.force_encoding(Encoding::UTF_8)
+      end
       result
     end
 
@@ -459,7 +474,7 @@ module Textbringer
         @contents.byteslice(location)
       else
         @contents.byteslice(location + gap_size)
-      end
+      end&.force_encoding(Encoding::ASCII_8BIT)
     end
 
     def byte_before(location = @point)
@@ -506,11 +521,19 @@ module Textbringer
     end
 
     def get_line_and_column(pos)
-      line = 1 + @contents[0...user_to_gap(pos)].count("\n")
+      line = 1 + @contents.byteslice(0...user_to_gap(pos)).count("\n")
       if pos == point_min
         column = 1
       else
-        i = @contents.rindex("\n", user_to_gap(pos - 1))
+        if STRING_HAS_BYTE_BASED_METHODS
+          begin
+            i = @contents.byterindex("\n", user_to_gap(get_pos(pos, -1)))
+          rescue RangeError
+            i = nil
+          end
+        else
+          i = @contents.rindex("\n", user_to_gap(pos - 1))
+        end
         if i
           i += 1
         else
@@ -539,7 +562,11 @@ module Textbringer
       pos = point_min
       i = 1
       while i < n && pos < @contents.bytesize
-        pos = @contents.index("\n", pos)
+        if STRING_HAS_BYTE_BASED_METHODS
+          pos = @contents.byteindex("\n", pos)
+        else
+          pos = @contents.index("\n", pos)
+        end
         break if pos.nil?
         i += 1
         pos += 1
@@ -556,7 +583,7 @@ module Textbringer
       pos = @point
       size = s.bytesize
       adjust_gap(size)
-      @contents[@point, size] = s.b
+      splice_contents(@point, size, STRING_HAS_BYTE_BASED_METHODS ? s : s.b)
       @marks.each do |m|
         if m.location > @point
           m.location += size
@@ -604,7 +631,7 @@ module Textbringer
       if n > 0
         str = substring(s, pos)
         # fill the gap with NUL to avoid invalid byte sequence in UTF-8
-        @contents[@gap_end...user_to_gap(pos)] = "\0" * (pos - @point)
+        splice_contents(@gap_end...user_to_gap(pos), "\0" * (pos - @point))
         @gap_end += pos - @point
         @marks.each do |m|
           if m.location > pos
@@ -619,7 +646,7 @@ module Textbringer
         str = substring(pos, s)
         update_line_and_column(@point, pos)
         # fill the gap with NUL to avoid invalid byte sequence in UTF-8
-        @contents[user_to_gap(pos)...@gap_start] = "\0" * (@point - pos)
+        splice_contents(user_to_gap(pos)...@gap_start, "\0" * (@point - pos))
         @marks.each do |m|
           if m.location >= @point
             m.location -= @point - pos
@@ -941,7 +968,7 @@ module Textbringer
         adjust_gap
         len = e - s
         # fill the gap with NUL to avoid invalid byte sequence in UTF-8
-        @contents[@gap_end, len] = "\0" * len
+        splice_contents(@gap_end, len, "\0" * len)
         @gap_end += len
         @marks.each do |m|
           if m.location > e
@@ -966,6 +993,9 @@ module Textbringer
     def clear
       check_read_only_flag
       @contents = +""
+      if binary? || !STRING_HAS_BYTE_BASED_METHODS
+        @contents.force_encoding(Encoding::ASCII_8BIT)
+      end
       @point = @gap_start = @gap_end = 0
       @marks.each do |m|
         m.location = 0
@@ -1125,12 +1155,12 @@ module Textbringer
       byteindex(true, r, @point) == @point
     end
 
-    if String.instance_methods.include?(:byteindex)
+    if STRING_HAS_BYTE_BASED_METHODS
       def byteindex(forward, re, pos)
         @match_offsets = []
         method = forward ? :byteindex : :byterindex
         adjust_gap(0, 0)
-        s = @contents[@gap_end..-1]
+        s = @contents.byteslice(@gap_end..-1)
         unless binary?
           s.force_encoding(Encoding::UTF_8)
         end
@@ -1270,7 +1300,7 @@ module Textbringer
     end
 
     def gap_filled_with_nul?
-      @contents[@gap_start...@gap_end]&.match?(/\A\0*\z/)
+      @contents.byteslice(@gap_start...@gap_end)&.match?(/\A\0*\z/)
     end
 
     def composite_edit
@@ -1447,49 +1477,79 @@ module Textbringer
       else
         @contents = s.encode(Encoding::UTF_8)
       end
-      @contents.force_encoding(Encoding::ASCII_8BIT)
+      if !STRING_HAS_BYTE_BASED_METHODS
+        @contents.force_encoding(Encoding::ASCII_8BIT)
+      end
       self.file_encoding = enc
-      case @contents
-      when /(?<!\r)\n/
+      begin
+        case @contents
+        when /(?<!\r)\n/
+          @file_format = :unix
+        when /\r(?!\n)/
+          @file_format = :mac
+          @contents.gsub!(/\r/, "\n")
+        when /\r\n/
+          @file_format = :dos
+          @contents.gsub!(/\r/, "")
+        else
+          @file_format = CONFIG[:default_file_format]
+        end
+      rescue ArgumentError
         @file_format = :unix
-      when /\r(?!\n)/
-        @file_format = :mac
-        @contents.gsub!(/\r/, "\n")
-      when /\r\n/
-        @file_format = :dos
-        @contents.gsub!(/\r/, "")
-      else
-        @file_format = CONFIG[:default_file_format]
+      end
+    end
+
+    if STRING_HAS_BYTE_BASED_METHODS
+      def splice_contents(*args)
+        @contents.bytesplice(*args)
+      end
+    else
+      def splice_contents(*args)
+        @contents.[]=(*args)
       end
     end
 
     def adjust_gap(min_size = 0, pos = @point)
       if @gap_start < pos
         len = user_to_gap(pos) - @gap_end
-        s = @contents[@gap_end, len]
+        s = @contents.byteslice(@gap_end, len)
         new_gap_start = @gap_start + len
         new_gap_end = @gap_end + len
         nul_filling_start = new_gap_start > @gap_end ? new_gap_start : @gap_end
-        @contents[nul_filling_start...new_gap_end] =
-          "\0" * (new_gap_end - nul_filling_start)
-        @contents[@gap_start...new_gap_start] = s
+        unless @binary
+          # find the character boundary
+          while nul_filling_start > @gap_end &&
+              @contents.byteslice(nul_filling_start)&.b&.match?(/[\x80-\xbf]/n)
+            nul_filling_start -= 1
+          end
+        end
+        splice_contents(nul_filling_start...new_gap_end,
+                        "\0" * (new_gap_end - nul_filling_start))
+        splice_contents(@gap_start...new_gap_start, s)
         @gap_start = new_gap_start
         @gap_end = new_gap_end
       elsif @gap_start > pos
         len = @gap_start - pos
-        s = @contents[pos, len]
+        s = @contents.byteslice(pos, len)
         new_gap_start = @gap_start - len
         new_gap_end = @gap_end - len
         nul_filling_end = new_gap_end < @gap_start ? new_gap_end : @gap_start
-        @contents[pos...nul_filling_end] =  "\0" * (nul_filling_end - pos)
-        @contents[new_gap_end...@gap_end] = s
+        unless @binary
+          # find the character boundary
+          while nul_filling_end < @gap_start &&
+              @contents.byteslice(nul_filling_end)&.b&.match?(/[\x80-\xbf]/n)
+            nul_filling_end += 1
+          end
+        end
+        splice_contents(pos...nul_filling_end, "\0" * (nul_filling_end - pos))
+        splice_contents(new_gap_end...@gap_end, s)
         @gap_start = new_gap_start
         @gap_end = new_gap_end
       end
       if gap_size < min_size
         new_gap_size = GAP_SIZE + min_size
         extended_size = new_gap_size - gap_size
-        @contents[@gap_end, 0] = "\0" * extended_size
+        splice_contents(@gap_end, 0, "\0" * extended_size)
         @gap_end += extended_size
       end
     end
@@ -1551,12 +1611,20 @@ module Textbringer
     def update_line_and_column(pos, new_pos)
       return if @save_point_level > 0
       if pos < new_pos
-        n = @contents[user_to_gap(pos)...user_to_gap(new_pos)].count("\n")
+        n = @contents.byteslice(user_to_gap(pos)...user_to_gap(new_pos)).count("\n")
         if n == 0
           @current_column += substring(pos, new_pos).size
         else
           @current_line += n
-          i = @contents.rindex("\n", user_to_gap(new_pos - 1))
+          if STRING_HAS_BYTE_BASED_METHODS
+            begin
+              i = @contents.byterindex("\n", user_to_gap(get_pos(new_pos, -1)))
+            rescue RangeError
+              i = nil
+            end
+          else
+            i = @contents.rindex("\n", user_to_gap(new_pos - 1))
+          end
           if i
             i += 1
           else
@@ -1565,12 +1633,20 @@ module Textbringer
           @current_column = 1 + substring(gap_to_user(i), new_pos).size
         end
       elsif pos > new_pos
-        n = @contents[user_to_gap(new_pos)...user_to_gap(pos)].count("\n")
+        n = @contents.byteslice(user_to_gap(new_pos)...user_to_gap(pos)).count("\n")
         if n == 0
           @current_column -= substring(new_pos, pos).size
         else
           @current_line -= n
-          i = @contents.rindex("\n", user_to_gap(new_pos - 1))
+          if STRING_HAS_BYTE_BASED_METHODS
+            begin
+              i = @contents.byterindex("\n", user_to_gap(get_pos(new_pos, - 1)))
+            rescue RangeError
+              i = nil
+            end
+          else
+            i = @contents.rindex("\n", user_to_gap(new_pos - 1))
+          end
           if i
             i += 1
           else
@@ -1604,8 +1680,13 @@ module Textbringer
     end
 
     def write_to_file(f)
-      [@contents[0...@gap_start], @contents[@gap_end..-1]].each do |s|
-        s.force_encoding(Encoding::UTF_8) unless @binary
+      [
+        @contents.byteslice(0...@gap_start),
+        @contents.byteslice(@gap_end..-1)
+      ].each do |s|
+        if !STRING_HAS_BYTE_BASED_METHODS
+          s.force_encoding(Encoding::UTF_8) unless @binary
+        end
         case @file_format
         when :dos
           s.gsub!(/\n/, "\r\n")
