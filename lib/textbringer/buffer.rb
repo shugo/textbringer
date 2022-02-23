@@ -1466,17 +1466,26 @@ module Textbringer
     def adjust_gap(min_size = 0, pos = @point)
       if @gap_start < pos
         len = user_to_gap(pos) - @gap_end
-        @contents[@gap_start, len] = @contents[@gap_end, len]
-        @gap_start += len
-        @gap_end += len
+        s = @contents[@gap_end, len]
+        new_gap_start = @gap_start + len
+        new_gap_end = @gap_end + len
+        nul_filling_start = new_gap_start > @gap_end ? new_gap_start : @gap_end
+        @contents[nul_filling_start...new_gap_end] =
+          "\0" * (new_gap_end - nul_filling_start)
+        @contents[@gap_start...new_gap_start] = s
+        @gap_start = new_gap_start
+        @gap_end = new_gap_end
       elsif @gap_start > pos
         len = @gap_start - pos
-        @contents[@gap_end - len, len] = @contents[pos, len]
-        @gap_start -= len
-        @gap_end -= len
+        s = @contents[pos, len]
+        new_gap_start = @gap_start - len
+        new_gap_end = @gap_end - len
+        nul_filling_end = new_gap_end < @gap_start ? new_gap_end : @gap_start
+        @contents[pos...nul_filling_end] =  "\0" * (nul_filling_end - pos)
+        @contents[new_gap_end...@gap_end] = s
+        @gap_start = new_gap_start
+        @gap_end = new_gap_end
       end
-      # fill the gap with NUL to avoid invalid byte sequence in UTF-8
-      @contents[@gap_start...@gap_end] = "\0" * (@gap_end - @gap_start)
       if gap_size < min_size
         new_gap_size = GAP_SIZE + min_size
         extended_size = new_gap_size - gap_size
