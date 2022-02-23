@@ -1129,8 +1129,8 @@ module Textbringer
       def byteindex(forward, re, pos)
         @match_offsets = []
         method = forward ? :byteindex : :byterindex
-        adjust_gap(0, point_max)
-        s = @contents[0...@gap_start]
+        adjust_gap(0, 0)
+        s = @contents[@gap_end..-1]
         unless binary?
           s.force_encoding(Encoding::UTF_8)
         end
@@ -1149,8 +1149,8 @@ module Textbringer
       def byteindex(forward, re, pos)
         @match_offsets = []
         method = forward ? :index : :rindex
-        adjust_gap(0, point_max)
-        s = @contents[0...@gap_start]
+        adjust_gap(0, 0)
+        s = @contents[@gap_end..-1]
         if @binary
           offset = pos
         else
