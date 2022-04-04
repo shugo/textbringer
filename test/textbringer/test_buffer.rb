@@ -35,6 +35,9 @@ class TestBuffer < Textbringer::TestCase
     assert_equal(buffer, buffer.insert("\nfoo"))
     assert_equal(2, buffer.current_line)
     assert_equal(4, buffer.current_column)
+    assert_raise(EditorError) do
+      buffer.insert("\xde\xad\xbe\xef")
+    end
   end
 
   def test_insert_to_s

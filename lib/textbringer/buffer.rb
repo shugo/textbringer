@@ -579,6 +579,9 @@ module Textbringer
 
     def insert(x, merge_undo = false)
       s = x.to_s
+      if !binary? && !s.valid_encoding?
+        raise EditorError, "Invalid encoding: #{s.dump}"
+      end
       check_read_only_flag
       pos = @point
       size = s.bytesize
