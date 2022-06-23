@@ -26,6 +26,7 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency "clipboard", ">= 1.1"
   spec.add_runtime_dependency "fiddley", ">= 0.0.5"
   spec.add_runtime_dependency "editorconfig"
+  spec.add_runtime_dependency "warning"
 
   spec.add_development_dependency "bundler"
   spec.add_development_dependency "rake", ">= 12.0"

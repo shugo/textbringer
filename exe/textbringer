@@ -1,6 +1,9 @@
 #!/usr/bin/env ruby
 
-$VERBOSE = nil
+require "warning"
+
+Warning.ignore(/already initialized constant /)
+Warning.ignore(/previous definition of /)
 
 require "textbringer"
 
