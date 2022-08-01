@@ -55,7 +55,14 @@ module Textbringer
             @last_key = c
             @key_sequence << @last_key
             cmd = key_binding(@key_sequence)
-            if cmd.is_a?(Symbol) || cmd.respond_to?(:call)
+            if cmd.nil?
+              keys = Keymap.key_sequence_string(@key_sequence)
+              @key_sequence.clear
+              @prefix_arg = nil
+              message("#{keys} is undefined")
+            elsif cmd.is_a?(Keymap)
+              # multi-stroke key binding?
+            else
               @this_command_keys = @key_sequence
               @key_sequence = []
               @this_command = cmd
@@ -72,13 +79,6 @@ module Textbringer
                 run_hooks(:post_command_hook, remove_on_error: true)
                 @last_command = @this_command
                 @this_command = nil
-              end
-            else
-              if cmd.nil?
-                keys = Keymap.key_sequence_string(@key_sequence)
-                @key_sequence.clear
-                @prefix_arg = nil
-                message("#{keys} is undefined")
               end
             end
             Window.redisplay
