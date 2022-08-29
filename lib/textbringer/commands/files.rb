@@ -72,7 +72,11 @@ module Textbringer
 
     define_command(:save_buffer, doc: "Save the current buffer to a file.") do
       if Buffer.current.file_name.nil?
-        Buffer.current.file_name = read_file_name("File to save in: ")
+        file_name = read_file_name("File to save in: ")
+        if File.directory?(file_name)
+          file_name = File.expand_path(Buffer.current.name, file_name)
+        end
+        Buffer.current.file_name = file_name
         next if Buffer.current.file_name.nil?
       end
       if Buffer.current.file_modified?

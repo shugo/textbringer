@@ -119,10 +119,11 @@ EOF
   def test_save_buffer
     mkcdtmpdir do |dir|
       insert("foo")
-      push_keys("scratch.txt\n")
+      push_keys("\n")
+      Buffer.current.name = "bar"
       save_buffer
-      assert_equal(File.expand_path("scratch.txt"), Buffer.current.file_name)
-      assert_equal("foo", File.read("scratch.txt"))
+      assert_equal(File.expand_path("bar"), Buffer.current.file_name)
+      assert_equal("foo", File.read("bar"))
       
       File.write("hello.txt", "hello world\n")
       find_file("hello.txt")
