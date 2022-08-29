@@ -60,6 +60,7 @@ module Textbringer
               @key_sequence.clear
               @prefix_arg = nil
               message("#{keys} is undefined")
+              Window.beep
             elsif cmd.is_a?(Keymap)
               # multi-stroke key binding?
             else
