@@ -125,6 +125,7 @@ module Textbringer
     define_command(:complete_minibuffer) do
       minibuffer = Buffer.minibuffer
       completion_proc = minibuffer[:completion_proc]
+      ignore_case = minibuffer[:completion_ignore_case]
       if completion_proc
         xs = completion_proc.call(minibuffer.to_s)
         update_completions(xs)
@@ -136,7 +137,11 @@ module Textbringer
         s = y.size.downto(1).lazy.map { |i|
           y[0, i]
         }.find { |i|
-          ys.all? { |j| j.start_with?(i) }
+          i = i.downcase if ignore_case
+          ys.all? { |j|
+            j = j.downcase if ignore_case
+            j.start_with?(i)
+          }
         }
         if s
           complete_minibuffer_with_string(s)

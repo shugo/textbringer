@@ -137,7 +137,7 @@ module Textbringer
     }
 
     def read_from_minibuffer(prompt, completion_proc: nil, default: nil,
-                             initial_value: nil,
+                             initial_value: nil, completion_ignore_case: false,
                              keymap: MINIBUFFER_LOCAL_MAP)
       if Window.echo_area.active?
         raise EditorError,
@@ -146,10 +146,12 @@ module Textbringer
       old_buffer = Buffer.current
       old_window = Window.current
       old_completion_proc = Buffer.minibuffer[:completion_proc]
+      old_completion_ignore_case = Buffer.minibuffer[:completion_ignore_case]
       old_current_prefix_arg = Controller.current.current_prefix_arg
       old_minibuffer_map = Buffer.minibuffer.keymap
       Buffer.minibuffer.keymap = keymap
       Buffer.minibuffer[:completion_proc] = completion_proc
+      Buffer.minibuffer[:completion_ignore_case] = completion_ignore_case
       Window.echo_area.active = true
       begin
         Window.current = Window.echo_area
@@ -177,6 +179,7 @@ module Textbringer
         # Just in case old_window has been deleted by resize,
         # in which case Window.current is set to the first window.
         Window.current.buffer = Buffer.current = old_buffer
+        Buffer.minibuffer[:completion_ignore_case] = old_completion_ignore_case
         Buffer.minibuffer[:completion_proc] = old_completion_proc
         Buffer.minibuffer.keymap = old_minibuffer_map
         Buffer.minibuffer.disable_input_method
@@ -201,8 +204,10 @@ module Textbringer
         }
       }
       initial_value = default&.sub(%r"\A#{Regexp.quote(Dir.pwd)}/", "")
+      ignore_case = CONFIG[:read_file_name_completion_ignore_case]
       file = read_from_minibuffer(prompt, completion_proc: f,
-                                  initial_value: initial_value)
+                                  initial_value: initial_value,
+                                  completion_ignore_case: ignore_case)
       File.expand_path(file)
     end
 

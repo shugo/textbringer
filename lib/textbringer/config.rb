@@ -16,6 +16,7 @@ module Textbringer
     shell_command_switch: "-c",
     grep_command: "grep -nH -e",
     fill_column: 70,
+    read_file_name_completion_ignore_case: RUBY_PLATFORM.match?(/darwin/),
     default_input_method: "t_code"
   }
 end
