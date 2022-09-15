@@ -30,7 +30,7 @@ Install ncursesw before installing curses.gem, on which textbringer depends.
 
 ## Usage
 
-    $ textbringer
+    $ txtb
 
 You can quit the editor by `Ctrl-x Ctrl-c`.
 
