@@ -19,7 +19,7 @@ def load_user_config(path)
 end
 
 unless STDIN.tty?
-  STDERR.puts("textbringer: standard input is not a tty")
+  STDERR.puts("txtb: standard input is not a tty")
   exit 1
 end
 
