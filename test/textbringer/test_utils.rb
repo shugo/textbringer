@@ -69,6 +69,14 @@ class TestUtils < Textbringer::TestCase
     s = read_from_minibuffer("Input: ", default: "hello")
     assert_equal("foobar", s)
 
+    push_keys("\C-q\n")
+    s = read_from_minibuffer("Input: ")
+    assert_equal("\n", s)
+
+    push_keys("\C-q\r")
+    s = read_from_minibuffer("Input: ")
+    assert_equal("\r", s)
+
     Window.echo_area.active = true
     assert_raise(EditorError) do
       read_from_minibuffer("Input: ")

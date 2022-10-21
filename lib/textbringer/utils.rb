@@ -164,7 +164,7 @@ module Textbringer
         Window.echo_area.redisplay
         Window.update
         recursive_edit
-        s = Buffer.minibuffer.to_s.chomp
+        s = Buffer.minibuffer.to_s
         if default && s.empty?
           default
         else
