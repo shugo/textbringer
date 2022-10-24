@@ -269,7 +269,7 @@ module Textbringer
       end
     end
 
-    CANONICAL_PUNCTUATORS = Hash.new { |h, k| k }
+    CANONICAL_PUNCTUATORS = Hash.new { _2 }
     CANONICAL_PUNCTUATORS["<:"] = "["
     CANONICAL_PUNCTUATORS[":>"] = "]"
     CANONICAL_PUNCTUATORS["<%"] = "{"
