@@ -1,3 +1,8 @@
+## 1.2.0
+
+* Drop Ruby 2.6 support.
+* Change the command name to `txtb`.
+
 ## 1.1.2
 
 * Buf fixes.
