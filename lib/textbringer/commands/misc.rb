@@ -32,7 +32,7 @@ module Textbringer
     end
 
     define_command(:eval_expression) do
-      |s = read_from_minibuffer("Eval: ")|
+      |s = read_expression("Eval: ")|
       result = eval(s, TOPLEVEL_BINDING, "(eval_expression)", 1)
       message(result.inspect)
       result

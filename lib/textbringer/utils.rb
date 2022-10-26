@@ -325,12 +325,16 @@ module Textbringer
       end
     end
 
-    def read_object(prompt = "Object: ")
+    def read_expression(prompt = "Expression: ")
       f = ->(s) {
         IRB::InputCompletor.retrieve_completion_data(s, bind: TOPLEVEL_BINDING).compact
       }
-      str = read_from_minibuffer(prompt, completion_proc: f)
-      eval(str)
+      read_from_minibuffer(prompt, completion_proc: f)
+    end
+
+    def read_object(prompt = "Object: ")
+      s = read_expression(prompt)
+      eval(s)
     end
 
     HOOKS = Hash.new { |h, k| h[k] = [] }
