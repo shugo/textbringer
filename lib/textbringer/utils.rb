@@ -1,4 +1,6 @@
 require "rbconfig"
+require "irb"
+require "irb/completion"
 
 module Textbringer
   module Utils
@@ -321,6 +323,14 @@ module Textbringer
         keys = Keymap.key_sequence_string(key_sequence)
         raise EditorError, "#{keys} is undefined"
       end
+    end
+
+    def read_object(prompt = "Object: ")
+      f = ->(s) {
+        IRB::InputCompletor.retrieve_completion_data(s, bind: TOPLEVEL_BINDING).compact
+      }
+      str = read_from_minibuffer(prompt, completion_proc: f)
+      eval(str)
     end
 
     HOOKS = Hash.new { |h, k| h[k] = [] }

@@ -173,6 +173,12 @@ class TestUtils < Textbringer::TestCase
     end
   end
 
+  def test_read_object
+    push_keys("Textbringer::InputMe\t\n")
+    obj = read_object
+    assert_equal(Textbringer::InputMethod, obj)
+  end
+
   def test_hooks
     count = 0
     hook = -> { count += 1 }

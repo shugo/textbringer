@@ -145,7 +145,7 @@ module Textbringer
     end
 
     define_command(:find_source, doc: "Open the source file.") do
-      |obj = eval(read_from_minibuffer("Object: "))|
+      |obj = read_object("Object or Class: ")|
       klass = obj.is_a?(Module) ? obj : obj.class
       method_name = klass.instance_methods(false).first
       if method_name.nil?
