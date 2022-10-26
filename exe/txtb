@@ -26,6 +26,7 @@ end
 Controller.current = Controller.new
 begin
   Window.start do
+    $stdout = DefaultOutput.new
     begin
       load_user_config("~/.textbringer/init.rb")
       Plugin.load_plugins
