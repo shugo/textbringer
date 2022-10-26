@@ -1,6 +1,6 @@
 module Textbringer
   CONFIG[:c_indent_level] = 4
-  CONFIG[:c_indent_tabs_mode] = true
+  CONFIG[:c_indent_tabs_mode] = false
   CONFIG[:c_continued_statement_offset] = 4
   CONFIG[:c_case_label_offset] = -4
   CONFIG[:c_label_offset] = -2

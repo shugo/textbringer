@@ -157,7 +157,7 @@ main()
 {
     foo();
     if (1) {
-	bar();
+        bar();
 EOF
     @buffer.insert("\n}")
     @c_mode.indent_line
@@ -169,7 +169,7 @@ main()
 {
     foo();
     if (1) {
-	bar();
+        bar();
     }
 EOF
     @buffer.insert("\n")
@@ -184,10 +184,10 @@ main()
 {
     foo();
     if (1) {
-	bar();
+        bar();
     }
     while (0)
-	baz()
+        baz()
 EOF
     @buffer.insert(";\nquux();")
     @c_mode.indent_line
@@ -199,10 +199,10 @@ main()
 {
     foo();
     if (1) {
-	bar();
+        bar();
     }
     while (0)
-	baz();
+        baz();
     quux();
 EOF
   end
@@ -221,7 +221,7 @@ int
 main()
 {
     foo(x, y,
-	z
+        z
 EOF
   end
 
@@ -249,7 +249,7 @@ main()
 {
     switch (x) {
     case 0:
-	foo();
+        foo();
 EOF
     @buffer.insert("\nbar:")
     @c_mode.indent_line
@@ -261,9 +261,9 @@ main()
 {
     switch (x) {
     case 0:
-	foo();
+        foo();
       bar:
-	bar();
+        bar();
 EOF
 
     @buffer.insert("\ndefault:")
@@ -278,11 +278,11 @@ main()
 {
     switch (x) {
     case 0:
-	foo();
+        foo();
       bar:
-	bar();
+        bar();
     default:
-	break;
+        break;
     }
 EOF
   end
