@@ -194,4 +194,21 @@ EOF
       assert(File.directory?("foo/bar"))
     end
   end
+
+  def test_find_source
+    find_source(self)
+    assert_equal(__FILE__, Buffer.current.file_name)
+
+    find_source(TestFiles)
+    assert_equal(__FILE__, Buffer.current.file_name)
+    
+    assert_raise(EditorError) do
+      find_source(Object.new)
+    end
+
+    eval("class FindSourceTarget; def foo; end; end", TOPLEVEL_BINDING)
+    assert_raise(EditorError) do
+      find_source(FindSourceTarget)
+    end
+  end
 end

@@ -143,5 +143,20 @@ module Textbringer
                                  File.dirname(Buffer.current.file_name))|
       FileUtils.mkdir_p(dir_name)
     end
+
+    define_command(:find_source, doc: "Open the source file.") do
+      |obj = eval(read_from_minibuffer("Object: "))|
+      klass = obj.is_a?(Module) ? obj : obj.class
+      method_name = klass.instance_methods(false).first
+      if method_name.nil?
+        raise EditorError, "Source not found"
+      end
+      method = klass.instance_method(method_name)
+      file_name = method.source_location.first
+      if !File.exist?(file_name)
+        raise EditorError, "Source not found"
+      end
+      find_file(method.source_location.first)
+    end
   end
 end
