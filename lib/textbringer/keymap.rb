@@ -210,6 +210,8 @@ module Textbringer
   GLOBAL_MAP.define_key([:f1, "b"], :describe_bindings)
   GLOBAL_MAP.define_key([:f1, "f"], :describe_command)
   GLOBAL_MAP.define_key([:f1, "k"], :describe_key)
+  GLOBAL_MAP.define_key([:f1, "c"], :describe_class)
+  GLOBAL_MAP.define_key([:f1, "m"], :describe_method)
   GLOBAL_MAP.define_key("\C-x#", :server_edit_done)
   GLOBAL_MAP.define_key("\C-\\", :toggle_input_method)
   GLOBAL_MAP.handle_undefined_key do |key|

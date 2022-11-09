@@ -1,3 +1,6 @@
+$".push("readline.rb")
+require "rdoc/ri/driver"
+
 module Textbringer
   module Commands
     HELP_RING = Ring.new
@@ -100,6 +103,44 @@ module Textbringer
         help.insert(s)
       end
       push_help_command([:describe_key, key])
+    end
+
+    define_command(:describe_class,
+                   doc: "Display the documentation of the class.") do
+      |name = read_expression("Describe class: ")|
+      show_help do |help|
+        old_stdout = $stdout
+        $stdout = StringIO.new
+        begin
+          rdoc = RDoc::RI::Driver.new(use_stdout: true,
+                                      formatter: RDoc::Markup::ToRdoc,
+                                      interactive: false)
+          rdoc.display_class(name)
+          help.insert($stdout.string)
+        ensure
+          $stdout = old_stdout
+        end
+      end
+      push_help_command([:describe_class, name])
+    end
+
+    define_command(:describe_method,
+                   doc: "Display the documentation of the method.") do
+      |name = read_expression("Describe method: ")|
+      show_help do |help|
+        old_stdout = $stdout
+        $stdout = StringIO.new
+        begin
+          rdoc = RDoc::RI::Driver.new(use_stdout: true,
+                                      formatter: RDoc::Markup::ToRdoc,
+                                      interactive: false)
+          rdoc.display_method(name)
+          help.insert($stdout.string)
+        ensure
+          $stdout = old_stdout
+        end
+      end
+      push_help_command([:describe_method, name])
     end
 
     define_command(:help_go_back, doc: "Go back to the previous help.") do
