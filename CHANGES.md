@@ -1,3 +1,11 @@
+## 1.3.0
+
+* Kernel#print etc. inserts the given string into the current buffer now.
+* Add find_source.
+* Add describe_class and describe_method.
+* Support completion for eval_expression
+* Fix digraph indentation in C mode.
+
 ## 1.2.0
 
 * Drop Ruby 2.6 support.
