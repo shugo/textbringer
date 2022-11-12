@@ -5,8 +5,10 @@
 [![windows](https://github.com/shugo/textbringer/workflows/windows/badge.svg)](https://github.com/shugo/textbringer/actions?query=workflow%3Awindows)
 [![macos](https://github.com/shugo/textbringer/workflows/macos/badge.svg)](https://github.com/shugo/textbringer/actions?query=workflow%3Amacos)
 
-Textbringer is a member of a demon race that takes on the form of an Emacs-like
-text editor.
+* [日本語版](README.ja.md)
+
+Textbringer is an Emacs-like text editor written in Ruby.
+It is extensible by Ruby instead of Lisp.
 
 ## Screenshot
 
@@ -92,6 +94,13 @@ Add the following line to ~/.mlterm/main.
 Add the following line to ~/.screenrc.
 
     cjkwidth on
+
+## Plugins
+
+* [Mournmamil](https://github.com/shugo/mournmail): a mail user agent
+* [MedicineShield](https://github.com/shugo/medicine_shield): a Mastodon client
+* [textbringer-presentation](https://github.com/shugo/textbringer-presentation): a presentation tool
+* [textbringer-ghost_text](https://github.com/shugo/textbringer-ghost_text): a [GhostText](https://github.com/fregante/GhostText) plugin
 
 ## Development
 
