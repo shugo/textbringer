@@ -63,7 +63,9 @@ EOF
 %>  %:%:  %:  %=  %
 EOF
     tokens = @c_mode.lex(source)
-    expected = source.split(/\s+/)
+    expected = source.split(/\s+/).map { |i|
+      CMode::CANONICAL_PUNCTUATORS[i]
+    }
     actual = tokens.select { |_, name,|
       name == :punctuator
     }.map { |_, _, text|
@@ -204,6 +206,28 @@ main()
     while (0)
         baz();
     quux();
+EOF
+  end
+
+  def test_indent_line_digraph
+    @c_mode.indent_line
+    assert_equal("", @buffer.to_s)
+    @buffer.insert(<<EOF.chop)
+#include <stdio.h>
+
+int
+main()
+<%
+foo();
+EOF
+    @c_mode.indent_line
+    assert_equal(<<EOF.chop, @buffer.to_s)
+#include <stdio.h>
+
+int
+main()
+<%
+    foo();
 EOF
   end
 

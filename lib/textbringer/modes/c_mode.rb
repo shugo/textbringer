@@ -187,7 +187,7 @@ module Textbringer
         if text.empty?
           raise EditorError, "Empty token: (#{line},#{column}) #{$~.inspect}"
         end
-        tokens.push([[line, column], token_name, text])
+        tokens.push([[line, column], token_name, CANONICAL_PUNCTUATORS[text]])
         lf_count = text.count("\n")
         if lf_count > 0
           line += lf_count
