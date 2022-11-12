@@ -88,9 +88,9 @@ class TestUtils < Textbringer::TestCase
     s = read_file_name("File name: ")
     assert_equal(File.expand_path("foo.rb"), s)
 
-    push_keys("RE\t\n")
+    push_keys("CH\t\n")
     s = read_file_name("File name: ")
-    assert_equal(File.expand_path("README.md"), s)
+    assert_equal(File.expand_path("CHANGES.md"), s)
 
     push_keys("lib\t\n")
     s = read_file_name("File name: ")
