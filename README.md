@@ -5,7 +5,7 @@
 [![windows](https://github.com/shugo/textbringer/workflows/windows/badge.svg)](https://github.com/shugo/textbringer/actions?query=workflow%3Awindows)
 [![macos](https://github.com/shugo/textbringer/workflows/macos/badge.svg)](https://github.com/shugo/textbringer/actions?query=workflow%3Amacos)
 
-* [日本語版](README.ja.md)
+* [Japanese version](README.ja.md)
 
 Textbringer is an Emacs-like text editor written in Ruby.
 It is extensible by Ruby instead of Lisp.
