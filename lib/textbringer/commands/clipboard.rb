@@ -7,8 +7,7 @@ require "clipboard"
 module Textbringer
   module Commands
     CLIPBOARD_AVAILABLE =
-      Clipboard.implementation.name != "Clipboard::Linux" ||
-      (ENV["DISPLAY"] && system("which xclip > /dev/null 2>&1"))
+      Clipboard.implementation.name != "Clipboard::File"
 
     if CLIPBOARD_AVAILABLE
       GLOBAL_MAP.define_key("\M-w", :clipboard_copy_region)
