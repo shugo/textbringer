@@ -60,7 +60,7 @@ module Textbringer
 
     HAS_BYTEINDEX = String.instance_methods.include?(:byteindex)
     HAS_BYTESPLICE = String.instance_methods.include?(:bytesplice)
-    BUTESPLICE_SUPPORTS_PARTIAL_COPY =
+    BYTESPLICE_SUPPORTS_PARTIAL_COPY =
       begin
         "foo".bytesplice(0, 2, "bar", 1, 2) == "aro"
       rescue NoMethodError, ArgumentError
@@ -1510,37 +1510,37 @@ module Textbringer
     def adjust_gap(min_size = 0, pos = @point)
       if @gap_start < pos
         len = user_to_gap(pos) - @gap_end
-        s = @contents.byteslice(@gap_end, len)
         new_gap_start = @gap_start + len
         new_gap_end = @gap_end + len
         nul_filling_start = new_gap_start > @gap_end ? new_gap_start : @gap_end
-        unless @binary
-          # find the character boundary
-          while nul_filling_start > @gap_end &&
-              @contents.byteslice(nul_filling_start)&.b&.match?(/[\x80-\xbf]/n)
-            nul_filling_start -= 1
-          end
+        if BYTESPLICE_SUPPORTS_PARTIAL_COPY
+          @contents.bytesplice(@gap_start, len,
+                               @contents, @gap_end, len)
+          @contents.bytesplice(nul_filling_start...new_gap_end,
+                               "\0" * (new_gap_end - nul_filling_start))
+        else
+          s = @contents.byteslice(@gap_end, len)
+          splice_contents(nul_filling_start...new_gap_end,
+                          "\0" * (new_gap_end - nul_filling_start))
+          splice_contents(@gap_start...new_gap_start, s)
         end
-        splice_contents(nul_filling_start...new_gap_end,
-                        "\0" * (new_gap_end - nul_filling_start))
-        splice_contents(@gap_start...new_gap_start, s)
         @gap_start = new_gap_start
         @gap_end = new_gap_end
       elsif @gap_start > pos
         len = @gap_start - pos
-        s = @contents.byteslice(pos, len)
         new_gap_start = @gap_start - len
         new_gap_end = @gap_end - len
         nul_filling_end = new_gap_end < @gap_start ? new_gap_end : @gap_start
-        unless @binary
-          # find the character boundary
-          while nul_filling_end < @gap_start &&
-              @contents.byteslice(nul_filling_end)&.b&.match?(/[\x80-\xbf]/n)
-            nul_filling_end += 1
-          end
+        if BYTESPLICE_SUPPORTS_PARTIAL_COPY
+          @contents.bytesplice(new_gap_end, len,
+                               @contents, pos, len)
+          @contents.bytesplice(pos...nul_filling_end,
+                               "\0" * (nul_filling_end - pos))
+        else
+          s = @contents.byteslice(pos, len)
+          splice_contents(pos...nul_filling_end, "\0" * (nul_filling_end - pos))
+          splice_contents(new_gap_end...@gap_end, s)
         end
-        splice_contents(pos...nul_filling_end, "\0" * (nul_filling_end - pos))
-        splice_contents(new_gap_end...@gap_end, s)
         @gap_start = new_gap_start
         @gap_end = new_gap_end
       end
