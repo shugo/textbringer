@@ -92,7 +92,7 @@ xterm、 mlterm、screenにはそれぞれ独自の設定項目があります�
 
 ## プラグイン
 
-* [Mournmamil](https://github.com/shugo/mournmail): 電子メールクライアント
+* [Mournmail](https://github.com/shugo/mournmail): 電子メールクライアント
 * [MedicineShield](https://github.com/shugo/medicine_shield): Mastodonクライアント
 * [textbringer-presentation](https://github.com/shugo/textbringer-presentation): プレゼンテーションツール
 * [textbringer-ghost_text](https://github.com/shugo/textbringer-ghost_text): [GhostText](https://github.com/fregante/GhostText)プラグイン

@@ -97,7 +97,7 @@ Add the following line to ~/.screenrc.
 
 ## Plugins
 
-* [Mournmamil](https://github.com/shugo/mournmail): a mail user agent
+* [Mournmail](https://github.com/shugo/mournmail): a mail user agent
 * [MedicineShield](https://github.com/shugo/medicine_shield): a Mastodon client
 * [textbringer-presentation](https://github.com/shugo/textbringer-presentation): a presentation tool
 * [textbringer-ghost_text](https://github.com/shugo/textbringer-ghost_text): a [GhostText](https://github.com/fregante/GhostText) plugin
