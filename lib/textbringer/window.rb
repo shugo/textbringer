@@ -1,5 +1,4 @@
 require "curses"
-require "unicode/display_width"
 
 module Textbringer
   class Window
