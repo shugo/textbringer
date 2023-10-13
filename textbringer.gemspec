@@ -21,6 +21,8 @@ Gem::Specification.new do |spec|
 
   spec.required_ruby_version = '>= 2.7'
 
+  spec.add_runtime_dependency "nkf"
+  spec.add_runtime_dependency "drb"
   spec.add_runtime_dependency "curses", ">= 1.2.7"
   spec.add_runtime_dependency "unicode-display_width", ">= 1.1"
   spec.add_runtime_dependency "clipboard", ">= 1.1"
