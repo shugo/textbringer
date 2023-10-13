@@ -1,4 +1,3 @@
-gem "drb"
 require "drb"
 
 module Textbringer

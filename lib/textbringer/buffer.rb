@@ -1,4 +1,3 @@
-gem "nkf"
 require "nkf"
 require "unicode/display_width"
 require "json"
