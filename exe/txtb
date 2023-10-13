@@ -4,6 +4,7 @@ require "warning"
 
 Warning.ignore(/already initialized constant /)
 Warning.ignore(/previous definition of /)
+Warning.ignore(/not part of the default gems/)
 
 require "textbringer"
 
