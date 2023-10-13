@@ -325,9 +325,22 @@ module Textbringer
       end
     end
 
+    if defined?(IRB::RegexpCompletor)
+      EXPRESSION_COMPLETOR = IRB::RegexpCompletor.new
+      EXPRESSION_COMPLETOR_OPTIONS = {
+        bind: TOPLEVEL_BINDING,
+        doc_namespace: false
+      }
+    else
+      EXPRESSION_COMPLETOR = IRB::InputCompletor
+      EXPRESSION_COMPLETOR_OPTIONS = {
+        bind: TOPLEVEL_BINDING
+      }
+    end
+
     def read_expression(prompt = "Expression: ")
       f = ->(s) {
-        IRB::InputCompletor.retrieve_completion_data(s, bind: TOPLEVEL_BINDING).compact
+        EXPRESSION_COMPLETOR.retrieve_completion_data(s, **EXPRESSION_COMPLETOR_OPTIONS).compact
       }
       read_from_minibuffer(prompt, completion_proc: f)
     end
