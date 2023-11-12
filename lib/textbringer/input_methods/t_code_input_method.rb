@@ -57,7 +57,11 @@ module Textbringer
       end
       if key_index.nil?
         @prev_key_index = nil
-        return event
+        if event.is_a?(String) && /\A[A-Z]\z/.match?(event)
+          return event.downcase
+        else
+          return event
+        end
       end
       if @prev_key_index.nil?
         @prev_key_index = key_index

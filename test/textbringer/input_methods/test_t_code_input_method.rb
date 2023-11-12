@@ -10,6 +10,8 @@ class TestTCodeInputMethod < Textbringer::TestCase
 
   def test_insert_direct
     assert_equal(?`, @im.handle_event(?`))
+    assert_equal(?a, @im.handle_event(?A))
+    assert_equal(?z, @im.handle_event(?Z))
   end
 
   def test_insert_kanji
