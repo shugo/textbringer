@@ -8,6 +8,21 @@ class TestBuffer < Textbringer::TestCase
     KILL_RING.clear
   end
 
+  def test_nkf_detect_encoding
+    assert_equal(Encoding::UTF_8,
+                 Buffer::NKF_DETECT_ENCODING.call(""))
+    assert_equal(Encoding::UTF_8,
+                 Buffer::NKF_DETECT_ENCODING.call("foo"))
+    assert_equal(Encoding::UTF_8,
+                 Buffer::NKF_DETECT_ENCODING.call("あいう"))
+    assert_equal(Encoding::EUC_JP,
+                 Buffer::NKF_DETECT_ENCODING.call("あいう".encode("EUC-JP")))
+    assert_equal(Encoding::Shift_JIS,
+                 Buffer::NKF_DETECT_ENCODING.call("あいう".encode("Shift_JIS")))
+    assert_equal(Encoding::ASCII_8BIT,
+                 Buffer::NKF_DETECT_ENCODING.call("\xab"))
+  end
+
   def test_s_list
     Buffer.new_buffer("foo")
     Buffer.new_buffer("bar")

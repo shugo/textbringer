@@ -44,7 +44,11 @@ module Textbringer
       e = NKF.guess(s)
       case e
       when Encoding::US_ASCII
-        Encoding::UTF_8
+        if s.ascii_only?
+          Encoding::UTF_8
+        else
+          Encoding::ASCII_8BIT
+        end
       when Encoding::ASCII_8BIT
         s.force_encoding(Encoding::UTF_8)
         if s.valid_encoding?
