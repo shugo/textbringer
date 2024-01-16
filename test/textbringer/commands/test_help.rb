@@ -2,11 +2,13 @@ require_relative "../../test_helper"
 
 class TestHelp < Textbringer::TestCase
   def test_describe_bindings
+    isearch_mode(true)
     describe_bindings
     s = Buffer.current.to_s
     assert_match(/^<backspace> +\[backward_delete_char\]/, s)
     assert_match(/^C-h +\[backward_delete_char\]/, s)
     assert_match(/^C-x RET f +\[set_buffer_file_encoding\]/, s)
+    assert_match(/^C-s +\[isearch_repeat_forward\]/, s)
   end
 
   def test_describe_command
@@ -24,6 +26,20 @@ class TestHelp < Textbringer::TestCase
     s = Buffer.current.to_s
     assert_match(/^<f1> k runs the command describe_key/, s)
     assert_match(/^describe_key\(key\)/, s)
+  end
+
+  def test_describe_class
+    describe_class("Array")
+    s = Buffer.current.to_s
+    assert_match(/^= Array < Object/, s)
+    assert_match(/^An Array is an ordered, integer-indexed collection of objects/, s)
+  end
+
+  def test_describe_method
+    describe_method("Array#length")
+    s = Buffer.current.to_s
+    assert_match(/^= Array#length/, s)
+    assert_match(/^Returns the count of elements/, s)
   end
 
   def test_help_commands
