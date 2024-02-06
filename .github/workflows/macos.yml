@@ -3,14 +3,19 @@ name: macos
 on: [push]
 
 jobs:
-  build:
+  test:
     runs-on: macos-latest
+    strategy:
+      matrix:
+        ruby: [ head, 3.3 ]
     timeout-minutes: 10
     steps:
-    - uses: actions/checkout@master
+    - uses: actions/checkout@v4
+    - uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: ${{ matrix.ruby }}
     - name: Install dependencies
       run: |
-        gem install bundler --no-document
         bundle install
     - name: Run test
       run: bundle exec rake test

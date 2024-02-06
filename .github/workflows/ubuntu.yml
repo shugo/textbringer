@@ -4,10 +4,10 @@ on: [push]
 
 jobs:
   test:
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         ruby: [ head, 3.3, 3.2, 3.1 ]
-    runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
     - uses: actions/checkout@v4
@@ -17,7 +17,6 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt install libncursesw5-dev
-        gem install bundler --no-document
         bundle install
     - name: Run test
       run: xvfb-run bundle exec rake test
