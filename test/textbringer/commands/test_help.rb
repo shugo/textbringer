@@ -31,10 +31,9 @@ class TestHelp < Textbringer::TestCase
   def test_describe_class
     describe_class("Array")
     s = Buffer.current.to_s
+    omit("No RDoc found") if s.empty?
     assert_match(/^= Array < Object/, s)
     assert_match(/^An Array is an ordered, integer-indexed collection of objects/, s)
-  rescue RDoc::RI::Driver::NotFoundError
-    omit("No RDoc found")
   end
 
   def test_describe_method
