@@ -33,6 +33,8 @@ class TestHelp < Textbringer::TestCase
     s = Buffer.current.to_s
     assert_match(/^= Array < Object/, s)
     assert_match(/^An Array is an ordered, integer-indexed collection of objects/, s)
+  rescue RDoc::RI::Driver::NotFoundError
+    omit("No RDoc found")
   end
 
   def test_describe_method
@@ -40,6 +42,8 @@ class TestHelp < Textbringer::TestCase
     s = Buffer.current.to_s
     assert_match(/^= Array#length/, s)
     assert_match(/^Returns the count of elements/, s)
+  rescue RDoc::RI::Driver::NotFoundError
+    omit("No RDoc found")
   end
 
   def test_help_commands
