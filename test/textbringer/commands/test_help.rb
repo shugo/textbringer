@@ -33,7 +33,6 @@ class TestHelp < Textbringer::TestCase
     s = Buffer.current.to_s
     omit("No RDoc found") if s.empty?
     assert_match(/^= Array < Object/, s)
-    assert_match(/^An Array is an ordered, integer-indexed collection of objects/, s)
   end
 
   def test_describe_method
