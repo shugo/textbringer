@@ -66,7 +66,7 @@ module Textbringer
     HAS_BYTESPLICE = String.instance_methods.include?(:bytesplice)
     BYTESPLICE_SUPPORTS_PARTIAL_COPY =
       begin
-        "foo".bytesplice(0, 2, "bar", 1, 2) == "aro"
+        (+"foo").bytesplice(0, 2, "bar", 1, 2) == "aro"
       rescue NoMethodError, ArgumentError
         false
       end

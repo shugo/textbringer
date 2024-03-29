@@ -41,7 +41,7 @@ module Textbringer
     define_command(:describe_bindings,
                    doc: "Display the key bindings.") do
       show_help do |help|
-        s = ""
+        s = +""
         if Controller.current.overriding_map
           s << "Overriding Bindings:\n"
           s << keymap_bindings(Controller.current.overriding_map)

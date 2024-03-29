@@ -1762,9 +1762,9 @@ EOF
     end
     buffer.beginning_of_buffer
     buffer.forward_char(0xe3)
-    assert_equal("\xe3".force_encoding(Encoding::ASCII_8BIT),
+    assert_equal((+"\xe3").force_encoding(Encoding::ASCII_8BIT),
                  buffer.byte_after)
-    assert_equal("\xe3".force_encoding(Encoding::ASCII_8BIT),
+    assert_equal((+"\xe3").force_encoding(Encoding::ASCII_8BIT),
                  buffer.char_after)
     buffer = Buffer.new(data, file_encoding: "ascii-8bit")
     assert_equal(true, buffer.binary?)
