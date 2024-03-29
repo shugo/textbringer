@@ -9,6 +9,8 @@ jobs:
       matrix:
         ruby: [ head, 3.3, 3.2, 3.1 ]
     timeout-minutes: 10
+    env:
+      RUBYOPT: --enable-frozen-string-literal --debug-frozen-string-literal
     steps:
     - uses: actions/checkout@v4
     - uses: ruby/setup-ruby@v1
