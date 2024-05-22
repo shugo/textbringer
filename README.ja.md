@@ -1,5 +1,6 @@
 # ![Textbringer](logo/logo.png)
 
+[![LatestVer](https://badgen.net/badge/latestver/0.1)](https://latestver.org/)
 [![Gem Version](https://badge.fury.io/rb/textbringer.svg)](https://badge.fury.io/rb/textbringer)
 [![ubuntu](https://github.com/shugo/textbringer/workflows/ubuntu/badge.svg)](https://github.com/shugo/textbringer/actions?query=workflow%3Aubuntu)
 [![windows](https://github.com/shugo/textbringer/workflows/windows/badge.svg)](https://github.com/shugo/textbringer/actions?query=workflow%3Awindows)
