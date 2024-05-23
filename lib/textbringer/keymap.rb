@@ -153,6 +153,7 @@ module Textbringer
   GLOBAL_MAP.define_key(?\C-_, :undo)
   GLOBAL_MAP.define_key("\C-xu", :undo)
   GLOBAL_MAP.define_key("\C-x\C-_", :redo_command)
+  GLOBAL_MAP.define_key("\M-\C-_", :redo_command)
   GLOBAL_MAP.define_key("\C-t", :transpose_chars)
   GLOBAL_MAP.define_key("\C-j", :newline)
   GLOBAL_MAP.define_key("\C-m", :newline)
