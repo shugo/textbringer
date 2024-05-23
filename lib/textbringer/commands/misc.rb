@@ -243,6 +243,9 @@ module Textbringer
         mark = yield(global_mark_ring)
       end
       if mark.detached?
+        unless mark.file_name
+          raise EditorError, "The buffer has gone"
+        end
         find_file(mark.file_name)
         goto_char(mark.location)
       else
