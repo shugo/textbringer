@@ -1,3 +1,6 @@
+This file is no longer being updated after version 1.3.0.
+For changes since version 1.3.0, see <URL:https://github.com/shugo/textbringer/releases>.
+
 ## 1.3.0
 
 * Kernel#print etc. inserts the given string into the current buffer now.
