@@ -1057,47 +1057,11 @@ module Textbringer
     end
 
     def undo
-      check_read_only_flag
-      if @undo_stack.empty?
-        raise EditorError, "No further undo information"
-      end
-      action = @undo_stack.pop
-      @undoing = true
-      begin
-        was_modified = @modified
-        action.undo
-        if action.version == @version
-          @modified = false
-          action.version = nil
-        elsif !was_modified
-          action.version = @version
-        end
-        @redo_stack.push(action)
-      ensure
-        @undoing = false
-      end
+      undo_or_redo(:undo, @undo_stack, @redo_stack)
     end
 
     def redo
-      check_read_only_flag
-      if @redo_stack.empty?
-        raise EditorError, "No further redo information"
-      end
-      action = @redo_stack.pop
-      @undoing = true
-      begin
-        was_modified = @modified
-        action.redo
-        if action.version == @version
-          @modified = false
-          action.version = nil
-        elsif !was_modified
-          action.version = @version
-        end
-        @undo_stack.push(action)
-      ensure
-        @undoing = false
-      end
+      undo_or_redo(:redo, @redo_stack, @undo_stack)
     end
 
     def re_search_forward(s, raise_error: true, count: 1)
@@ -1710,6 +1674,28 @@ module Textbringer
         end
         @undo_stack.push(action)
         @redo_stack.clear
+      end
+    end
+
+    def undo_or_redo(op, from_stack, to_stack)
+      check_read_only_flag
+      if from_stack.empty?
+        raise EditorError, "No further #{op} information"
+      end
+      action = from_stack.pop
+      @undoing = true
+      begin
+        was_modified = @modified
+        action.send(op)
+        if action.version == @version
+          @modified = false
+          action.version = nil
+        elsif !was_modified
+          action.version = @version
+        end
+        to_stack.push(action)
+      ensure
+        @undoing = false
       end
     end
 
