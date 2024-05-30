@@ -187,7 +187,7 @@ module Textbringer
 
     def self.new_buffer_name(name)
       if @@table.key?(name)
-        (2..Float::INFINITY).lazy.map { |i|
+        (2..).lazy.map { |i|
           "#{name}<#{i}>"
         }.find { |i| !@@table.key?(i) }
       else
