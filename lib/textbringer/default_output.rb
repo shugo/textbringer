@@ -9,10 +9,17 @@ module Textbringer
     def flush
     end
 
-    def method_missing(mid, ...)
-      buffer = StringIO.new
-      buffer.send(mid, ...)
-      write(buffer.string)
+    [
+      :print,
+      :printf,
+      :putc,
+      :puts
+    ].each do |mid|
+      define_method(mid) do |*args|
+        buffer = StringIO.new
+        buffer.send(mid, *args)
+        write(buffer.string)
+      end
     end
   end
 end
