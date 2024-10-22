@@ -1441,7 +1441,7 @@ module Textbringer
     def set_contents(s, enc)
       case s.encoding
       when Encoding::UTF_8, Encoding::ASCII_8BIT
-        @contents = s.frozen? ? s.dup : s
+        @contents = +s
       else
         @contents = s.encode(Encoding::UTF_8)
       end
