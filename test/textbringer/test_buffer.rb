@@ -1,3 +1,5 @@
+# frozen-string-literal: false
+
 require_relative "../test_helper"
 require "tempfile"
 require "tmpdir"
