@@ -264,5 +264,35 @@ module Textbringer
       e = buffer.re_search_forward(Regexp.quote(char), count: count)
       buffer.kill_region(s, e)
     end
+
+    define_command(:upcase_word,
+                   doc: <<~EOD) do
+        Convert to upper case from point to end of word, moving over.
+      EOD
+      |count: number_prefix_arg|
+
+      buffer = Buffer.current
+      buffer.convert_word(count: count){|x| x.upcase }
+    end
+
+    define_command(:downcase_word,
+                    doc: <<~EOD) do
+        Convert to lower case from point to end of word, moving over.
+      EOD
+      |count: number_prefix_arg|
+
+      buffer = Buffer.current
+      buffer.convert_word(count: count){|x| x.downcase }
+    end
+
+    define_command(:capitalize_word,
+                    doc: <<~EOD) do
+        Capitalize from point to the end of word, moving over.
+      EOD
+      |count: number_prefix_arg|
+
+      buffer = Buffer.current
+      buffer.convert_word(count: count){|x| x.capitalize }
+    end
   end
 end
