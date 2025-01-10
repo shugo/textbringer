@@ -1040,6 +1040,19 @@ module Textbringer
       end
     end
 
+    def convert_word(count: 1)
+      s = point
+      count >= 0 ? forward_word(count) : backward_word(-count)
+      e = point
+      s, e = Buffer.region_boundaries(s, e)
+      regex = /([\p{Letter}\p{Number}]+)/
+      split = substring(s,e).split(regex)
+      converted = split.map do |x|
+        x.match?(regex) ? yield(x) : x
+      end
+      replace(converted.join, start: s, end: e)
+    end
+
     def insert_for_yank(s)
       if @mark.nil? || !point_at_mark?(@mark)
         push_mark
