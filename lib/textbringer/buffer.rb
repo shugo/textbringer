@@ -684,6 +684,7 @@ module Textbringer
     end
 
     def forward_word(n = 1, regexp: /\p{Letter}|\p{Number}/)
+      return backward_word(-n) if n < 0
       n.times do
         while !end_of_buffer? && regexp !~ char_after
           forward_char
@@ -695,6 +696,7 @@ module Textbringer
     end
 
     def backward_word(n = 1, regexp: /\p{Letter}|\p{Number}/)
+      return forward_word(-n) if n < 0
       n.times do
         break if beginning_of_buffer?
         backward_char
@@ -1040,17 +1042,13 @@ module Textbringer
       end
     end
 
-    def convert_word(n = 1)
+    def convert_word(n = 1, &block)
       s = point
-      n >= 0 ? forward_word(n) : backward_word(-n)
+      forward_word(n)
       e = point
       s, e = Buffer.region_boundaries(s, e)
-      regex = /([\p{Letter}\p{Number}]+)/
-      split = substring(s, e).split(regex)
-      converted = split.map do |x|
-        x.match?(regex) ? yield(x) : x
-      end
-      replace(converted.join, start: s, end: e)
+      str = substring(s, e).gsub(/[\p{Letter}\p{Number}]+/, &block)
+      replace(str, start: s, end: e)
     end
 
     def downcase_word(n = 1)
