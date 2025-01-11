@@ -1052,15 +1052,15 @@ module Textbringer
     end
 
     def downcase_word(n = 1)
-      convert_word(n) { |x| x.downcase }
+      convert_word(n, &:downcase)
     end
 
     def upcase_word(n = 1)
-      convert_word(n) { |x| x.upcase }
+      convert_word(n, &:upcase)
     end
 
     def capitalize_word(n = 1)
-      convert_word(n) { |x| x.capitalize }
+      convert_word(n, &:capitalize)
     end
 
     def insert_for_yank(s)
