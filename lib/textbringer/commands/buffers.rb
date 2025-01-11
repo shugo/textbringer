@@ -265,34 +265,28 @@ module Textbringer
       buffer.kill_region(s, e)
     end
 
-    define_command(:upcase_word,
-                   doc: <<~EOD) do
-        Convert to upper case from point to end of word, moving over.
-      EOD
-      |count: number_prefix_arg|
-
-      buffer = Buffer.current
-      buffer.convert_word(count: count){|x| x.upcase }
-    end
-
     define_command(:downcase_word,
                     doc: <<~EOD) do
         Convert to lower case from point to end of word, moving over.
       EOD
-      |count: number_prefix_arg|
+      |n = number_prefix_arg|
+      Buffer.current.downcase_word(n)
+    end
 
-      buffer = Buffer.current
-      buffer.convert_word(count: count){|x| x.downcase }
+    define_command(:upcase_word,
+                   doc: <<~EOD) do
+        Convert to upper case from point to end of word, moving over.
+      EOD
+      |n = number_prefix_arg|
+      Buffer.current.upcase_word(n)
     end
 
     define_command(:capitalize_word,
                     doc: <<~EOD) do
         Capitalize from point to the end of word, moving over.
       EOD
-      |count: number_prefix_arg|
-
-      buffer = Buffer.current
-      buffer.convert_word(count: count){|x| x.capitalize }
+      |n = number_prefix_arg|
+      Buffer.current.capitalize_word(n)
     end
   end
 end

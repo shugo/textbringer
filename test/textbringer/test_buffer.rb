@@ -1974,52 +1974,123 @@ EOF
 
   def test_convert_word
     buffer_a = Buffer.new(" aaa")
-    buffer_a.convert_word(count: 1 ){|x| x.upcase}
+    buffer_a.convert_word(1) { |x| x.upcase }
     assert_equal(" AAA", buffer_a.to_s)
     assert_equal(4, buffer_a.point)
 
     buffer_b = Buffer.new("bbb ")
     buffer_b.forward_char(4)
-    buffer_b.convert_word(count: -1 ){|x| x.upcase}
+    buffer_b.convert_word(-1) { |x| x.upcase }
     assert_equal("BBB ", buffer_b.to_s)
     assert_equal(4, buffer_b.point)
 
     buffer_c = Buffer.new(" ccc")
-    buffer_c.convert_word(count: 1){|x| x.capitalize}
+    buffer_c.convert_word(1) { |x| x.capitalize }
     assert_equal(" Ccc", buffer_c.to_s)
     assert_equal(4, buffer_c.point)
 
     buffer_d = Buffer.new("ddd ")
     buffer_d.forward_char(4)
-    buffer_d.convert_word(count: -1){|x| x.capitalize}
+    buffer_d.convert_word(-1) { |x| x.capitalize }
     assert_equal("Ddd ", buffer_d.to_s)
     assert_equal(4, buffer_d.point)
 
     buffer_e = Buffer.new("eee eee")
-    buffer_e.convert_word(count: 2){|x| x.next}
+    buffer_e.convert_word(2) { |x| x.next }
     assert_equal("eef eef", buffer_e.to_s)
 
     buffer_aa = Buffer.new(" aaa aaa aaa")
-    buffer_aa.convert_word(count: 2 ){|x| x.upcase}
+    buffer_aa.convert_word(2) { |x| x.upcase }
     assert_equal(" AAA AAA aaa", buffer_aa.to_s)
     assert_equal(8, buffer_aa.point)
 
     buffer_bb = Buffer.new("bbb bbb bbb ")
     buffer_bb.forward_char(12)
-    buffer_bb.convert_word(count: -2 ){|x| x.upcase}
+    buffer_bb.convert_word(-2) { |x| x.upcase }
     assert_equal("bbb BBB BBB ", buffer_bb.to_s)
     assert_equal(12, buffer_bb.point)
 
     buffer_cc = Buffer.new(" ccc ccc ccc")
-    buffer_cc.convert_word(count: 2){|x| x.capitalize}
+    buffer_cc.convert_word(2) { |x| x.capitalize }
     assert_equal(" Ccc Ccc ccc", buffer_cc.to_s)
     assert_equal(8, buffer_cc.point)
 
     buffer_dd = Buffer.new("ddd ddd ddd ")
     buffer_dd.forward_char(12)
-    buffer_dd.convert_word(count: -2){|x| x.capitalize}
+    buffer_dd.convert_word(-2) { |x| x.capitalize }
     assert_equal("ddd Ddd Ddd ", buffer_dd.to_s)
     assert_equal(12, buffer_dd.point)
+  end
 
+  def test_downcase_word
+    buffer_a = Buffer.new(" AAA")
+    buffer_a.downcase_word(1)
+    assert_equal(" aaa", buffer_a.to_s)
+    assert_equal(4, buffer_a.point)
+
+    buffer_b = Buffer.new("BBB ")
+    buffer_b.forward_char(4)
+    buffer_b.downcase_word(-1)
+    assert_equal("bbb ", buffer_b.to_s)
+    assert_equal(4, buffer_b.point)
+
+    buffer_aa = Buffer.new(" AAA AAA AAA")
+    buffer_aa.downcase_word(2)
+    assert_equal(" aaa aaa AAA", buffer_aa.to_s)
+    assert_equal(8, buffer_aa.point)
+
+    buffer_bb = Buffer.new("BBB BBB BBB ")
+    buffer_bb.forward_char(12)
+    buffer_bb.downcase_word(-2)
+    assert_equal("BBB bbb bbb ", buffer_bb.to_s)
+    assert_equal(12, buffer_bb.point)
+  end
+
+  def test_upcase_word
+    buffer_a = Buffer.new(" aaa")
+    buffer_a.upcase_word(1)
+    assert_equal(" AAA", buffer_a.to_s)
+    assert_equal(4, buffer_a.point)
+
+    buffer_b = Buffer.new("bbb ")
+    buffer_b.forward_char(4)
+    buffer_b.upcase_word(-1)
+    assert_equal("BBB ", buffer_b.to_s)
+    assert_equal(4, buffer_b.point)
+
+    buffer_aa = Buffer.new(" aaa aaa aaa")
+    buffer_aa.upcase_word(2)
+    assert_equal(" AAA AAA aaa", buffer_aa.to_s)
+    assert_equal(8, buffer_aa.point)
+
+    buffer_bb = Buffer.new("bbb bbb bbb ")
+    buffer_bb.forward_char(12)
+    buffer_bb.upcase_word(-2)
+    assert_equal("bbb BBB BBB ", buffer_bb.to_s)
+    assert_equal(12, buffer_bb.point)
+  end
+
+  def test_capitalize_word
+    buffer_c = Buffer.new(" ccc")
+    buffer_c.capitalize_word(1)
+    assert_equal(" Ccc", buffer_c.to_s)
+    assert_equal(4, buffer_c.point)
+
+    buffer_d = Buffer.new("ddd ")
+    buffer_d.forward_char(4)
+    buffer_d.capitalize_word(-1)
+    assert_equal("Ddd ", buffer_d.to_s)
+    assert_equal(4, buffer_d.point)
+
+    buffer_cc = Buffer.new(" ccc ccc ccc")
+    buffer_cc.capitalize_word(2)
+    assert_equal(" Ccc Ccc ccc", buffer_cc.to_s)
+    assert_equal(8, buffer_cc.point)
+
+    buffer_dd = Buffer.new("ddd ddd ddd ")
+    buffer_dd.forward_char(12)
+    buffer_dd.capitalize_word(-2)
+    assert_equal("ddd Ddd Ddd ", buffer_dd.to_s)
+    assert_equal(12, buffer_dd.point)
   end
 end

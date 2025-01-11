@@ -1040,17 +1040,29 @@ module Textbringer
       end
     end
 
-    def convert_word(count: 1)
+    def convert_word(n = 1)
       s = point
-      count >= 0 ? forward_word(count) : backward_word(-count)
+      n >= 0 ? forward_word(n) : backward_word(-n)
       e = point
       s, e = Buffer.region_boundaries(s, e)
       regex = /([\p{Letter}\p{Number}]+)/
-      split = substring(s,e).split(regex)
+      split = substring(s, e).split(regex)
       converted = split.map do |x|
         x.match?(regex) ? yield(x) : x
       end
       replace(converted.join, start: s, end: e)
+    end
+
+    def downcase_word(n = 1)
+      convert_word(n) { |x| x.downcase }
+    end
+
+    def upcase_word(n = 1)
+      convert_word(n) { |x| x.upcase }
+    end
+
+    def capitalize_word(n = 1)
+      convert_word(n) { |x| x.capitalize }
     end
 
     def insert_for_yank(s)
