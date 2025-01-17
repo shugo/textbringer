@@ -219,6 +219,14 @@ EOF
     assert_equal(true, buffer.beginning_of_buffer?)
   end
 
+  def test_open_line
+    insert("foo")
+    open_line
+    insert("bar")
+    assert_equal("foobar\n", Buffer.current.to_s)
+    assert_equal(6, Buffer.current.point)
+  end
+
   def test_delete_region
     insert("foo")
     set_mark_command
@@ -263,5 +271,30 @@ EOF
     insert(":quux:quuux:quuuux")
     zap_to_char(?:, count: -2)
     assert_equal("baz:quux", Buffer.current.to_s)
+  end
+
+
+  def test_downcase_word
+    insert(" AAA")
+    beginning_of_buffer
+    downcase_word
+    assert_equal(" aaa", Buffer.current.to_s)
+    assert_equal(4, Buffer.current.point)
+  end
+
+  def test_upcase_word
+    insert(" aaa")
+    beginning_of_buffer
+    upcase_word
+    assert_equal(" AAA", Buffer.current.to_s)
+    assert_equal(4, Buffer.current.point)
+  end
+
+  def test_capitalize_word
+    insert(" ccc")
+    beginning_of_buffer
+    capitalize_word
+    assert_equal(" Ccc", Buffer.current.to_s)
+    assert_equal(4, Buffer.current.point)
   end
 end
