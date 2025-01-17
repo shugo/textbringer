@@ -88,7 +88,10 @@ module Textbringer
 
     define_command(:insert_register) do
       |register = read_register("Insert register:"),
-        arg = current_prefix_arg|
+        arg = nil|
+      if arg.nil? && Controller.current.this_command == :insert_register
+        arg = !current_prefix_arg
+      end
       buffer = Buffer.current
       str = REGISTERS[register]
       if arg
