@@ -128,7 +128,7 @@ module Textbringer
       |dir_name = read_file_name("Change directory: ",
                                  default: Buffer.current.file_name &&
                                  File.dirname(Buffer.current.file_name))|
-      Dir.chdir(dir_name)
+      Dir.chdir(File.expand_path(dir_name))
     end
 
     define_command(:find_alternate_file, doc: "Find an alternate file.") do

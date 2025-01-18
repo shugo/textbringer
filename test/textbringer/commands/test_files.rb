@@ -182,6 +182,8 @@ EOF
     begin
       chdir(__dir__)
       assert_equal(__dir__, Dir.pwd)
+      chdir("~")
+      assert_equal(File.expand_path("~"), Dir.pwd)
     ensure
       Dir.chdir(d)
     end
