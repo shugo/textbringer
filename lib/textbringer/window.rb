@@ -405,26 +405,33 @@ module Textbringer
            @buffer.point_after_mark?(@buffer.visible_mark)
           @window.attron(Curses::A_REVERSE)
         end
+        point_cmp_result = nil
+        visible_mark_cmp_result = nil
         while !@buffer.end_of_buffer?
           cury, curx = @window.cury, @window.curx
-          if @buffer.point_at_mark?(point)
+          if point_cmp_result == 0 || @buffer.point_at_mark?(point)
             y, x = cury, curx
             if current? && @buffer.visible_mark
-              if @buffer.point_after_mark?(@buffer.visible_mark)
+              if visible_mark_cmp_result&.>(0) ||
+                  @buffer.point_after_mark?(@buffer.visible_mark)
                 @window.attroff(Curses::A_REVERSE)
-              elsif @buffer.point_before_mark?(@buffer.visible_mark)
+              elsif visible_mark_cmp_result&.<(0) ||
+                @buffer.point_before_mark?(@buffer.visible_mark)
                 @window.attron(Curses::A_REVERSE)
               end
             end
           end
           if current? && @buffer.visible_mark &&
-             @buffer.point_at_mark?(@buffer.visible_mark)
-            if @buffer.point_after_mark?(point)
+              (visible_mark_cmp_result == 0 ||
+               @buffer.point_at_mark?(@buffer.visible_mark))
+            if point_cmp_result&.>(0) || @buffer.point_after_mark?(point)
               @window.attroff(Curses::A_REVERSE)
-            elsif @buffer.point_before_mark?(point)
+            elsif point_cmp_result&.<(0) || @buffer.point_before_mark?(point)
               @window.attron(Curses::A_REVERSE)
             end
           end
+          point_cmp_result = nil
+          visible_mark_cmp_result = nil
           if attrs = @highlight_off[@buffer.point]
             @window.attroff(attrs)
           end
@@ -457,6 +464,23 @@ module Textbringer
               end
             end
           end
+          @buffer.forward_char
+          # TODO: reduce char_after calls
+          unless @buffer.binary?
+            while (nextc = @buffer.char_after) && /[\p{Mn}\p{Mc}\p{Me}]/.match?(nextc)
+              newc = (c + nextc).unicode_normalize(:nfc)
+              break if Buffer.display_width(newc) != Buffer.display_width(c)
+              c = newc
+              if @buffer.point_at_mark?(point) ||
+                  (@buffer.visible_mark && @buffer.point_at_mark?(@buffer.visible_mark))
+                point_cmp_result = @buffer.point_compare_mark(point)
+                if @buffer.visible_mark
+                  visible_mark_cmp_result = @buffer.point_compare_mark(@buffer.visible_mark)
+                end
+              end
+              @buffer.forward_char
+            end
+          end
           if Buffer.display_width(c) == 0
             # ncurses on macOS prints U+FEFF, U+FE0F etc. as space,
             # so ignore it
@@ -464,7 +488,6 @@ module Textbringer
             @window.addstr(c)
           end
           break if newx == columns && cury == lines - 2
-          @buffer.forward_char
         end
         if current? && @buffer.visible_mark
           @window.attroff(Curses::A_REVERSE)
@@ -836,7 +859,7 @@ module Textbringer
 
     def redisplay
       return if @buffer.nil?
-      @buffer.save_point do |saved|
+      @buffer.save_point do |point|
         @window.erase
         @window.setpos(0, 0)
         if @message
@@ -847,25 +870,69 @@ module Textbringer
           framer
           @buffer.point_to_mark(@top_of_window)
           y = x = 0
+          point_cmp_result = nil
+          visible_mark_cmp_result = nil
           while !@buffer.end_of_buffer?
             cury, curx = @window.cury, @window.curx
-            if @buffer.point_at_mark?(saved)
+            if point_cmp_result == 0 || @buffer.point_at_mark?(point)
               y, x = cury, curx
+              if current? && @buffer.visible_mark
+                if visible_mark_cmp_result&.>(0) ||
+                    @buffer.point_after_mark?(@buffer.visible_mark)
+                  @window.attroff(Curses::A_REVERSE)
+                elsif visible_mark_cmp_result&.<(0) ||
+                    @buffer.point_before_mark?(@buffer.visible_mark)
+                  @window.attron(Curses::A_REVERSE)
+                end
+              end
             end
+            if current? && @buffer.visible_mark &&
+                (visible_mark_cmp_result == 0 ||
+                 @buffer.point_at_mark?(@buffer.visible_mark))
+              if point_cmp_result&.>(0) || @buffer.point_after_mark?(point)
+                @window.attroff(Curses::A_REVERSE)
+              elsif point_cmp_result&.<(0) || @buffer.point_before_mark?(point)
+                @window.attron(Curses::A_REVERSE)
+              end
+            end
+            point_cmp_result = nil
+            visible_mark_cmp_result = nil
+
             c = @buffer.char_after
             if c == "\n"
               break
+            end
+            @buffer.forward_char
+            # TODO: reduce char_after calls
+            unless @buffer.binary?
+              while (nextc = @buffer.char_after) && /[\p{Mn}\p{Mc}\p{Me}]/.match?(nextc)
+                newc = (c + nextc).unicode_normalize(:nfc)
+                break if Buffer.display_width(newc) != Buffer.display_width(c)
+                c = newc
+                if @buffer.point_at_mark?(point) ||
+                    (@buffer.visible_mark && @buffer.point_at_mark?(@buffer.visible_mark))
+                  point_cmp_result = @buffer.point_compare_mark(point)
+                  if @buffer.visible_mark
+                    visible_mark_cmp_result = @buffer.point_compare_mark(@buffer.visible_mark)
+                  end
+                end
+                @buffer.forward_char
+              end
             end
             s = escape(c)
             newx = curx + Buffer.display_width(s)
             if newx > @columns
               break
             end
-            @window.addstr(s)
+            if Buffer.display_width(s) == 0
+              # ncurses on macOS prints U+FEFF, U+FE0F etc. as space,
+              # so ignore it
+            else
+              @window.addstr(s)
+            end
             break if newx >= @columns
-            @buffer.forward_char
           end
-          if @buffer.point_at_mark?(saved)
+          if @buffer.point_at_mark?(point)
             y, x = @window.cury, @window.curx
           end
           @window.setpos(y, x)
