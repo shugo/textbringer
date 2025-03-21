@@ -822,6 +822,10 @@ module Textbringer
       @point > mark.location
     end
 
+    def point_compare_mark(mark)
+      @point - mark.location
+    end
+
     def exchange_point_and_mark(mark = @mark)
       if mark.nil?
         raise EditorError, "The mark is not set"

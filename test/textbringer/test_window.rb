@@ -210,6 +210,18 @@ end
 EOF
   end
 
+  def test_redisplay_combining_marks
+    @buffer.insert(<<'EOF')
+アパート
+修正すべきファイル
+EOF
+    @window.redisplay
+    assert_equal(<<'EOF' + "\n" * 20, window_string(@window.window))
+アパート
+修正すべきファイル
+EOF
+  end
+
   def test_s_current
     window = Window.current
     window.split
