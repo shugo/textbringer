@@ -327,6 +327,12 @@ EOF
     Window.echo_area.clear
     Window.echo_area.redisplay
     assert_equal("\n", window_string(Window.echo_area.window))
+    Buffer.minibuffer.toggle_input_method("hiragana")
+    Window.echo_area.redisplay
+    assert_equal("あ\n", window_string(Window.echo_area.window))
+    Buffer.minibuffer.toggle_input_method("t_code")
+    Window.echo_area.redisplay
+    assert_equal("漢\n", window_string(Window.echo_area.window))
   end
 
   def test_s_start

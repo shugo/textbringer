@@ -861,6 +861,10 @@ module Textbringer
       return if @buffer.nil?
       @buffer.save_point do |point|
         @window.erase
+        if @buffer.input_method_status != "--"
+          @window.setpos(@window.cury, editable_columns + 1)
+          @window.addstr(@buffer.input_method_status)
+        end
         @window.setpos(0, 0)
         if @message
           @window.addstr(escape(@message))
@@ -921,7 +925,7 @@ module Textbringer
             end
             s = escape(c)
             newx = curx + Buffer.display_width(s)
-            if newx > @columns
+            if newx > editable_columns
               break
             end
             if Buffer.display_width(s) == 0
@@ -930,7 +934,7 @@ module Textbringer
             else
               @window.addstr(s)
             end
-            break if newx >= @columns
+            break if newx >= editable_columns
           end
           if @buffer.point_at_mark?(point)
             y, x = @window.cury, @window.curx
@@ -957,6 +961,14 @@ module Textbringer
       @window.resize(lines, columns)
     end
 
+    def editable_columns
+      if @buffer.input_method_status == "--"
+        @columns
+      else
+        @columns - Buffer.display_width(@buffer.input_method_status) - 1
+      end
+    end
+
     private
 
     def initialize_window(num_lines, num_columns, y, x)
@@ -969,7 +981,7 @@ module Textbringer
 
     def framer
       @buffer.save_point do |saved|
-        max_width = @columns - @window.curx
+        max_width = editable_columns - @window.curx
         width = 0
         loop do
           c = @buffer.char_after
