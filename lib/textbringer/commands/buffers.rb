@@ -288,5 +288,14 @@ module Textbringer
       |n = number_prefix_arg|
       Buffer.current.capitalize_word(n)
     end
+
+    define_command(:insert_char,
+                    doc: <<~EOD) do
+        Insert character.
+      EOD
+      |c = read_from_minibuffer("Insert character (hex): "),
+        n = number_prefix_arg|
+      Buffer.current.insert(c.hex.chr(Encoding::UTF_8) * n)
+    end
   end
 end

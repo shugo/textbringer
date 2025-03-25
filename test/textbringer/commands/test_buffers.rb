@@ -297,4 +297,13 @@ EOF
     assert_equal(" Ccc", Buffer.current.to_s)
     assert_equal(4, Buffer.current.point)
   end
+
+  def test_insert_char
+    insert_char("feff")
+    assert_equal("\u{feff}", Buffer.current.to_s)
+    assert_equal(3, Buffer.current.point)
+    insert_char("200b", 3)
+    assert_equal("\u{feff}\u{200b}\u{200b}\u{200b}", Buffer.current.to_s)
+    assert_equal(12, Buffer.current.point)
+  end
 end

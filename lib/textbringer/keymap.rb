@@ -218,6 +218,7 @@ module Textbringer
   GLOBAL_MAP.define_key("\M-l", :downcase_word)
   GLOBAL_MAP.define_key("\M-u", :upcase_word)
   GLOBAL_MAP.define_key("\M-c", :capitalize_word)
+  GLOBAL_MAP.define_key("\C-x8\C-m", :insert_char)
   GLOBAL_MAP.handle_undefined_key do |key|
     if key.is_a?(String) && /[\0-\x7f]/ !~ key
       :self_insert
