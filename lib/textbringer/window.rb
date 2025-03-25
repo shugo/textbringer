@@ -2,6 +2,8 @@ require "curses"
 
 module Textbringer
   class Window
+    Cursor = Struct.new(:y, :x)
+
     KEY_NAMES = {}
     Curses.constants.grep(/\AKEY_/).each do |name|
       KEY_NAMES[Curses.const_get(name)] =
@@ -232,6 +234,7 @@ module Textbringer
       @deleted = false
       @raw_key_buffer = []
       @key_buffer = []
+      @cursor = Cursor.new(0, 0)
     end
 
     def echo_area?
@@ -395,7 +398,7 @@ module Textbringer
           @buffer.point_to_mark(@point_mark)
         end
         framer
-        y = x = 0
+        @cursor.y = @cursor.x = 0
         @buffer.point_to_mark(@top_of_window)
         highlight
         @window.erase
@@ -405,33 +408,8 @@ module Textbringer
            @buffer.point_after_mark?(@buffer.visible_mark)
           @window.attron(Curses::A_REVERSE)
         end
-        point_cmp_result = nil
-        visible_mark_cmp_result = nil
         while !@buffer.end_of_buffer?
-          cury, curx = @window.cury, @window.curx
-          if point_cmp_result == 0 || @buffer.point_at_mark?(point)
-            y, x = cury, curx
-            if current? && @buffer.visible_mark
-              if visible_mark_cmp_result&.>(0) ||
-                  @buffer.point_after_mark?(@buffer.visible_mark)
-                @window.attroff(Curses::A_REVERSE)
-              elsif visible_mark_cmp_result&.<(0) ||
-                @buffer.point_before_mark?(@buffer.visible_mark)
-                @window.attron(Curses::A_REVERSE)
-              end
-            end
-          end
-          if current? && @buffer.visible_mark &&
-              (visible_mark_cmp_result == 0 ||
-               @buffer.point_at_mark?(@buffer.visible_mark))
-            if point_cmp_result&.>(0) || @buffer.point_after_mark?(point)
-              @window.attroff(Curses::A_REVERSE)
-            elsif point_cmp_result&.<(0) || @buffer.point_before_mark?(point)
-              @window.attron(Curses::A_REVERSE)
-            end
-          end
-          point_cmp_result = nil
-          visible_mark_cmp_result = nil
+          update_cursor_and_attr(point)
           if attrs = @highlight_off[@buffer.point]
             @window.attroff(attrs)
           end
@@ -441,63 +419,50 @@ module Textbringer
           c = @buffer.char_after
           if c == "\n"
             @window.clrtoeol
-            break if cury == lines - 2   # lines include mode line
-            @window.setpos(cury + 1, 0)
+            break if @window.cury == lines - 2   # lines include mode line
+            @window.setpos(@window.cury + 1, 0)
             @buffer.forward_char
             next
           elsif c == "\t"
-            n = calc_tab_width(curx)
+            n = calc_tab_width(@window.curx)
             c = " " * n
-          end
-          @buffer.forward_char
-          # TODO: reduce char_after calls
-          unless @buffer.binary?
-            while (nextc = @buffer.char_after) && /[\p{M}]/.match?(nextc)
-              newc = (c + nextc).unicode_normalize(:nfc)
-              break if Buffer.display_width(newc) != Buffer.display_width(c)
-              c = newc
-              if @buffer.point_at_mark?(point) ||
-                  (@buffer.visible_mark && @buffer.point_at_mark?(@buffer.visible_mark))
-                point_cmp_result = @buffer.point_compare_mark(point)
-                if @buffer.visible_mark
-                  visible_mark_cmp_result = @buffer.point_compare_mark(@buffer.visible_mark)
-                end
-              end
-              @buffer.forward_char
-            end
+          else
+            c = combine_mark(point, c)
           end
           s = escape(c)
-          if curx < columns - 4
+          if @window.curx < columns - 4
             newx = nil
           else
-            newx = curx + Buffer.display_width(s)
+            newx = @window.curx + Buffer.display_width(s)
             if newx > columns
-              if cury == lines - 2
+              if @window.cury == lines - 2
                 break
               else
                 @window.clrtoeol
-                @window.setpos(cury + 1, 0)
+                @window.setpos(@window.cury + 1, 0)
               end
             end
           end
           @window.addstr(s)
-          break if newx == columns && cury == lines - 2
+          @buffer.forward_char
+          break if newx == columns && @window.cury == lines - 2
         end
         if current? && @buffer.visible_mark
           @window.attroff(Curses::A_REVERSE)
         end
         @buffer.mark_to_point(@bottom_of_window)
         if @buffer.point_at_mark?(point)
-          y, x = @window.cury, @window.curx
+          @cursor.y = @window.cury
+          @cursor.x = @window.curx
         end
-        if x == columns - 1
+        if @cursor.x == columns - 1
           c = @buffer.char_after(point.location)
           if c && Buffer.display_width(c) > 1
-            y += 1
-            x = 0
+            @cursor.y += 1
+            @cursor.x = 0
           end
         end
-        @window.setpos(y, x)
+        @window.setpos(@cursor.y, @cursor.x)
         @window.noutrefresh
       end
     end
@@ -707,6 +672,49 @@ module Textbringer
       "0x" + c.unpack("H*")[0]
     end
 
+    def update_cursor_and_attr(point)
+      if @buffer.point_at_mark?(point)
+        @cursor.y = @window.cury
+        @cursor.x = @window.curx
+        if current? && @buffer.visible_mark
+          if @buffer.point_after_mark?(@buffer.visible_mark)
+            @window.attroff(Curses::A_REVERSE)
+          elsif @buffer.point_before_mark?(@buffer.visible_mark)
+            @window.attron(Curses::A_REVERSE)
+          end
+        end
+      end
+      if current? && @buffer.visible_mark &&
+         @buffer.point_at_mark?(@buffer.visible_mark)
+        if @buffer.point_after_mark?(point)
+          @window.attroff(Curses::A_REVERSE)
+        elsif @buffer.point_before_mark?(point)
+          @window.attron(Curses::A_REVERSE)
+        end
+      end
+    end
+
+    def combine_mark(point, c)
+      if c && !@buffer.binary? &&
+          (nextc = @buffer.char_after(@buffer.point + c.bytesize)) &&
+          /[\p{M}]/.match?(nextc)
+        # Normalize パ (U+30CF + U+309A) to パ (U+30D1) so that curses can
+        # caluculate display width correctly.
+        # Display combining marks by codepoint when characters cannot be
+        # combined by NFC.
+        newc = (c + nextc).unicode_normalize(:nfc)
+        if newc.size == c.size
+          @buffer.forward_char
+          update_cursor_and_attr(point)
+          newc
+        else
+          c
+        end
+      else
+        c
+      end
+    end
+
     def escape(s)
       if !s.valid_encoding?
         s = s.b
@@ -869,73 +877,28 @@ module Textbringer
           @window.addstr(prompt)
           framer
           @buffer.point_to_mark(@top_of_window)
-          y = x = 0
-          point_cmp_result = nil
-          visible_mark_cmp_result = nil
+          @cursor.y = @cursor.x = 0
           while !@buffer.end_of_buffer?
-            cury, curx = @window.cury, @window.curx
-            if point_cmp_result == 0 || @buffer.point_at_mark?(point)
-              y, x = cury, curx
-              if current? && @buffer.visible_mark
-                if visible_mark_cmp_result&.>(0) ||
-                    @buffer.point_after_mark?(@buffer.visible_mark)
-                  @window.attroff(Curses::A_REVERSE)
-                elsif visible_mark_cmp_result&.<(0) ||
-                    @buffer.point_before_mark?(@buffer.visible_mark)
-                  @window.attron(Curses::A_REVERSE)
-                end
-              end
-            end
-            if current? && @buffer.visible_mark &&
-                (visible_mark_cmp_result == 0 ||
-                 @buffer.point_at_mark?(@buffer.visible_mark))
-              if point_cmp_result&.>(0) || @buffer.point_after_mark?(point)
-                @window.attroff(Curses::A_REVERSE)
-              elsif point_cmp_result&.<(0) || @buffer.point_before_mark?(point)
-                @window.attron(Curses::A_REVERSE)
-              end
-            end
-            point_cmp_result = nil
-            visible_mark_cmp_result = nil
-
+            update_cursor_and_attr(point)
             c = @buffer.char_after
             if c == "\n"
               break
             end
-            @buffer.forward_char
-            # TODO: reduce char_after calls
-            unless @buffer.binary?
-              while (nextc = @buffer.char_after) && /[\p{Mn}\p{Mc}\p{Me}]/.match?(nextc)
-                newc = (c + nextc).unicode_normalize(:nfc)
-                break if Buffer.display_width(newc) != Buffer.display_width(c)
-                c = newc
-                if @buffer.point_at_mark?(point) ||
-                    (@buffer.visible_mark && @buffer.point_at_mark?(@buffer.visible_mark))
-                  point_cmp_result = @buffer.point_compare_mark(point)
-                  if @buffer.visible_mark
-                    visible_mark_cmp_result = @buffer.point_compare_mark(@buffer.visible_mark)
-                  end
-                end
-                @buffer.forward_char
-              end
-            end
+            c = combine_mark(point, c)
             s = escape(c)
-            newx = curx + Buffer.display_width(s)
+            newx = @window.curx + Buffer.display_width(s)
             if newx > editable_columns
               break
             end
-            if Buffer.display_width(s) == 0
-              # ncurses on macOS prints U+FEFF, U+FE0F etc. as space,
-              # so ignore it
-            else
-              @window.addstr(s)
-            end
+            @window.addstr(s)
+            @buffer.forward_char
             break if newx >= editable_columns
           end
           if @buffer.point_at_mark?(point)
-            y, x = @window.cury, @window.curx
+            @cursor.y = @window.cury
+            @cursor.x = @window.curx
           end
-          @window.setpos(y, x)
+          @window.setpos(@cursor.y, @cursor.x)
         end
         @window.noutrefresh
       end

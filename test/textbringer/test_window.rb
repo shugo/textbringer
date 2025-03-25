@@ -214,11 +214,15 @@ EOF
     @buffer.insert(<<'EOF')
 アパート
 修正すべきファイル
+á
+a゚
 EOF
     @window.redisplay
-    assert_equal(<<'EOF' + "\n" * 20, window_string(@window.window))
+    assert_equal(<<'EOF' + "\n" * 18, window_string(@window.window))
 アパート
 修正すべきファイル
+á
+a<309a>
 EOF
   end
 
