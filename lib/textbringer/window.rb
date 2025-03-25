@@ -448,26 +448,11 @@ module Textbringer
           elsif c == "\t"
             n = calc_tab_width(curx)
             c = " " * n
-          else
-            c = escape(c)
-          end
-          if curx < columns - 4
-            newx = nil
-          else
-            newx = curx + Buffer.display_width(c)
-            if newx > columns
-              if cury == lines - 2
-                break
-              else
-                @window.clrtoeol
-                @window.setpos(cury + 1, 0)
-              end
-            end
           end
           @buffer.forward_char
           # TODO: reduce char_after calls
           unless @buffer.binary?
-            while (nextc = @buffer.char_after) && /[\p{Mn}\p{Mc}\p{Me}]/.match?(nextc)
+            while (nextc = @buffer.char_after) && /[\p{M}]/.match?(nextc)
               newc = (c + nextc).unicode_normalize(:nfc)
               break if Buffer.display_width(newc) != Buffer.display_width(c)
               c = newc
@@ -481,12 +466,21 @@ module Textbringer
               @buffer.forward_char
             end
           end
-          if Buffer.display_width(c) == 0
-            # ncurses on macOS prints U+FEFF, U+FE0F etc. as space,
-            # so ignore it
+          s = escape(c)
+          if curx < columns - 4
+            newx = nil
           else
-            @window.addstr(c)
+            newx = curx + Buffer.display_width(s)
+            if newx > columns
+              if cury == lines - 2
+                break
+              else
+                @window.clrtoeol
+                @window.setpos(cury + 1, 0)
+              end
+            end
           end
+          @window.addstr(s)
           break if newx == columns && cury == lines - 2
         end
         if current? && @buffer.visible_mark
@@ -726,6 +720,8 @@ module Textbringer
       else
         s.gsub(/[\0-\b\v-\x1f\x7f]/) { |c|
           "^" + (c.ord ^ 0x40).chr
+        }.gsub(/[\p{C}\p{M}]/) { |c|
+          "<%04x>" % c.ord
         }
       end
     end
