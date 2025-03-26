@@ -427,7 +427,7 @@ module Textbringer
             n = calc_tab_width(@window.curx)
             c = " " * n
           else
-            c = combine_characters(point, c)
+            c = compose_character(point, c)
           end
           s = escape(c)
           if @window.curx < columns - 4
@@ -694,10 +694,10 @@ module Textbringer
       end
     end
 
-    def combine_characters(point, c)
+    def compose_character(point, c)
       return c if @buffer.binary? || c.nil?
       if c.match?(/[\u{1100}-\u{115f}]/)
-        return combine_hangul_jamo(point, c)
+        return compose_hangul_character(point, c)
       end
       nextc = @buffer.char_after(@buffer.point + c.bytesize)
       case nextc
@@ -723,7 +723,7 @@ module Textbringer
       end
     end
 
-    def combine_hangul_jamo(point, initial)
+    def compose_hangul_character(point, initial)
       pos = @buffer.point + initial.bytesize
       medial = @buffer.char_after(pos)
       if !medial&.match?(/[\u{1160}-\u{11a7}]/)
@@ -926,7 +926,7 @@ module Textbringer
             if c == "\n"
               break
             end
-            c = combine_characters(point, c)
+            c = compose_character(point, c)
             s = escape(c)
             newx = @window.curx + Buffer.display_width(s)
             if newx > editable_columns
