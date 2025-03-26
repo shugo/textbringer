@@ -427,7 +427,7 @@ module Textbringer
             n = calc_tab_width(@window.curx)
             c = " " * n
           else
-            c = combine_mark(point, c)
+            c = combine_characters(point, c)
           end
           s = escape(c)
           if @window.curx < columns - 4
@@ -694,16 +694,24 @@ module Textbringer
       end
     end
 
-    def combine_mark(point, c)
-      if c && !@buffer.binary? &&
-          (nextc = @buffer.char_after(@buffer.point + c.bytesize)) &&
-          /[\p{M}]/.match?(nextc)
+    def combine_characters(point, c)
+      return c if @buffer.binary? || c.nil?
+      if c.match?(/[\u{1100}-\u{115f}]/)
+        return combine_hangul_jamo(point, c)
+      end
+      nextc = @buffer.char_after(@buffer.point + c.bytesize)
+      case nextc
+      when /[\u{fe00}-\u{fe0f}\u{e0100}-\u{e01ef}]/ # variation selectors
+        @buffer.forward_char
+        update_cursor_and_attr(point)
+        c + nextc
+      when /[\p{M}]/ # other combining marks
         # Normalize パ (U+30CF + U+309A) to パ (U+30D1) so that curses can
         # caluculate display width correctly.
         # Display combining marks by codepoint when characters cannot be
         # combined by NFC.
         newc = (c + nextc).unicode_normalize(:nfc)
-        if newc.size == c.size
+        if newc.size == 1
           @buffer.forward_char
           update_cursor_and_attr(point)
           newc
@@ -712,6 +720,36 @@ module Textbringer
         end
       else
         c
+      end
+    end
+
+    def combine_hangul_jamo(point, initial)
+      pos = @buffer.point + initial.bytesize
+      medial = @buffer.char_after(pos)
+      if !medial&.match?(/[\u{1160}-\u{11a7}]/)
+        return initial
+      end
+      final = @buffer.char_after(pos + medial.bytesize)
+      if final&.match?(/[\u{11a8}-\u{11ff}]/)
+        newc = (initial + medial + final).unicode_normalize(:nfc)
+        if newc.size == 1
+          2.times do
+            @buffer.forward_char
+            update_cursor_and_attr(point)
+          end
+          newc
+        else
+          c
+        end
+      else
+        newc = (initial + medial).unicode_normalize(:nfc)
+        if newc.size == 1
+          @buffer.forward_char
+          update_cursor_and_attr(point)
+          newc
+        else
+          c
+        end
       end
     end
 
@@ -729,7 +767,11 @@ module Textbringer
         s.gsub(/[\0-\b\v-\x1f\x7f]/) { |c|
           "^" + (c.ord ^ 0x40).chr
         }.gsub(/[\p{C}\p{M}]/) { |c|
-          "<%04x>" % c.ord
+          if c.match?(/[\u{fe00}-\u{fe0f}\u{e0100}-\u{e01ef}]/)
+            c
+          else
+            "<%04x>" % c.ord
+          end
         }
       end
     end
@@ -884,7 +926,7 @@ module Textbringer
             if c == "\n"
               break
             end
-            c = combine_mark(point, c)
+            c = combine_characters(point, c)
             s = escape(c)
             newx = @window.curx + Buffer.display_width(s)
             if newx > editable_columns

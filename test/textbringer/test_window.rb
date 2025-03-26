@@ -210,19 +210,45 @@ end
 EOF
   end
 
-  def test_redisplay_combining_marks
+  def test_redisplay_diacritical_marks
     @buffer.insert(<<'EOF')
+café
+schön
 アパート
 修正すべきファイル
-á
 a゚
 EOF
     @window.redisplay
-    assert_equal(<<'EOF' + "\n" * 18, window_string(@window.window))
+    assert_equal(<<'EOF' + "\n" * 17, window_string(@window.window))
+café
+schön
 アパート
 修正すべきファイル
-á
 a<309a>
+EOF
+  end
+
+  def test_redisplay_variation_selectors
+    @buffer.insert(<<'EOF')
+禰󠄀
+渡邉󠄂
+EOF
+    @window.redisplay
+    assert_equal(<<'EOF' + "\n" * 20, window_string(@window.window))
+禰󠄀
+渡邉󠄂
+EOF
+  end
+
+  def test_redisplay_hangul_jamo
+    @buffer.insert(<<'EOF')
+아
+한
+EOF
+    @window.redisplay
+    assert_equal(<<'EOF' + "\n" * 20, window_string(@window.window))
+아
+한
 EOF
   end
 
