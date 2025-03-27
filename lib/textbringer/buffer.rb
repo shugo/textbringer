@@ -71,6 +71,8 @@ module Textbringer
         false
       end
 
+    WORD_REGEXP = /\p{Letter}|\p{Number}|\p{M}/
+
     if !defined?(@@detect_encoding_proc)
       @@detect_encoding_proc = DEFAULT_DETECT_ENCODING
 
@@ -683,7 +685,7 @@ module Textbringer
       forward_char(-n)
     end
 
-    def forward_word(n = 1, regexp: /\p{Letter}|\p{Number}/)
+    def forward_word(n = 1, regexp: WORD_REGEXP)
       return backward_word(-n) if n < 0
       n.times do
         while !end_of_buffer? && regexp !~ char_after
@@ -695,7 +697,7 @@ module Textbringer
       end
     end
 
-    def backward_word(n = 1, regexp: /\p{Letter}|\p{Number}/)
+    def backward_word(n = 1, regexp: WORD_REGEXP)
       return forward_word(-n) if n < 0
       n.times do
         break if beginning_of_buffer?

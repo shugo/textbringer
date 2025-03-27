@@ -226,6 +226,7 @@ class TestBuffer < Textbringer::TestCase
     buffer = Buffer.new(<<EOF)
 hello world
 good_bye
+café
 EOF
     buffer.forward_word
     assert_equal(5, buffer.point)
@@ -235,6 +236,8 @@ EOF
     assert_equal(16, buffer.point)
     buffer.forward_word
     assert_equal(20, buffer.point)
+    buffer.forward_word
+    assert_equal(27, buffer.point)
     buffer.beginning_of_buffer
     buffer.forward_word(2)
     assert_equal(11, buffer.point)
