@@ -33,6 +33,11 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency "fiddley", ">= 0.0.5"
   spec.add_runtime_dependency "editorconfig"
   spec.add_runtime_dependency "warning"
+  spec.add_runtime_dependency "unicode-name"
+  spec.add_runtime_dependency "unicode-categories"
+  spec.add_runtime_dependency "unicode-blocks"
+  spec.add_runtime_dependency "unicode-scripts"
+  spec.add_runtime_dependency "unicode-types"
 
   spec.add_development_dependency "bundler"
   spec.add_development_dependency "rake", ">= 12.0"

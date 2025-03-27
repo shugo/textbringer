@@ -354,7 +354,10 @@ module Textbringer
       RubyVM::MJIT.resume
     end
 
-    define_command(:what_cursor_position) do
+    define_command(:what_cursor_position,
+                   doc: "Print info on cursor position.") do
+      |arg = current_prefix_arg|
+
       buffer = Buffer.current
       c = buffer.char_after
       if c
@@ -371,6 +374,9 @@ module Textbringer
       end
       column = buffer.current_column
       message("#{char}point=#{buffer.point} of #{buffer.bytesize} (#{percent}%) column=#{column}")
+      if arg && c
+        describe_char
+      end
     end
   end
 end

@@ -18,9 +18,14 @@ module Textbringer
         help.clear
         yield(help)
         help.beginning_of_buffer
-        switch_to_buffer(help)
-        help_mode
+        help.apply_mode(HelpMode)
       end
+      if Window.list.size == 1
+        split_window
+      end
+      windows = Window.list
+      i = (windows.index(Window.current) + 1) % windows.size
+      windows[i].buffer = help
     end
     private :show_help
 
@@ -141,6 +146,43 @@ module Textbringer
         end
       end
       push_help_command([:describe_method, name])
+    end
+
+    define_command(:describe_char,
+                   doc: "Describe the char after point") do
+      require "unicode/name"
+      require "unicode/categories"
+      require "unicode/blocks"
+      require "unicode/scripts"
+      require "unicode/types"
+
+      show_help do |help|
+        buffer = Buffer.current
+        c = buffer.char_after
+        if c.nil?
+          raise "No character follows specified position"
+        end
+        percent = (100.0 * buffer.point / buffer.bytesize).to_i
+        char = /[\0-\x20\x7f]/.match?(c) ? Keymap.key_name(c) : c
+        codepoint = "U+%04X" % c.ord
+        name = Unicode::Name.readable(c)
+        category = Unicode::Categories.category(c)
+        category_long = Unicode::Categories.category(c, format: :long)
+        script = Unicode::Scripts.script(c)
+        block = Unicode::Blocks.block(c)
+        type = Unicode::Types.type(c)
+        help.insert(<<EOF)
+ position: #{buffer.point} of #{buffer.bytesize} (#{percent}%), column: #{buffer.current_column}
+character: #{char}
+codepoint: #{codepoint}
+     name: #{name}
+ category: #{category} (#{category_long})
+   script: #{script}
+    block: #{block}
+     type: #{type}
+EOF
+      end
+      push_help_command([:describe_char])
     end
 
     define_command(:help_go_back, doc: "Go back to the previous help.") do
