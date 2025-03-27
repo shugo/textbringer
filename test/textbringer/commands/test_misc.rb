@@ -196,7 +196,7 @@ class TestMisc < Textbringer::TestCase
     omit_on_windows do
       push_keys("\C-g")
       shell_execute("#{ruby_install_name} -e 'sleep'")
-      assert_match(/Process \d+ was killed by/, Window.echo_area.message)
+      assert_match(/Process \d+ was killed by|Process \d+ exited with status code 1/, Window.echo_area.message)
     end
   end
 
@@ -204,5 +204,21 @@ class TestMisc < Textbringer::TestCase
     grep("#{ruby_install_name} -e 'p 1 + 1'")
     assert_equal("2\n", Buffer.current.to_s)
     assert_equal("Backtrace", Buffer.current.mode.name)
+  end
+
+  def test_what_cursor_position
+    insert(" \t\C-lあ")
+    beginning_of_buffer
+    what_cursor_position
+    assert_equal("Char: SPC (U+0020) point=0 of 6 (0%) column=1", Window.echo_area.message)
+    forward_char
+    what_cursor_position
+    assert_equal("Char: TAB (U+0009) point=1 of 6 (16%) column=2", Window.echo_area.message)
+    forward_char
+    what_cursor_position
+    assert_equal("Char: C-l (U+000C) point=2 of 6 (33%) column=3", Window.echo_area.message)
+    forward_char
+    what_cursor_position
+    assert_equal("Char: あ (U+3042) point=3 of 6 (50%) column=4", Window.echo_area.message)
   end
 end

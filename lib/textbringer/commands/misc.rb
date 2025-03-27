@@ -353,5 +353,24 @@ module Textbringer
     define_command(:jit_resume) do
       RubyVM::MJIT.resume
     end
+
+    define_command(:what_cursor_position) do
+      buffer = Buffer.current
+      c = buffer.char_after
+      if c
+        char = format("Char: %s (U+%04X) ",
+                      /[\0-\x20\x7f]/.match?(c) ? Keymap.key_name(c) : c,
+                      c.ord)
+      else
+        char = ""
+      end
+      if buffer.bytesize == 0
+        percent = "EOB"
+      else
+        percent = (100.0 * buffer.point / buffer.bytesize).to_i
+      end
+      column = buffer.current_column
+      message("#{char}point=#{buffer.point} of #{buffer.bytesize} (#{percent}%) column=#{column}")
+    end
   end
 end
