@@ -214,14 +214,16 @@ EOF
     @buffer.insert(<<'EOF')
 café
 schön
+ǖ
 アパート
 修正すべきファイル
 a゚
 EOF
     @window.redisplay
-    assert_equal(<<'EOF' + "\n" * 17, window_string(@window.window))
+    assert_equal(<<'EOF' + "\n" * 16, window_string(@window.window))
 café
 schön
+ǖ
 アパート
 修正すべきファイル
 a<309a>

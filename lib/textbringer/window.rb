@@ -699,28 +699,27 @@ module Textbringer
       if c.match?(/[\u{1100}-\u{115f}]/)
         return compose_hangul_character(point, c)
       end
-      nextc = @buffer.char_after(@buffer.point + c.bytesize)
-      case nextc
-      when /[\u{fe00}-\u{fe0f}\u{e0100}-\u{e01ef}]/ # variation selectors
+      pos = @buffer.point + c.bytesize
+      while nextc = @buffer.char_after(pos)
+        case nextc
+        when /[\u{fe00}-\u{fe0f}\u{e0100}-\u{e01ef}]/ # variation selectors
+          c += nextc
+        when /[\p{M}]/ # other combining marks
+          # Normalize パ (U+30CF + U+309A) to パ (U+30D1) so that curses can
+          # caluculate display width correctly.
+          # Display combining marks by codepoint when characters cannot be
+          # combined by NFC.
+          newc = (c + nextc).unicode_normalize(:nfc)
+          return c if newc.size != c.size
+          c = newc
+        else
+          return c
+        end
         @buffer.forward_char
         update_cursor_and_attr(point)
-        c + nextc
-      when /[\p{M}]/ # other combining marks
-        # Normalize パ (U+30CF + U+309A) to パ (U+30D1) so that curses can
-        # caluculate display width correctly.
-        # Display combining marks by codepoint when characters cannot be
-        # combined by NFC.
-        newc = (c + nextc).unicode_normalize(:nfc)
-        if newc.size == 1
-          @buffer.forward_char
-          update_cursor_and_attr(point)
-          newc
-        else
-          c
-        end
-      else
-        c
+        pos += nextc.bytesize
       end
+      c
     end
 
     def compose_hangul_character(point, initial)
