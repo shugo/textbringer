@@ -995,12 +995,21 @@ module Textbringer
       end
     end
 
-    def replace(str, start: point_min, end: point_max)
+    def replace(str = nil, start: point_min, end: point_max, &block)
+      end_pos = binding.local_variable_get(:end)
+      if str.nil?
+        str = block.call(substring(start, end_pos))
+      end
       composite_edit do
-        delete_region(start, binding.local_variable_get(:end))
+        delete_region(start, end_pos)
         goto_char(start)
         insert(str)
       end
+    end
+
+    def replace_region(str = nil, &block)
+      s, e = Buffer.region_boundaries(@point, mark)
+      replace(str, start: s, end: e, &block)
     end
 
     def clear
