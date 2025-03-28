@@ -695,7 +695,7 @@ module Textbringer
     end
 
     def compose_character(point, c)
-      return c if @buffer.binary? || c.nil?
+      return c if @buffer.binary? || c.nil? || c.match?(/\p{M}/)
       if c.match?(/[\u{1100}-\u{115f}]/)
         return compose_hangul_character(point, c)
       end
@@ -704,7 +704,7 @@ module Textbringer
         case nextc
         when /[\u{fe00}-\u{fe0f}\u{e0100}-\u{e01ef}]/ # variation selectors
           c += nextc
-        when /[\p{M}]/ # other combining marks
+        when /\p{M}/ # other combining marks
           # Normalize パ (U+30CF + U+309A) to パ (U+30D1) so that curses can
           # caluculate display width correctly.
           # Display combining marks by codepoint when characters cannot be
