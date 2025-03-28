@@ -102,7 +102,7 @@ class TestWindow < Textbringer::TestCase
     @buffer.insert("bar\tbaz\n")
     @buffer.insert("quuuuuux\tquux\n")
     @window.redisplay
-    assert_equal(<<EOF + "\n" * 19, window_string(@window.window))
+    assert_window(<<EOF, @window)
         foo
 bar     baz
 quuuuuux        quux
@@ -112,7 +112,7 @@ EOF
   def test_redisplay_escape_utf8
     @buffer.insert((0..0x7f).map(&:chr).join + "あいうえお")
     @window.redisplay
-    assert_equal(<<'EOF' + "\n" * 19, window_string(@window.window))
+    assert_window(<<'EOF', @window)
 ^@^A^B^C^D^E^F^G^H      
 ^K^L^M^N^O^P^Q^R^S^T^U^V^W^X^Y^Z^[^\^]^^^_ !"#$%&'()*+,-./0123456789:;<=>?@ABCDE
 FGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~^?あいうえお
@@ -123,7 +123,7 @@ EOF
     @buffer.file_encoding = Encoding::ASCII_8BIT
     @buffer.insert((0..0xff).map(&:chr).join)
     @window.redisplay
-    assert_equal(<<'EOF' + "\n" * 12, window_string(@window.window))
+    assert_window(<<'EOF', @window)
 ^@^A^B^C^D^E^F^G^H      
 ^K^L^M^N^O^P^Q^R^S^T^U^V^W^X^Y^Z^[^\^]^^^_ !"#$%&'()*+,-./0123456789:;<=>?@ABCDE
 FGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~^?<80><81><82><83><84>
@@ -153,7 +153,7 @@ EOF
 EOF
       CONFIG[:east_asian_ambiguous_width] = 1
       @window.redisplay
-      assert_equal(<<'EOF' + "\n" * 10, window_string(@window.window))
+      assert_window(<<'EOF', @window)
 　今から約千七百八十年ほど前のことである。
 　一人の旅人があった。
 　腰に、一剣を佩《は》いているほか、身なりはいたって見すぼらしいが、眉《まゆ》は
@@ -169,7 +169,7 @@ EOF
 EOF
       CONFIG[:east_asian_ambiguous_width] = 2
       @window.redisplay
-      assert_equal(<<'EOF' + "\n" * 9, window_string(@window.window))
+      assert_window(<<'EOF', @window)
 　今から約千七百八十年ほど前のことである。
 　一人の旅人があった。
 　腰に、一剣を佩《は》いているほか、身なりはいたって見すぼらしいが、眉《まゆ》は
@@ -200,7 +200,7 @@ class Foo
 end
 EOF
     @window.redisplay
-    assert_equal(<<'EOF' + "\n" * 16, window_string(@window.window))
+    assert_window(<<'EOF', @window)
 # Foo
 class Foo
   def foo
@@ -219,8 +219,11 @@ ǖ
 修正すべきファイル
 a゚
 EOF
+    @buffer.beginning_of_buffer
+    @buffer.forward_line(3)
+    @buffer.forward_char(2)
     @window.redisplay
-    assert_equal(<<'EOF' + "\n" * 16, window_string(@window.window))
+    assert_window([<<'EOF', 3, 2], @window)
 café
 schön
 ǖ
@@ -235,8 +238,11 @@ EOF
 禰󠄀
 渡邉󠄂
 EOF
+    @buffer.beginning_of_buffer
+    @buffer.forward_line
+    @buffer.forward_char(2)
     @window.redisplay
-    assert_equal(<<'EOF' + "\n" * 20, window_string(@window.window))
+    assert_window([<<'EOF', 1, 2], @window)
 禰󠄀
 渡邉󠄂
 EOF
@@ -247,8 +253,11 @@ EOF
 아
 한
 EOF
+    @buffer.beginning_of_buffer
+    @buffer.forward_line
+    @buffer.forward_char
     @window.redisplay
-    assert_equal(<<'EOF' + "\n" * 20, window_string(@window.window))
+    assert_window([<<'EOF', 1, 0], @window)
 아
 한
 EOF
@@ -337,34 +346,34 @@ EOF
 
   def test_echo_area_redisplay
     Window.echo_area.redisplay
-    assert_equal("\n", window_string(Window.echo_area.window))
+    assert_window("\n", Window.echo_area)
     Window.echo_area.show("foo")
     Window.echo_area.redisplay
-    assert_equal("foo\n", window_string(Window.echo_area.window))
+    assert_window("foo\n", Window.echo_area)
     Window.echo_area.clear_message
     Window.echo_area.prompt = "bar: "
     Window.echo_area.redisplay
-    assert_equal("bar: \n", window_string(Window.echo_area.window))
+    assert_window("bar: \n", Window.echo_area)
     Buffer.minibuffer.insert("baz")
     Window.echo_area.redisplay
-    assert_equal("bar: baz\n", window_string(Window.echo_area.window))
+    assert_window("bar: baz\n", Window.echo_area)
     Buffer.minibuffer.insert("x" + "あ" * 40)
     Window.echo_area.redisplay
-    assert_equal("bar: " + "あ" * 37 + "\n",
-                 window_string(Window.echo_area.window))
+    assert_window("bar: " + "あ" * 37 + "\n",
+                  Window.echo_area)
     Buffer.minibuffer.insert("x")
     Window.echo_area.redisplay
-    assert_equal("bar: " + "あ" * 36 + "x\n",
-                 window_string(Window.echo_area.window))
+    assert_window("bar: " + "あ" * 36 + "x\n",
+                  Window.echo_area)
     Window.echo_area.clear
     Window.echo_area.redisplay
-    assert_equal("\n", window_string(Window.echo_area.window))
+    assert_window("\n", Window.echo_area)
     Buffer.minibuffer.toggle_input_method("hiragana")
     Window.echo_area.redisplay
-    assert_equal("あ\n", window_string(Window.echo_area.window))
+    assert_window("あ\n", Window.echo_area)
     Buffer.minibuffer.toggle_input_method("t_code")
     Window.echo_area.redisplay
-    assert_equal("漢\n", window_string(Window.echo_area.window))
+    assert_window("漢\n", Window.echo_area)
   end
 
   def test_s_start
@@ -406,5 +415,18 @@ EOF
 
   def window_string(window)
     window.contents.join("\n") + "\n"
+  end
+
+  def assert_window((expected_contents, expected_y, expected_x), window)
+    if window.lines > 1
+      expected_contents +=
+        "\n" * (window.lines - expected_contents.count("\n") - 1)
+    end
+    assert_equal(expected_contents,
+                 window.window.contents.join("\n") + "\n")
+    if expected_y
+      assert_equal([expected_y, expected_x],
+                   [window.window.cury, window.window.curx])
+    end
   end
 end
