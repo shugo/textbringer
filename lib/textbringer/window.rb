@@ -696,7 +696,7 @@ module Textbringer
 
     def compose_character(point, c)
       return c if @buffer.binary? || c.nil? || c.match?(/\p{M}/)
-      if c.match?(/[\u{1100}-\u{115f}]/)
+      if c.match?(/[\u{1100}-\u{115f}]/) # hangul initial consonants
         return compose_hangul_character(point, c)
       end
       pos = @buffer.point + c.bytesize
@@ -765,10 +765,13 @@ module Textbringer
       else
         s.gsub(/[\0-\b\v-\x1f\x7f]/) { |c|
           "^" + (c.ord ^ 0x40).chr
-        }.gsub(/[\p{C}\p{M}]/) { |c|
+        }.gsub(/[\p{C}\p{M}\u{1100}-\u{11ff}]/) { |c|
           if c.match?(/[\u{fe00}-\u{fe0f}\u{e0100}-\u{e01ef}]/)
+            # Do not escape variation selectors
             c
           else
+            # Escape control characters, combining marks, and hangul jamo
+            # not to confuse curses, terminal multiplexers, and terminals
             "<%04x>" % c.ord
           end
         }
