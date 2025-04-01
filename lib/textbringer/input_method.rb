@@ -59,5 +59,22 @@ module Textbringer
     def handle_event(event)
       raise EditorError, "subclass must override InputMethod#handle_event"
     end
+
+    def with_target_buffer(&block)
+      if isearch_mode?
+        @isearch_buffer ||= Buffer.new
+        if @isearch_buffer.to_s != ISEARCH_STATUS[:string]
+          @isearch_buffer.replace(ISEARCH_STATUS[:string])
+        end
+        block.call(@isearch_buffer)
+        ISEARCH_STATUS[:string] = @isearch_buffer.to_s
+        if Buffer.current != Buffer.minibuffer
+          message(isearch_prompt + ISEARCH_STATUS[:string], log: false)
+          Window.redisplay
+        end
+      else
+        block.call(Buffer.current)
+      end
+    end
   end
 end
