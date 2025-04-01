@@ -771,7 +771,7 @@ module Textbringer
             c
           else
             # Escape control characters, combining marks, and hangul jamo
-            # not to confuse curses, terminal multiplexers, and termianls
+            # not to confuse curses, terminal multiplexers, and terminals
             "<%04x>" % c.ord
           end
         }
