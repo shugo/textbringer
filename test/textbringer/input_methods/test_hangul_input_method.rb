@@ -38,6 +38,22 @@ class TestHangulInputMethod < Textbringer::TestCase
     assert_equal("아아", @buffer.to_s)
   end
 
+  def test_phrase
+    assert_self_insert(?ㅇ, ?d)
+    assert_self_insert(?아, ?k)
+    assert_self_insert(?안, ?s)
+    assert_self_insert(?ㄴ, ?s)
+    assert_self_insert(?녀, ?u)
+    assert_self_insert(?녕, ?d)
+    assert_self_insert(?ㅎ, ?g)
+    assert_self_insert(?하, ?k)
+    assert_self_insert(?핫, ?t)
+    assert_self_insert(?세, ?p)
+    assert_self_insert(?셍, ?d)
+    assert_self_insert(?요, ?y)
+    assert_equal("안녕하세요", @buffer.to_s)
+  end
+
   private
 
   def assert_self_insert(expected, key)
