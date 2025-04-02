@@ -409,7 +409,9 @@ module Textbringer
           @window.attron(Curses::A_REVERSE)
         end
         while !@buffer.end_of_buffer?
-          update_cursor_and_attr(point)
+          cury = @window.cury
+          curx = @window.curx
+          update_cursor_and_attr(point, cury, curx)
           if attrs = @highlight_off[@buffer.point]
             @window.attroff(attrs)
           end
@@ -419,33 +421,33 @@ module Textbringer
           c = @buffer.char_after
           if c == "\n"
             @window.clrtoeol
-            break if @window.cury == lines - 2   # lines include mode line
-            @window.setpos(@window.cury + 1, 0)
+            break if cury == lines - 2   # lines include mode line
+            @window.setpos(cury + 1, 0)
             @buffer.forward_char
             next
           elsif c == "\t"
-            n = calc_tab_width(@window.curx)
+            n = calc_tab_width(curx)
             c = " " * n
           else
-            c = compose_character(point, c)
+            c = compose_character(point, cury, curx, c)
           end
           s = escape(c)
-          if @window.curx < columns - 4
+          if curx < columns - 4
             newx = nil
           else
-            newx = @window.curx + Buffer.display_width(s)
+            newx = curx + Buffer.display_width(s)
             if newx > columns
-              if @window.cury == lines - 2
+              if cury == lines - 2
                 break
               else
                 @window.clrtoeol
-                @window.setpos(@window.cury + 1, 0)
+                @window.setpos(cury + 1, 0)
               end
             end
           end
           @window.addstr(s)
+          break if newx == columns && cury == lines - 2
           @buffer.forward_char
-          break if newx == columns && @window.cury == lines - 2
         end
         if current? && @buffer.visible_mark
           @window.attroff(Curses::A_REVERSE)
@@ -672,10 +674,10 @@ module Textbringer
       "0x" + c.unpack("H*")[0]
     end
 
-    def update_cursor_and_attr(point)
+    def update_cursor_and_attr(point, cury, curx)
       if @buffer.point_at_mark?(point)
-        @cursor.y = @window.cury
-        @cursor.x = @window.curx
+        @cursor.y = cury
+        @cursor.x = curx
         if current? && @buffer.visible_mark
           if @buffer.point_after_mark?(@buffer.visible_mark)
             @window.attroff(Curses::A_REVERSE)
@@ -694,10 +696,10 @@ module Textbringer
       end
     end
 
-    def compose_character(point, c)
+    def compose_character(point, cury, curx, c)
       return c if @buffer.binary? || c.nil? || c.match?(/\p{M}/)
       if c.match?(/[\u{1100}-\u{115f}]/) # hangul initial consonants
-        return compose_hangul_character(point, c)
+        return compose_hangul_character(point, cury, curx, c)
       end
       pos = @buffer.point + c.bytesize
       while nextc = @buffer.char_after(pos)
@@ -716,13 +718,13 @@ module Textbringer
           return c
         end
         @buffer.forward_char
-        update_cursor_and_attr(point)
+        update_cursor_and_attr(point, cury, curx)
         pos += nextc.bytesize
       end
       c
     end
 
-    def compose_hangul_character(point, initial)
+    def compose_hangul_character(point, cury, curx, initial)
       pos = @buffer.point + initial.bytesize
       medial = @buffer.char_after(pos)
       if !medial&.match?(/[\u{1160}-\u{11a7}]/)
@@ -734,7 +736,7 @@ module Textbringer
         if newc.size == 1
           2.times do
             @buffer.forward_char
-            update_cursor_and_attr(point)
+            update_cursor_and_attr(point, cury, curx)
           end
           newc
         else
@@ -744,7 +746,7 @@ module Textbringer
         newc = (initial + medial).unicode_normalize(:nfc)
         if newc.size == 1
           @buffer.forward_char
-          update_cursor_and_attr(point)
+          update_cursor_and_attr(point, cury, curx)
           newc
         else
           c
@@ -923,14 +925,16 @@ module Textbringer
           @buffer.point_to_mark(@top_of_window)
           @cursor.y = @cursor.x = 0
           while !@buffer.end_of_buffer?
-            update_cursor_and_attr(point)
+            cury = @window.cury
+            curx = @window.curx
+            update_cursor_and_attr(point, cury, curx)
             c = @buffer.char_after
             if c == "\n"
               break
             end
-            c = compose_character(point, c)
+            c = compose_character(point, cury, curx, c)
             s = escape(c)
-            newx = @window.curx + Buffer.display_width(s)
+            newx = curx + Buffer.display_width(s)
             if newx > editable_columns
               break
             end
