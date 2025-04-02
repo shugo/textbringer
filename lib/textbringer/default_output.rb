@@ -13,7 +13,8 @@ module Textbringer
       :print,
       :printf,
       :putc,
-      :puts
+      :puts,
+      :"<<"
     ].each do |mid|
       define_method(mid) do |*args|
         buffer = StringIO.new
