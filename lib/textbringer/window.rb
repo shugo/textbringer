@@ -1,4 +1,5 @@
 require "curses"
+require_relative "window/fallback_characters"
 
 module Textbringer
   class Window
@@ -774,7 +775,7 @@ module Textbringer
           else
             # Escape control characters, combining marks, and hangul jamo
             # not to confuse curses, terminal multiplexers, and terminals
-            "<%04x>" % c.ord
+            FALLBACK_CHARACTERS[c] || ("<%04x>" % c.ord)
           end
         }
       end
