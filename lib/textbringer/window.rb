@@ -1,4 +1,5 @@
 require "curses"
+require_relative "window/fallback_characters"
 
 module Textbringer
   class Window
@@ -706,7 +707,7 @@ module Textbringer
         case nextc
         when /[\u{fe00}-\u{fe0f}\u{e0100}-\u{e01ef}]/ # variation selectors
           c += nextc
-        when /\p{M}/ # other combining marks
+        when /[\p{Mn}\p{Me}]/ # nonspacing & enclosing marks
           # Normalize パ (U+30CF + U+309A) to パ (U+30D1) so that curses can
           # caluculate display width correctly.
           # Display combining marks by codepoint when characters cannot be
@@ -765,16 +766,22 @@ module Textbringer
           "<%02X>" % c.ord
         }
       else
-        s.gsub(/[\0-\b\v-\x1f\x7f]/) { |c|
-          "^" + (c.ord ^ 0x40).chr
-        }.gsub(/[\p{C}\p{M}\u{1100}-\u{11ff}]/) { |c|
-          if c.match?(/[\u{fe00}-\u{fe0f}\u{e0100}-\u{e01ef}]/)
-            # Do not escape variation selectors
-            c
-          else
-            # Escape control characters, combining marks, and hangul jamo
-            # not to confuse curses, terminal multiplexers, and terminals
+        s.gsub(/
+          (?<ascii_control>[\0-\b\v-\x1f\x7f])
+        | (?<nonascii_control>\p{C})
+        | (?<combining_diacritical_mark>[\u{0300}-\u{036f}])
+        | (?<other_special_char>[\p{M}\u{1100}-\u{11ff}])
+        /x) { |c|
+          if $~[:ascii_control]
+            "^" + (c.ord ^ 0x40).chr
+          elsif $~[:nonascii_control]
             "<%04x>" % c.ord
+          elsif $~[:combining_diacritical_mark]
+            # Use U+00A0 as the base character, following the convention
+            # described in section 2.11.4 of Unicode Standard 16.0.0
+            "\u{00a0}#{c}"
+          elsif $~[:other_special_char]
+            FALLBACK_CHARACTERS[c] || c
           end
         }
       end
