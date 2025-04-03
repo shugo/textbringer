@@ -42,8 +42,10 @@ module Textbringer
           decomposed_prev, prev = decompose_prev(prev, jamo)
           if c = compose_hangul(prev, jamo)
             buffer.backward_delete_char
-            buffer.insert(decomposed_prev) if decomposed_prev
-            return c
+            c = decomposed_prev + c if decomposed_prev
+            buffer.insert(c)
+            Window.redisplay
+            return nil
           end
         end
       end
