@@ -770,7 +770,7 @@ module Textbringer
           (?<ascii_control>[\0-\b\v-\x1f\x7f])
         | (?<nonascii_control>\p{C})
         | (?<combining_diacritical_mark>[\u{0300}-\u{036f}])
-        | (?<other_combining_mark>[\p{M}])
+        | (?<other_special_char>[\p{M}\u{1100}-\u{11ff}])
         /x) { |c|
           if $~[:ascii_control]
             "^" + (c.ord ^ 0x40).chr
@@ -780,7 +780,7 @@ module Textbringer
             # Use U+00A0 as the base character, following the convention
             # described in section 2.11.4 of Unicode Standard 16.0.0
             "\u{00a0}#{c}"
-          elsif $~[:other_combining_mark]
+          elsif $~[:other_special_char]
             FALLBACK_CHARACTERS[c] || c
           end
         }

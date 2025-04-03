@@ -217,7 +217,7 @@ schön
 ǖ
 アパート
 修正すべきファイル
-a゚
+あ゙か゚
 ̈
 EOF
     @buffer.beginning_of_buffer
@@ -230,7 +230,7 @@ schön
 ǖ
 アパート
 修正すべきファイル
-a゚
+あ゛か゜
  ̈
 EOF
   end
@@ -250,10 +250,11 @@ EOF
 EOF
   end
 
-  def test_redisplay_hangul_jamo
+  def test_redisplay_hangul
     @buffer.insert(<<'EOF')
 아
 한
+ᄀ
 EOF
     @buffer.beginning_of_buffer
     @buffer.forward_line
@@ -262,6 +263,7 @@ EOF
     assert_window([<<'EOF', 1, 0], @window)
 아
 한
+ㄱ
 EOF
   end
 
