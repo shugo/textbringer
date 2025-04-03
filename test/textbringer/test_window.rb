@@ -230,7 +230,7 @@ schön
 ǖ
 アパート
 修正すべきファイル
-a<309a>
+a゚
  ̈
 EOF
   end
@@ -262,6 +262,17 @@ EOF
     assert_window([<<'EOF', 1, 0], @window)
 아
 한
+EOF
+  end
+
+  def test_redispaly_devanagari
+    @buffer.insert(<<'EOF')
+क्षत्रिय
+EOF
+    @buffer.beginning_of_buffer
+    @window.redisplay
+    assert_window(<<'EOF', @window)
+क्षत्रिय
 EOF
   end
 
