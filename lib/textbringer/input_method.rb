@@ -66,10 +66,15 @@ module Textbringer
         if @isearch_buffer.to_s != ISEARCH_STATUS[:string]
           @isearch_buffer.replace(ISEARCH_STATUS[:string])
         end
-        block.call(@isearch_buffer)
-        ISEARCH_STATUS[:string] = @isearch_buffer.to_s
-        if Buffer.current != Buffer.minibuffer
-          message(isearch_prompt + ISEARCH_STATUS[:string], log: false)
+        @isearch_buffer.modified = false
+        begin
+          block.call(@isearch_buffer)
+        ensure
+          ISEARCH_STATUS[:string] = @isearch_buffer.to_s
+          isearch_search if @isearch_buffer.modified?
+          if Buffer.current != Buffer.minibuffer
+            message(isearch_prompt + ISEARCH_STATUS[:string], log: false)
+          end
           Window.redisplay
         end
       else

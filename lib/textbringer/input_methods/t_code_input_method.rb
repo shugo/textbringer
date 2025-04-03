@@ -100,7 +100,6 @@ module Textbringer
           buffer.goto_char(pos)
         end
       end
-      isearch_search if isearch_mode?
       Window.redisplay
       nil
     end
@@ -259,7 +258,6 @@ module Textbringer
           buffer.insert(s + @mazegaki_suffix)
         end
       end
-      isearch_search if isearch_mode?
     end
 
     def hide_help_window
