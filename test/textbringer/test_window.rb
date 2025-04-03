@@ -218,6 +218,7 @@ ǖ
 アパート
 修正すべきファイル
 a゚
+̈
 EOF
     @buffer.beginning_of_buffer
     @buffer.forward_line(3)
@@ -230,6 +231,7 @@ schön
 アパート
 修正すべきファイル
 a<309a>
+ ̈
 EOF
   end
 

@@ -769,9 +769,14 @@ module Textbringer
         s.gsub(/[\0-\b\v-\x1f\x7f]/) { |c|
           "^" + (c.ord ^ 0x40).chr
         }.gsub(/[\p{C}\p{M}\u{1100}-\u{11ff}]/) { |c|
-          if c.match?(/[\u{fe00}-\u{fe0f}\u{e0100}-\u{e01ef}]/)
+          case c
+          when /[\u{fe00}-\u{fe0f}\u{e0100}-\u{e01ef}]/
             # Do not escape variation selectors
             c
+          when /[\u{0300}-\u{036f}]/ # combining diacritical marks
+            # Use U+00A0 as the base character, following the convention
+            # described in section 2.11.4 of Unicode Standard 16.0.0
+            "\u{00a0}#{c}"
           else
             # Escape control characters, combining marks, and hangul jamo
             # not to confuse curses, terminal multiplexers, and terminals
