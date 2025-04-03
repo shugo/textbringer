@@ -267,7 +267,7 @@ EOF
 EOF
   end
 
-  def test_redispaly_devanagari
+  def test_redisplay_devanagari
     @buffer.insert(<<'EOF')
 क्षत्रिय
 EOF
