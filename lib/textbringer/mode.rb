@@ -6,7 +6,7 @@ module Textbringer
     @@mode_list = []
 
     DEFAULT_SYNTAX_TABLE = {
-      control: /[\p{C}]+/
+      control: /\p{C}+/
     }
 
     def self.list
