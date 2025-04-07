@@ -1,6 +1,43 @@
 module Textbringer
   class Window
     FALLBACK_CHARACTERS = {
+      # Diacritical marks
+      ## https://www.unicode.org/charts/PDF/U0300.pdf
+      ## characters combinable with alphabet:
+      ## ("\u{0300}".."\u{036f}").filter { |c|
+      ##   ("a".."z").any? { |c2|
+      ##     "#{c2}#{c}".unicode_normalize(:nfc).size == 1
+      ##   }
+      ## }
+      "̀" => "`",
+      "́" => "´",
+      "̂" => "ˆ",
+      "̃" => "˜",
+      "̄" => "¯",
+      "̆" => "˘",
+      "̇" => "˙",
+      "̈" => "¨",
+      "̉" => "ˀ",
+      "̊" => "˚",
+      "̋" => "˝",
+      "̌" => "ˇ",
+      "̏" => '"',
+      "̑" => nil, # combining character only
+      "̛" => nil, # combining character only
+      "̣" => nil, # combining character only
+      "̤" => nil, # combining character only
+      "̥" => "˳",
+      "̦" => ",",
+      "̧" => "¸",
+      "̨" => "˛",
+      "̭" => nil, # combining character only
+      "̮" => nil, # combining character only
+      "̰" => nil, # combining character only
+      "̱" => "ˍ",
+      "̀" => nil, # combining character only
+      "́" => nil, # combining character only
+      "̈́" => nil, # combining character only
+
       # Hiragana
       "゙" => "゛",
       "゚" => "゜",
