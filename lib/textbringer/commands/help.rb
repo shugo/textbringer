@@ -151,9 +151,9 @@ module Textbringer
     define_command(:describe_char,
                    doc: "Describe the char after point") do
       require "unicode/name"
-      require "unicode/categories"
       require "unicode/blocks"
       require "unicode/scripts"
+      require "unicode/categories"
       require "unicode/types"
 
       show_help do |help|
@@ -166,9 +166,9 @@ module Textbringer
         char = /[\0-\x20\x7f]/.match?(c) ? Keymap.key_name(c) : c
         codepoint = "U+%04X" % c.ord
         name = Unicode::Name.readable(c)
+        script = Unicode::Scripts.script(c)
         category = Unicode::Categories.category(c)
         category_long = Unicode::Categories.category(c, format: :long)
-        script = Unicode::Scripts.script(c)
         block = Unicode::Blocks.block(c)
         type = Unicode::Types.type(c)
         help.insert(<<EOF)
@@ -176,9 +176,9 @@ module Textbringer
 character: #{char}
 codepoint: #{codepoint}
      name: #{name}
- category: #{category} (#{category_long})
-   script: #{script}
     block: #{block}
+   script: #{script}
+ category: #{category} (#{category_long})
      type: #{type}
 EOF
       end

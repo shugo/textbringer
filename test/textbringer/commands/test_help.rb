@@ -53,6 +53,10 @@ class TestHelp < Textbringer::TestCase
     assert_match(/^ *position: 2 of 7 \(28%\), column: 3/, s)
     assert_match(/^ *codepoint: U\+0063/, s)
     assert_match(/^ *name: LATIN SMALL LETTER C/, s)
+    assert_match(/^ *block: Basic Latin/, s)
+    assert_match(/^ *script: Latin/, s)
+    assert_match(/^ *category: Ll \(Lowercase_Letter\)/, s)
+    assert_match(/^ *type: Graphic/, s)
   end
 
   def test_help_commands
