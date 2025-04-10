@@ -705,13 +705,11 @@ module Textbringer
       pos = @buffer.point + c.bytesize
       while nextc = @buffer.char_after(pos)
         case nextc
-        when /[\u{fe00}-\u{fe0f}\u{e0100}-\u{e01ef}]/ # variation selectors
+        when /\p{Variation_Selector}/
           c += nextc
         when /[\p{Mn}\p{Me}]/ # nonspacing & enclosing marks
           # Normalize パ (U+30CF + U+309A) to パ (U+30D1) so that curses can
           # caluculate display width correctly.
-          # Display combining marks by codepoint when characters cannot be
-          # combined by NFC.
           newc = (c + nextc).unicode_normalize(:nfc)
           return c if newc.size != c.size
           c = newc
@@ -769,7 +767,7 @@ module Textbringer
         s.gsub(/
           (?<ascii_control>[\0-\b\v-\x1f\x7f])
         | (?<nonascii_control>\p{C})
-        | (?<other_special_char>[\p{M}\u{1100}-\u{11ff}])
+        | (?<other_special_char>[\p{M}\p{In_Hangul_Jamo}])
         /x) { |c|
           if $~[:ascii_control]
             "^" + (c.ord ^ 0x40).chr
