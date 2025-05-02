@@ -352,16 +352,34 @@ module Textbringer
 
     HOOKS = Hash.new { |h, k| h[k] = [] }
 
-    def add_hook(name, func = nil, &block)
-      HOOKS[name].unshift(func || block)
+    def add_hook(name, func = nil, local: false, &block)
+      hooks = get_hooks(local)
+      return if hooks[name].include?(func)
+      hooks[name].unshift(func || block)
     end
 
-    def remove_hook(name, func)
-      HOOKS[name].delete(func)
+    def remove_hook(name, func, local: false)
+      hooks = get_hooks(local)
+      hooks[name].delete(func)
+    end
+
+    def get_hooks(local)
+      if local
+        Buffer.current[:hooks] ||= Hash.new { |h, k| h[k] = [] }
+      else
+        HOOKS
+      end
     end
 
     def run_hooks(name, remove_on_error: false)
-      HOOKS[name].delete_if do |func|
+      hooks_list = []
+      hooks = Buffer.current[:hooks]
+      run_hooks_in(hooks, name, remove_on_error:) if hooks
+      run_hooks_in(HOOKS, name, remove_on_error:)
+    end
+
+    def run_hooks_in(hooks, name, remove_on_error: false)
+      hooks[name].delete_if do |func|
         begin
           case func
           when Symbol
