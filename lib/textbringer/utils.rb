@@ -372,7 +372,6 @@ module Textbringer
     end
 
     def run_hooks(name, remove_on_error: false)
-      hooks_list = []
       hooks = Buffer.current[:hooks]
       run_hooks_in(hooks, name, remove_on_error:) if hooks
       run_hooks_in(HOOKS, name, remove_on_error:)
