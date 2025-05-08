@@ -62,8 +62,6 @@ module Textbringer
       end
     }
 
-    HAS_BYTEINDEX = String.instance_methods.include?(:byteindex)
-    HAS_BYTESPLICE = String.instance_methods.include?(:bytesplice)
     BYTESPLICE_SUPPORTS_PARTIAL_COPY =
       begin
         (+"foo").bytesplice(0, 2, "bar", 1, 2) == "aro"
@@ -532,14 +530,10 @@ module Textbringer
       if pos == point_min
         column = 1
       else
-        if HAS_BYTEINDEX
-          begin
-            i = @contents.byterindex("\n", user_to_gap(get_pos(pos, -1)))
-          rescue RangeError
-            i = nil
-          end
-        else
-          i = @contents.rindex("\n", user_to_gap(pos - 1))
+        begin
+          i = @contents.byterindex("\n", user_to_gap(get_pos(pos, -1)))
+        rescue RangeError
+          i = nil
         end
         if i
           i += 1
@@ -569,11 +563,7 @@ module Textbringer
       pos = point_min
       i = 1
       while i < n && pos < @contents.bytesize
-        if HAS_BYTEINDEX
-          pos = @contents.byteindex("\n", pos)
-        else
-          pos = @contents.index("\n", pos)
-        end
+        pos = @contents.byteindex("\n", pos)
         break if pos.nil?
         i += 1
         pos += 1
@@ -593,7 +583,7 @@ module Textbringer
       pos = @point
       size = s.bytesize
       adjust_gap(size)
-      splice_contents(@point, size, s.b)
+      @contents.bytesplice(@point, size, s.b)
       @marks.each do |m|
         if m.location > @point
           m.location += size
@@ -641,7 +631,7 @@ module Textbringer
       if n > 0
         str = substring(s, pos)
         # fill the gap with NUL to avoid invalid byte sequence in UTF-8
-        splice_contents(@gap_end...user_to_gap(pos), "\0" * (pos - @point))
+        @contents.bytesplice(@gap_end...user_to_gap(pos), "\0" * (pos - @point))
         @gap_end += pos - @point
         @marks.each do |m|
           if m.location > pos
@@ -656,7 +646,7 @@ module Textbringer
         str = substring(pos, s)
         update_line_and_column(@point, pos)
         # fill the gap with NUL to avoid invalid byte sequence in UTF-8
-        splice_contents(user_to_gap(pos)...@gap_start, "\0" * (@point - pos))
+        @contents.bytesplice(user_to_gap(pos)...@gap_start, "\0" * (@point - pos))
         @marks.each do |m|
           if m.location >= @point
             m.location -= @point - pos
@@ -984,7 +974,7 @@ module Textbringer
         adjust_gap
         len = e - s
         # fill the gap with NUL to avoid invalid byte sequence in UTF-8
-        splice_contents(@gap_end, len, "\0" * len)
+        @contents.bytesplice(@gap_end, len, "\0" * len)
         @gap_end += len
         @marks.each do |m|
           if m.location > e
@@ -1162,72 +1152,23 @@ module Textbringer
       byteindex(true, r, @point) == @point
     end
 
-    if HAS_BYTEINDEX
-      def byteindex(forward, re, pos)
-        @match_offsets = []
-        method = forward ? :byteindex : :byterindex
-        adjust_gap(0, 0)
-        s = @contents.byteslice(@gap_end..-1)
-        unless binary?
-          s.force_encoding(Encoding::UTF_8)
-        end
-        i = s.send(method, re, pos)
-        if i
-          m = Regexp.last_match
-          (0 .. m.size - 1).each do |j|
-            @match_offsets.push(m.byteoffset(j))
-          end
-          i
-        else
-          nil
-        end
+    def byteindex(forward, re, pos)
+      @match_offsets = []
+      method = forward ? :byteindex : :byterindex
+      adjust_gap(0, 0)
+      s = @contents.byteslice(@gap_end..-1)
+      unless binary?
+        s.force_encoding(Encoding::UTF_8)
       end
-    else
-      def byteindex(forward, re, pos)
-        @match_offsets = []
-        method = forward ? :index : :rindex
-        adjust_gap(0, 0)
-        s = @contents[@gap_end..-1]
-        if @binary
-          offset = pos
-        else
-          offset = s.byteslice(0, pos).force_encoding(Encoding::UTF_8).size
-          s.force_encoding(Encoding::UTF_8)
+      i = s.send(method, re, pos)
+      if i
+        m = Regexp.last_match
+        (0 .. m.size - 1).each do |j|
+          @match_offsets.push(m.byteoffset(j))
         end
-        begin
-          i = s.send(method, re, offset)
-          if i
-            m = Regexp.last_match
-            if m.nil?
-              # A bug of rindex
-              @match_offsets.push([pos, pos])
-              pos
-            else
-              b = m.pre_match.bytesize
-              e = b + m.to_s.bytesize
-              if e <= bytesize
-                @match_offsets.push([b, e])
-                match_beg = m.begin(0)
-                match_str = m.to_s
-                (1 .. m.size - 1).each do |j|
-                  cb, ce = m.offset(j)
-                  if cb.nil?
-                    @match_offsets.push([nil, nil])
-                  else
-                    bb = b + match_str[0, cb - match_beg].bytesize
-                    be = b + match_str[0, ce - match_beg].bytesize
-                    @match_offsets.push([bb, be])
-                  end
-                end
-                b
-              else
-                nil
-              end
-            end
-          else
-            nil
-          end
-        end
+        i
+      else
+        nil
       end
     end
 
@@ -1525,16 +1466,6 @@ module Textbringer
       end
     end
 
-    if HAS_BYTESPLICE
-      def splice_contents(*args)
-        @contents.bytesplice(*args)
-      end
-    else
-      def splice_contents(*args)
-        @contents.[]=(*args)
-      end
-    end
-
     def adjust_gap(min_size = 0, pos = @point)
       if @gap_start < pos
         len = user_to_gap(pos) - @gap_end
@@ -1548,9 +1479,9 @@ module Textbringer
                                "\0" * (new_gap_end - nul_filling_start))
         else
           s = @contents.byteslice(@gap_end, len)
-          splice_contents(nul_filling_start...new_gap_end,
-                          "\0" * (new_gap_end - nul_filling_start))
-          splice_contents(@gap_start...new_gap_start, s)
+          @contents.bytesplice(nul_filling_start...new_gap_end,
+                               "\0" * (new_gap_end - nul_filling_start))
+          @contents.bytesplice(@gap_start...new_gap_start, s)
         end
         @gap_start = new_gap_start
         @gap_end = new_gap_end
@@ -1566,8 +1497,8 @@ module Textbringer
                                "\0" * (nul_filling_end - pos))
         else
           s = @contents.byteslice(pos, len)
-          splice_contents(pos...nul_filling_end, "\0" * (nul_filling_end - pos))
-          splice_contents(new_gap_end...@gap_end, s)
+          @contents.bytesplice(pos...nul_filling_end, "\0" * (nul_filling_end - pos))
+          @contents.bytesplice(new_gap_end...@gap_end, s)
         end
         @gap_start = new_gap_start
         @gap_end = new_gap_end
@@ -1575,7 +1506,7 @@ module Textbringer
       if gap_size < min_size
         new_gap_size = GAP_SIZE + min_size
         extended_size = new_gap_size - gap_size
-        splice_contents(@gap_end, 0, "\0" * extended_size)
+        @contents.bytesplice(@gap_end, 0, "\0" * extended_size)
         @gap_end += extended_size
       end
     end
@@ -1642,14 +1573,10 @@ module Textbringer
           @current_column += substring(pos, new_pos).size
         else
           @current_line += n
-          if HAS_BYTEINDEX
-            begin
-              i = @contents.byterindex("\n", user_to_gap(get_pos(new_pos, -1)))
-            rescue RangeError
-              i = nil
-            end
-          else
-            i = @contents.rindex("\n", user_to_gap(new_pos - 1))
+          begin
+            i = @contents.byterindex("\n", user_to_gap(get_pos(new_pos, -1)))
+          rescue RangeError
+            i = nil
           end
           if i
             i += 1
@@ -1664,14 +1591,10 @@ module Textbringer
           @current_column -= substring(new_pos, pos).size
         else
           @current_line -= n
-          if HAS_BYTEINDEX
-            begin
-              i = @contents.byterindex("\n", user_to_gap(get_pos(new_pos, - 1)))
-            rescue RangeError
-              i = nil
-            end
-          else
-            i = @contents.rindex("\n", user_to_gap(new_pos - 1))
+          begin
+            i = @contents.byterindex("\n", user_to_gap(get_pos(new_pos, - 1)))
+          rescue RangeError
+            i = nil
           end
           if i
             i += 1
