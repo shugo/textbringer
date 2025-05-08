@@ -62,7 +62,6 @@ module Textbringer
       end
     }
 
-    HAS_BYTESPLICE = String.instance_methods.include?(:bytesplice)
     BYTESPLICE_SUPPORTS_PARTIAL_COPY =
       begin
         (+"foo").bytesplice(0, 2, "bar", 1, 2) == "aro"
@@ -584,7 +583,7 @@ module Textbringer
       pos = @point
       size = s.bytesize
       adjust_gap(size)
-      splice_contents(@point, size, s.b)
+      @contents.bytesplice(@point, size, s.b)
       @marks.each do |m|
         if m.location > @point
           m.location += size
@@ -632,7 +631,7 @@ module Textbringer
       if n > 0
         str = substring(s, pos)
         # fill the gap with NUL to avoid invalid byte sequence in UTF-8
-        splice_contents(@gap_end...user_to_gap(pos), "\0" * (pos - @point))
+        @contents.bytesplice(@gap_end...user_to_gap(pos), "\0" * (pos - @point))
         @gap_end += pos - @point
         @marks.each do |m|
           if m.location > pos
@@ -647,7 +646,7 @@ module Textbringer
         str = substring(pos, s)
         update_line_and_column(@point, pos)
         # fill the gap with NUL to avoid invalid byte sequence in UTF-8
-        splice_contents(user_to_gap(pos)...@gap_start, "\0" * (@point - pos))
+        @contents.bytesplice(user_to_gap(pos)...@gap_start, "\0" * (@point - pos))
         @marks.each do |m|
           if m.location >= @point
             m.location -= @point - pos
@@ -975,7 +974,7 @@ module Textbringer
         adjust_gap
         len = e - s
         # fill the gap with NUL to avoid invalid byte sequence in UTF-8
-        splice_contents(@gap_end, len, "\0" * len)
+        @contents.bytesplice(@gap_end, len, "\0" * len)
         @gap_end += len
         @marks.each do |m|
           if m.location > e
@@ -1467,16 +1466,6 @@ module Textbringer
       end
     end
 
-    if HAS_BYTESPLICE
-      def splice_contents(*args)
-        @contents.bytesplice(*args)
-      end
-    else
-      def splice_contents(*args)
-        @contents.[]=(*args)
-      end
-    end
-
     def adjust_gap(min_size = 0, pos = @point)
       if @gap_start < pos
         len = user_to_gap(pos) - @gap_end
@@ -1490,9 +1479,9 @@ module Textbringer
                                "\0" * (new_gap_end - nul_filling_start))
         else
           s = @contents.byteslice(@gap_end, len)
-          splice_contents(nul_filling_start...new_gap_end,
-                          "\0" * (new_gap_end - nul_filling_start))
-          splice_contents(@gap_start...new_gap_start, s)
+          @contents.bytesplice(nul_filling_start...new_gap_end,
+                               "\0" * (new_gap_end - nul_filling_start))
+          @contents.bytesplice(@gap_start...new_gap_start, s)
         end
         @gap_start = new_gap_start
         @gap_end = new_gap_end
@@ -1508,8 +1497,8 @@ module Textbringer
                                "\0" * (nul_filling_end - pos))
         else
           s = @contents.byteslice(pos, len)
-          splice_contents(pos...nul_filling_end, "\0" * (nul_filling_end - pos))
-          splice_contents(new_gap_end...@gap_end, s)
+          @contents.bytesplice(pos...nul_filling_end, "\0" * (nul_filling_end - pos))
+          @contents.bytesplice(new_gap_end...@gap_end, s)
         end
         @gap_start = new_gap_start
         @gap_end = new_gap_end
@@ -1517,7 +1506,7 @@ module Textbringer
       if gap_size < min_size
         new_gap_size = GAP_SIZE + min_size
         extended_size = new_gap_size - gap_size
-        splice_contents(@gap_end, 0, "\0" * extended_size)
+        @contents.bytesplice(@gap_end, 0, "\0" * extended_size)
         @gap_end += extended_size
       end
     end
