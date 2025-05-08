@@ -7,7 +7,7 @@ jobs:
     runs-on: macos-latest
     strategy:
       matrix:
-        ruby: [ head, 3.3 ]
+        ruby: [ head, 3.4 ]
     timeout-minutes: 10
     env:
       RUBYOPT: --enable-frozen-string-literal --debug-frozen-string-literal

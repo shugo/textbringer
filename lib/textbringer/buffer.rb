@@ -62,7 +62,6 @@ module Textbringer
       end
     }
 
-    HAS_BYTEINDEX = String.instance_methods.include?(:byteindex)
     HAS_BYTESPLICE = String.instance_methods.include?(:bytesplice)
     BYTESPLICE_SUPPORTS_PARTIAL_COPY =
       begin
@@ -532,14 +531,10 @@ module Textbringer
       if pos == point_min
         column = 1
       else
-        if HAS_BYTEINDEX
-          begin
-            i = @contents.byterindex("\n", user_to_gap(get_pos(pos, -1)))
-          rescue RangeError
-            i = nil
-          end
-        else
-          i = @contents.rindex("\n", user_to_gap(pos - 1))
+        begin
+          i = @contents.byterindex("\n", user_to_gap(get_pos(pos, -1)))
+        rescue RangeError
+          i = nil
         end
         if i
           i += 1
@@ -569,11 +564,7 @@ module Textbringer
       pos = point_min
       i = 1
       while i < n && pos < @contents.bytesize
-        if HAS_BYTEINDEX
-          pos = @contents.byteindex("\n", pos)
-        else
-          pos = @contents.index("\n", pos)
-        end
+        pos = @contents.byteindex("\n", pos)
         break if pos.nil?
         i += 1
         pos += 1
@@ -1162,72 +1153,23 @@ module Textbringer
       byteindex(true, r, @point) == @point
     end
 
-    if HAS_BYTEINDEX
-      def byteindex(forward, re, pos)
-        @match_offsets = []
-        method = forward ? :byteindex : :byterindex
-        adjust_gap(0, 0)
-        s = @contents.byteslice(@gap_end..-1)
-        unless binary?
-          s.force_encoding(Encoding::UTF_8)
-        end
-        i = s.send(method, re, pos)
-        if i
-          m = Regexp.last_match
-          (0 .. m.size - 1).each do |j|
-            @match_offsets.push(m.byteoffset(j))
-          end
-          i
-        else
-          nil
-        end
+    def byteindex(forward, re, pos)
+      @match_offsets = []
+      method = forward ? :byteindex : :byterindex
+      adjust_gap(0, 0)
+      s = @contents.byteslice(@gap_end..-1)
+      unless binary?
+        s.force_encoding(Encoding::UTF_8)
       end
-    else
-      def byteindex(forward, re, pos)
-        @match_offsets = []
-        method = forward ? :index : :rindex
-        adjust_gap(0, 0)
-        s = @contents[@gap_end..-1]
-        if @binary
-          offset = pos
-        else
-          offset = s.byteslice(0, pos).force_encoding(Encoding::UTF_8).size
-          s.force_encoding(Encoding::UTF_8)
+      i = s.send(method, re, pos)
+      if i
+        m = Regexp.last_match
+        (0 .. m.size - 1).each do |j|
+          @match_offsets.push(m.byteoffset(j))
         end
-        begin
-          i = s.send(method, re, offset)
-          if i
-            m = Regexp.last_match
-            if m.nil?
-              # A bug of rindex
-              @match_offsets.push([pos, pos])
-              pos
-            else
-              b = m.pre_match.bytesize
-              e = b + m.to_s.bytesize
-              if e <= bytesize
-                @match_offsets.push([b, e])
-                match_beg = m.begin(0)
-                match_str = m.to_s
-                (1 .. m.size - 1).each do |j|
-                  cb, ce = m.offset(j)
-                  if cb.nil?
-                    @match_offsets.push([nil, nil])
-                  else
-                    bb = b + match_str[0, cb - match_beg].bytesize
-                    be = b + match_str[0, ce - match_beg].bytesize
-                    @match_offsets.push([bb, be])
-                  end
-                end
-                b
-              else
-                nil
-              end
-            end
-          else
-            nil
-          end
-        end
+        i
+      else
+        nil
       end
     end
 
@@ -1642,14 +1584,10 @@ module Textbringer
           @current_column += substring(pos, new_pos).size
         else
           @current_line += n
-          if HAS_BYTEINDEX
-            begin
-              i = @contents.byterindex("\n", user_to_gap(get_pos(new_pos, -1)))
-            rescue RangeError
-              i = nil
-            end
-          else
-            i = @contents.rindex("\n", user_to_gap(new_pos - 1))
+          begin
+            i = @contents.byterindex("\n", user_to_gap(get_pos(new_pos, -1)))
+          rescue RangeError
+            i = nil
           end
           if i
             i += 1
@@ -1664,14 +1602,10 @@ module Textbringer
           @current_column -= substring(new_pos, pos).size
         else
           @current_line -= n
-          if HAS_BYTEINDEX
-            begin
-              i = @contents.byterindex("\n", user_to_gap(get_pos(new_pos, - 1)))
-            rescue RangeError
-              i = nil
-            end
-          else
-            i = @contents.rindex("\n", user_to_gap(new_pos - 1))
+          begin
+            i = @contents.byterindex("\n", user_to_gap(get_pos(new_pos, - 1)))
+          rescue RangeError
+            i = nil
           end
           if i
             i += 1

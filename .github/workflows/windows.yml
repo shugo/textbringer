@@ -7,7 +7,7 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        ruby: [ 'mingw', 'mswin', '3.3' ]
+        ruby: [ 'mingw', 'mswin', '3.4' ]
     timeout-minutes: 10
     env:
       RUBYOPT: --enable-frozen-string-literal --debug-frozen-string-literal
