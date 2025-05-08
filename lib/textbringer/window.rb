@@ -659,7 +659,7 @@ module Textbringer
       end
       @mode_line.addstr(unicode_codepoint(c))
       @mode_line.addstr(" #{line},#{column}")
-      @mode_line.addstr(" (#{@buffer.mode&.name || 'None'})")
+      @mode_line.addstr(" (#{@buffer.mode_names.join(' ')})")
       @mode_line.addstr(" " * (columns - @mode_line.curx))
       @mode_line.attrset(0)
       @mode_line.noutrefresh

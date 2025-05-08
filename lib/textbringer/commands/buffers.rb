@@ -171,6 +171,7 @@ module Textbringer
       c = Controller.current.last_key
       merge_undo = Controller.current.last_command == :self_insert
       Buffer.current.insert(c * n, merge_undo)
+      run_hooks(:post_self_insert_hook)
     end
 
     define_command(:quoted_insert,

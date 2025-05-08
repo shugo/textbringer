@@ -249,6 +249,7 @@ module Textbringer
       @version = 0
       @modified = false
       @mode = FundamentalMode.new(self)
+      @minor_modes = []
       @keymap = nil
       @attributes = {}
       @save_point_level = 0
@@ -1333,6 +1334,27 @@ module Textbringer
       @keymap = nil
       @mode = mode_class.new(self)
       Utils.run_hooks(mode_class.hook_name)
+    end
+
+    def toggle_minor_mode(mode_class)
+      mode = @minor_modes.find { |mode| mode.instance_of?(mode_class) }
+      if mode
+        mode.disable
+        @minor_modes.delete(mode)
+      else
+        mode = mode_class.new(self)
+        @minor_modes.push(mode)
+        mode.enable
+      end
+    end
+
+    def mode_names
+      names = []
+      names.push(mode&.name || 'None')
+      @minor_modes.each do |mode|
+        names.push(mode.name)
+      end
+      names
     end
 
     def indent_to(column)
