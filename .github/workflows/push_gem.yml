@@ -1,30 +1,43 @@
 name: Publish gem to rubygems.org
 
 on:
-  push:
-    tags:
-      - 'v*'
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
 
 permissions:
-  contents: read
+  pull-requests: write
+  contents: write
 
 jobs:
   push:
-    if: github.repository == 'shugo/textbringer'
+    if: ${{ github.repository == 'shugo/textbringer' && startsWith(github.head_ref, 'bump_version_to_v') }}
     runs-on: ubuntu-latest
 
-    environment:
-      name: rubygems.org
-      url: https://rubygems.org/gems/textbringer
+    env:
+      PR_URL: ${{ github.event.pull_request.html_url }}
 
     permissions:
       contents: write
       id-token: write
 
     steps:
+      # Merge PR
+      - name: Approve PR
+        run: gh pr review "$PR_URL" --approve
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Enable auto-merge for bump_version_to_v* PRs
+        run: gh pr merge --merge --auto "$PR_URL"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       # Set up
       - name: Harden Runner
-        uses: step-security/harden-runner@v2
+        uses: step-security/harden-runner@c6295a65d1254861815972266d5933fd6e532bdf # v2.11.1
         with:
           egress-policy: audit
 
@@ -42,7 +55,10 @@ jobs:
 
       - name: Create GitHub release
         run: |
-          tag_name="$(git describe --tags --abbrev=0)"
+          version="$(ruby -r ./lib/textbringer/version -e 'print Textbringer::VERSION')"
+          tag_name="v${version}"
+          git tag "${tag_name}"
+          git push origin "${tag_name}"
           gh release create "${tag_name}" --verify-tag --draft --generate-notes
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
