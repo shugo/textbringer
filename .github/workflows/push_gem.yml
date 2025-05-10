@@ -47,11 +47,14 @@ jobs:
           ruby-version: ruby
 
       # Release
-      - name: Publish to RubyGems
-        uses: rubygems/release-gem@v1
-
       - name: Create GitHub release
         run: |
           version="$(ruby -r ./lib/textbringer/version -e 'print Textbringer::VERSION')"
           tag_name="v${version}"
+          git tag "${tag_name}"
+          git push origin "${tag_name}"
           gh release create "${tag_name}" --verify-tag --draft --generate-notes
+
+      - name: Publish to RubyGems
+        uses: rubygems/release-gem@v1
+
