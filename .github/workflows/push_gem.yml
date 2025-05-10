@@ -17,6 +17,7 @@ jobs:
       url: https://rubygems.org/gems/textbringer
     env:
       PR_URL: ${{ github.event.pull_request.html_url }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     permissions:
       pull-requests: write
@@ -27,13 +28,9 @@ jobs:
       # Merge PR
       - name: Approve PR
         run: gh pr review "$PR_URL" --approve
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Enable auto-merge for bump_version_to_v* PRs
         run: gh pr merge --merge --auto "$PR_URL"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # Set up
       - name: Harden Runner
@@ -57,8 +54,4 @@ jobs:
         run: |
           version="$(ruby -r ./lib/textbringer/version -e 'print Textbringer::VERSION')"
           tag_name="v${version}"
-          git tag "${tag_name}"
-          git push origin "${tag_name}"
           gh release create "${tag_name}" --verify-tag --draft --generate-notes
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
