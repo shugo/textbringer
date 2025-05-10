@@ -20,6 +20,7 @@ task :bump do
     end
   EOF
   system "git commit -a -m 'Bump version to #{version}'" or exit(1)
+  system "git push" or exit(1)
   system "gh pr create --title 'Bump version to #{version}' --body ''" or exit(1)
-  system "git checkout main"
+  system "git checkout main" or exit(1)
 end
