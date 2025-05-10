@@ -1,0 +1,24 @@
+name: Tag version
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'lib/textbringer/version.rb'
+
+permissions:
+  contents: write
+
+jobs:
+  tag_version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: k1LoW/github-script-ruby@v2
+        with:
+          script: |
+            require "./lib/textbringer/version"
+            repo = "#{context.repo.owner}/#{context.repo.repo}"
+            tag = "v#{Textbringer::VERSION}"
+            github.create_ref(repo, "refs/tags/#{tag}", context.sha)
