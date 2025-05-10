@@ -13,6 +13,8 @@ task :bump do
   require_relative "lib/textbringer/version"
   version = Textbringer::VERSION.to_i + 1
   puts "Bump version to #{version}"
+  system "git checkout main" or exit(1)
+  system "git pull" or exit(1)
   system "git checkout -b bump_version_to_v#{version}" or exit(1)
   File.write("lib/textbringer/version.rb", <<~EOF)
     module Textbringer
