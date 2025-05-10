@@ -12,6 +12,9 @@ jobs:
     if: ${{ github.repository == 'shugo/textbringer' && startsWith(github.head_ref, 'bump_version_to_v') }}
     runs-on: ubuntu-latest
 
+    environment:
+      name: rubygems.org
+      url: https://rubygems.org/gems/textbringer
     env:
       PR_URL: ${{ github.event.pull_request.html_url }}
 
