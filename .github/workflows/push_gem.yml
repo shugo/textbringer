@@ -7,10 +7,6 @@ on:
     types:
       - opened
 
-permissions:
-  pull-requests: write
-  contents: write
-
 jobs:
   push:
     if: ${{ github.repository == 'shugo/textbringer' && startsWith(github.head_ref, 'bump_version_to_v') }}
@@ -20,6 +16,7 @@ jobs:
       PR_URL: ${{ github.event.pull_request.html_url }}
 
     permissions:
+      pull-requests: write
       contents: write
       id-token: write
 
