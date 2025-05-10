@@ -1,9 +1,6 @@
 name: windows
 
-on:
-  push:
-    paths-ignore:
-      - 'lib/textbringer/version.rb'
+on: [push]
 
 jobs:
   test:
