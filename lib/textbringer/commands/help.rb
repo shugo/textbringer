@@ -65,7 +65,8 @@ module Textbringer
     end
 
     def command_help(cmd)
-      s = format("%s:%d\n", *cmd.block.source_location)
+      file, line = *cmd.block.source_location
+      s = format("%s:%d\n", file, line)
       s << "-" * (Window.columns - 2) + "\n"
       s << "#{cmd.name}"
       if !cmd.block.parameters.empty?
