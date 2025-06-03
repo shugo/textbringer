@@ -55,4 +55,34 @@ class TestOverwriteMode < Textbringer::TestCase
       あいうきzzz
     EOF
   end
+
+  def test_undo_overwrite
+    insert("abcdefg\n")
+    insert("あいうえお\n")
+    beginning_of_buffer
+    Controller.current.last_key = "x"
+    overwrite_mode
+    self_insert
+    assert_equal(<<~EOF, Buffer.current.to_s)
+      xbcdefg
+      あいうえお
+    EOF
+    Controller.current.last_key = "y"
+    self_insert
+    assert_equal(<<~EOF, Buffer.current.to_s)
+      xycdefg
+      あいうえお
+    EOF
+    Controller.current.last_key = "か"
+    self_insert
+    assert_equal(<<~EOF, Buffer.current.to_s)
+      xyかdefg
+      あいうえお
+    EOF
+    undo
+    assert_equal(<<~EOF, Buffer.current.to_s)
+      abcdefg
+      あいうえお
+    EOF
+  end
 end
