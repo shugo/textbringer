@@ -1759,6 +1759,8 @@ module Textbringer
   end
 
   class InsertAction < UndoableAction
+    attr_reader :string
+
     def initialize(buffer, location, string)
       super(buffer, location)
       @string = string
@@ -1785,6 +1787,8 @@ module Textbringer
   end
 
   class DeleteAction < UndoableAction
+    attr_reader :string
+
     def initialize(buffer, location, insert_location, string)
       super(buffer, location)
       @insert_location = insert_location
