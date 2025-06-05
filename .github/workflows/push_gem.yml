@@ -46,3 +46,6 @@ jobs:
           gh release create "${tag_name}" --verify-tag --draft --generate-notes
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Purge GitHub cache
+        uses: koki-develop/hub-purge-action@c608e39abca23026c802f44643cffccc123a826f # v1.0.3
