@@ -11,4 +11,4 @@ jobs:
       shell: bash
       run: |
         urls=$(curl -sLk "https://github.com/${{ github.repository_owner }}/${{ github.event.repository.name }}/tree/main" | grep -Eo "(http|https)://camo.githubusercontent.com[a-zA-Z0-9./?=_%:-]*")
-        while IFS= read -r url; do echo "Purge $url"; curl -X PURGE "$url"; done <<< "$urls"
+        while IFS= read -r url; do echo "\nPurge $url"; curl -X PURGE "$url"; done <<< "$urls"
