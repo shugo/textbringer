@@ -12,10 +12,10 @@ end
 task :bump do
   require_relative "lib/textbringer/version"
   version = Textbringer::VERSION.to_i + 1
+  tag_name = "v#{version}"
   puts "Bump version to #{version}"
   sh "git checkout main"
   sh "git pull"
-  sh "git checkout -b bump_version_to_v#{version}"
   File.write("lib/textbringer/version.rb", <<~EOF)
     module Textbringer
       VERSION = "#{version}"
@@ -23,6 +23,6 @@ task :bump do
   EOF
   sh "git commit -a -m 'Bump version to #{version}'"
   sh "git push"
-  sh "gh pr create --title 'Bump version to #{version}' --body ''"
-  sh "git checkout main"
+  sh "git tag #{tag_name}"
+  sh "git push origin #{tag_name}"
 end
