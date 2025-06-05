@@ -9,9 +9,9 @@ jobs:
     steps:
     - name: Run test
       uses: shugo/hub-purge-action@debug
-        with:
-          repository: shugo/textbringer
-          branch: main
-          path: |
-            README.md
-            README.ja.md
+      with:
+        repository: shugo/textbringer
+        branch: main
+        path: |
+          README.md
+          README.ja.md
