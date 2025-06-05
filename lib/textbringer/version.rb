@@ -1,3 +1,3 @@
 module Textbringer
-  VERSION = "9"
+  VERSION = "10"
 end
