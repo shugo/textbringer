@@ -49,3 +49,9 @@ jobs:
 
       - name: Purge GitHub cache
         uses: koki-develop/hub-purge-action@c608e39abca23026c802f44643cffccc123a826f # v1.0.3
+        with:
+          repository: shugo/textbringer
+          branch: main
+          path: |
+            README.md
+            README.ja.md
