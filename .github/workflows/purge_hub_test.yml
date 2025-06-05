@@ -3,15 +3,12 @@ name: purge hub test
 on: [push]
 
 jobs:
-  test:
+  purge_cache:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-    - name: Run test
-      uses: shugo/hub-purge-action@debug
-      with:
-        repository: shugo/textbringer
-        branch: main
-        path: |
-          README.md
-          README.ja.md
+    - name: Purge cache
+      shell: bash
+      run: |
+        urls=$(curl -sLk "https://github.com/${{ github.repository_owner }}/${{ github.event.repository.name }}/tree/main" | grep -Eo "(http|https)://camo.githubusercontent.com[a-zA-Z0-9./?=_%:-]*")
+        while IFS= read -r url; do echo "Purge $url"; curl -X PURGE "$url"; done <<< "$urls"
