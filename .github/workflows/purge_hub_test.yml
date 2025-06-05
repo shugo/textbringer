@@ -1,4 +1,4 @@
-name: ubuntu
+name: purge hub test
 
 on: [push]
 
