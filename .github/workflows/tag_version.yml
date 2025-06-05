@@ -1,15 +1,17 @@
 name: Tag version
 
 on:
-  pull_request:
-    types: [closed]
+  push:
+    branches:
+      - main
+    paths:
+      - 'lib/textbringer/version.rb'
 
 permissions:
   contents: write
 
 jobs:
   tag_version:
-    if: ${{ github.repository == 'shugo/textbringer' && github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'main' && startsWith(github.event.pull_request.head.ref, 'bump_version_to_v') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
