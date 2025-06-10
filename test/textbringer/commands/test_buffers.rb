@@ -306,4 +306,17 @@ EOF
     assert_equal("\u{feff}\u{200b}\u{200b}\u{200b}", Buffer.current.to_s)
     assert_equal(12, Buffer.current.point)
   end
+
+  def test_read_only_mode
+    assert_equal(false, Buffer.current.read_only?)
+    read_only_mode
+    assert_equal(true, Buffer.current.read_only?)
+    assert_raise(ReadOnlyError) do
+      insert("hello")
+    end
+    read_only_mode
+    assert_equal(false, Buffer.current.read_only?)
+    insert("hello")
+    assert_equal("hello", Buffer.current.to_s)
+  end
 end
