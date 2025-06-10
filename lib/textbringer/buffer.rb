@@ -313,6 +313,10 @@ module Textbringer
       end
     end
 
+    def set_read_only(value)
+      @read_only = value
+    end
+
     def read_only_edit
       self.read_only = false
       begin
