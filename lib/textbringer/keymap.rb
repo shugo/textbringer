@@ -220,6 +220,7 @@ module Textbringer
   GLOBAL_MAP.define_key("\M-c", :capitalize_word)
   GLOBAL_MAP.define_key("\C-x8\C-m", :insert_char)
   GLOBAL_MAP.define_key("\C-x=", :what_cursor_position)
+  GLOBAL_MAP.define_key("\C-x\C-q", :read_only_mode)
   GLOBAL_MAP.define_key(:ic, :overwrite_mode)
   GLOBAL_MAP.handle_undefined_key do |key|
     if key.is_a?(String) && /[\0-\x7f]/ !~ key
