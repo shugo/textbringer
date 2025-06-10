@@ -318,5 +318,9 @@ EOF
     assert_equal(false, Buffer.current.read_only?)
     insert("hello")
     assert_equal("hello", Buffer.current.to_s)
+    assert_equal(true, Buffer.current.modified?)
+    read_only_mode
+    assert_equal(true, Buffer.current.read_only?)
+    assert_equal(true, Buffer.current.modified?)
   end
 end

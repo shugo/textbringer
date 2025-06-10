@@ -303,7 +303,7 @@ module Textbringer
                     doc: <<~EOD) do
         Change whether the current buffer is read-only.
       EOD
-      Buffer.current.read_only = !Buffer.current.read_only?
+      Buffer.current.set_read_only(!Buffer.current.read_only?)
       status = Buffer.current.read_only? ? "enabled" : "disabled"
       message("Read-only mode #{status} in current buffer")
     end
