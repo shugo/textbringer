@@ -5,11 +5,26 @@ class TestFiles < Textbringer::TestCase
     mkcdtmpdir do
       find_file("foo.txt")
       assert_equal(true, Buffer.current.new_file?)
+      assert_equal(false, Buffer.current.read_only?)
       assert_equal("", Buffer.current.to_s)
       
       File.write("hello.txt", "hello world\n")
       find_file("hello.txt")
       assert_equal(false, Buffer.current.new_file?)
+      assert_equal(false, Buffer.current.read_only?)
+      assert_equal("hello world\n", Buffer.current.to_s)
+    end
+  end
+
+  def test_find_file_read_only
+    mkcdtmpdir do
+      assert_raise(EditorError) do
+        find_file_read_only("foo.txt")
+      end
+      
+      File.write("hello.txt", "hello world\n")
+      find_file_read_only("hello.txt")
+      assert_equal(true, Buffer.current.read_only?)
       assert_equal("hello world\n", Buffer.current.to_s)
     end
   end

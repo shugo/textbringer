@@ -133,6 +133,9 @@ module Textbringer
 
     define_command(:find_file_read_only, doc: "Open a file but don't allow changes.") do
       |file_name = read_file_name("Find file: ", default: (Buffer.current.file_name ? File.dirname(Buffer.current.file_name) : Dir.pwd) + "/")|
+      if !File.exist?(file_name)
+        raise EditorError, "#{file_name} does not exist"
+      end
       find_file(file_name)
       read_only_mode
     end
