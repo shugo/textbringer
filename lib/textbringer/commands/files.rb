@@ -131,6 +131,12 @@ module Textbringer
       Dir.chdir(File.expand_path(dir_name))
     end
 
+    define_command(:find_file_read_only, doc: "Open a file but don't allow changes.") do
+      |file_name = read_file_name("Find file: ", default: (Buffer.current.file_name ? File.dirname(Buffer.current.file_name) : Dir.pwd) + "/")|
+      find_file(file_name)
+      read_only_mode
+    end
+
     define_command(:find_alternate_file, doc: "Find an alternate file.") do
       |file_name = read_file_name("Find alternate file: ",
                                   default: Buffer.current.file_name)|

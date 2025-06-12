@@ -176,6 +176,7 @@ module Textbringer
   GLOBAL_MAP.define_key("\C-x\C-c", :exit_textbringer)
   GLOBAL_MAP.define_key("\C-z", :suspend_textbringer)
   GLOBAL_MAP.define_key("\C-x\C-f", :find_file)
+  GLOBAL_MAP.define_key("\C-x\C-r", :find_file_read_only)
   GLOBAL_MAP.define_key("\C-x\C-v", :find_alternate_file)
   GLOBAL_MAP.define_key("\C-xb", :switch_to_buffer)
   GLOBAL_MAP.define_key("\C-x\C-b", :list_buffers)
