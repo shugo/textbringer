@@ -1,4 +1,4 @@
-module Textbringer
+module Textbringer::Commands
   define_command(:copy_rectangle_to_register) do
     if Buffer.current.mark.nil?
       raise EditorError, "The mark is not set"
