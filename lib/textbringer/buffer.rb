@@ -4,6 +4,38 @@ require "json"
 require "fileutils"
 require "editorconfig"
 
+using Module.new {
+  refine String do
+    # 指定された表示幅の範囲で文字列をスライスする
+    # start_display_width: 開始表示幅 (0-indexed)
+    # length_display_width: スライスする表示幅の長さ
+    def slice_by_display_width(start_display_width, length_display_width)
+      return "" if start_display_width < 0 || length_display_width <= 0
+
+      current_display_width = 0
+      start_char_index = 0
+      end_char_index = 0
+      chars.each_with_index do |char, i|
+        char_width = char.display_width
+        if current_display_width < start_display_width
+          start_char_index = i + 1
+        end
+        current_display_width += char_width
+        if current_display_width <= start_display_width + length_display_width
+          end_char_index = i + 1
+        else
+          break
+        end
+      end
+      self.slice(start_char_index, end_char_index - start_char_index)
+    end
+
+    def display_width
+      Textbringer::Buffer.display_width(self)
+    end
+  end
+}
+
 module Textbringer
   class Buffer
     extend Enumerable
