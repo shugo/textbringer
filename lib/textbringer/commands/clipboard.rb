@@ -22,7 +22,7 @@ module Textbringer
         Copy the region to the kill ring and the clipboard.
       EOD
       copy_region
-      Clipboard.copy(KILL_RING.current)
+      Clipboard.copy(KILL_RING.current[:data])
     end
 
     define_command(:clipboard_kill_region, doc: <<~EOD) do
@@ -30,7 +30,7 @@ module Textbringer
         the region.
       EOD
       kill_region
-      Clipboard.copy(KILL_RING.current)
+      Clipboard.copy(KILL_RING.current[:data])
     end
 
     define_command(:clipboard_kill_line, doc: <<~EOD) do
@@ -38,14 +38,14 @@ module Textbringer
         the clipboard.
       EOD
       kill_line
-      Clipboard.copy(KILL_RING.current)
+      Clipboard.copy(KILL_RING.current[:data])
     end
 
     define_command(:clipboard_kill_word, doc: <<~EOD) do
         Kill a word, and copy the word to the clipboard.
       EOD
       kill_word
-      Clipboard.copy(KILL_RING.current)
+      Clipboard.copy(KILL_RING.current[:data])
     end
 
     define_command(:clipboard_yank, doc: <<~EOD) do
@@ -54,8 +54,8 @@ module Textbringer
         Otherwise, just insert the last text copied in the kill ring.
       EOD
       s = Clipboard.paste.encode(Encoding::UTF_8).gsub(/\r\n/, "\n")
-      if !s.empty? && (KILL_RING.empty? || KILL_RING.current != s)
-        KILL_RING.push(s)
+      if !s.empty? && (KILL_RING.empty? || KILL_RING.current[:data] != s)
+        KILL_RING.push({ data: s, type: :text })
       end
       yank
       Controller.current.this_command = :yank
@@ -66,7 +66,7 @@ module Textbringer
         the text to the clipboard.
       EOD
       yank_pop
-      Clipboard.copy(KILL_RING.current)
+      Clipboard.copy(KILL_RING.current[:data])
     end
   end
 end

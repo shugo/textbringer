@@ -4,6 +4,38 @@ require "json"
 require "fileutils"
 require "editorconfig"
 
+using Module.new {
+  refine String do
+    # 指定された表示幅の範囲で文字列をスライスする
+    # start_display_width: 開始表示幅 (0-indexed)
+    # length_display_width: スライスする表示幅の長さ
+    def slice_by_display_width(start_display_width, length_display_width)
+      return "" if start_display_width < 0 || length_display_width <= 0
+
+      current_display_width = 0
+      start_char_index = 0
+      end_char_index = 0
+      chars.each_with_index do |char, i|
+        char_width = char.display_width
+        if current_display_width < start_display_width
+          start_char_index = i + 1
+        end
+        current_display_width += char_width
+        if current_display_width <= start_display_width + length_display_width
+          end_char_index = i + 1
+        else
+          break
+        end
+      end
+      self.slice(start_char_index, end_char_index - start_char_index)
+    end
+
+    def display_width
+      Textbringer::Buffer.display_width(self)
+    end
+  end
+}
+
 module Textbringer
   class Buffer
     extend Enumerable
@@ -955,10 +987,11 @@ module Textbringer
     def copy_region(s = @point, e = mark, append = false)
       s, e = Buffer.region_boundaries(s, e)
       str = substring(s, e)
-      if append && !KILL_RING.empty?
-        KILL_RING.current.concat(str)
+      item = { type: :text, data: str }
+      if append && !KILL_RING.empty? && KILL_RING.current[:type] == :text
+        KILL_RING.current[:data].concat(str)
       else
-        KILL_RING.push(str)
+        KILL_RING.push(item)
       end
     end
 
@@ -1081,12 +1114,30 @@ module Textbringer
     end
 
     def yank
-      insert_for_yank(KILL_RING.current)
+      item = KILL_RING.current
+      if item.is_a?(Hash)
+        if item[:type] == :rectangle
+          insert_for_yank(item[:data].join("\n"))
+        else
+          insert_for_yank(item[:data])
+        end
+      else
+        insert_for_yank(item)
+      end
     end
 
     def yank_pop
       delete_region
-      insert_for_yank(KILL_RING.rotate(1))
+      item = KILL_RING.rotate(1)
+      if item.is_a?(Hash)
+        if item[:type] == :rectangle
+          insert_for_yank(item[:data].join("\n"))
+        else
+          insert_for_yank(item[:data])
+        end
+      else
+        insert_for_yank(item)
+      end
     end
 
     def undo
@@ -1235,6 +1286,105 @@ module Textbringer
         insert(new_str)
       end
       result
+    end
+
+    def rectangle_region(s, e)
+      s_line, s_col = get_line_and_column(s)
+      e_line, e_col = get_line_and_column(e)
+      min_col = [s_col, e_col].min
+      max_col = [s_col, e_col].max
+      min_line = [s_line, e_line].min
+      max_line = [s_line, e_line].max
+      result = []
+      save_excursion do
+        goto_line(min_line)
+        while current_line <= max_line
+          beginning_of_line
+          line_s = @point
+          end_of_line
+          line_e = @point
+          line = substring(line_s, line_e)
+          result.push(line.slice_by_display_width(min_col - 1, max_col - min_col + 1))
+          forward_char # to next line
+        end
+      end
+      result
+    end
+
+    def delete_rectangle_region(s, e)
+      check_read_only_flag
+      s_line, s_col = get_line_and_column(s)
+      e_line, e_col = get_line_and_column(e)
+      min_col = [s_col, e_col].min
+      max_col = [s_col, e_col].max
+      min_line = [s_line, e_line].min
+      max_line = [s_line, e_line].max
+      composite_edit do
+        save_excursion do
+          goto_line(min_line)
+          while current_line <= max_line
+            beginning_of_line
+            line_s = @point
+            end_of_line
+            line_e = @point
+            line = substring(line_s, line_e)
+            pre = +""
+            post = +""
+            current_display_width = 0
+            line.chars.each_with_index do |char, i|
+              char_width = char.display_width
+              if current_display_width < min_col - 1
+                pre << char
+              end
+              if current_display_width >= max_col
+                post << char
+              end
+              current_display_width += char_width
+            end
+            delete_region(line_s, line_e)
+            insert(pre + post)
+            forward_char # to next line
+          end
+        end
+      end
+    end
+
+    def insert_rectangle_region(s, e, rectangle)
+      check_read_only_flag
+      s_line, s_col = get_line_and_column(s)
+      e_line, e_col = get_line_and_column(e)
+      min_col = [s_col, e_col].min
+      max_col = [s_col, e_col].max
+      min_line = [s_line, e_line].min
+      max_line = [s_line, e_line].max
+      composite_edit do
+        save_excursion do
+          goto_line(min_line)
+          rectangle.each_with_index do |rect_line, i|
+            beginning_of_line
+            line_s = @point
+            end_of_line
+            line_e = @point
+            line = substring(line_s, line_e)
+            pre = +""
+            post = +""
+            current_display_width = 0
+            line.chars.each_with_index do |char, j|
+              char_width = char.display_width
+              if current_display_width < min_col - 1
+                pre << char
+              end
+              if current_display_width >= max_col
+                post << char
+              end
+              current_display_width += char_width
+            end
+            delete_region(line_s, line_e)
+            insert(pre + rect_line + post)
+            forward_char # to next line
+          end
+        end
+      end
     end
 
     def transpose_chars
