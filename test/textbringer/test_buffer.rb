@@ -587,7 +587,7 @@ EOF
     buffer.set_mark
     buffer.next_line
     buffer.copy_region
-    assert_equal("abcdefg\n", KILL_RING.current)
+    assert_equal({ data: "abcdefg\n", type: :text }, KILL_RING.current)
     assert_equal(<<EOF, buffer.to_s)
 0123456789
 abcdefg
@@ -596,7 +596,7 @@ abcdefg
 EOF
     buffer.next_line
     buffer.copy_region
-    assert_equal("abcdefg\nあいうえお\n", KILL_RING.current)
+    assert_equal({ data: "abcdefg\nあいうえお\n", type: :text }, KILL_RING.current)
     assert_equal(<<EOF, buffer.to_s)
 0123456789
 abcdefg
@@ -604,7 +604,7 @@ abcdefg
 かきくけこ
 EOF
     buffer.copy_region(3, 7, true)
-    assert_equal("abcdefg\nあいうえお\n3456", KILL_RING.current)
+    assert_equal({ data: "abcdefg\nあいうえお\n3456", type: :text }, KILL_RING.current)
   end
 
   def test_delete_region
@@ -659,7 +659,7 @@ EOF
     buffer.kill_region
     assert_equal(2, buffer.current_line)
     assert_equal(1, buffer.current_column)
-    assert_equal("abcdefg\n", KILL_RING.current)
+    assert_equal({ data: "abcdefg\n", type: :text }, KILL_RING.current)
     assert_equal(<<EOF, buffer.to_s)
 0123456789
 あいうえお
@@ -668,7 +668,7 @@ EOF
     assert_equal(true, buffer.gap_filled_with_nul?)
     buffer.next_line
     buffer.kill_region
-    assert_equal("あいうえお\n", KILL_RING.current)
+    assert_equal({ data: "あいうえお\n", type: :text }, KILL_RING.current)
     assert_equal(<<EOF, buffer.to_s)
 0123456789
 かきくけこ
@@ -685,7 +685,7 @@ abcdefg
 EOF
     buffer.next_line
     buffer.kill_line
-    assert_equal("abcdefg", KILL_RING.current)
+    assert_equal({ data: "abcdefg", type: :text }, KILL_RING.current)
     assert_equal(<<EOF, buffer.to_s)
 0123456789
 
@@ -694,7 +694,7 @@ EOF
 EOF
     assert_equal(true, buffer.gap_filled_with_nul?)
     buffer.kill_line
-    assert_equal("\n", KILL_RING.current)
+    assert_equal({ data: "\n", type: :text }, KILL_RING.current)
     assert_equal(<<EOF, buffer.to_s)
 0123456789
 あいうえお
@@ -702,7 +702,7 @@ EOF
 EOF
     assert_equal(true, buffer.gap_filled_with_nul?)
     buffer.kill_line
-    assert_equal("あいうえお", KILL_RING.current)
+    assert_equal({ data: "あいうえお", type: :text }, KILL_RING.current)
     assert_equal(<<EOF, buffer.to_s)
 0123456789
 
@@ -722,7 +722,7 @@ hello world
 あいうえお
 EOF
     buffer.kill_word
-    assert_equal("hello", KILL_RING.current)
+    assert_equal({ data: "hello", type: :text }, KILL_RING.current)
     assert_equal(<<EOF, buffer.to_s)
  world
 あいうえお
@@ -730,7 +730,7 @@ EOF
     assert_equal(true, buffer.gap_filled_with_nul?)
     buffer.end_of_line
     buffer.kill_word
-    assert_equal("\nあいうえお", KILL_RING.current)
+    assert_equal({ data: "\nあいうえお", type: :text }, KILL_RING.current)
     assert_equal(" world\n", buffer.to_s)
     assert_equal(true, buffer.gap_filled_with_nul?)
 

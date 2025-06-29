@@ -1115,13 +1115,21 @@ module Textbringer
 
     def yank
       item = KILL_RING.current
-      insert_for_yank(item[:data])
+      if item.is_a?(Hash)
+        insert_for_yank(item[:data])
+      else
+        insert_for_yank(item)
+      end
     end
 
     def yank_pop
       delete_region
       item = KILL_RING.rotate(1)
-      insert_for_yank(item[:data])
+      if item.is_a?(Hash)
+        insert_for_yank(item[:data])
+      else
+        insert_for_yank(item)
+      end
     end
 
     def undo

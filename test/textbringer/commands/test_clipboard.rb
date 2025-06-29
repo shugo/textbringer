@@ -11,7 +11,7 @@ class TestClipboard < Textbringer::TestCase
     insert("かきくけこ\n")
     clipboard_copy_region
     assert_equal("あいうえお\nかきくけこ\n", Buffer.current.to_s)
-    assert_equal("かきくけこ\n", KILL_RING.current)
+    assert_equal({ data: "かきくけこ\n", type: :text }, KILL_RING.current)
     assert_equal("かきくけこ\n", Clipboard.paste.encode("utf-8"))
   end
 
@@ -21,7 +21,7 @@ class TestClipboard < Textbringer::TestCase
     insert("かきくけこ\n")
     clipboard_kill_region
     assert_equal("あいうえお\n", Buffer.current.to_s)
-    assert_equal("かきくけこ\n", KILL_RING.current)
+    assert_equal({ data: "かきくけこ\n", type: :text }, KILL_RING.current)
     assert_equal("かきくけこ\n", Clipboard.paste.encode("utf-8"))
   end
 
@@ -31,7 +31,7 @@ class TestClipboard < Textbringer::TestCase
     beginning_of_buffer
     clipboard_kill_line
     assert_equal("\nかきくけこ\n", Buffer.current.to_s)
-    assert_equal("あいうえお", KILL_RING.current)
+    assert_equal({ data: "あいうえお", type: :text }, KILL_RING.current)
     assert_equal("あいうえお", Clipboard.paste.encode("utf-8"))
   end
 
@@ -41,7 +41,7 @@ class TestClipboard < Textbringer::TestCase
     beginning_of_buffer
     clipboard_kill_word
     assert_equal("\nかきくけこ\n", Buffer.current.to_s)
-    assert_equal("あいうえお", KILL_RING.current)
+    assert_equal({ data: "あいうえお", type: :text }, KILL_RING.current)
     assert_equal("あいうえお", Clipboard.paste.encode("utf-8"))
   end
 
@@ -49,27 +49,27 @@ class TestClipboard < Textbringer::TestCase
     Clipboard.copy("あいうえお\n")
     clipboard_yank
     assert_equal("あいうえお\n", Buffer.current.to_s)
-    assert_equal("あいうえお\n", KILL_RING.current)
+    assert_equal({ data: "あいうえお\n", type: :text }, KILL_RING.current)
     assert_equal(1, KILL_RING.size)
 
     clipboard_yank
     assert_equal("あいうえお\nあいうえお\n", Buffer.current.to_s)
-    assert_equal("あいうえお\n", KILL_RING.current)
+    assert_equal({ data: "あいうえお\n", type: :text }, KILL_RING.current)
     assert_equal(1, KILL_RING.size)
 
     Clipboard.copy("かきくけこ\r\n")
     clipboard_yank
     assert_equal("あいうえお\nあいうえお\nかきくけこ\n", Buffer.current.to_s)
-    assert_equal("かきくけこ\n", KILL_RING.current)
-    assert_equal("あいうえお\n", KILL_RING.rotate(1))
+    assert_equal({ data: "かきくけこ\n", type: :text }, KILL_RING.current)
+    assert_equal({ data: "あいうえお\n", type: :text }, KILL_RING.rotate(1))
     assert_equal(2, KILL_RING.size)
 
     Clipboard.copy("")
     clipboard_yank
     assert_equal("あいうえお\nあいうえお\nかきくけこ\nあいうえお\n",
                  Buffer.current.to_s)
-    assert_equal("あいうえお\n", KILL_RING.current)
-    assert_equal("かきくけこ\n", KILL_RING.rotate(1))
+    assert_equal({ data: "あいうえお\n", type: :text }, KILL_RING.current)
+    assert_equal({ data: "かきくけこ\n", type: :text }, KILL_RING.rotate(1))
     assert_equal(2, KILL_RING.size)
   end
 
