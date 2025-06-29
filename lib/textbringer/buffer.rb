@@ -1116,7 +1116,11 @@ module Textbringer
     def yank
       item = KILL_RING.current
       if item.is_a?(Hash)
-        insert_for_yank(item[:data])
+        if item[:type] == :rectangle
+          insert_for_yank(item[:data].join("\n"))
+        else
+          insert_for_yank(item[:data])
+        end
       else
         insert_for_yank(item)
       end
@@ -1126,7 +1130,11 @@ module Textbringer
       delete_region
       item = KILL_RING.rotate(1)
       if item.is_a?(Hash)
-        insert_for_yank(item[:data])
+        if item[:type] == :rectangle
+          insert_for_yank(item[:data].join("\n"))
+        else
+          insert_for_yank(item[:data])
+        end
       else
         insert_for_yank(item)
       end
@@ -1320,8 +1328,8 @@ module Textbringer
             end_of_line
             line_e = @point
             line = substring(line_s, line_e)
-            pre = ""
-            post = ""
+            pre = +""
+            post = +""
             current_display_width = 0
             line.chars.each_with_index do |char, i|
               char_width = char.display_width
@@ -1358,8 +1366,8 @@ module Textbringer
             end_of_line
             line_e = @point
             line = substring(line_s, line_e)
-            pre = ""
-            post = ""
+            pre = +""
+            post = +""
             current_display_width = 0
             line.chars.each_with_index do |char, j|
               char_width = char.display_width
