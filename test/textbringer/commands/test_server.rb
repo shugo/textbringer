@@ -94,4 +94,15 @@ class TestServer < Textbringer::TestCase
       server_kill
     end
   end
+
+  def test_multipel_server_start
+    omit_on_windows do
+      server_start
+      assert_raise(Server::ExistError) do
+        server_start
+      end
+    ensure
+      server_kill
+    end
+  end
 end

@@ -46,6 +46,8 @@ module Textbringer
           # Remove the socket file in case another server died unexpectedly before.
           File.unlink(unix_domain_socket_path)
           DRb.start_service(@uri, front, options)
+        else
+          raise ExistError, "There is an existing Textbringer server"
         end
       end
     end
@@ -73,6 +75,9 @@ module Textbringer
         socket.close
       end
     end
+  end
+
+  class Server::ExistError < EditorError
   end
 
   class Server::FrontObject
