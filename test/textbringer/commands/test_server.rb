@@ -40,14 +40,12 @@ class TestServer < Textbringer::TestCase
       foo = Buffer.new_buffer("foo")
       switch_to_buffer(foo)
       server_start
-      Tempfile.create do |f|
-        t = Thread.start {
-          tb = DRbObject.new_with_uri(CONFIG[:server_uri])
-          tb.eval('Buffer.current.name')
-        } 
-        Controller.current.call_next_block
-        assert_equal('"foo"', t.value)
-      end
+      t = Thread.start {
+        tb = DRbObject.new_with_uri(CONFIG[:server_uri])
+        tb.eval('Buffer.current.name')
+      } 
+      Controller.current.call_next_block
+      assert_equal('"foo"', t.value)
     ensure
       server_kill
     end
@@ -78,6 +76,31 @@ class TestServer < Textbringer::TestCase
       CONFIG[:server_options] = { UNIXFileMode: 0700 }
       server_start
       assert_equal(0700, File.stat(@sock_path).mode & 0777)
+    ensure
+      server_kill
+    end
+  end
+
+  def test_unlink_dead_socket
+    omit_on_windows do
+      File.write(@sock_path, "")
+      server_start
+      t = Thread.start {
+        tb = DRbObject.new_with_uri(CONFIG[:server_uri])
+        tb.to_s
+      } 
+      assert_match(/Textbringer::Server::FrontObject/, t.value)
+    ensure
+      server_kill
+    end
+  end
+
+  def test_multipel_server_start
+    omit_on_windows do
+      server_start
+      assert_raise(Server::ExistError) do
+        server_start
+      end
     ensure
       server_kill
     end
