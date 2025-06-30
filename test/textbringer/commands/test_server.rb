@@ -82,4 +82,18 @@ class TestServer < Textbringer::TestCase
       server_kill
     end
   end
+
+  def test_unlink_dead_socket
+    omit_on_windows do
+      File.write(@sock_path, "")
+      server_start
+      t = Thread.start {
+        tb = DRbObject.new_with_uri(CONFIG[:server_uri])
+        tb.to_s
+      } 
+      assert_match(/Textbringer::Server::FrontObject/, t.value)
+    ensure
+      server_kill
+    end
+  end
 end
