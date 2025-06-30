@@ -40,14 +40,12 @@ class TestServer < Textbringer::TestCase
       foo = Buffer.new_buffer("foo")
       switch_to_buffer(foo)
       server_start
-      Tempfile.create do |f|
-        t = Thread.start {
-          tb = DRbObject.new_with_uri(CONFIG[:server_uri])
-          tb.eval('Buffer.current.name')
-        } 
-        Controller.current.call_next_block
-        assert_equal('"foo"', t.value)
-      end
+      t = Thread.start {
+        tb = DRbObject.new_with_uri(CONFIG[:server_uri])
+        tb.eval('Buffer.current.name')
+      } 
+      Controller.current.call_next_block
+      assert_equal('"foo"', t.value)
     ensure
       server_kill
     end
