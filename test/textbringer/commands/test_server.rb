@@ -83,7 +83,7 @@ class TestServer < Textbringer::TestCase
 
   def test_unlink_dead_socket
     omit_on_windows do
-      File.write(@sock_path, "")
+      Socket.unix_server_socket(@sock_path).close
       server_start
       t = Thread.start {
         tb = DRbObject.new_with_uri(CONFIG[:server_uri])

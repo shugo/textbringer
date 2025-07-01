@@ -69,7 +69,7 @@ module Textbringer
         socket.connect_nonblock(sockaddr)
       rescue Errno::EINPROGRESS
         return true
-      rescue Errno::ECONNREFUSED, Errno::ENOTSOCK
+      rescue Errno::ECONNREFUSED
         return false
       ensure
         socket.close
