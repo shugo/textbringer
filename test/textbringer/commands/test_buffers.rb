@@ -449,4 +449,28 @@ EOF
     expected = "Hello      World\nThis      is line 2\nAnd l     ine 3 here\nFinal line"
     assert_equal(expected, buffer.to_s)
   end
+
+  def test_rectangle_edge_cases
+    buffer = Buffer.current
+    # Test rectangle extending beyond short lines
+    insert("AB\nABCDEF\nABC\nABCDEFGHIJ")
+    
+    # Set up rectangle from column 4 to 7, covering lines with different lengths
+    buffer.goto_char(6)  # Column 4, line 2 (in "ABCDEF")
+    set_mark_command
+    buffer.goto_char(buffer.to_s.length - 4)  # Column 7, line 4
+    
+    lines = buffer.extract_rectangle
+    assert_equal(["DEF", "C", "DEFG"], lines)
+    
+    # Test copy and yank with edge case
+    copy_rectangle_as_kill
+    buffer.clear
+    insert("XXXXX\nYYYYY\nZZZZZ")
+    buffer.goto_char(2)  # Column 3, line 1
+    yank_rectangle
+    
+    expected = "XXDEFXX\nYYC  YY\nZZDEFGZ"
+    assert_equal(expected, buffer.to_s)
+  end
 end
