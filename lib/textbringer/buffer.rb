@@ -1089,6 +1089,178 @@ module Textbringer
       insert_for_yank(KILL_RING.rotate(1))
     end
 
+    def rectangle_boundaries(s = @point, e = mark)
+      s, e = Buffer.region_boundaries(s, e)
+      start_line, start_col = get_line_and_column(s)
+      end_line, end_col = get_line_and_column(e)
+      
+      # Ensure start_col <= end_col
+      if start_col > end_col
+        start_col, end_col = end_col, start_col
+      end
+      
+      [start_line, start_col, end_line, end_col]
+    end
+
+    def extract_rectangle(s = @point, e = mark)
+      start_line, start_col, end_line, end_col = rectangle_boundaries(s, e)
+      lines = []
+      rectangle_width = end_col - start_col
+      
+      save_excursion do
+        goto_line(start_line)
+        (start_line..end_line).each do |line_num|
+          beginning_of_line
+          line_start = @point
+          
+          # Move to start column
+          col = 1
+          while col < start_col && !end_of_line?
+            forward_char
+            col = 1 + display_width(substring(line_start, @point))
+          end
+          start_pos = @point
+          
+          # If we haven't reached start_col, the line is too short
+          if col < start_col
+            # Line is shorter than start column, extract all spaces
+            lines << " " * rectangle_width
+          else
+            # Move to end column
+            while col < end_col && !end_of_line?
+              forward_char
+              col = 1 + display_width(substring(line_start, @point))
+            end
+            end_pos = @point
+            
+            # Extract the rectangle text for this line
+            if end_pos > start_pos
+              extracted = substring(start_pos, end_pos)
+              # Pad with spaces if the extracted text is shorter than rectangle width
+              extracted_width = display_width(extracted)
+              if extracted_width < rectangle_width
+                extracted += " " * (rectangle_width - extracted_width)
+              end
+              lines << extracted
+            else
+              lines << " " * rectangle_width
+            end
+          end
+          
+          # Move to next line
+          break if line_num == end_line
+          forward_line
+        end
+      end
+      
+      lines
+    end
+
+    def copy_rectangle(s = @point, e = mark)
+      lines = extract_rectangle(s, e)
+      @@killed_rectangle = lines
+    end
+
+    def kill_rectangle(s = @point, e = mark)
+      copy_rectangle(s, e)
+      delete_rectangle(s, e)
+    end
+
+    def delete_rectangle(s = @point, e = mark)
+      check_read_only_flag
+      start_line, start_col, end_line, end_col = rectangle_boundaries(s, e)
+      
+      save_excursion do
+        # Delete from bottom to top to avoid position shifts
+        (start_line..end_line).reverse_each do |line_num|
+          goto_line(line_num)
+          beginning_of_line
+          line_start = @point
+          
+          # Move to start column
+          col = 1
+          while col < start_col && !end_of_line?
+            forward_char
+            col = 1 + display_width(substring(line_start, @point))
+          end
+          start_pos = @point
+          
+          # Only delete if we're within the line bounds
+          if col >= start_col
+            # Move to end column
+            while col < end_col && !end_of_line?
+              forward_char
+              col = 1 + display_width(substring(line_start, @point))
+            end
+            end_pos = @point
+            
+            # Delete the rectangle text for this line
+            if end_pos > start_pos
+              delete_region(start_pos, end_pos)
+            end
+          end
+        end
+      end
+    end
+
+    def yank_rectangle
+      raise "No rectangle in kill ring" if @@killed_rectangle.nil?
+      lines = @@killed_rectangle
+      start_line, start_col = get_line_and_column(@point)
+      
+      save_excursion do
+        lines.each_with_index do |line, i|
+          goto_line(start_line + i)
+          beginning_of_line
+          line_start = @point
+          
+          # Move to start column, extending line if necessary
+          col = 1
+          while col < start_col && !end_of_line?
+            forward_char
+            col = 1 + display_width(substring(line_start, @point))
+          end
+          
+          # If line is shorter than start_col, extend it with spaces
+          if col < start_col
+            insert(" " * (start_col - col))
+          end
+          
+          # Insert the rectangle line
+          insert(line)
+        end
+      end
+    end
+
+    def open_rectangle(s = @point, e = mark)
+      check_read_only_flag
+      start_line, start_col, end_line, end_col = rectangle_boundaries(s, e)
+      width = end_col - start_col
+      
+      save_excursion do
+        (start_line..end_line).each do |line_num|
+          goto_line(line_num)
+          beginning_of_line
+          line_start = @point
+          
+          # Move to start column, extending line if necessary
+          col = 1
+          while col < start_col && !end_of_line?
+            forward_char
+            col = 1 + display_width(substring(line_start, @point))
+          end
+          
+          # If line is shorter than start_col, extend it with spaces
+          if col < start_col
+            insert(" " * (start_col - col))
+          end
+          
+          # Insert spaces to create the rectangle
+          insert(" " * width)
+        end
+      end
+    end
+
     def undo
       undo_or_redo(:undo, @undo_stack, @redo_stack)
     end
@@ -1750,6 +1922,7 @@ module Textbringer
   end
 
   KILL_RING = Ring.new
+  @@killed_rectangle = nil
 
   class UndoableAction
     attr_accessor :version

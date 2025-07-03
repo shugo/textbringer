@@ -323,4 +323,150 @@ EOF
     assert_equal(true, Buffer.current.read_only?)
     assert_equal(true, Buffer.current.modified?)
   end
+
+  def test_rectangle_boundaries
+    buffer = Buffer.current
+    insert("Hello World\nThis is line 2\nAnd line 3 here\nFinal line")
+    
+    # Set mark at position 5 (column 6, line 1) and point at position 37 (column 11, line 3)
+    buffer.goto_char(5)
+    set_mark_command
+    buffer.goto_char(37)
+    
+    start_line, start_col, end_line, end_col = buffer.rectangle_boundaries
+    assert_equal(1, start_line)
+    assert_equal(6, start_col)
+    assert_equal(3, end_line)
+    assert_equal(11, end_col)
+  end
+
+  def test_extract_rectangle
+    buffer = Buffer.current
+    insert("Hello World\nThis is line 2\nAnd line 3 here\nFinal line")
+    
+    # Set up rectangle from column 6 to 11, lines 1 to 3
+    buffer.goto_char(5)  # Column 6, line 1
+    set_mark_command
+    buffer.goto_char(37) # Column 11, line 3
+    
+    lines = buffer.extract_rectangle
+    assert_equal([" Worl", "is li", "ine 3"], lines)
+  end
+
+  def test_copy_rectangle_as_kill
+    buffer = Buffer.current
+    insert("Hello World\nThis is line 2\nAnd line 3 here\nFinal line")
+    
+    # Set up rectangle from column 6 to 11, lines 1 to 3
+    buffer.goto_char(5)  # Column 6, line 1
+    set_mark_command
+    buffer.goto_char(37) # Column 11, line 3
+    
+    copy_rectangle_as_kill
+    
+    # Check that the rectangle was copied to rectangle kill ring
+    lines = Buffer.class_variable_get(:@@killed_rectangle)
+    assert_equal([" Worl", "is li", "ine 3"], lines)
+    
+    # Verify original text is unchanged
+    assert_equal("Hello World\nThis is line 2\nAnd line 3 here\nFinal line", buffer.to_s)
+  end
+
+  def test_kill_rectangle
+    buffer = Buffer.current
+    insert("Hello World\nThis is line 2\nAnd line 3 here\nFinal line")
+    
+    # Set up rectangle from column 6 to 11, lines 1 to 3
+    buffer.goto_char(5)  # Column 6, line 1
+    set_mark_command
+    buffer.goto_char(37) # Column 11, line 3
+    
+    kill_rectangle
+    
+    # Check that the rectangle was copied to rectangle kill ring
+    lines = Buffer.class_variable_get(:@@killed_rectangle)
+    assert_equal([" Worl", "is li", "ine 3"], lines)
+    
+    # Verify rectangle was deleted from buffer
+    expected = "Hellod\nThis ne 2\nAnd l here\nFinal line"
+    assert_equal(expected, buffer.to_s)
+  end
+
+  def test_delete_rectangle
+    buffer = Buffer.current
+    insert("Hello World\nThis is line 2\nAnd line 3 here\nFinal line")
+    
+    # Set up rectangle from column 6 to 11, lines 1 to 3
+    buffer.goto_char(5)  # Column 6, line 1
+    set_mark_command
+    buffer.goto_char(37) # Column 11, line 3
+    
+    delete_rectangle
+    
+    # Verify rectangle was deleted from buffer
+    expected = "Hellod\nThis ne 2\nAnd l here\nFinal line"
+    assert_equal(expected, buffer.to_s)
+  end
+
+  def test_yank_rectangle
+    buffer = Buffer.current
+    insert("Hello World\nThis is line 2\nAnd line 3 here\nFinal line")
+    
+    # Set up and copy a rectangle
+    buffer.goto_char(5)  # Column 6, line 1
+    set_mark_command
+    buffer.goto_char(37) # Column 11, line 3
+    copy_rectangle_as_kill
+    
+    # Clear buffer and test yank
+    buffer.clear
+    insert("AAAAA\nBBBBB\nCCCCC\nDDDDD")
+    
+    # Yank rectangle at column 2, line 2
+    buffer.goto_char(7)  # Column 2, line 2
+    yank_rectangle
+    
+    expected = "AAAAA\nB WorlBBBB\nCis liCCCC\nDine 3DDDD"
+    assert_equal(expected, buffer.to_s)
+  end
+
+  def test_open_rectangle
+    buffer = Buffer.current
+    insert("Hello World\nThis is line 2\nAnd line 3 here\nFinal line")
+    
+    # Set up rectangle from column 6 to 11, lines 1 to 3
+    buffer.goto_char(5)  # Column 6, line 1
+    set_mark_command
+    buffer.goto_char(37) # Column 11, line 3
+    
+    open_rectangle
+    
+    # Verify spaces were inserted
+    expected = "Hello      World\nThis      is line 2\nAnd l     ine 3 here\nFinal line"
+    assert_equal(expected, buffer.to_s)
+  end
+
+  def test_rectangle_edge_cases
+    buffer = Buffer.current
+    # Test rectangle extending beyond short lines
+    insert("AB\nABCDEF\nABC\nABCDEFGHIJ")
+    
+    # Set up rectangle from column 4 to 7, covering lines with different lengths
+    buffer.goto_char(6)  # Column 4, line 2 (in "ABCDEF")
+    set_mark_command
+    buffer.goto_char(buffer.to_s.length - 4)  # Column 7, line 4
+    
+    lines = buffer.extract_rectangle
+    assert_equal(["DEF", "   ", "DEF"], lines)
+    
+    # Test copy and yank with edge case
+    copy_rectangle_as_kill
+    buffer.clear
+    insert("XXXXX\nYYYYY\nZZZZZ")
+    buffer.goto_char(2)  # Column 3, line 1
+    yank_rectangle
+    
+    expected = "XXDEFXXX\nYY   YYY\nZZDEFZZZ"
+    assert_equal(expected, buffer.to_s)
+  end
 end

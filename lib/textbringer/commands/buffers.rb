@@ -129,6 +129,31 @@ module Textbringer
       Buffer.current.delete_region
     end
 
+    define_command(:kill_rectangle,
+                   doc: "Kill the text of the region-rectangle, saving its contents as the last killed rectangle.") do
+      Buffer.current.kill_rectangle
+    end
+
+    define_command(:copy_rectangle_as_kill,
+                   doc: "Save the text of the region-rectangle as the last killed rectangle.") do
+      Buffer.current.copy_rectangle
+    end
+
+    define_command(:delete_rectangle,
+                   doc: "Delete the text of the region-rectangle.") do
+      Buffer.current.delete_rectangle
+    end
+
+    define_command(:yank_rectangle,
+                   doc: "Yank the last killed rectangle with its upper left corner at point.") do
+      Buffer.current.yank_rectangle
+    end
+
+    define_command(:open_rectangle,
+                   doc: "Insert blank space to fill the space of the region-rectangle. This pushes the previous contents of the region-rectangle to the right.") do
+      Buffer.current.open_rectangle
+    end
+
     define_command(:transpose_chars,
                    doc: "Transpose characters.") do
       Buffer.current.transpose_chars
