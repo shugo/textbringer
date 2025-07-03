@@ -457,7 +457,7 @@ EOF
     buffer.goto_char(buffer.to_s.length - 4)  # Column 7, line 4
     
     lines = buffer.extract_rectangle
-    assert_equal(["DEF", "", "DEF"], lines)
+    assert_equal(["DEF", "   ", "DEF"], lines)
     
     # Test copy and yank with edge case
     copy_rectangle_as_kill

@@ -1105,6 +1105,7 @@ module Textbringer
     def extract_rectangle(s = @point, e = mark)
       start_line, start_col, end_line, end_col = rectangle_boundaries(s, e)
       lines = []
+      rectangle_width = end_col - start_col
       
       save_excursion do
         goto_line(start_line)
@@ -1120,10 +1121,10 @@ module Textbringer
           end
           start_pos = @point
           
-          # If we haven't reached start_col, pad with spaces in the extracted text
+          # If we haven't reached start_col, the line is too short
           if col < start_col
-            # Line is shorter than start column, extract empty string
-            lines << ""
+            # Line is shorter than start column, extract all spaces
+            lines << " " * rectangle_width
           else
             # Move to end column
             while col < end_col && !end_of_line?
@@ -1134,9 +1135,15 @@ module Textbringer
             
             # Extract the rectangle text for this line
             if end_pos > start_pos
-              lines << substring(start_pos, end_pos)
+              extracted = substring(start_pos, end_pos)
+              # Pad with spaces if the extracted text is shorter than rectangle width
+              extracted_width = display_width(extracted)
+              if extracted_width < rectangle_width
+                extracted += " " * (rectangle_width - extracted_width)
+              end
+              lines << extracted
             else
-              lines << ""
+              lines << " " * rectangle_width
             end
           end
           
