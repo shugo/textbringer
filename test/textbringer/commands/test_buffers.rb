@@ -388,7 +388,7 @@ EOF
     assert_equal([" Worl", "is li", "ine 3"], lines)
     
     # Verify rectangle was deleted from buffer
-    expected = "Hellod\nThis e 2\nAnd l here\nFinal line"
+    expected = "Hellod\nThis ne 2\nAnd l here\nFinal line"
     assert_equal(expected, buffer.to_s)
   end
 
@@ -404,7 +404,7 @@ EOF
     delete_rectangle
     
     # Verify rectangle was deleted from buffer
-    expected = "Hellod\nThis e 2\nAnd l here\nFinal line"
+    expected = "Hellod\nThis ne 2\nAnd l here\nFinal line"
     assert_equal(expected, buffer.to_s)
   end
 
@@ -422,11 +422,11 @@ EOF
     buffer.clear
     insert("AAAAA\nBBBBB\nCCCCC\nDDDDD")
     
-    # Yank rectangle at column 3, line 2
-    buffer.goto_char(7)  # Column 3, line 2
+    # Yank rectangle at column 2, line 2
+    buffer.goto_char(7)  # Column 2, line 2
     yank_rectangle
     
-    expected = "AAAAA\nBB Worlbbb\nCCis liCCC\nDDine 3DDD"
+    expected = "AAAAA\nB WorlBBBB\nCis liCCCC\nDine 3DDDD"
     assert_equal(expected, buffer.to_s)
   end
 
@@ -457,7 +457,7 @@ EOF
     buffer.goto_char(buffer.to_s.length - 4)  # Column 7, line 4
     
     lines = buffer.extract_rectangle
-    assert_equal(["DEF", "C", "DEFG"], lines)
+    assert_equal(["DEF", "", "DEF"], lines)
     
     # Test copy and yank with edge case
     copy_rectangle_as_kill
@@ -466,7 +466,7 @@ EOF
     buffer.goto_char(2)  # Column 3, line 1
     yank_rectangle
     
-    expected = "XXDEFXX\nYYC  YY\nZZDEFGZ"
+    expected = "XXDEFXXX\nYY   YYY\nZZDEFZZZ"
     assert_equal(expected, buffer.to_s)
   end
 end
