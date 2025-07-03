@@ -469,4 +469,19 @@ EOF
     expected = "XXDEFXXX\nYY   YYY\nZZDEFZZZ"
     assert_equal(expected, buffer.to_s)
   end
+
+  def test_rectangle_multibyte
+    buffer = Buffer.current
+    insert(<<~EOF)
+      あいうえお
+      かきくけこ
+    EOF
+    beginning_of_buffer
+    forward_char
+    set_mark_command
+    next_line
+    forward_char(3)
+    lines = buffer.extract_rectangle
+    assert_equal(["いうえ", "きくけ"], lines)
+  end
 end

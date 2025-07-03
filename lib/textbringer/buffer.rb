@@ -1091,28 +1091,35 @@ module Textbringer
 
     def rectangle_boundaries(s = @point, e = mark)
       s, e = Buffer.region_boundaries(s, e)
-      start_line, start_col = get_line_and_column(s)
-      end_line, end_col = get_line_and_column(e)
-      
-      # Ensure start_col <= end_col
-      if start_col > end_col
-        start_col, end_col = end_col, start_col
+      save_excursion do
+        goto_char(s)
+        start_line = @current_line
+        beginning_of_line
+        start_col = display_width(substring(@point, s)) + 1
+        goto_char(e)
+        end_line = @current_line
+        beginning_of_line
+        end_col = display_width(substring(@point, e)) + 1
+
+        # Ensure start_col <= end_col
+        if start_col > end_col
+          start_col, end_col = end_col, start_col
+        end
+        [start_line, start_col, end_line, end_col]
       end
-      
-      [start_line, start_col, end_line, end_col]
     end
 
     def extract_rectangle(s = @point, e = mark)
       start_line, start_col, end_line, end_col = rectangle_boundaries(s, e)
       lines = []
       rectangle_width = end_col - start_col
-      
+
       save_excursion do
         goto_line(start_line)
         (start_line..end_line).each do |line_num|
           beginning_of_line
           line_start = @point
-          
+
           # Move to start column
           col = 1
           while col < start_col && !end_of_line?
@@ -1120,7 +1127,7 @@ module Textbringer
             col = 1 + display_width(substring(line_start, @point))
           end
           start_pos = @point
-          
+
           # If we haven't reached start_col, the line is too short
           if col < start_col
             # Line is shorter than start column, extract all spaces
@@ -1132,7 +1139,7 @@ module Textbringer
               col = 1 + display_width(substring(line_start, @point))
             end
             end_pos = @point
-            
+
             # Extract the rectangle text for this line
             if end_pos > start_pos
               extracted = substring(start_pos, end_pos)
@@ -1146,13 +1153,13 @@ module Textbringer
               lines << " " * rectangle_width
             end
           end
-          
+
           # Move to next line
           break if line_num == end_line
           forward_line
         end
       end
-      
+
       lines
     end
 
@@ -1169,14 +1176,14 @@ module Textbringer
     def delete_rectangle(s = @point, e = mark)
       check_read_only_flag
       start_line, start_col, end_line, end_col = rectangle_boundaries(s, e)
-      
+
       save_excursion do
         # Delete from bottom to top to avoid position shifts
         (start_line..end_line).reverse_each do |line_num|
           goto_line(line_num)
           beginning_of_line
           line_start = @point
-          
+
           # Move to start column
           col = 1
           while col < start_col && !end_of_line?
@@ -1184,7 +1191,7 @@ module Textbringer
             col = 1 + display_width(substring(line_start, @point))
           end
           start_pos = @point
-          
+
           # Only delete if we're within the line bounds
           if col >= start_col
             # Move to end column
@@ -1193,7 +1200,7 @@ module Textbringer
               col = 1 + display_width(substring(line_start, @point))
             end
             end_pos = @point
-            
+
             # Delete the rectangle text for this line
             if end_pos > start_pos
               delete_region(start_pos, end_pos)
@@ -1207,25 +1214,25 @@ module Textbringer
       raise "No rectangle in kill ring" if @@killed_rectangle.nil?
       lines = @@killed_rectangle
       start_line, start_col = get_line_and_column(@point)
-      
+
       save_excursion do
         lines.each_with_index do |line, i|
           goto_line(start_line + i)
           beginning_of_line
           line_start = @point
-          
+
           # Move to start column, extending line if necessary
           col = 1
           while col < start_col && !end_of_line?
             forward_char
             col = 1 + display_width(substring(line_start, @point))
           end
-          
+
           # If line is shorter than start_col, extend it with spaces
           if col < start_col
             insert(" " * (start_col - col))
           end
-          
+
           # Insert the rectangle line
           insert(line)
         end
@@ -1236,25 +1243,25 @@ module Textbringer
       check_read_only_flag
       start_line, start_col, end_line, end_col = rectangle_boundaries(s, e)
       width = end_col - start_col
-      
+
       save_excursion do
         (start_line..end_line).each do |line_num|
           goto_line(line_num)
           beginning_of_line
           line_start = @point
-          
+
           # Move to start column, extending line if necessary
           col = 1
           while col < start_col && !end_of_line?
             forward_char
             col = 1 + display_width(substring(line_start, @point))
           end
-          
+
           # If line is shorter than start_col, extend it with spaces
           if col < start_col
             insert(" " * (start_col - col))
           end
-          
+
           # Insert spaces to create the rectangle
           insert(" " * width)
         end
