@@ -1198,8 +1198,6 @@ module Textbringer
 
     def yank_rectangle
       lines = RECTANGLE_KILL_RING.current
-      return if lines.nil? || lines.empty?
-      
       start_line, start_col = get_line_and_column(@point)
       
       save_excursion do
