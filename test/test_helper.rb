@@ -253,7 +253,7 @@ module Textbringer
       Buffer.global_mark_ring.clear
       Buffer.kill_em_all
       KILL_RING.clear
-      RECTANGLE_KILL_RING.clear
+      Buffer.class_variable_set(:@@killed_rectangle, nil)
       Window.setup_for_test
       @buffer = Buffer.current
     end

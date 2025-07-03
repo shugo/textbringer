@@ -365,7 +365,7 @@ EOF
     copy_rectangle_as_kill
     
     # Check that the rectangle was copied to rectangle kill ring
-    lines = RECTANGLE_KILL_RING.current
+    lines = Buffer.class_variable_get(:@@killed_rectangle)
     assert_equal([" Worl", "is li", "ine 3"], lines)
     
     # Verify original text is unchanged
@@ -384,7 +384,7 @@ EOF
     kill_rectangle
     
     # Check that the rectangle was copied to rectangle kill ring
-    lines = RECTANGLE_KILL_RING.current
+    lines = Buffer.class_variable_get(:@@killed_rectangle)
     assert_equal([" Worl", "is li", "ine 3"], lines)
     
     # Verify rectangle was deleted from buffer

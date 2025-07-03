@@ -1158,7 +1158,7 @@ module Textbringer
 
     def copy_rectangle(s = @point, e = mark)
       lines = extract_rectangle(s, e)
-      RECTANGLE_KILL_RING.push(lines)
+      @@killed_rectangle = lines
     end
 
     def kill_rectangle(s = @point, e = mark)
@@ -1204,7 +1204,8 @@ module Textbringer
     end
 
     def yank_rectangle
-      lines = RECTANGLE_KILL_RING.current
+      raise "No rectangle in kill ring" if @@killed_rectangle.nil?
+      lines = @@killed_rectangle
       start_line, start_col = get_line_and_column(@point)
       
       save_excursion do
@@ -1921,7 +1922,7 @@ module Textbringer
   end
 
   KILL_RING = Ring.new
-  RECTANGLE_KILL_RING = Ring.new
+  @@killed_rectangle = nil
 
   class UndoableAction
     attr_accessor :version
