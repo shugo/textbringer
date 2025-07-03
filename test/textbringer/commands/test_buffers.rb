@@ -364,11 +364,9 @@ EOF
     
     copy_rectangle_as_kill
     
-    # Check that the rectangle was copied to kill ring
-    data = KILL_RING.current
-    assert(data.is_a?(Hash))
-    assert(data.key?(:rectangle))
-    assert_equal([" Worl", "is li", "ine 3"], data[:rectangle])
+    # Check that the rectangle was copied to rectangle kill ring
+    lines = RECTANGLE_KILL_RING.current
+    assert_equal([" Worl", "is li", "ine 3"], lines)
     
     # Verify original text is unchanged
     assert_equal("Hello World\nThis is line 2\nAnd line 3 here\nFinal line", buffer.to_s)
@@ -385,11 +383,9 @@ EOF
     
     kill_rectangle
     
-    # Check that the rectangle was copied to kill ring
-    data = KILL_RING.current
-    assert(data.is_a?(Hash))
-    assert(data.key?(:rectangle))
-    assert_equal([" Worl", "is li", "ine 3"], data[:rectangle])
+    # Check that the rectangle was copied to rectangle kill ring
+    lines = RECTANGLE_KILL_RING.current
+    assert_equal([" Worl", "is li", "ine 3"], lines)
     
     # Verify rectangle was deleted from buffer
     expected = "Hellod\nThis e 2\nAnd l here\nFinal line"

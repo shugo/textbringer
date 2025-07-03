@@ -1151,7 +1151,7 @@ module Textbringer
 
     def copy_rectangle(s = @point, e = mark)
       lines = extract_rectangle(s, e)
-      KILL_RING.push({rectangle: lines})
+      RECTANGLE_KILL_RING.push(lines)
     end
 
     def kill_rectangle(s = @point, e = mark)
@@ -1197,38 +1197,32 @@ module Textbringer
     end
 
     def yank_rectangle
-      data = KILL_RING.current
-      if data.is_a?(Hash) && data[:rectangle]
-        lines = data[:rectangle]
-        return if lines.empty?
-        
-        start_line, start_col = get_line_and_column(@point)
-        
-        save_excursion do
-          lines.each_with_index do |line, i|
-            goto_line(start_line + i)
-            beginning_of_line
-            line_start = @point
-            
-            # Move to start column, extending line if necessary
-            col = 1
-            while col < start_col && !end_of_line?
-              forward_char
-              col = 1 + display_width(substring(line_start, @point))
-            end
-            
-            # If line is shorter than start_col, extend it with spaces
-            if col < start_col
-              insert(" " * (start_col - col))
-            end
-            
-            # Insert the rectangle line
-            insert(line)
+      lines = RECTANGLE_KILL_RING.current
+      return if lines.nil? || lines.empty?
+      
+      start_line, start_col = get_line_and_column(@point)
+      
+      save_excursion do
+        lines.each_with_index do |line, i|
+          goto_line(start_line + i)
+          beginning_of_line
+          line_start = @point
+          
+          # Move to start column, extending line if necessary
+          col = 1
+          while col < start_col && !end_of_line?
+            forward_char
+            col = 1 + display_width(substring(line_start, @point))
           end
+          
+          # If line is shorter than start_col, extend it with spaces
+          if col < start_col
+            insert(" " * (start_col - col))
+          end
+          
+          # Insert the rectangle line
+          insert(line)
         end
-      else
-        # Fall back to regular yank if not rectangle data
-        yank
       end
     end
 
@@ -1922,6 +1916,7 @@ module Textbringer
   end
 
   KILL_RING = Ring.new
+  RECTANGLE_KILL_RING = Ring.new
 
   class UndoableAction
     attr_accessor :version
