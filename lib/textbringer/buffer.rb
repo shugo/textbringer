@@ -1115,32 +1115,34 @@ module Textbringer
       start_line, start_col, end_line, end_col = rectangle_boundaries(s, e)
 
       save_excursion do
-        if reverse
-          goto_line(end_line)
-        else
-          goto_line(start_line)
-        end
-
-        loop do
-          beginning_of_line
-          line_start = @point
-
-          # Move to start column
-          col = 0
-          while col < start_col && !end_of_line?
-            forward_char
-            col = display_width(substring(line_start, @point))
+        composite_edit do
+          if reverse
+            goto_line(end_line)
+          else
+            goto_line(start_line)
           end
 
-          yield(start_col, end_col, col, line_start)
+          loop do
+            beginning_of_line
+            line_start = @point
 
-          # Move to next line for forward iteration
-          if reverse
-            break if @current_line <= start_line
-            backward_line
-          else
-            break if @current_line >= end_line
-            forward_line
+            # Move to start column
+            col = 0
+            while col < start_col && !end_of_line?
+              forward_char
+              col = display_width(substring(line_start, @point))
+            end
+
+            yield(start_col, end_col, col, line_start)
+
+            # Move to next line for forward iteration
+            if reverse
+              break if @current_line <= start_line
+              backward_line
+            else
+              break if @current_line >= end_line
+              forward_line
+            end
           end
         end
       end
@@ -1225,25 +1227,27 @@ module Textbringer
         display_width(substring(@point, start_point))
       }
       save_excursion do
-        lines.each_with_index do |line, i|
-          goto_line(start_line + i)
-          beginning_of_line
-          line_start = @point
+        composite_edit do
+          lines.each_with_index do |line, i|
+            goto_line(start_line + i)
+            beginning_of_line
+            line_start = @point
 
-          # Move to start column, extending line if necessary
-          col = 0
-          while col < start_col && !end_of_line?
-            forward_char
-            col = display_width(substring(line_start, @point))
+            # Move to start column, extending line if necessary
+            col = 0
+            while col < start_col && !end_of_line?
+              forward_char
+              col = display_width(substring(line_start, @point))
+            end
+
+            # If line is shorter than start_col, extend it with spaces
+            if col < start_col
+              insert(" " * (start_col - col))
+            end
+
+            # Insert the rectangle line
+            insert(line)
           end
-
-          # If line is shorter than start_col, extend it with spaces
-          if col < start_col
-            insert(" " * (start_col - col))
-          end
-
-          # Insert the rectangle line
-          insert(line)
         end
       end
     end
