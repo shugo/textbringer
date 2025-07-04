@@ -374,7 +374,8 @@ EOF
 
   def test_kill_rectangle
     buffer = Buffer.current
-    insert("Hello World\nThis is line 2\nAnd line 3 here\nFinal line")
+    initial = "Hello World\nThis is line 2\nAnd line 3 here\nFinal line"
+    insert(initial)
     
     # Set up rectangle from column 6 to 11, lines 1 to 3
     buffer.goto_char(5)  # Column 6, line 1
@@ -390,11 +391,16 @@ EOF
     # Verify rectangle was deleted from buffer
     expected = "Hellod\nThis ne 2\nAnd l here\nFinal line"
     assert_equal(expected, buffer.to_s)
+
+    undo
+
+    assert_equal(initial, buffer.to_s)
   end
 
   def test_delete_rectangle
     buffer = Buffer.current
-    insert("Hello World\nThis is line 2\nAnd line 3 here\nFinal line")
+    initial = "Hello World\nThis is line 2\nAnd line 3 here\nFinal line"
+    insert(initial)
     
     # Set up rectangle from column 6 to 11, lines 1 to 3
     buffer.goto_char(5)  # Column 6, line 1
@@ -406,6 +412,10 @@ EOF
     # Verify rectangle was deleted from buffer
     expected = "Hellod\nThis ne 2\nAnd l here\nFinal line"
     assert_equal(expected, buffer.to_s)
+
+    undo
+
+    assert_equal(initial, buffer.to_s)
   end
 
   def test_yank_rectangle
@@ -420,7 +430,8 @@ EOF
     
     # Clear buffer and test yank
     buffer.clear
-    insert("AAAAA\nBBBBB\nCCCCC\nDDDDD")
+    before_yank = "AAAAA\nBBBBB\nCCCCC\nDDDDD"
+    insert(before_yank)
     
     # Yank rectangle at column 2, line 2
     buffer.goto_char(7)  # Column 2, line 2
@@ -428,11 +439,16 @@ EOF
     
     expected = "AAAAA\nB WorlBBBB\nCis liCCCC\nDine 3DDDD"
     assert_equal(expected, buffer.to_s)
+
+    undo
+
+    assert_equal(before_yank, buffer.to_s)
   end
 
   def test_open_rectangle
     buffer = Buffer.current
-    insert("Hello World\nThis is line 2\nAnd line 3 here\nFinal line")
+    initial = "Hello World\nThis is line 2\nAnd line 3 here\nFinal line"
+    insert(initial)
     
     # Set up rectangle from column 6 to 11, lines 1 to 3
     buffer.goto_char(5)  # Column 6, line 1
@@ -444,6 +460,10 @@ EOF
     # Verify spaces were inserted
     expected = "Hello      World\nThis      is line 2\nAnd l     ine 3 here\nFinal line"
     assert_equal(expected, buffer.to_s)
+
+    undo
+
+    assert_equal(initial, buffer.to_s)
   end
 
   def test_rectangle_edge_cases
