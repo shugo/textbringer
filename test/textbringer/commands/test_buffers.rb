@@ -335,9 +335,9 @@ EOF
     
     start_line, start_col, end_line, end_col = buffer.rectangle_boundaries
     assert_equal(1, start_line)
-    assert_equal(6, start_col)
+    assert_equal(5, start_col)
     assert_equal(3, end_line)
-    assert_equal(11, end_col)
+    assert_equal(10, end_col)
   end
 
   def test_extract_rectangle

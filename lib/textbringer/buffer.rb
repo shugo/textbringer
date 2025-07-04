@@ -1089,17 +1089,19 @@ module Textbringer
       insert_for_yank(KILL_RING.rotate(1))
     end
 
+    # Returns start_line, start_col, end_line, and end_col of the rectangle region
+    # Note that start_col and end_col are 0-origin and width-based (neither 1-origin nor codepoint-based)
     def rectangle_boundaries(s = @point, e = mark)
       s, e = Buffer.region_boundaries(s, e)
       save_excursion do
         goto_char(s)
         start_line = @current_line
         beginning_of_line
-        start_col = display_width(substring(@point, s)) + 1
+        start_col = display_width(substring(@point, s))
         goto_char(e)
         end_line = @current_line
         beginning_of_line
-        end_col = display_width(substring(@point, e)) + 1
+        end_col = display_width(substring(@point, e))
 
         # Ensure start_col <= end_col
         if start_col > end_col
@@ -1113,35 +1115,31 @@ module Textbringer
       start_line, start_col, end_line, end_col = rectangle_boundaries(s, e)
 
       save_excursion do
-        lines_range = if reverse
-          (start_line..end_line).to_a.reverse
+        if reverse
+          goto_line(end_line)
         else
-          (start_line..end_line)
-        end
-
-        if !reverse
           goto_line(start_line)
         end
 
-        lines_range.each do |line_num|
-          if reverse
-            goto_line(line_num)
-          end
-          
+        loop do
           beginning_of_line
           line_start = @point
 
           # Move to start column
-          col = 1
+          col = 0
           while col < start_col && !end_of_line?
             forward_char
-            col = 1 + display_width(substring(line_start, @point))
+            col = display_width(substring(line_start, @point))
           end
 
-          yield(start_col, end_col, col, line_start, line_num)
+          yield(start_col, end_col, col, line_start)
 
           # Move to next line for forward iteration
-          if !reverse && line_num != end_line
+          if reverse
+            break if @current_line <= start_line
+            backward_line
+          else
+            break if @current_line >= end_line
             forward_line
           end
         end
@@ -1149,22 +1147,20 @@ module Textbringer
     end
 
     def extract_rectangle(s = @point, e = mark)
-      start_line, start_col, end_line, end_col = rectangle_boundaries(s, e)
       lines = []
-      rectangle_width = end_col - start_col
-
-      apply_on_rectangle(s, e) do |start_col, end_col, col, line_start, line_num|
+      apply_on_rectangle(s, e) do |start_col, end_col, col, line_start|
         start_pos = @point
+        width = end_col - start_col
 
         # If we haven't reached start_col, the line is too short
         if col < start_col
           # Line is shorter than start column, extract all spaces
-          lines << " " * rectangle_width
+          lines << " " * width
         else
           # Move to end column
           while col < end_col && !end_of_line?
             forward_char
-            col = 1 + display_width(substring(line_start, @point))
+            col = display_width(substring(line_start, @point))
           end
           end_pos = @point
 
@@ -1173,12 +1169,12 @@ module Textbringer
             extracted = substring(start_pos, end_pos)
             # Pad with spaces if the extracted text is shorter than rectangle width
             extracted_width = display_width(extracted)
-            if extracted_width < rectangle_width
-              extracted += " " * (rectangle_width - extracted_width)
+            if extracted_width < width
+              extracted += " " * (width - extracted_width)
             end
             lines << extracted
           else
-            lines << " " * rectangle_width
+            lines << " " * width
           end
         end
       end
@@ -1199,7 +1195,7 @@ module Textbringer
     def delete_rectangle(s = @point, e = mark)
       check_read_only_flag
 
-      apply_on_rectangle(s, e, reverse: true) do |start_col, end_col, col, line_start, line_num|
+      apply_on_rectangle(s, e, reverse: true) do |start_col, end_col, col, line_start|
         start_pos = @point
 
         # Only delete if we're within the line bounds
@@ -1207,7 +1203,7 @@ module Textbringer
           # Move to end column
           while col < end_col && !end_of_line?
             forward_char
-            col = 1 + display_width(substring(line_start, @point))
+            col = display_width(substring(line_start, @point))
           end
           end_pos = @point
 
@@ -1222,8 +1218,12 @@ module Textbringer
     def yank_rectangle
       raise "No rectangle in kill ring" if @@killed_rectangle.nil?
       lines = @@killed_rectangle
-      start_line, start_col = get_line_and_column(@point)
-
+      start_line = @current_line
+      start_point = @point
+      start_col = save_excursion {
+        beginning_of_line
+        display_width(substring(@point, start_point))
+      }
       save_excursion do
         lines.each_with_index do |line, i|
           goto_line(start_line + i)
@@ -1231,10 +1231,10 @@ module Textbringer
           line_start = @point
 
           # Move to start column, extending line if necessary
-          col = 1
+          col = 0
           while col < start_col && !end_of_line?
             forward_char
-            col = 1 + display_width(substring(line_start, @point))
+            col = display_width(substring(line_start, @point))
           end
 
           # If line is shorter than start_col, extend it with spaces
@@ -1250,17 +1250,14 @@ module Textbringer
 
     def open_rectangle(s = @point, e = mark)
       check_read_only_flag
-      start_line, start_col, end_line, end_col = rectangle_boundaries(s, e)
-      width = end_col - start_col
-
-      apply_on_rectangle(s, e) do |start_col, end_col, col, line_start, line_num|
+      apply_on_rectangle(s, e) do |start_col, end_col, col, line_start|
         # If line is shorter than start_col, extend it with spaces
         if col < start_col
           insert(" " * (start_col - col))
         end
 
         # Insert spaces to create the rectangle
-        insert(" " * width)
+        insert(" " * (end_col - start_col))
       end
     end
 
