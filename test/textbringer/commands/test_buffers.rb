@@ -439,10 +439,12 @@ EOF
     
     expected = "AAAAA\nB WorlBBBB\nCis liCCCC\nDine 3DDDD"
     assert_equal(expected, buffer.to_s)
+    assert_equal(34, buffer.point) # Column 7, line 4
 
     undo
 
     assert_equal(before_yank, buffer.to_s)
+    assert_equal(7, buffer.point) # Column 2, line 2
   end
 
   def test_open_rectangle
@@ -460,10 +462,12 @@ EOF
     # Verify spaces were inserted
     expected = "Hello      World\nThis      is line 2\nAnd l     ine 3 here\nFinal line"
     assert_equal(expected, buffer.to_s)
+    assert_equal(5, buffer.point) # Column 6, line 1
 
     undo
 
     assert_equal(initial, buffer.to_s)
+    assert_equal(37, buffer.point) # Column 11, line 3
   end
 
   def test_rectangle_edge_cases
