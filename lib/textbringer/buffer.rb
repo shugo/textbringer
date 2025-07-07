@@ -550,6 +550,7 @@ module Textbringer
     end
 
     def goto_char(pos)
+      return pos if pos == @point
       if pos < 0 || pos > size
         raise RangeError, "Out of buffer"
       end
@@ -1226,42 +1227,44 @@ module Textbringer
         beginning_of_line
         display_width(substring(@point, start_point))
       }
-      save_excursion do
-        composite_edit do
-          lines.each_with_index do |line, i|
-            goto_line(start_line + i)
-            beginning_of_line
-            line_start = @point
+      composite_edit do
+        lines.each_with_index do |line, i|
+          goto_line(start_line + i)
+          beginning_of_line
+          line_start = @point
 
-            # Move to start column, extending line if necessary
-            col = 0
-            while col < start_col && !end_of_line?
-              forward_char
-              col = display_width(substring(line_start, @point))
-            end
-
-            # If line is shorter than start_col, extend it with spaces
-            if col < start_col
-              insert(" " * (start_col - col))
-            end
-
-            # Insert the rectangle line
-            insert(line)
+          # Move to start column, extending line if necessary
+          col = 0
+          while col < start_col && !end_of_line?
+            forward_char
+            col = display_width(substring(line_start, @point))
           end
+
+          # If line is shorter than start_col, extend it with spaces
+          if col < start_col
+            insert(" " * (start_col - col))
+          end
+
+          # Insert the rectangle line
+          insert(line)
         end
       end
     end
 
     def open_rectangle(s = @point, e = mark)
       check_read_only_flag
-      apply_on_rectangle(s, e) do |start_col, end_col, col, line_start|
-        # If line is shorter than start_col, extend it with spaces
-        if col < start_col
-          insert(" " * (start_col - col))
-        end
+      s, e = Buffer.region_boundaries(s, e)
+      composite_edit do
+        apply_on_rectangle(s, e) do |start_col, end_col, col, line_start|
+          # If line is shorter than start_col, extend it with spaces
+          if col < start_col
+            insert(" " * (start_col - col))
+          end
 
-        # Insert spaces to create the rectangle
-        insert(" " * (end_col - start_col))
+          # Insert spaces to create the rectangle
+          insert(" " * (end_col - start_col))
+        end
+        goto_char(s)
       end
     end
 
@@ -1432,14 +1435,14 @@ module Textbringer
     end
 
     def composite_edit
+      location = @point
       @composite_edit_level += 1
       begin
         yield
       ensure
         @composite_edit_level -= 1
         if @composite_edit_level == 0 && !@composite_edit_actions.empty?
-          action = CompositeAction.new(self,
-                                       @composite_edit_actions.first.location)
+          action = CompositeAction.new(self, location)
           @composite_edit_actions.each do |i|
             action.add_action(i)
           end
@@ -2003,6 +2006,7 @@ module Textbringer
       @actions.reverse_each do |action|
         action.undo
       end
+      @buffer.goto_char(@location)
     end
 
     def redo
