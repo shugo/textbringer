@@ -154,6 +154,11 @@ module Textbringer
       Buffer.current.open_rectangle
     end
 
+    define_command(:clear_rectangle,
+                   doc: "Clear the region-rectangle by replacing its contents with spaces.") do
+      Buffer.current.clear_rectangle
+    end
+
     define_command(:transpose_chars,
                    doc: "Transpose characters.") do
       Buffer.current.transpose_chars

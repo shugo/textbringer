@@ -1268,6 +1268,27 @@ module Textbringer
       end
     end
 
+    def clear_rectangle(s = @point, e = mark)
+      check_read_only_flag
+      apply_on_rectangle(s, e, reverse: true) do |start_col, end_col, col, line_start|
+        start_pos = @point
+        if col < start_col
+          insert(" " * (end_col - start_col))
+        else
+          end_pos = @point
+          current_col = display_width(substring(line_start, end_pos))
+          while current_col < end_col && !end_of_line?
+            forward_char
+            current_col = display_width(substring(line_start, @point))
+          end
+          end_pos = @point
+  
+          delete_region(start_pos, end_pos)
+          insert(" " * (end_col - start_col))
+        end
+      end
+    end
+
     def undo
       undo_or_redo(:undo, @undo_stack, @redo_stack)
     end

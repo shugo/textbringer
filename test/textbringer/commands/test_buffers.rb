@@ -508,4 +508,46 @@ EOF
     lines = buffer.extract_rectangle
     assert_equal(["いうえ", "きくけ"], lines)
   end
+
+  def test_clear_rectangle
+    buffer = Buffer.current
+    initial = "Hello World\nThis is line 2\nAnd line 3 here\nFinal line"
+    insert(initial)
+    
+    # Set up rectangle from column 6 to 11, lines 1 to 3
+    buffer.goto_char(5)  # Column 6, line 1
+    set_mark_command
+    buffer.goto_char(37) # Column 11, line 3
+    
+    clear_rectangle
+    
+    # Verify rectangle was replaced with spaces
+    expected = "Hello     d\nThis      ne 2\nAnd l      here\nFinal line"
+    assert_equal(expected, buffer.to_s)
+
+    undo
+
+    assert_equal(initial, buffer.to_s)
+  end
+
+  def test_clear_rectangle_with_short_lines
+    buffer = Buffer.current
+    initial = "L1\nL2-long\nL3\nL4-very-long"
+    insert(initial)
+    
+    # Rectangle from line 2, col 4 to line 4, col 7
+    buffer.goto_line(2)
+    buffer.forward_char(3) # col 4
+    set_mark_command
+    buffer.goto_line(4)
+    buffer.forward_char(6) # col 7
+
+    clear_rectangle
+
+    expected = "L1\nL2-   g\nL3   \nL4-   y-long"
+    assert_equal(expected, buffer.to_s)
+
+    undo
+    assert_equal(initial, buffer.to_s)
+  end
 end
