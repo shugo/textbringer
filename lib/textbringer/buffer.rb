@@ -1275,15 +1275,13 @@ module Textbringer
         if col < start_col
           insert(" " * (end_col - start_col))
         else
-          end_pos = @point
-          current_col = display_width(substring(line_start, end_pos))
-          while current_col < end_col && !end_of_line?
+          while col < end_col && !end_of_line?
             forward_char
-            current_col = display_width(substring(line_start, @point))
+            col = display_width(substring(line_start, @point))
           end
           end_pos = @point
-  
-          delete_region(start_pos, end_pos)
+
+          delete_region(start_pos, end_pos) if end_pos > start_pos
           insert(" " * (end_col - start_col))
         end
       end
