@@ -550,4 +550,48 @@ EOF
     undo
     assert_equal(initial, buffer.to_s)
   end
+
+  def test_string_rectangle
+    insert(<<-EOF)
+foo
+bar
+baz
+quux
+    EOF
+    beginning_of_buffer
+    forward_char
+    set_mark_command
+    next_line(2)
+    forward_char
+    push_keys("inserted\n")
+    string_rectangle
+    assert_equal(<<-EOF, Buffer.current.to_s)
+finsertedo
+binsertedr
+binsertedz
+quux
+    EOF
+
+    undo
+    assert_equal(<<-EOF, Buffer.current.to_s)
+foo
+bar
+baz
+quux
+    EOF
+
+    beginning_of_buffer
+    next_line(2)
+    forward_char
+    set_mark_command
+    next_line
+    push_keys("X\n")
+    string_rectangle
+    assert_equal(<<-EOF, Buffer.current.to_s)
+foo
+bar
+bXaz
+qXuux
+    EOF
+  end
 end

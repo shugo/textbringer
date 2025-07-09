@@ -159,6 +159,14 @@ module Textbringer
       Buffer.current.clear_rectangle
     end
 
+    define_command(:string_rectangle,
+                   doc: "Insert string on each line of the region-rectangle.") do
+      |str = read_from_minibuffer("String rectangle: ")|
+      buffer = Buffer.current
+      b, e = buffer.point, buffer.mark
+      buffer.string_rectangle(b, e, str)
+    end
+
     define_command(:transpose_chars,
                    doc: "Transpose characters.") do
       Buffer.current.transpose_chars
