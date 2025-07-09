@@ -1287,7 +1287,7 @@ module Textbringer
       end
     end
 
-    def string_rectangle(s = @point, e = mark, str)
+    def string_rectangle(str, s = @point, e = mark)
       check_read_only_flag
       apply_on_rectangle(s, e, reverse: true) do |start_col, end_col, col, line_start|
         start_pos = @point
