@@ -159,6 +159,12 @@ module Textbringer
       Buffer.current.clear_rectangle
     end
 
+    define_command(:string_rectangle,
+                   doc: "Replace rectangle contents with the specified string on each line.") do
+      |str = read_from_minibuffer("String rectangle: ")|
+      Buffer.current.string_rectangle(str)
+    end
+
     define_command(:transpose_chars,
                    doc: "Transpose characters.") do
       Buffer.current.transpose_chars
