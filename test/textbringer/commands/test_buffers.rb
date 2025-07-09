@@ -572,26 +572,26 @@ binsertedz
 quux
     EOF
 
-    undo
-    assert_equal(<<-EOF, Buffer.current.to_s)
+    Buffer.current.clear
+    insert(<<-EOF)
 foo
+
 bar
 baz
-quux
     EOF
 
     beginning_of_buffer
-    next_line(2)
     forward_char
     set_mark_command
-    next_line
+    next_line(2)
+    forward_char
     push_keys("X\n")
     string_rectangle
     assert_equal(<<-EOF, Buffer.current.to_s)
-foo
-bar
-bXaz
-qXuux
+fXo
+ X
+bXr
+baz
     EOF
   end
 end
