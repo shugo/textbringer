@@ -273,4 +273,86 @@ bXr
 baz
     EOF
   end
+
+  def test_rectangle_number_lines
+    insert(<<-EOF)
+ foo
+ bar
+ baz
+ quux
+ quuux
+    EOF
+    beginning_of_buffer
+    next_line
+    forward_char
+    set_mark_command
+    next_line(2)
+    forward_char
+    rectangle_number_lines
+    assert_equal(<<-EOF, Buffer.current.to_s)
+ foo
+ 1 bar
+ 2 baz
+ 3 quux
+ quuux
+    EOF
+
+    Buffer.current.clear
+    insert(<<-EOF)
+foo
+bar
+baz
+quux
+quuux
+quuux
+quuuux
+quuuuux
+quuuuuux
+    EOF
+    beginning_of_buffer
+    set_mark_command
+    next_line(8)
+    rectangle_number_lines
+    assert_equal(<<-EOF, Buffer.current.to_s)
+1 foo
+2 bar
+3 baz
+4 quux
+5 quuux
+6 quuux
+7 quuuux
+8 quuuuux
+9 quuuuuux
+    EOF
+
+    Buffer.current.clear
+    insert(<<-EOF)
+foo
+bar
+baz
+quux
+quuux
+quuux
+quuuux
+quuuuux
+quuuuuux
+quuuuuuux
+    EOF
+    beginning_of_buffer
+    set_mark_command
+    next_line(9)
+    rectangle_number_lines
+    assert_equal(<<-EOF, Buffer.current.to_s)
+ 1 foo
+ 2 bar
+ 3 baz
+ 4 quux
+ 5 quuux
+ 6 quuux
+ 7 quuuux
+ 8 quuuuux
+ 9 quuuuuux
+10 quuuuuuux
+    EOF
+  end
 end

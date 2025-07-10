@@ -210,6 +210,7 @@ module Textbringer
   GLOBAL_MAP.define_key("\C-xro", :open_rectangle)
   GLOBAL_MAP.define_key("\C-xrc", :clear_rectangle)
   GLOBAL_MAP.define_key("\C-xrt", :string_rectangle)
+  GLOBAL_MAP.define_key("\C-xrN", :rectangle_number_lines)
   GLOBAL_MAP.define_key("\C-x(", :start_keyboard_macro)
   GLOBAL_MAP.define_key(:f3, :start_keyboard_macro)
   GLOBAL_MAP.define_key("\C-x)", :end_keyboard_macro)

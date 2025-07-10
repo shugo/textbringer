@@ -46,7 +46,7 @@ module Textbringer::Buffer::RectangleMethods
               col = display_width(substring(line_start, @point))
             end
 
-            yield(start_col, end_col, col, line_start)
+            yield(start_col, end_col, col, line_start, start_line, end_line)
 
             # Move to next line for forward iteration
             if reverse
@@ -218,6 +218,20 @@ module Textbringer::Buffer::RectangleMethods
         end
       end
     end
+
+    def rectangle_number_lines(s = @point, e = mark)
+      check_read_only_flag
+      n = 1
+      number_width = nil
+      apply_on_rectangle(s, e) do |start_col, end_col, col, line_start, start_line, end_line|
+        number_width ||= (1 + (end_line - start_line)).to_s.size
+        if col < start_col
+          insert(" " * (start_col - col))
+        end
+        insert(n.to_s.rjust(number_width) + " ")
+        n += 1
+      end
+    end
   end
 end
 
@@ -259,6 +273,11 @@ module Textbringer
                    doc: "Replace rectangle contents with the specified string on each line.") do
       |str = read_from_minibuffer("String rectangle: ")|
       Buffer.current.string_rectangle(str)
+    end
+
+    define_command(:rectangle_number_lines,
+                   doc: "Insert numbers in front of the region-rectangle.") do
+      Buffer.current.rectangle_number_lines
     end
   end
 end
