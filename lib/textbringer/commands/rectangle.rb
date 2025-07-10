@@ -24,16 +24,12 @@ module Textbringer::Buffer::RectangleMethods
       end
     end
 
-    def apply_on_rectangle(s = @point, e = mark, reverse: false)
+    def apply_on_rectangle(s = @point, e = mark)
       start_line, start_col, end_line, end_col = rectangle_boundaries(s, e)
 
       save_excursion do
         composite_edit do
-          if reverse
-            goto_line(end_line)
-          else
-            goto_line(start_line)
-          end
+          goto_line(start_line)
 
           loop do
             beginning_of_line
@@ -49,13 +45,8 @@ module Textbringer::Buffer::RectangleMethods
             yield(start_col, end_col, col, line_start, start_line, end_line)
 
             # Move to next line for forward iteration
-            if reverse
-              break if @current_line <= start_line
-              backward_line
-            else
-              break if @current_line >= end_line
-              forward_line
-            end
+            break if @current_line >= end_line
+            forward_line
           end
         end
       end
@@ -110,7 +101,7 @@ module Textbringer::Buffer::RectangleMethods
     def delete_rectangle(s = @point, e = mark)
       check_read_only_flag
 
-      apply_on_rectangle(s, e, reverse: true) do |start_col, end_col, col, line_start|
+      apply_on_rectangle(s, e) do |start_col, end_col, col, line_start|
         start_pos = @point
 
         # Only delete if we're within the line bounds
@@ -182,7 +173,7 @@ module Textbringer::Buffer::RectangleMethods
 
     def clear_rectangle(s = @point, e = mark)
       check_read_only_flag
-      apply_on_rectangle(s, e, reverse: true) do |start_col, end_col, col, line_start|
+      apply_on_rectangle(s, e) do |start_col, end_col, col, line_start|
         start_pos = @point
         if col < start_col
           insert(" " * (end_col - start_col))
@@ -201,7 +192,7 @@ module Textbringer::Buffer::RectangleMethods
 
     def string_rectangle(str, s = @point, e = mark)
       check_read_only_flag
-      apply_on_rectangle(s, e, reverse: true) do |start_col, end_col, col, line_start|
+      apply_on_rectangle(s, e) do |start_col, end_col, col, line_start|
         start_pos = @point
         if col < start_col
           insert(" " * (start_col - col))
