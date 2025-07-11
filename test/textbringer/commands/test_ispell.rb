@@ -1,0 +1,54 @@
+# frozen_string_literal: true
+
+require_relative "../../test_helper"
+class TestIspell < Textbringer::TestCase
+  def setup
+    begin
+      @ispell = Textbringer::Commands::Ispell.new
+    rescue Errno::ENOENT
+      omit "aspell command not found"
+    end
+  end
+
+  def teardown
+    @ispell&.close
+  end
+
+  def test_check_word_correct
+    word, suggestions = @ispell.check_word("hello")
+    assert_equal("hello", word)
+    assert(suggestions.nil? || suggestions.empty?)
+  end
+
+  def test_check_word_incorrect
+    word, suggestions = @ispell.check_word("helllo")
+    assert_equal("helllo", word)
+    assert_includes(suggestions, "hello")
+  end
+
+  def test_ispell_word
+    insert("helllo")
+    goto_char(0)
+    push_keys("hello\n")
+    ispell_word
+    assert_equal("hello", Buffer.current.to_s)
+  end
+
+  def test_ispell_buffer
+    insert("helllo world\nthis is a pen.")
+    goto_char(0)
+    push_keys("hello\n")
+    ispell_buffer
+    assert_equal("hello world\nthis is a pen.", Buffer.current.to_s)
+    assert_equal("Finished spelling check.", Window.echo_area.message)
+  end
+
+  def test_ispell_buffer_not_modified
+    insert("helllo world\nthis is a pen.")
+    goto_char(0)
+    push_keys("\n")
+    ispell_buffer
+    assert_equal("helllo world\nthis is a pen.", Buffer.current.to_s)
+    assert_equal("Finished spelling check.", Window.echo_area.message)
+  end
+end
