@@ -213,7 +213,6 @@ module Textbringer::Buffer::RectangleMethods
     def string_insert_rectangle(str, s = @point, e = mark)
       check_read_only_flag
       apply_on_rectangle(s, e) do |start_col, end_col, col, line_start|
-        start_pos = @point
         if col < start_col
           insert(" " * (start_col - col))
         end
