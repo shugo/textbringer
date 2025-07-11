@@ -25,4 +25,21 @@ class TestIspell < Textbringer::TestCase
     assert_equal("helllo", word)
     assert_includes(suggestions, "hello")
   end
+
+  def test_ispell_word
+    insert("helllo")
+    goto_char(0)
+    push_keys("hello\n")
+    ispell_word
+    assert_equal("hello", Buffer.current.to_s)
+  end
+
+  def test_ispell_buffer
+    insert("helllo world\nthis is a pen.")
+    goto_char(0)
+    push_keys("hello\n")
+    ispell_buffer
+    assert_equal("hello world\nthis is a pen.", Buffer.current.to_s)
+    assert_equal("Finished spelling check.", message)
+  end
 end
