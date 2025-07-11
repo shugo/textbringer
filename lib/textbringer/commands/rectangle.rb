@@ -210,6 +210,17 @@ module Textbringer::Buffer::RectangleMethods
       end
     end
 
+    def string_insert_rectangle(str, s = @point, e = mark)
+      check_read_only_flag
+      apply_on_rectangle(s, e) do |start_col, end_col, col, line_start|
+        start_pos = @point
+        if col < start_col
+          insert(" " * (start_col - col))
+        end
+        insert(str)
+      end
+    end
+
     def rectangle_number_lines(s = @point, e = mark)
       check_read_only_flag
       n = 1
@@ -264,6 +275,12 @@ module Textbringer
                    doc: "Replace rectangle contents with the specified string on each line.") do
       |str = read_from_minibuffer("String rectangle: ")|
       Buffer.current.string_rectangle(str)
+    end
+
+    define_command(:string_insert_rectangle,
+                   doc: "Insert the specified string on each line of the rectangle.") do
+      |str = read_from_minibuffer("String insert rectangle: ")|
+      Buffer.current.string_insert_rectangle(str)
     end
 
     define_command(:rectangle_number_lines,
