@@ -13,7 +13,7 @@ module Textbringer
 
       def check_word(word)
         @stdin.puts("^" + word)
-        result = @stdout.gets.chomp
+        result = @stdout.readpartial(4096)
         case result
         when /\A&\s+([^\s]+)\s+\d+\s+\d+:\s+(.*)/
           [$1, $2.split(/, /)]
@@ -35,11 +35,19 @@ module Textbringer
 
     define_command(:ispell_word) do
       buffer = Buffer.current
-      word = buffer.word_at_point
+      word = buffer.save_excursion {
+        while !buffer.beginning_of_buffer? && buffer.char_after =~ /[A-Za-z]/
+          buffer.backward_char
+        end
+        buffer.re_search_forward(/[A-Za-z]+/, raise_error: false) &&
+          buffer.match_string(0)
+      }
       if word.nil?
         message("No word at point.")
         return
       end
+      start_pos = buffer.match_beginning(0)
+      end_pos = buffer.match_end(0)
       ispell = Ispell.new
       begin
         _original, suggestions = ispell.check_word(word)
@@ -47,12 +55,14 @@ module Textbringer
           message("#{word.inspect} is spelled correctly.")
         else
           s = read_from_minibuffer("Correct #{word} with: ",
-                                   completion: ->(s) {
+                                   completion_proc: ->(s) {
                                      suggestions.grep(/^#{Regexp.quote(s)}/)
                                    })
           if s
-            buffer.delete_region(buffer.point - word.length, buffer.point)
-            buffer.insert(s)
+            buffer.composite_edit do
+              buffer.delete_region(start_pos, end_pos)
+              buffer.insert(s)
+            end
           end
         end
       ensure
@@ -66,25 +76,33 @@ module Textbringer
       begin
         buffer.save_excursion do
           buffer.beginning_of_buffer
-          while (m = buffer.re_search_forward(/\w+/))
-            word = m[0]
+          while buffer.re_search_forward(/[A-Za-z]+/, raise_error: false)
+            word = buffer.match_string(0)
             _original, suggestions = ispell.check_word(word)
             next if suggestions.nil? || suggestions.empty?
-            buffer.goto_char(m.begin(0))
-            Window.current.recenter
+            buffer.save_excursion do
+              buffer.goto_char(buffer.match_beginning(0))
+              buffer.set_visible_mark
+            end
+            recenter
             Window.redisplay
             s = read_from_minibuffer("Correct #{word} with: ",
-                                     completion: ->(s) {
+                                     completion_proc: ->(s) {
                                        suggestions.grep(/^#{Regexp.quote(s)}/)
                                      })
-            if s
-              buffer.delete_region(m.begin(0), m.end(0))
-              buffer.insert(s)
+            if !s.empty?
+              pos = buffer.point
+              buffer.backward_word
+              buffer.composite_edit do
+                buffer.delete_region(buffer.point, pos)
+                buffer.insert(s)
+              end
             end
           end
         end
       ensure
         ispell.close
+        Buffer.current.delete_visible_mark
       end
       message("Finished spelling check.")
     end
