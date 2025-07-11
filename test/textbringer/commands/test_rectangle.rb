@@ -274,6 +274,50 @@ baz
     EOF
   end
 
+  def test_string_insert_rectangle
+    insert(<<-EOF)
+foo
+bar
+baz
+quux
+    EOF
+    beginning_of_buffer
+    forward_char
+    set_mark_command
+    next_line(2)
+    forward_char
+    push_keys("inserted\n")
+    string_insert_rectangle
+    assert_equal(<<-EOF, Buffer.current.to_s)
+finsertedoo
+binsertedar
+binsertedaz
+quux
+    EOF
+
+    Buffer.current.clear
+    insert(<<-EOF)
+foo
+
+bar
+baz
+    EOF
+
+    beginning_of_buffer
+    forward_char
+    set_mark_command
+    next_line(2)
+    forward_char
+    push_keys("X\n")
+    string_insert_rectangle
+    assert_equal(<<-EOF, Buffer.current.to_s)
+fXoo
+ X
+bXar
+baz
+    EOF
+  end
+
   def test_rectangle_number_lines
     insert(<<-EOF)
  foo
