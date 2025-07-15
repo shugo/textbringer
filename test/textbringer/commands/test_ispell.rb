@@ -73,7 +73,7 @@ class TestIspell < Textbringer::TestCase
   def test_ispell_buffer_insert
     insert("helllo world\nthis is a pen.")
     goto_char(0)
-    push_keys("i")
+    push_keys("in")
     ispell_buffer(recursive_edit: true)
     assert_equal("helllo world\nthis is a pen.", Buffer.current.to_s)
     assert_equal("Finished spelling check.", Window.echo_area.message)

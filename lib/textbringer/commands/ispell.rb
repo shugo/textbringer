@@ -6,13 +6,14 @@ module Textbringer
   module Commands
     class Ispell
       def initialize
+        @personal_dictionary_modified = false
         @stdin, @stdout, @stderr, @wait_thr =
           Open3.popen3("aspell -a")
         @stdout.gets # consume the banner
       end
 
       def check_word(word)
-        @stdin.puts("^" + word)
+        send_command("^" + word)
         result = @stdout.readpartial(4096)
         case result
         when /\A&\s+([^\s]+)\s+\d+\s+\d+:\s+(.*)/
@@ -27,12 +28,24 @@ module Textbringer
       end
 
       def add_to_session_dictionary(word)
-        @stdin.puts("@" + word)
-        @stdin.flush
+        send_command("@" + word)
       end
 
       def add_to_personal_dictionary(word)
-        @stdin.puts("*" + word)
+        send_command("*" + word)
+        @personal_dictionary_modified = true
+      end
+
+      def personal_dictionary_modified?
+        @personal_dictionary_modified
+      end
+
+      def save_personal_dictionary
+        send_command("#")
+      end
+
+      def send_command(line)
+        @stdin.puts(line)
         @stdin.flush
       end
 
@@ -140,6 +153,11 @@ module Textbringer
           recenter
           return
         end
+      end
+      Controller.current.overriding_map = nil
+      if ISPELL_STATUS[:ispell]&.personal_dictionary_modified? &&
+          y_or_n?("Personal dictionary modified.  Save?")
+        ISPELL_STATUS[:ispell].save_personal_dictionary
       end
       message("Finished spelling check.")
       ispell_done
