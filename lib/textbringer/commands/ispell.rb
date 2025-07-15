@@ -148,10 +148,12 @@ module Textbringer
     define_command(:ispell_replace) do
       word = ISPELL_STATUS[:word]
       suggestions = ISPELL_STATUS[:suggestions]
+      Controller.current.overriding_map = nil
       s = read_from_minibuffer("Correct #{word} with: ",
                                completion_proc: ->(s) {
         suggestions.grep(/^#{Regexp.quote(s)}/)
       })
+      Controller.current.overriding_map = ISPELL_MODE_MAP
       if !s.empty?
         buffer = Buffer.current
         pos = buffer.point
