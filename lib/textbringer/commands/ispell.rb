@@ -195,7 +195,6 @@ module Textbringer
     end
 
     define_command(:ispell_skip) do
-      ISPELL_STATUS[:ispell].add_to_personal_dictionary(ISPELL_STATUS[:word])
       ispell_forward
     end
 
