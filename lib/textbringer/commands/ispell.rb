@@ -14,7 +14,8 @@ module Textbringer
 
       def check_word(word)
         send_command("^" + word)
-        result = @stdout.readpartial(4096)
+        result = @stdout.gets
+        @stdout.gets
         case result
         when /\A&\s+([^\s]+)\s+\d+\s+\d+:\s+(.*)/
           [$1, $2.split(/, /)]
