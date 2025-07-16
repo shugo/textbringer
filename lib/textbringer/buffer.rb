@@ -1098,7 +1098,7 @@ module Textbringer
       undo_or_redo(:redo, @redo_stack, @undo_stack)
     end
 
-    def re_search_forward(s, raise_error: true, count: 1)
+    def re_search_forward(s, raise_error: true, goto_beginning: false, count: 1)
       if count < 0
         return re_search_backward(s, raise_error: raise_error, count: -count)
       end
@@ -1113,7 +1113,7 @@ module Textbringer
             return nil
           end
         end
-        pos = match_end(0)
+        pos = goto_beginning ? match_beginning(0) : match_end(0)
       end
       goto_char(pos)
     end

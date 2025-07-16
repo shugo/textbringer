@@ -405,7 +405,7 @@ module Textbringer
         @window.erase
         @window.setpos(0, 0)
         @window.attrset(0)
-        if current? && @buffer.visible_mark &&
+        if @buffer.visible_mark &&
            @buffer.point_after_mark?(@buffer.visible_mark)
           @window.attron(Curses::A_REVERSE)
         end
@@ -450,7 +450,7 @@ module Textbringer
           break if newx == columns && cury == lines - 2
           @buffer.forward_char
         end
-        if current? && @buffer.visible_mark
+        if @buffer.visible_mark
           @window.attroff(Curses::A_REVERSE)
         end
         @buffer.mark_to_point(@bottom_of_window)
@@ -679,7 +679,7 @@ module Textbringer
       if @buffer.point_at_mark?(point)
         @cursor.y = cury
         @cursor.x = curx
-        if current? && @buffer.visible_mark
+        if @buffer.visible_mark
           if @buffer.point_after_mark?(@buffer.visible_mark)
             @window.attroff(Curses::A_REVERSE)
           elsif @buffer.point_before_mark?(@buffer.visible_mark)
@@ -687,7 +687,7 @@ module Textbringer
           end
         end
       end
-      if current? && @buffer.visible_mark &&
+      if @buffer.visible_mark &&
          @buffer.point_at_mark?(@buffer.visible_mark)
         if @buffer.point_after_mark?(point)
           @window.attroff(Curses::A_REVERSE)
