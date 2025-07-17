@@ -76,43 +76,6 @@ module Textbringer
 
     ISPELL_WORD_REGEXP = /[A-Za-z]+/
 
-    define_command(:ispell_word) do
-      buffer = Buffer.current
-      word = buffer.save_excursion {
-        while !buffer.beginning_of_buffer? && buffer.char_after =~ /[A-Za-z]/
-          buffer.backward_char
-        end
-        buffer.re_search_forward(/[A-Za-z]+/, raise_error: false) &&
-          buffer.match_string(0)
-      }
-      if word.nil?
-        message("No word at point.")
-        return
-      end
-      start_pos = buffer.match_beginning(0)
-      end_pos = buffer.match_end(0)
-      ispell = Ispell.new
-      begin
-        _original, suggestions = ispell.check_word(word)
-        if suggestions.nil? || suggestions.empty?
-          message("#{word.inspect} is spelled correctly.")
-        else
-          s = read_from_minibuffer("Correct #{word} with: ",
-                                   completion_proc: ->(s) {
-                                     suggestions.grep(/^#{Regexp.quote(s)}/)
-                                   })
-          if s
-            buffer.composite_edit do
-              buffer.delete_region(start_pos, end_pos)
-              buffer.insert(s)
-            end
-          end
-        end
-      ensure
-        ispell.close
-      end
-    end
-
     define_command(:ispell_buffer) do |recursive_edit: false|
       Buffer.current.beginning_of_buffer
       ispell_mode
