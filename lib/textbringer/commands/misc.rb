@@ -82,10 +82,9 @@ module Textbringer
 
     def update_completions(xs)
       if xs.size > 1
-        if COMPLETION[:original_buffer].nil?
+        if COMPLETION[:completions_window].nil?
+          Window.list.last.split
           COMPLETION[:completions_window] = Window.list.last
-          COMPLETION[:original_buffer] =
-            COMPLETION[:completions_window].buffer
         end
         completions = Buffer.find_or_new("*Completions*", undo_limit: 0)
         if !completions.mode.is_a?(CompletionListMode)
@@ -102,10 +101,7 @@ module Textbringer
           completions.read_only = true
         end
       else
-        if COMPLETION[:original_buffer]
-          COMPLETION[:completions_window].buffer =
-            COMPLETION[:original_buffer]
-        end
+        delete_completions_window
       end
     end
     private :update_completions
