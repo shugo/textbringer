@@ -70,6 +70,7 @@ module Textbringer
     ISPELL_MODE_MAP.define_key(?i, :ispell_insert)
     ISPELL_MODE_MAP.define_key(" ", :ispell_skip)
     ISPELL_MODE_MAP.define_key(?q, :ispell_quit)
+    ISPELL_MODE_MAP.define_key("\C-g", :ispell_quit)
 
     ISPELL_STATUS = {}
 
@@ -150,7 +151,7 @@ module Textbringer
           ISPELL_STATUS[:beginning] = ispell_beginning
           ISPELL_STATUS[:word] = word
           ISPELL_STATUS[:suggestions] = suggestions
-          message("Mispelled: #{word}  [r]eplace, [a]ccept, [i]nsert, [SPC] to skip, [q]uit")
+          message_misspelled
           recenter
           return
         end
@@ -168,11 +169,17 @@ module Textbringer
       word = ISPELL_STATUS[:word]
       suggestions = ISPELL_STATUS[:suggestions]
       Controller.current.overriding_map = nil
-      s = read_from_minibuffer("Correct #{word} with: ",
-                               completion_proc: ->(s) {
-        suggestions.grep(/^#{Regexp.quote(s)}/)
-      })
-      Controller.current.overriding_map = ISPELL_MODE_MAP
+      begin
+        s = read_from_minibuffer("Correct #{word} with: ",
+                                 completion_proc: ->(s) {
+          suggestions.grep(/^#{Regexp.quote(s)}/)
+        })
+      rescue Quit
+        message_misspelled
+        return
+      ensure
+        Controller.current.overriding_map = ISPELL_MODE_MAP
+      end
       if !s.empty?
         buffer = Buffer.current
         pos = buffer.point
@@ -205,9 +212,13 @@ module Textbringer
     end
 
     define_command(:ispell_unknown_command) do
-      word = ISPELL_STATUS[:word]
-      message("Mispelled: #{word}  [r]eplace, [a]ccept, [i]nsert, [SPC] to skip, [q]uit")
+      message_misspelled
       Window.beep
+    end
+
+    def message_misspelled
+      word = ISPELL_STATUS[:word]
+      message("Misspelled: #{word}  [r]eplace, [a]ccept, [i]nsert, [SPC] to skip, [q]uit")
     end
   end
 end
