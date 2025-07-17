@@ -8,8 +8,8 @@ class TestCompletionListMode < Textbringer::TestCase
   end
 
   def test_jump_to_location
-    COMPLETION[:original_buffer] = Buffer["*scratch*"]
-    COMPLETION[:completions_window] = Window.list.first
+    Window.list.last.split
+    COMPLETION[:completions_window] = Window.list.last
     @buffer.insert(<<EOF)
 foo
 bar
@@ -23,7 +23,6 @@ EOF
     @mode.choose_completion
     assert_equal("bar", Buffer.minibuffer.to_s)
   ensure
-    COMPLETION[:original_buffer] = nil
     COMPLETION[:completions_window] = nil
   end
 end
