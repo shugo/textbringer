@@ -134,7 +134,6 @@ module Textbringer
     end
 
     COMPLETION = {
-      original_buffer: nil,
       completions_window: nil
     }
 
@@ -186,11 +185,14 @@ module Textbringer
         Buffer.minibuffer.keymap = old_minibuffer_map
         Buffer.minibuffer.disable_input_method
         Controller.current.current_prefix_arg = old_current_prefix_arg
-        if COMPLETION[:original_buffer]
-          COMPLETION[:completions_window].buffer = COMPLETION[:original_buffer]
-          COMPLETION[:completions_window] = nil
-          COMPLETION[:original_buffer] = nil
-        end
+        delete_completions_window
+      end
+    end
+
+    def delete_completions_window
+      if COMPLETION[:completions_window]
+        Window.delete_window(COMPLETION[:completions_window])
+        COMPLETION[:completions_window] = nil
       end
     end
 

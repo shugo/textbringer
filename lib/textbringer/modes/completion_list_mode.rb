@@ -24,10 +24,7 @@ module Textbringer
       if s.size > 0
         Window.current = Window.echo_area
         complete_minibuffer_with_string(s)
-        if COMPLETION[:original_buffer]
-          COMPLETION[:completions_window].buffer =
-            COMPLETION[:original_buffer]
-        end
+        delete_completions_window
       end
     end
   end
