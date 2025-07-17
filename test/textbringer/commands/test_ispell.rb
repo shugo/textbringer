@@ -53,6 +53,13 @@ class TestIspell < Textbringer::TestCase
     assert_equal("Quitting spell check.", Window.echo_area.message)
   end
 
+  def test_ispell_buffer_apostrophe
+    insert("It shouldn't be corrected.")
+    ispell_buffer(recursive_edit: true)
+    assert_equal("It shouldn't be corrected.", Buffer.current.to_s)
+    assert_equal("Finished spelling check.", Window.echo_area.message)
+  end
+
   def test_ispell_buffer_accept
     insert("helllo world\nthis is a pen.")
     goto_char(0)

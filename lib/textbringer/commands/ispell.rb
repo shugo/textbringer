@@ -74,15 +74,17 @@ module Textbringer
 
     ISPELL_STATUS = {}
 
-    ISPELL_WORD_REGEXP = /[A-Za-z]+/
+    ISPELL_WORD_REGEXP = /[[:alpha:]]+('[[:alpha:]]+)*/
 
     define_command(:ispell_buffer) do |recursive_edit: false|
+      ISPELL_STATUS[:recursive_edit] = false
       Buffer.current.beginning_of_buffer
       ispell_mode
-      ispell_forward
-      ISPELL_STATUS[:recursive_edit] = recursive_edit
-      if recursive_edit
-        recursive_edit()
+      if !ispell_forward
+        ISPELL_STATUS[:recursive_edit] = recursive_edit
+        if recursive_edit
+          recursive_edit()
+        end
       end
     end
 
@@ -94,6 +96,7 @@ module Textbringer
       if ISPELL_STATUS[:recursive_edit]
         exit_recursive_edit
       end
+      ISPELL_STATUS[:recursive_edit] = false
     end
 
     def ispell_mode
@@ -116,7 +119,7 @@ module Textbringer
           ISPELL_STATUS[:suggestions] = suggestions
           message_misspelled
           recenter
-          return
+          return false
         end
       end
       Controller.current.overriding_map = nil
@@ -126,6 +129,7 @@ module Textbringer
       end
       message("Finished spelling check.")
       ispell_done
+      true
     end
 
     define_command(:ispell_replace) do
