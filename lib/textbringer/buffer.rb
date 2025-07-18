@@ -11,6 +11,7 @@ module Textbringer
     attr_accessor :mode, :keymap
     attr_reader :name, :file_name, :file_encoding, :file_format, :point, :marks
     attr_reader :current_line, :current_column, :visible_mark
+    attr_reader :last_match
     attr_reader :input_method
 
     GAP_SIZE = 256
@@ -255,6 +256,7 @@ module Textbringer
       @visible_mark = nil
       @read_only = read_only
       @callbacks = {}
+      @last_match = nil
       @input_method = nil
     end
 
@@ -1159,6 +1161,7 @@ module Textbringer
 
     def byteindex(forward, re, pos)
       @match_offsets = []
+      @last_match = nil
       method = forward ? :byteindex : :byterindex
       adjust_gap(0, 0)
       s = @contents.byteslice(@gap_end..-1)
@@ -1167,9 +1170,9 @@ module Textbringer
       end
       i = s.send(method, re, pos)
       if i
-        m = Regexp.last_match
-        (0 .. m.size - 1).each do |j|
-          @match_offsets.push(m.byteoffset(j))
+        @last_match = Regexp.last_match
+        (0 .. @last_match.size - 1).each do |j|
+          @match_offsets.push(@last_match.byteoffset(j))
         end
         i
       else
