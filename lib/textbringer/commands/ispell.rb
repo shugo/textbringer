@@ -9,7 +9,7 @@ module Textbringer
       def initialize
         @personal_dictionary_modified = false
         @stdin, @stdout, @stderr, @wait_thr =
-          Open3.popen3("aspell -a")
+          Open3.popen3(CONFIG[:ispell_command])
         @stdout.gets # consume the banner
       end
 
@@ -143,6 +143,7 @@ module Textbringer
     end
 
     define_command(:ispell_replace) do
+      ensure_ispell_active
       word = ISPELL_STATUS[:word]
       suggestions = ISPELL_STATUS[:suggestions]
       Controller.current.overriding_map = nil
@@ -170,25 +171,30 @@ module Textbringer
     end
 
     define_command(:ispell_accept) do
+      ensure_ispell_active
       ISPELL_STATUS[:ispell].add_to_session_dictionary(ISPELL_STATUS[:word])
       ispell_forward
     end
 
     define_command(:ispell_insert) do
+      ensure_ispell_active
       ISPELL_STATUS[:ispell].add_to_personal_dictionary(ISPELL_STATUS[:word])
       ispell_forward
     end
 
     define_command(:ispell_skip) do
+      ensure_ispell_active
       ispell_forward
     end
 
     define_command(:ispell_quit) do
+      ensure_ispell_active
       message("Quitting spell check.")
       ispell_done
     end
 
     define_command(:ispell_unknown_command) do
+      ensure_ispell_active
       message_misspelled
       Window.beep
     end
@@ -196,6 +202,12 @@ module Textbringer
     def message_misspelled
       word = ISPELL_STATUS[:word]
       message("Misspelled: #{word}  [r]eplace, [a]ccept, [i]nsert, [SPC] to skip, [q]uit")
+    end
+
+    def ensure_ispell_active
+      if ISPELL_STATUS[:ispell].nil?
+        raise EditorError, "ispell is not active"
+      end
     end
   end
 end
