@@ -15,6 +15,10 @@ module Textbringer
       def check_word(word)
         send_command("^" + word)
         result = @stdout.gets
+        if result.nil? || result == "\n"
+          # aspell can't handle word, which may contain multibyte characters
+          return [word, nil]
+        end
         @stdout.gets
         case result
         when /\A&\s+([^\s]+)\s+\d+\s+\d+:\s+(.*)/
