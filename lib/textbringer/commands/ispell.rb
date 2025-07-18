@@ -9,7 +9,7 @@ module Textbringer
       def initialize
         @personal_dictionary_modified = false
         @stdin, @stdout, @stderr, @wait_thr =
-          Open3.popen3("aspell -a")
+          Open3.popen3(CONFIG[:ispell_command])
         @stdout.gets # consume the banner
       end
 

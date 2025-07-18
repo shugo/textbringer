@@ -15,6 +15,7 @@ module Textbringer
     shell_file_name: ENV["SHELL"],
     shell_command_switch: "-c",
     grep_command: "grep -nH -e",
+    ispell_command: "aspell -a",
     fill_column: 70,
     read_file_name_completion_ignore_case: RUBY_PLATFORM.match?(/darwin/),
     default_input_method: "t_code"
