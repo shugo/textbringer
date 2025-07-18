@@ -28,7 +28,6 @@ class TestIspell < Textbringer::TestCase
 
   def test_ispell_buffer
     insert("helllo world\nthis is a pen.")
-    goto_char(0)
     push_keys("rhello\n")
     ispell_buffer(recursive_edit: true)
     assert_equal("hello world\nthis is a pen.", Buffer.current.to_s)
@@ -37,7 +36,6 @@ class TestIspell < Textbringer::TestCase
 
   def test_ispell_buffer_last_word
     insert("hello world\nthis is a penn")
-    goto_char(0)
     push_keys("rpen\n")
     ispell_buffer(recursive_edit: true)
     assert_equal("hello world\nthis is a pen", Buffer.current.to_s)
@@ -46,7 +44,6 @@ class TestIspell < Textbringer::TestCase
 
   def test_ispell_buffer_not_modified
     insert("helllo world\nthis is a pen.")
-    goto_char(0)
     push_keys("q")
     ispell_buffer(recursive_edit: true)
     assert_equal("helllo world\nthis is a pen.", Buffer.current.to_s)
@@ -67,9 +64,15 @@ class TestIspell < Textbringer::TestCase
     assert_equal("Finished spelling check.", Window.echo_area.message)
   end
 
+  def test_ispell_buffer_url
+    insert("https://example.com/nosuchword")
+    ispell_buffer(recursive_edit: true)
+    assert_equal("https://example.com/nosuchword", Buffer.current.to_s)
+    assert_equal("Finished spelling check.", Window.echo_area.message)
+  end
+
   def test_ispell_buffer_accept
     insert("helllo world\nthis is a pen.")
-    goto_char(0)
     push_keys("a")
     ispell_buffer(recursive_edit: true)
     assert_equal("helllo world\nthis is a pen.", Buffer.current.to_s)
@@ -78,7 +81,6 @@ class TestIspell < Textbringer::TestCase
 
   def test_ispell_buffer_insert
     insert("helllo world\nthis is a pen.")
-    goto_char(0)
     push_keys("in")
     ispell_buffer(recursive_edit: true)
     assert_equal("helllo world\nthis is a pen.", Buffer.current.to_s)

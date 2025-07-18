@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "open3"
+require "uri"
 
 module Textbringer
   module Commands
@@ -78,7 +79,8 @@ module Textbringer
 
     ISPELL_STATUS = {}
 
-    ISPELL_WORD_REGEXP = /[[:alpha:]]+('[[:alpha:]]+)*/
+    URI_REGEXP = URI::RFC2396_PARSER.make_regexp(["http", "https", "ftp", "mailto"])
+    ISPELL_WORD_REGEXP = /(?<uri>#{URI_REGEXP})|(?<word>[[:alpha:]]+(?:'[[:alpha:]]+)*)/
 
     define_command(:ispell_buffer) do |recursive_edit: false|
       ISPELL_STATUS[:recursive_edit] = false
@@ -112,6 +114,10 @@ module Textbringer
       buffer = Buffer.current
       while buffer.re_search_forward(ISPELL_WORD_REGEXP, raise_error: false,
                                      goto_beginning: true)
+        if buffer.last_match[:word].nil?
+          buffer.goto_char(buffer.match_end(0))
+          next
+        end
         ispell_beginning = buffer.point
         buffer.set_visible_mark
         buffer.goto_char(buffer.match_end(0))
