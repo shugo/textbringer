@@ -96,6 +96,7 @@ module Textbringer
           xs.each do |x|
             completions.insert(x + "\n")
           end
+          completions.beginning_of_buffer
           COMPLETION[:completions_window].buffer = completions
         ensure
           completions.read_only = true
