@@ -80,7 +80,24 @@ module Textbringer
     ISPELL_STATUS = {}
 
     URI_REGEXP = URI::RFC2396_PARSER.make_regexp(["http", "https", "ftp", "mailto"])
-    ISPELL_WORD_REGEXP = /(?<uri>#{URI_REGEXP})|(?<word>[[:alpha:]]+(?:'[[:alpha:]]+)*)/
+    EMAIL_REGEXP = /
+      # local-part
+      (  # dot-atom
+         (?<atom>[0-9a-z!\#$%&'*+\-\/=?^_`{|}~]+)
+         (\.\g<atom>)*
+      |  # quoted-string
+        \"([\x20\x21\x23-\x5b\x5d-\x7e]
+           |\\[\x20-\x7e])*\"
+      )@
+      # domain
+      (?<sub_domain>[0-9a-z]([0-9a-z-]*[0-9a-z])?)
+      (\.\g<sub_domain>)*
+    /ix
+    ISPELL_WORD_REGEXP = /
+        (?<uri>#{URI_REGEXP})
+      | (?<email>#{EMAIL_REGEXP})
+      | (?<word>[[:alpha:]]+(?:'[[:alpha:]]+)*)
+    /x
 
     define_command(:ispell_buffer) do |recursive_edit: false|
       ISPELL_STATUS[:recursive_edit] = false
