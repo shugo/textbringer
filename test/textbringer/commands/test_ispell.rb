@@ -72,9 +72,9 @@ class TestIspell < Textbringer::TestCase
   end
 
   def test_ispell_buffer_email
-    insert("nosuchword@exmaple.com")
+    insert("nosuchword@example.com")
     ispell_buffer(recursive_edit: true)
-    assert_equal("nosuchword@exmaple.com", Buffer.current.to_s)
+    assert_equal("nosuchword@example.com", Buffer.current.to_s)
     assert_equal("Finished spelling check.", Window.echo_area.message)
   end
 
