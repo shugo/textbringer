@@ -27,6 +27,7 @@ module Textbringer
       :isearch_backward,
       :isearch_repeat_forward,
       :isearch_repeat_backward,
+      :isearch_printing_char,
       # Undo/redo
       :undo,
       :redo_command,
