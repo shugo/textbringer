@@ -51,11 +51,11 @@ module Textbringer
 
     # Override these in subclasses
     def self.enable
-      raise NotImplementedError, "Subclass must implement enable"
+      raise EditorError, "Subclass must implement enable"
     end
 
     def self.disable
-      raise NotImplementedError, "Subclass must implement disable"
+      raise EditorError, "Subclass must implement disable"
     end
   end
 end
