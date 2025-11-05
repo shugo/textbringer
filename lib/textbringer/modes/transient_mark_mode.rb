@@ -6,7 +6,6 @@ module Textbringer
     MARK_PRESERVING_COMMANDS = [
       :set_mark_command,
       :exchange_point_and_mark,
-      :keyboard_quit,
       :transient_mark_mode,
       # Navigation commands that should preserve mark
       :beginning_of_line,
