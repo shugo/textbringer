@@ -1,7 +1,14 @@
 require "set"
 
 module Textbringer
+  # Transient Mark Mode is a buffer-local minor mode that highlights
+  # the region between mark and point when the mark is active.
   class TransientMarkMode < MinorMode
+    class << self
+      attr_accessor :global_enabled
+    end
+    @global_enabled = false
+
     # Commands that should NOT deactivate the mark
     MARK_PRESERVING_COMMANDS = [
       :set_mark_command,
@@ -61,6 +68,27 @@ module Textbringer
         buffer.delete_visible_mark
       end
     }
+
+    define_command(:global_transient_mark_mode,
+                   doc: "Toggle Transient Mark mode in all buffers.") do
+      if TransientMarkMode.global_enabled
+        TransientMarkMode.global_enabled = false
+        Buffer.list.each do |buffer|
+          if buffer.minor_mode_active?(TransientMarkMode)
+            buffer.toggle_minor_mode(TransientMarkMode)
+          end
+        end
+        message("Global Transient Mark mode disabled")
+      else
+        TransientMarkMode.global_enabled = true
+        Buffer.list.each do |buffer|
+          unless buffer.minor_mode_active?(TransientMarkMode)
+            buffer.toggle_minor_mode(TransientMarkMode)
+          end
+        end
+        message("Global Transient Mark mode enabled")
+      end
+    end
 
     def initialize(buffer)
       super(buffer)
