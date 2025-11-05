@@ -20,12 +20,11 @@ module Textbringer
       # Initialize enabled to false immediately
       child.instance_variable_set(:@enabled, false)
 
-      # Only allow named classes to inherit GlobalMinorMode
-      if child.name.nil? || child.name.empty?
-        raise ArgumentError, "GlobalMinorMode subclasses must be named classes (anonymous classes are not supported)"
-      end
+      # Extract name from inspect string as fallback when .name is nil
+      class_name = child.name || child.inspect
+      return if class_name.nil? || class_name.empty?
 
-      base_name = child.name.slice(/[^:]*\z/)
+      base_name = class_name.slice(/[^:]*\z/)
       child.mode_name = base_name.sub(/Mode\z/, "")
       command_name = base_name.sub(/\A[A-Z]/) { |s| s.downcase }.
         gsub(/(?<=[a-z])([A-Z])/) {
