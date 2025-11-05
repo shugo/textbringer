@@ -83,7 +83,7 @@ module Textbringer
       # Add global hooks (not buffer-local)
       add_hook(:pre_command_hook, PRE_COMMAND_HOOK, local: false)
       add_hook(:post_command_hook, POST_COMMAND_HOOK, local: false)
-      message("Transient Mark mode enabled") rescue nil
+      message("Transient Mark mode enabled")
     end
 
     def self.disable
@@ -95,7 +95,7 @@ module Textbringer
       Buffer.list.each do |buffer|
         buffer.deactivate_mark
       end
-      message("Transient Mark mode disabled") rescue nil
+      message("Transient Mark mode disabled")
     end
   end
 end
