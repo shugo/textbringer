@@ -25,6 +25,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   jq \
   nano \
   vim \
+  # Ruby build dependencies
+  build-essential \
+  libssl-dev \
+  libreadline-dev \
+  zlib1g-dev \
+  libyaml-dev \
+  libffi-dev \
+  libncurses-dev \
   && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Ensure default node user has access to /usr/local/share
@@ -56,6 +64,21 @@ RUN ARCH=$(dpkg --print-architecture) && \
 
 # Set up non-root user
 USER node
+
+# Install rbenv and ruby-build
+ARG RUBY_VERSION=3.4.7
+RUN git clone https://github.com/rbenv/rbenv.git ~/.rbenv && \
+  git clone https://github.com/rbenv/ruby-build.git ~/.rbenv/plugins/ruby-build && \
+  echo 'export PATH="$HOME/.rbenv/bin:$PATH"' >> ~/.zshrc && \
+  echo 'eval "$(rbenv init - zsh)"' >> ~/.zshrc && \
+  echo 'export PATH="$HOME/.rbenv/bin:$PATH"' >> ~/.bashrc && \
+  echo 'eval "$(rbenv init - bash)"' >> ~/.bashrc
+
+# Install Ruby 3.4.7
+ENV PATH="/home/node/.rbenv/bin:/home/node/.rbenv/shims:$PATH"
+RUN rbenv install ${RUBY_VERSION} && \
+  rbenv global ${RUBY_VERSION} && \
+  gem install bundler
 
 # Install global packages
 ENV NPM_CONFIG_PREFIX=/usr/local/share/npm-global
