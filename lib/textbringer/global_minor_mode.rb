@@ -8,11 +8,12 @@ module Textbringer
     class << self
       attr_accessor :mode_name
       attr_accessor :command_name
-      attr_reader :enabled
 
       def enabled=(val)
         @enabled = val
       end
+
+      def enabled? = @enabled
     end
 
     def self.inherited(child)
@@ -35,7 +36,7 @@ module Textbringer
 
       # Define the toggle command
       define_command(command) do
-        if child.enabled
+        if child.enabled?
           child.disable
           child.enabled = false
         else
