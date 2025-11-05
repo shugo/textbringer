@@ -1,14 +1,9 @@
 require "set"
 
 module Textbringer
-  # Transient Mark Mode is a buffer-local minor mode that highlights
+  # Transient Mark Mode is a global minor mode that highlights
   # the region between mark and point when the mark is active.
-  class TransientMarkMode < MinorMode
-    class << self
-      attr_accessor :global_enabled
-    end
-    @global_enabled = false
-
+  class TransientMarkMode < GlobalMinorMode
     # Commands that should NOT deactivate the mark
     MARK_PRESERVING_COMMANDS = [
       :set_mark_command,
@@ -69,48 +64,23 @@ module Textbringer
       end
     }
 
-    define_command(:global_transient_mark_mode,
-                   doc: "Toggle Transient Mark mode in all buffers.") do
-      if TransientMarkMode.global_enabled
-        TransientMarkMode.global_enabled = false
-        Buffer.list.each do |buffer|
-          if buffer.minor_mode_active?(TransientMarkMode)
-            buffer.toggle_minor_mode(TransientMarkMode)
-          end
-        end
-        message("Global Transient Mark mode disabled")
-      else
-        TransientMarkMode.global_enabled = true
-        Buffer.list.each do |buffer|
-          unless buffer.minor_mode_active?(TransientMarkMode)
-            buffer.toggle_minor_mode(TransientMarkMode)
-          end
-        end
-        message("Global Transient Mark mode enabled")
+    def self.enable
+      # Add global hooks (not buffer-local)
+      add_hook(:pre_command_hook, PRE_COMMAND_HOOK)
+      add_hook(:post_command_hook, POST_COMMAND_HOOK)
+      message("Transient Mark mode enabled") rescue nil
+    end
+
+    def self.disable
+      # Remove global hooks
+      remove_hook(:pre_command_hook, PRE_COMMAND_HOOK)
+      remove_hook(:post_command_hook, POST_COMMAND_HOOK)
+
+      # Deactivate mark in all buffers
+      Buffer.list.each do |buffer|
+        buffer.deactivate_mark
       end
-    end
-
-    def initialize(buffer)
-      super(buffer)
-    end
-
-    def enable
-      # Add hooks - use local: true so they only affect this buffer
-      add_hook(:pre_command_hook, PRE_COMMAND_HOOK, local: true)
-      add_hook(:post_command_hook, POST_COMMAND_HOOK, local: true)
-    end
-
-    def disable
-      # Remove hooks
-      remove_hook(:pre_command_hook, PRE_COMMAND_HOOK, local: true)
-      remove_hook(:post_command_hook, POST_COMMAND_HOOK, local: true)
-
-      # Deactivate mark
-      @buffer.deactivate_mark
-    end
-
-    def name
-      "Transient Mark"
+      message("Transient Mark mode disabled") rescue nil
     end
   end
 end

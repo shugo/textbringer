@@ -96,7 +96,7 @@ module Textbringer
       buffer = Buffer.current
       buffer.exchange_point_and_mark
       # Activate mark if transient mark mode is enabled
-      if buffer.minor_mode_active?(TransientMarkMode)
+      if TransientMarkMode.enabled
         buffer.activate_mark
       end
     end
@@ -153,7 +153,7 @@ module Textbringer
       else
         buffer.push_mark
         # Activate mark if transient mark mode is enabled
-        if buffer.minor_mode_active?(TransientMarkMode)
+        if TransientMarkMode.enabled
           buffer.activate_mark
         end
         message("Mark set")
