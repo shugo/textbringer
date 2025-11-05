@@ -56,6 +56,15 @@ module Textbringer
     POST_COMMAND_HOOK = -> {
       buffer = Buffer.current
 
+      # Skip if in isearch or ispell mode (they manage their own highlighting)
+      controller = Controller.current
+      if controller.overriding_map
+        return if Commands.const_defined?(:ISEARCH_MODE_MAP) &&
+                  controller.overriding_map == Commands::ISEARCH_MODE_MAP
+        return if Commands.const_defined?(:ISPELL_MODE_MAP) &&
+                  controller.overriding_map == Commands::ISPELL_MODE_MAP
+      end
+
       # Update visible_mark to reflect mark_active state
       if buffer.mark_active? && buffer.mark
         buffer.set_visible_mark(buffer.mark.location)
