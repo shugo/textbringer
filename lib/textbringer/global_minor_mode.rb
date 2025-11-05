@@ -20,9 +20,10 @@ module Textbringer
       # Initialize enabled to false immediately
       child.instance_variable_set(:@enabled, false)
 
-      # Extract name from inspect string as fallback when .name is nil
-      class_name = child.name || child.inspect
-      return if class_name.nil? || class_name.empty?
+      class_name = child.name
+      if class_name.nil? || class_name.empty?
+        raise ArgumentError, "GlobalMinorMode subclasses must be named classes (anonymous classes are not supported)"
+      end
 
       base_name = class_name.slice(/[^:]*\z/)
       child.mode_name = base_name.sub(/Mode\z/, "")
@@ -43,10 +44,6 @@ module Textbringer
           child.enabled = true
         end
       end
-    end
-
-    def self.name
-      mode_name
     end
 
     # Override these in subclasses
