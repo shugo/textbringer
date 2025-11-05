@@ -66,8 +66,13 @@ module Textbringer
       end
 
       # Update visible_mark to reflect mark_active state
-      if buffer.mark_active? && buffer.mark
-        buffer.set_visible_mark(buffer.mark.location)
+      if buffer.mark_active?
+        begin
+          mark = buffer.mark
+          buffer.set_visible_mark(mark.location) if mark
+        rescue EditorError
+          # Mark is not set, do nothing
+        end
       elsif !buffer.mark_active? && buffer.visible_mark
         buffer.delete_visible_mark
       end
@@ -75,15 +80,15 @@ module Textbringer
 
     def self.enable
       # Add global hooks (not buffer-local)
-      add_hook(:pre_command_hook, PRE_COMMAND_HOOK)
-      add_hook(:post_command_hook, POST_COMMAND_HOOK)
+      add_hook(:pre_command_hook, PRE_COMMAND_HOOK, local: false)
+      add_hook(:post_command_hook, POST_COMMAND_HOOK, local: false)
       message("Transient Mark mode enabled") rescue nil
     end
 
     def self.disable
       # Remove global hooks
-      remove_hook(:pre_command_hook, PRE_COMMAND_HOOK)
-      remove_hook(:post_command_hook, POST_COMMAND_HOOK)
+      remove_hook(:pre_command_hook, PRE_COMMAND_HOOK, local: false)
+      remove_hook(:post_command_hook, POST_COMMAND_HOOK, local: false)
 
       # Deactivate mark in all buffers
       Buffer.list.each do |buffer|
