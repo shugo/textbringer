@@ -42,7 +42,10 @@ module Textbringer
         loop do
           re_search_forward(regexp)
           Window.current.recenter_if_needed
-          Buffer.current.set_visible_mark(match_beginning(0))
+          # Don't update visible_mark if mark is already active (transient mark mode)
+          unless Buffer.current.mark_active?
+            Buffer.current.set_visible_mark(match_beginning(0))
+          end
           begin
             Window.redisplay
             c = read_single_char("Replace?", [?y, ?n, ?!, ?q, ?.])
@@ -66,7 +69,10 @@ module Textbringer
               break
             end
           ensure
-            Buffer.current.delete_visible_mark
+            # Don't delete visible_mark if mark is active (transient mark mode)
+            unless Buffer.current.mark_active?
+              Buffer.current.delete_visible_mark
+            end
           end
         end
       rescue SearchError

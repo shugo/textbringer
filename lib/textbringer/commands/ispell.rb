@@ -112,7 +112,10 @@ module Textbringer
     end
 
     def ispell_done
-      Buffer.current.delete_visible_mark
+      # Don't delete visible_mark if mark is active (transient mark mode)
+      unless Buffer.current.mark_active?
+        Buffer.current.delete_visible_mark
+      end
       Controller.current.overriding_map = nil
       ISPELL_STATUS[:ispell]&.close
       ISPELL_STATUS[:ispell] = nil
@@ -136,7 +139,10 @@ module Textbringer
           next
         end
         ispell_beginning = buffer.point
-        buffer.set_visible_mark
+        # Don't update visible_mark if mark is already active (transient mark mode)
+        unless buffer.mark_active?
+          buffer.set_visible_mark
+        end
         buffer.goto_char(buffer.match_end(0))
         word = buffer.match_string(0)
         _original, suggestions = ISPELL_STATUS[:ispell].check_word(word)

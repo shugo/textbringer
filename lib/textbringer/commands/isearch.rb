@@ -77,7 +77,10 @@ module Textbringer
     end
 
     def isearch_done
-      Buffer.current.delete_visible_mark
+      # Don't delete visible_mark if mark is active (transient mark mode)
+      unless Buffer.current.mark_active?
+        Buffer.current.delete_visible_mark
+      end
       Controller.current.overriding_map = nil
       remove_hook(:pre_command_hook, :isearch_pre_command_hook)
       ISEARCH_STATUS[:last_string] = ISEARCH_STATUS[:string]
@@ -154,8 +157,11 @@ module Textbringer
         if Buffer.current != Buffer.minibuffer
           message(isearch_prompt + ISEARCH_STATUS[:string], log: false)
         end
-        Buffer.current.set_visible_mark(forward ? match_beginning(0) :
-                                        match_end(0))
+        # Don't update visible_mark if mark is already active (transient mark mode)
+        unless Buffer.current.mark_active?
+          Buffer.current.set_visible_mark(forward ? match_beginning(0) :
+                                          match_end(0))
+        end
         goto_char(forward ? match_end(0) : match_beginning(0))
       else
         if Buffer.current != Buffer.minibuffer
