@@ -10,7 +10,7 @@ module Textbringer
 
     attr_accessor :mode, :keymap
     attr_reader :name, :file_name, :file_encoding, :file_format, :point, :marks
-    attr_reader :current_line, :current_column, :visible_mark
+    attr_reader :current_line, :current_column, :visible_mark, :mark_active
     attr_reader :last_match
     attr_reader :input_method
 
@@ -254,6 +254,7 @@ module Textbringer
       @save_point_level = 0
       @match_offsets = []
       @visible_mark = nil
+      @mark_active = false
       @read_only = read_only
       @callbacks = {}
       @last_match = nil
@@ -947,6 +948,20 @@ module Textbringer
       end
     end
 
+    def activate_mark
+      @mark_active = true
+      set_visible_mark(@mark.location) if @mark
+    end
+
+    def deactivate_mark
+      @mark_active = false
+      delete_visible_mark
+    end
+
+    def mark_active?
+      @mark_active
+    end
+
     def self.region_boundaries(s, e)
       if s > e
         [e, s]
@@ -1295,6 +1310,10 @@ module Textbringer
         @minor_modes.push(mode)
         mode.enable
       end
+    end
+
+    def minor_mode_active?(mode_class)
+      @minor_modes.any? { |mode| mode.instance_of?(mode_class) }
     end
 
     def mode_names

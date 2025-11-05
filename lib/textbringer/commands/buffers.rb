@@ -93,7 +93,12 @@ module Textbringer
 
     define_command(:exchange_point_and_mark,
                    doc: "Exchange the positions of point and mark.") do
-      Buffer.current.exchange_point_and_mark
+      buffer = Buffer.current
+      buffer.exchange_point_and_mark
+      # Activate mark if transient mark mode is enabled
+      if buffer.minor_mode_active?(TransientMarkMode)
+        buffer.activate_mark
+      end
     end
 
     define_command(:copy_region,
@@ -147,6 +152,10 @@ module Textbringer
         buffer.pop_to_mark
       else
         buffer.push_mark
+        # Activate mark if transient mark mode is enabled
+        if buffer.minor_mode_active?(TransientMarkMode)
+          buffer.activate_mark
+        end
         message("Mark set")
       end
     end
