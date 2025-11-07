@@ -35,13 +35,26 @@ module Textbringer
       child.command_name = command
 
       # Define the toggle command
-      define_command(command) do
-        if child.enabled?
-          child.disable
-          child.enabled = false
-        else
+      define_command(command, doc: "Enable or disable #{command_name}.  " \
+                     "Toggle the mode if arg is nil.  " \
+                     "Enable the mode if arg is true.  " \
+                     "Disable the mode if arg is false") do |arg = nil|
+        enable =
+          case arg
+          when true, false
+            return if child.enabled? == arg
+            arg
+          when nil
+            !child.enabled?
+          else
+            raise ArgumentError, "wrong argument #{arg.inspect} (expected true, false, or nil)"
+          end
+        if enable
           child.enable
           child.enabled = true
+        else
+          child.disable
+          child.enabled = false
         end
       end
     end
