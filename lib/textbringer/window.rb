@@ -417,7 +417,7 @@ module Textbringer
           update_cursor_and_attr(point, cury, curx)
           if attrs = @highlight_off[@buffer.point]
             if @in_region
-              # region内ではcolor以外の属性のみoff (bold, underlineなど)
+              # In region: only turn off non-color attributes (bold, underline, etc.)
               @window.attroff(attrs & ~Curses::A_COLOR)
             else
               @window.attroff(attrs)
@@ -425,7 +425,7 @@ module Textbringer
           end
           if attrs = @highlight_on[@buffer.point]
             if @in_region
-              # region内ではcolor以外の属性のみon (regionの背景色を保持)
+              # In region: only turn on non-color attributes (preserve region background)
               @window.attron(attrs & ~Curses::A_COLOR)
             else
               @window.attron(attrs)
@@ -433,7 +433,7 @@ module Textbringer
           end
           c = @buffer.char_after
           if c == "\n"
-            # region内の場合、行末までregionの背景色で埋める
+            # Fill to end of line with region background if in region
             if @in_region
               remaining = columns - curx
               @window.addstr(" " * remaining) if remaining > 0
@@ -459,7 +459,7 @@ module Textbringer
               if cury == lines - 2
                 break
               else
-                # region内の場合、行末までregionの背景色で埋める
+                # Fill to end of line with region background if in region
                 if @in_region
                   remaining = columns - curx
                   @window.addstr(" " * remaining) if remaining > 0
