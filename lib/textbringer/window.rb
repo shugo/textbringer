@@ -236,6 +236,8 @@ module Textbringer
       @raw_key_buffer = []
       @key_buffer = []
       @cursor = Cursor.new(0, 0)
+      @in_region = false
+      @current_highlight_attrs = 0
     end
 
     def echo_area?
@@ -405,23 +407,44 @@ module Textbringer
         @window.erase
         @window.setpos(0, 0)
         @window.attrset(0)
+        @in_region = false
+        @current_highlight_attrs = 0
         if current? && @buffer.visible_mark &&
            @buffer.point_after_mark?(@buffer.visible_mark)
-          @window.attron(Curses::A_REVERSE)
+          @window.attron(region_attr)
+          @in_region = true
         end
         while !@buffer.end_of_buffer?
           cury = @window.cury
           curx = @window.curx
           update_cursor_and_attr(point, cury, curx)
           if attrs = @highlight_off[@buffer.point]
-            @window.attroff(attrs)
+            if @in_region
+              # In region: only turn off non-color attributes (bold, underline, etc.)
+              @window.attroff(attrs & ~Curses::A_COLOR)
+            else
+              @window.attroff(attrs)
+            end
+            @current_highlight_attrs = 0
           end
           if attrs = @highlight_on[@buffer.point]
-            @window.attron(attrs)
+            if @in_region
+              # In region: only turn on non-color attributes (preserve region background)
+              @window.attron(attrs & ~Curses::A_COLOR)
+            else
+              @window.attron(attrs)
+            end
+            @current_highlight_attrs = attrs
           end
           c = @buffer.char_after
           if c == "\n"
-            @window.clrtoeol
+            # Fill to end of line with region background if in region
+            if @in_region
+              remaining = columns - curx
+              @window.addstr(" " * remaining) if remaining > 0
+            else
+              @window.clrtoeol
+            end
             break if cury == lines - 2   # lines include mode line
             @window.setpos(cury + 1, 0)
             @buffer.forward_char
@@ -441,7 +464,13 @@ module Textbringer
               if cury == lines - 2
                 break
               else
-                @window.clrtoeol
+                # Fill to end of line with region background if in region
+                if @in_region
+                  remaining = columns - curx
+                  @window.addstr(" " * remaining) if remaining > 0
+                else
+                  @window.clrtoeol
+                end
                 @window.setpos(cury + 1, 0)
               end
             end
@@ -451,7 +480,7 @@ module Textbringer
           @buffer.forward_char
         end
         if current? && @buffer.visible_mark
-          @window.attroff(Curses::A_REVERSE)
+          @window.attroff(region_attr)
         end
         @buffer.mark_to_point(@bottom_of_window)
         if @buffer.point_at_mark?(point)
@@ -681,18 +710,30 @@ module Textbringer
         @cursor.x = curx
         if current? && @buffer.visible_mark
           if @buffer.point_after_mark?(@buffer.visible_mark)
-            @window.attroff(Curses::A_REVERSE)
+            @window.attroff(region_attr)
+            @in_region = false
+            # Restore syntax highlighting colors after exiting region
+            if @current_highlight_attrs != 0
+              @window.attron(@current_highlight_attrs)
+            end
           elsif @buffer.point_before_mark?(@buffer.visible_mark)
-            @window.attron(Curses::A_REVERSE)
+            @window.attron(region_attr)
+            @in_region = true
           end
         end
       end
       if current? && @buffer.visible_mark &&
          @buffer.point_at_mark?(@buffer.visible_mark)
         if @buffer.point_after_mark?(point)
-          @window.attroff(Curses::A_REVERSE)
+          @window.attroff(region_attr)
+          @in_region = false
+          # Restore syntax highlighting colors after exiting region
+          if @current_highlight_attrs != 0
+            @window.attron(@current_highlight_attrs)
+          end
         elsif @buffer.point_before_mark?(point)
-          @window.attron(Curses::A_REVERSE)
+          @window.attron(region_attr)
+          @in_region = true
         end
       end
     end
@@ -870,6 +911,10 @@ module Textbringer
         @key_buffer.shift
       end
     end
+
+    def region_attr
+      @@has_colors ? Face[:region].attributes : Curses::A_REVERSE
+    end
   end
 
   class EchoArea < Window
@@ -916,6 +961,9 @@ module Textbringer
           @window.addstr(@buffer.input_method_status)
         end
         @window.setpos(0, 0)
+        @window.attrset(0)
+        @in_region = false
+        @current_highlight_attrs = 0
         if @message
           @window.addstr(escape(@message))
         else
