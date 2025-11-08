@@ -17,8 +17,11 @@ module Textbringer
         }
       command = command_name.intern
       child.command_name = command
-      define_command(command) do
-        Buffer.current.toggle_minor_mode(child)
+      define_command(command, doc: "Enable or disable #{command_name}.  " \
+                     "Toggle the mode if arg is nil.  " \
+                     "Enable the mode if arg is true.  " \
+                     "Disable the mode if arg is false") do |arg = nil|
+        Buffer.current.set_minor_mode(child, arg)
       end
     end
 

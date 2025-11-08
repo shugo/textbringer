@@ -1300,15 +1300,28 @@ module Textbringer
       Utils.run_hooks(mode_class.hook_name)
     end
 
-    def toggle_minor_mode(mode_class)
+    def set_minor_mode(mode_class, arg = nil)
       mode = @minor_modes.find { |mode| mode.instance_of?(mode_class) }
-      if mode
-        mode.disable
-        @minor_modes.delete(mode)
-      else
+      enabled = !!mode
+
+      enable =
+        case arg
+        when true, false
+          return if enabled == arg
+          arg
+        when nil
+          !enabled
+        else
+          raise ArgumentError, "wrong argument #{arg.inspect} (expected true, false, or nil)"
+        end
+
+      if enable
         mode = mode_class.new(self)
         @minor_modes.push(mode)
         mode.enable
+      else
+        mode.disable
+        @minor_modes.delete(mode)
       end
     end
 

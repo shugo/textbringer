@@ -95,12 +95,12 @@ class TestWindow < Textbringer::TestCase
     expected = format("%-#{@columns}s",
                       "-- foo [+][UTF-8/unix] U+29E3D 1,3 (Fundamental)")
     assert_match(expected, @window.mode_line.contents[0])
-    @buffer.toggle_minor_mode(OverwriteMode)
+    @buffer.set_minor_mode(OverwriteMode, true)
     @window.redisplay
     expected = format("%-#{@columns}s",
                       "-- foo [+][UTF-8/unix] U+29E3D 1,3 (Fundamental Ovwrt)")
     assert_match(expected, @window.mode_line.contents[0])
-    @buffer.toggle_minor_mode(OverwriteMode)
+    @buffer.set_minor_mode(OverwriteMode, false)
   end
 
   def test_redisplay_tabs
