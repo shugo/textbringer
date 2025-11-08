@@ -407,7 +407,7 @@ module Textbringer
         @window.attrset(0)
         if current? && @buffer.visible_mark &&
            @buffer.point_after_mark?(@buffer.visible_mark)
-          @window.attron(Curses::A_REVERSE)
+          @window.attron(region_attr)
         end
         while !@buffer.end_of_buffer?
           cury = @window.cury
@@ -451,7 +451,7 @@ module Textbringer
           @buffer.forward_char
         end
         if current? && @buffer.visible_mark
-          @window.attroff(Curses::A_REVERSE)
+          @window.attroff(region_attr)
         end
         @buffer.mark_to_point(@bottom_of_window)
         if @buffer.point_at_mark?(point)
@@ -681,18 +681,18 @@ module Textbringer
         @cursor.x = curx
         if current? && @buffer.visible_mark
           if @buffer.point_after_mark?(@buffer.visible_mark)
-            @window.attroff(Curses::A_REVERSE)
+            @window.attroff(region_attr)
           elsif @buffer.point_before_mark?(@buffer.visible_mark)
-            @window.attron(Curses::A_REVERSE)
+            @window.attron(region_attr)
           end
         end
       end
       if current? && @buffer.visible_mark &&
          @buffer.point_at_mark?(@buffer.visible_mark)
         if @buffer.point_after_mark?(point)
-          @window.attroff(Curses::A_REVERSE)
+          @window.attroff(region_attr)
         elsif @buffer.point_before_mark?(point)
-          @window.attron(Curses::A_REVERSE)
+          @window.attron(region_attr)
         end
       end
     end
@@ -869,6 +869,10 @@ module Textbringer
       else
         @key_buffer.shift
       end
+    end
+
+    def region_attr
+      @@has_colors ? Face[:region].attributes : Curses::A_REVERSE
     end
   end
 
