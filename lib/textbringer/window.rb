@@ -236,6 +236,8 @@ module Textbringer
       @raw_key_buffer = []
       @key_buffer = []
       @cursor = Cursor.new(0, 0)
+      @in_region = false
+      @current_highlight_attrs = 0
     end
 
     def echo_area?
@@ -711,7 +713,7 @@ module Textbringer
             @window.attroff(region_attr)
             @in_region = false
             # Restore syntax highlighting colors after exiting region
-            if @current_highlight_attrs && @current_highlight_attrs != 0
+            if @current_highlight_attrs != 0
               @window.attron(@current_highlight_attrs)
             end
           elsif @buffer.point_before_mark?(@buffer.visible_mark)
@@ -726,7 +728,7 @@ module Textbringer
           @window.attroff(region_attr)
           @in_region = false
           # Restore syntax highlighting colors after exiting region
-          if @current_highlight_attrs && @current_highlight_attrs != 0
+          if @current_highlight_attrs != 0
             @window.attron(@current_highlight_attrs)
           end
         elsif @buffer.point_before_mark?(point)
@@ -959,6 +961,9 @@ module Textbringer
           @window.addstr(@buffer.input_method_status)
         end
         @window.setpos(0, 0)
+        @window.attrset(0)
+        @in_region = false
+        @current_highlight_attrs = 0
         if @message
           @window.addstr(escape(@message))
         else
