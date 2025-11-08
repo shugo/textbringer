@@ -405,19 +405,31 @@ module Textbringer
         @window.erase
         @window.setpos(0, 0)
         @window.attrset(0)
+        @in_region = false
         if current? && @buffer.visible_mark &&
            @buffer.point_after_mark?(@buffer.visible_mark)
           @window.attron(region_attr)
+          @in_region = true
         end
         while !@buffer.end_of_buffer?
           cury = @window.cury
           curx = @window.curx
           update_cursor_and_attr(point, cury, curx)
           if attrs = @highlight_off[@buffer.point]
-            @window.attroff(attrs)
+            if @in_region
+              # region内ではcolor以外の属性のみoff (bold, underlineなど)
+              @window.attroff(attrs & ~Curses::A_COLOR)
+            else
+              @window.attroff(attrs)
+            end
           end
           if attrs = @highlight_on[@buffer.point]
-            @window.attron(attrs)
+            if @in_region
+              # region内ではcolor以外の属性のみon (regionの背景色を保持)
+              @window.attron(attrs & ~Curses::A_COLOR)
+            else
+              @window.attron(attrs)
+            end
           end
           c = @buffer.char_after
           if c == "\n"
@@ -682,8 +694,10 @@ module Textbringer
         if current? && @buffer.visible_mark
           if @buffer.point_after_mark?(@buffer.visible_mark)
             @window.attroff(region_attr)
+            @in_region = false
           elsif @buffer.point_before_mark?(@buffer.visible_mark)
             @window.attron(region_attr)
+            @in_region = true
           end
         end
       end
@@ -691,8 +705,10 @@ module Textbringer
          @buffer.point_at_mark?(@buffer.visible_mark)
         if @buffer.point_after_mark?(point)
           @window.attroff(region_attr)
+          @in_region = false
         elsif @buffer.point_before_mark?(point)
           @window.attron(region_attr)
+          @in_region = true
         end
       end
     end
