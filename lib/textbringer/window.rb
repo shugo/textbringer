@@ -433,7 +433,13 @@ module Textbringer
           end
           c = @buffer.char_after
           if c == "\n"
-            @window.clrtoeol
+            # region内の場合、行末までregionの背景色で埋める
+            if @in_region
+              remaining = columns - curx
+              @window.addstr(" " * remaining) if remaining > 0
+            else
+              @window.clrtoeol
+            end
             break if cury == lines - 2   # lines include mode line
             @window.setpos(cury + 1, 0)
             @buffer.forward_char
@@ -453,7 +459,13 @@ module Textbringer
               if cury == lines - 2
                 break
               else
-                @window.clrtoeol
+                # region内の場合、行末までregionの背景色で埋める
+                if @in_region
+                  remaining = columns - curx
+                  @window.addstr(" " * remaining) if remaining > 0
+                else
+                  @window.clrtoeol
+                end
                 @window.setpos(cury + 1, 0)
               end
             end
