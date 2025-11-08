@@ -406,6 +406,7 @@ module Textbringer
         @window.setpos(0, 0)
         @window.attrset(0)
         @in_region = false
+        @current_highlight_attrs = 0
         if current? && @buffer.visible_mark &&
            @buffer.point_after_mark?(@buffer.visible_mark)
           @window.attron(region_attr)
@@ -422,6 +423,7 @@ module Textbringer
             else
               @window.attroff(attrs)
             end
+            @current_highlight_attrs = 0
           end
           if attrs = @highlight_on[@buffer.point]
             if @in_region
@@ -430,6 +432,7 @@ module Textbringer
             else
               @window.attron(attrs)
             end
+            @current_highlight_attrs = attrs
           end
           c = @buffer.char_after
           if c == "\n"
@@ -707,6 +710,10 @@ module Textbringer
           if @buffer.point_after_mark?(@buffer.visible_mark)
             @window.attroff(region_attr)
             @in_region = false
+            # Restore syntax highlighting colors after exiting region
+            if @current_highlight_attrs && @current_highlight_attrs != 0
+              @window.attron(@current_highlight_attrs)
+            end
           elsif @buffer.point_before_mark?(@buffer.visible_mark)
             @window.attron(region_attr)
             @in_region = true
@@ -718,6 +725,10 @@ module Textbringer
         if @buffer.point_after_mark?(point)
           @window.attroff(region_attr)
           @in_region = false
+          # Restore syntax highlighting colors after exiting region
+          if @current_highlight_attrs && @current_highlight_attrs != 0
+            @window.attron(@current_highlight_attrs)
+          end
         elsif @buffer.point_before_mark?(point)
           @window.attron(region_attr)
           @in_region = true
