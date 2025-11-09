@@ -174,4 +174,51 @@ EOF
     isearch_forward(recursive_edit: true)
     assert_instance_of(TCodeInputMethod, buffer.input_method)
   end
+
+  def test_isearch_mark_set_and_cleanup
+    buffer = Buffer.current
+    buffer.insert(<<EOF)
+foo
+bar
+baz
+EOF
+    buffer.beginning_of_buffer
+
+    # isearch_mark should not be set initially
+    assert_nil(buffer.isearch_mark)
+
+    # Start isearch and search for "bar"
+    push_keys("bar\n")
+    isearch_forward(recursive_edit: true)
+
+    # After search completes, isearch_mark should be cleaned up
+    assert_nil(buffer.isearch_mark)
+  end
+
+  def test_isearch_mark_independent_from_visible_mark
+    buffer = Buffer.current
+    buffer.insert(<<EOF)
+foo bar baz
+quux bar quuz
+EOF
+    buffer.beginning_of_buffer
+
+    # Set a region (visible_mark)
+    set_mark_command
+    buffer.forward_char(5)
+    buffer.activate_mark
+    assert_not_nil(buffer.visible_mark)
+    visible_mark_pos = buffer.visible_mark.location
+
+    # Now do an isearch - should not interfere with visible_mark
+    push_keys("bar\n")
+    isearch_forward(recursive_edit: true)
+
+    # After isearch exits, visible_mark should still be there
+    assert_not_nil(buffer.visible_mark)
+    assert_equal(visible_mark_pos, buffer.visible_mark.location)
+
+    # isearch_mark should be cleaned up
+    assert_nil(buffer.isearch_mark)
+  end
 end

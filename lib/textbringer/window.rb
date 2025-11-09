@@ -408,11 +408,23 @@ module Textbringer
         @window.setpos(0, 0)
         @window.attrset(0)
         @in_region = false
+        @in_isearch = false
         @current_highlight_attrs = 0
         if current? && @buffer.visible_mark &&
            @buffer.point_after_mark?(@buffer.visible_mark)
           @window.attron(region_attr)
           @in_region = true
+        end
+        if current? && @buffer.isearch_mark &&
+           @buffer.point_after_mark?(@buffer.isearch_mark)
+          # If already in region, switch to isearch (priority)
+          if @in_region
+            @window.attroff(region_attr)
+            @window.attron(isearch_attr)
+          else
+            @window.attron(isearch_attr)
+          end
+          @in_isearch = true
         end
         while !@buffer.end_of_buffer?
           cury = @window.cury
@@ -478,6 +490,9 @@ module Textbringer
           @window.addstr(s)
           break if newx == columns && cury == lines - 2
           @buffer.forward_char
+        end
+        if current? && @buffer.isearch_mark
+          @window.attroff(isearch_attr)
         end
         if current? && @buffer.visible_mark
           @window.attroff(region_attr)
@@ -708,7 +723,28 @@ module Textbringer
       if @buffer.point_at_mark?(point)
         @cursor.y = cury
         @cursor.x = curx
-        if current? && @buffer.visible_mark
+        # Handle isearch mark transitions
+        if current? && @buffer.isearch_mark
+          if @buffer.point_after_mark?(@buffer.isearch_mark)
+            @window.attroff(isearch_attr)
+            @in_isearch = false
+            # If we were covering a region, restore it
+            if @in_region
+              @window.attron(region_attr)
+            elsif @current_highlight_attrs != 0
+              @window.attron(@current_highlight_attrs)
+            end
+          elsif @buffer.point_before_mark?(@buffer.isearch_mark)
+            # Entering isearch - turn off region if active
+            if @in_region
+              @window.attroff(region_attr)
+            end
+            @window.attron(isearch_attr)
+            @in_isearch = true
+          end
+        end
+        # Handle visible mark transitions (only if not in isearch)
+        if current? && @buffer.visible_mark && !@in_isearch
           if @buffer.point_after_mark?(@buffer.visible_mark)
             @window.attroff(region_attr)
             @in_region = false
@@ -722,8 +758,30 @@ module Textbringer
           end
         end
       end
+      # Handle transitions when point crosses isearch mark
+      if current? && @buffer.isearch_mark &&
+         @buffer.point_at_mark?(@buffer.isearch_mark)
+        if @buffer.point_after_mark?(point)
+          @window.attroff(isearch_attr)
+          @in_isearch = false
+          # If we have a region underneath, restore it
+          if @in_region
+            @window.attron(region_attr)
+          elsif @current_highlight_attrs != 0
+            @window.attron(@current_highlight_attrs)
+          end
+        elsif @buffer.point_before_mark?(point)
+          # Entering isearch - turn off region if active
+          if @in_region
+            @window.attroff(region_attr)
+          end
+          @window.attron(isearch_attr)
+          @in_isearch = true
+        end
+      end
+      # Handle transitions when point crosses visible mark (only if not in isearch)
       if current? && @buffer.visible_mark &&
-         @buffer.point_at_mark?(@buffer.visible_mark)
+         @buffer.point_at_mark?(@buffer.visible_mark) && !@in_isearch
         if @buffer.point_after_mark?(point)
           @window.attroff(region_attr)
           @in_region = false
@@ -914,6 +972,10 @@ module Textbringer
 
     def region_attr
       @@has_colors ? Face[:region].attributes : Curses::A_REVERSE
+    end
+
+    def isearch_attr
+      @@has_colors ? Face[:isearch].attributes : Curses::A_UNDERLINE
     end
   end
 

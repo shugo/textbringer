@@ -10,7 +10,7 @@ module Textbringer
 
     attr_accessor :mode, :keymap
     attr_reader :name, :file_name, :file_encoding, :file_format, :point, :marks
-    attr_reader :current_line, :current_column, :visible_mark, :mark_active
+    attr_reader :current_line, :current_column, :visible_mark, :isearch_mark, :mark_active
     attr_reader :last_match
     attr_reader :input_method
 
@@ -254,6 +254,7 @@ module Textbringer
       @save_point_level = 0
       @match_offsets = []
       @visible_mark = nil
+      @isearch_mark = nil
       @mark_active = false
       @read_only = read_only
       @callbacks = {}
@@ -945,6 +946,18 @@ module Textbringer
       if @visible_mark
         @visible_mark.delete
         @visible_mark = nil
+      end
+    end
+
+    def set_isearch_mark(pos = @point)
+      @isearch_mark ||= new_mark
+      @isearch_mark.location = pos
+    end
+
+    def delete_isearch_mark
+      if @isearch_mark
+        @isearch_mark.delete
+        @isearch_mark = nil
       end
     end
 

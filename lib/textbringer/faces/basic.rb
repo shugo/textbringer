@@ -3,4 +3,5 @@ module Textbringer
   Face.define :link, foreground: "blue", bold: true
   Face.define :control
   Face.define :region, background: "blue"
+  Face.define :isearch, background: "yellow", foreground: "black"
 end
