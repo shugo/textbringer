@@ -410,35 +410,23 @@ module Textbringer
         @in_region = false
         @in_isearch = false
         @current_highlight_attrs = 0
-        # Determine if we should start with region highlighting
-        # Only turn on if rendering position is within the region [min(point,mark), max(point,mark)]
-        if current? && @buffer.visible_mark
-          mark_pos = @buffer.visible_mark.location
-          cursor_pos = point
-          render_pos = @buffer.point
-          if (render_pos >= [cursor_pos, mark_pos].min &&
-              render_pos < [cursor_pos, mark_pos].max)
-            @window.attron(region_attr)
-            @in_region = true
-          end
+        if current? && @buffer.visible_mark &&
+           (@buffer.point_after_mark?(@buffer.visible_mark) ||
+            @buffer.point_before_mark?(@buffer.visible_mark))
+          @window.attron(region_attr)
+          @in_region = true
         end
-        # Determine if we should start with isearch highlighting
-        # Only turn on if rendering position is within [min(point,isearch_mark), max(point,isearch_mark)]
-        if current? && @buffer.isearch_mark
-          mark_pos = @buffer.isearch_mark.location
-          cursor_pos = point
-          render_pos = @buffer.point
-          if (render_pos >= [cursor_pos, mark_pos].min &&
-              render_pos < [cursor_pos, mark_pos].max)
-            # If already in region, switch to isearch (priority)
-            if @in_region
-              @window.attroff(region_attr)
-              @window.attron(isearch_attr)
-            else
-              @window.attron(isearch_attr)
-            end
-            @in_isearch = true
+        if current? && @buffer.isearch_mark &&
+           (@buffer.point_after_mark?(@buffer.isearch_mark) ||
+            @buffer.point_before_mark?(@buffer.isearch_mark))
+          # If already in region, switch to isearch (priority)
+          if @in_region
+            @window.attroff(region_attr)
+            @window.attron(isearch_attr)
+          else
+            @window.attron(isearch_attr)
           end
+          @in_isearch = true
         end
         while !@buffer.end_of_buffer?
           cury = @window.cury
