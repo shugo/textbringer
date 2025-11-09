@@ -414,7 +414,7 @@ module Textbringer
         # Only turn on if rendering position is within the region [min(point,mark), max(point,mark)]
         if current? && @buffer.visible_mark
           mark_pos = @buffer.visible_mark.location
-          cursor_pos = point
+          cursor_pos = point.location
           render_pos = @buffer.point
           if (render_pos >= [cursor_pos, mark_pos].min &&
               render_pos < [cursor_pos, mark_pos].max)
@@ -426,7 +426,7 @@ module Textbringer
         # Only turn on if rendering position is within [min(point,isearch_mark), max(point,isearch_mark)]
         if current? && @buffer.isearch_mark
           mark_pos = @buffer.isearch_mark.location
-          cursor_pos = point
+          cursor_pos = point.location
           render_pos = @buffer.point
           if (render_pos >= [cursor_pos, mark_pos].min &&
               render_pos < [cursor_pos, mark_pos].max)
