@@ -411,14 +411,12 @@ module Textbringer
         @in_isearch = false
         @current_highlight_attrs = 0
         if current? && @buffer.visible_mark &&
-           (@buffer.point_after_mark?(@buffer.visible_mark) ||
-            @buffer.point_before_mark?(@buffer.visible_mark))
+           @buffer.point_after_mark?(@buffer.visible_mark)
           @window.attron(region_attr)
           @in_region = true
         end
         if current? && @buffer.isearch_mark &&
-           (@buffer.point_after_mark?(@buffer.isearch_mark) ||
-            @buffer.point_before_mark?(@buffer.isearch_mark))
+           @buffer.point_after_mark?(@buffer.isearch_mark)
           # If already in region, switch to isearch (priority)
           if @in_region
             @window.attroff(region_attr)
