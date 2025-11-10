@@ -91,7 +91,7 @@ module Textbringer
     end
 
     define_command(:isearch_abort, doc: "Abort incremental search.") do
-      goto_char(Buffer.current[:isearch_start])
+      goto_char(ISEARCH_STATUS[:start])
       isearch_done
       raise Quit
     end
