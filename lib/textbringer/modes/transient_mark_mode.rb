@@ -30,8 +30,8 @@ module Textbringer
       :isearch_printing_char,
       :isearch_delete_char,
       :isearch_yank_word_or_char,
-      :isearch_exit,
       :isearch_quoted_insert,
+      :isearch_exit,
       # Undo/redo
       :undo,
       :redo_command,
