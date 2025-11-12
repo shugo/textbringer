@@ -96,7 +96,8 @@ module Textbringer
       buffer = Buffer.current
       buffer.exchange_point_and_mark
       # Activate mark if transient mark mode is enabled
-      if TransientMarkMode.enabled?
+      if TransientMarkMode.enabled? &&
+          Controller.current.this_command == :exchange_point_and_mark
         buffer.activate_mark
       end
     end
@@ -153,7 +154,8 @@ module Textbringer
       else
         buffer.push_mark
         # Activate mark if transient mark mode is enabled
-        if TransientMarkMode.enabled?
+        if TransientMarkMode.enabled? &&
+            Controller.current.this_command == :set_mark_command
           buffer.activate_mark
         end
         message("Mark set")
