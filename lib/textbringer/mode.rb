@@ -24,7 +24,9 @@ module Textbringer
 
     def self.define_generic_command(name, **options)
       command_name = (name.to_s + "_command").intern
-      define_command(command_name, **options) do |*args|
+      define_command(command_name,
+                     source_location_proc: -> { Buffer.current.mode.method(name).source_location rescue nil },
+                     **options) do |*args|
         begin
           Buffer.current.mode.send(name, *args)
         rescue NoMethodError => e

@@ -2,7 +2,11 @@ require "open3"
 require "io/wait"
 
 module Textbringer
-  Command = Struct.new(:name, :block, :doc)
+  class Command < Data.define(:name, :block, :doc, :source_location_proc)
+    def source_location
+      source_location_proc&.call || block.source_location
+    end
+  end
 
   module Commands
     include Utils
@@ -21,11 +25,11 @@ module Textbringer
       @command_table[name.intern]
     end
 
-    def define_command(name, doc: "No documentation", &block)
+    def define_command(name, doc: "No documentation", source_location_proc: nil, &block)
       name = name.intern
       Commands.send(:define_method, name, &block)
       Commands.send(:module_function, name)
-      Commands.command_table[name] = Command.new(name, block, doc)
+      Commands.command_table[name] = Command.new(name, block, doc, source_location_proc)
       name
     end
     module_function :define_command
