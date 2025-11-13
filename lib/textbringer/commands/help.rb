@@ -65,7 +65,7 @@ module Textbringer
     end
 
     def command_help(cmd)
-      file, line = *cmd.block.source_location
+      file, line = *cmd.source_location
       s = format("%s:%d\n", file, line)
       s << "-" * (Window.columns - 2) + "\n"
       s << "#{cmd.name}"
