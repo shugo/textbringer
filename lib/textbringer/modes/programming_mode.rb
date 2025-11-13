@@ -3,14 +3,23 @@ module Textbringer
     # abstract mode
     undefine_command(:programming_mode)
 
-    define_generic_command :indent_line
-    define_generic_command :reindent_then_newline_and_indent
-    define_generic_command :indent_region
-    define_generic_command :forward_definition
-    define_generic_command :backward_definition
-    define_generic_command :compile
-    define_generic_command :toggle_test
-    define_generic_command :indent_new_comment_line
+    define_generic_command :indent_line,
+      doc: "Indent the current line."
+    define_generic_command :reindent_then_newline_and_indent,
+      doc: "Reindent the current line, insert a new line, then indent the new line."
+    define_generic_command :indent_region,
+      doc: "Indent the region."
+    define_generic_command :forward_definition,
+      doc: "Go to the next definition of a class, method etc."
+    define_generic_command :backward_definition,
+      doc: "Go to the preivous definition of a class, method etc."
+    define_generic_command :compile,
+      doc: "Compile the program including the current buffer."
+    define_generic_command :toggle_test,
+      doc: "Open the test file corresponding to the current buffer.  " \
+           "If the current buffer is a test file, open the file of the code under test."
+    define_generic_command :indent_new_comment_line,
+      doc: "Break line at point and indent, continuing comment if within one."
 
     define_keymap :PROGRAMMING_MODE_MAP
     PROGRAMMING_MODE_MAP.define_key("\t", :indent_line_command)
