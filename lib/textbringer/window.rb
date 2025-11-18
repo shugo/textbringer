@@ -20,6 +20,7 @@ module Textbringer
     @@started = false
     @@list = []
     @@current = nil
+    @@minibuffer_selected = nil
     @@echo_area = nil
     @@has_colors = false
 
@@ -43,6 +44,18 @@ module Textbringer
       @@current = window
       @@current.restore_point
       Buffer.current = window.buffer
+    end
+
+    class << self
+      alias selected current
+    end
+
+    def self.minibuffer_selected
+      @@minibuffer_selected
+    end
+
+    def self.minibuffer_selected=(window)
+      @@minibuffer_selected = window
     end
 
     def self.delete_window(target = @@current)
@@ -298,6 +311,10 @@ module Textbringer
       self == @@current
     end
 
+    def current_or_minibuffer_selected?
+      self == @@current || self == @@minibuffer_selected
+    end
+
     def read_event
       key = get_char
       if key.is_a?(Integer)
@@ -411,12 +428,12 @@ module Textbringer
         @in_region = false
         @in_isearch = false
         @current_highlight_attrs = 0
-        if current? && @buffer.visible_mark &&
+        if current_or_minibuffer_selected? && @buffer.visible_mark &&
            @buffer.point_after_mark?(@buffer.visible_mark)
           @window.attron(region_attr)
           @in_region = true
         end
-        if current? && @buffer.isearch_mark &&
+        if current_or_minibuffer_selected? && @buffer.isearch_mark &&
            @buffer.point_after_mark?(@buffer.isearch_mark)
           # If already in region, switch to isearch (priority)
           if @in_region
@@ -490,10 +507,10 @@ module Textbringer
           break if newx == columns && cury == lines - 2
           @buffer.forward_char
         end
-        if current? && @buffer.isearch_mark
+        if current_or_minibuffer_selected? && @buffer.isearch_mark
           @window.attroff(isearch_attr)
         end
-        if current? && @buffer.visible_mark
+        if current_or_minibuffer_selected? && @buffer.visible_mark
           @window.attroff(region_attr)
         end
         @buffer.mark_to_point(@bottom_of_window)
@@ -723,7 +740,7 @@ module Textbringer
         @cursor.y = cury
         @cursor.x = curx
         # Handle visible mark transitions
-        if current? && @buffer.visible_mark
+        if current_or_minibuffer_selected? && @buffer.visible_mark
           if @buffer.point_after_mark?(@buffer.visible_mark)
             unless @in_isearch
               @window.attroff(region_attr)
@@ -741,7 +758,7 @@ module Textbringer
           end
         end
         # Handle isearch mark transitions
-        if current? && @buffer.isearch_mark
+        if current_or_minibuffer_selected? && @buffer.isearch_mark
           if @buffer.point_after_mark?(@buffer.isearch_mark)
             @window.attroff(isearch_attr)
             @in_isearch = false
@@ -762,7 +779,7 @@ module Textbringer
         end
       end
       # Handle transitions when point crosses isearch mark
-      if current? && @buffer.isearch_mark &&
+      if current_or_minibuffer_selected? && @buffer.isearch_mark &&
          @buffer.point_at_mark?(@buffer.isearch_mark)
         if @buffer.point_after_mark?(point)
           @window.attroff(isearch_attr)
@@ -783,7 +800,7 @@ module Textbringer
         end
       end
       # Handle transitions when point crosses visible mark
-      if current? && @buffer.visible_mark &&
+      if current_or_minibuffer_selected? && @buffer.visible_mark &&
           @buffer.point_at_mark?(@buffer.visible_mark)
         if @buffer.point_after_mark?(point)
           unless @in_isearch

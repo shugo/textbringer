@@ -40,8 +40,11 @@ module Textbringer
       :goto_char,
       :recenter,
       :move_to_beginning_of_line,
-      :move_to_end_of_line
-    ].to_set.freeze
+      :move_to_end_of_line,
+      # Other commands
+      :execute_command,
+      :eval_expression
+    ].to_set
 
     # Hook to deactivate mark before most commands
     PRE_COMMAND_HOOK = -> {
