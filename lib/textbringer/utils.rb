@@ -145,7 +145,8 @@ module Textbringer
           "Command attempted to use minibuffer while in minibuffer"
       end
       old_buffer = Buffer.current
-      old_window = Window.current
+      old_minibuffer_selected = Window.minibuffer_selected
+      Window.minibuffer_selected = Window.current
       old_completion_proc = Buffer.minibuffer[:completion_proc]
       old_completion_ignore_case = Buffer.minibuffer[:completion_ignore_case]
       old_current_prefix_arg = Controller.current.current_prefix_arg
@@ -176,10 +177,11 @@ module Textbringer
         Window.echo_area.redisplay
         Window.update
         Window.echo_area.active = false
-        Window.current = old_window
+        Window.current = Window.minibuffer_selected
         # Just in case old_window has been deleted by resize,
         # in which case Window.current is set to the first window.
         Window.current.buffer = Buffer.current = old_buffer
+        Window.minibuffer_selected = old_minibuffer_selected
         Buffer.minibuffer[:completion_ignore_case] = old_completion_ignore_case
         Buffer.minibuffer[:completion_proc] = old_completion_proc
         Buffer.minibuffer.keymap = old_minibuffer_map
