@@ -178,7 +178,7 @@ module Textbringer
         Window.update
         Window.echo_area.active = false
         Window.current = Window.minibuffer_selected
-        # Just in case old_window has been deleted by resize,
+        # Just in case Window.minibuffer_selected has been deleted by resize,
         # in which case Window.current is set to the first window.
         Window.current.buffer = Buffer.current = old_buffer
         Window.minibuffer_selected = old_minibuffer_selected
