@@ -979,4 +979,112 @@ EOF
       CONFIG[:ruby_lsp_enabled] = old_enabled
     end
   end
+
+  # Tests for completion prefix extraction with different prefix lengths
+  # These tests verify the fix for the issue where "".su yields no completion
+  # while "".s yields completions
+  def test_get_completion_prefix_after_dot_with_single_char
+    @buffer.clear
+    @buffer.insert('"".s')
+    prefix = @ruby_mode.send(:get_completion_prefix)
+    assert_equal("s", prefix)
+  end
+
+  def test_get_completion_prefix_after_dot_with_two_chars
+    @buffer.clear
+    @buffer.insert('"".su')
+    prefix = @ruby_mode.send(:get_completion_prefix)
+    assert_equal("su", prefix)
+  end
+
+  def test_get_completion_prefix_after_dot_with_three_chars
+    @buffer.clear
+    @buffer.insert('"".sub')
+    prefix = @ruby_mode.send(:get_completion_prefix)
+    assert_equal("sub", prefix)
+  end
+
+  def test_get_completion_prefix_after_dot_with_longer_prefix
+    @buffer.clear
+    @buffer.insert('"".start_wi')
+    prefix = @ruby_mode.send(:get_completion_prefix)
+    assert_equal("start_wi", prefix)
+  end
+
+  def test_get_completion_prefix_method_chain_with_prefix
+    @buffer.clear
+    @buffer.insert('[1, 2, 3].map(&:to_s).jo')
+    prefix = @ruby_mode.send(:get_completion_prefix)
+    assert_equal("jo", prefix)
+  end
+
+  def test_get_completion_prefix_after_double_colon
+    @buffer.clear
+    @buffer.insert('String::EN')
+    prefix = @ruby_mode.send(:get_completion_prefix)
+    assert_equal("EN", prefix)
+  end
+
+  def test_get_completion_prefix_instance_variable_with_prefix
+    @buffer.clear
+    @buffer.insert('@user_na')
+    prefix = @ruby_mode.send(:get_completion_prefix)
+    assert_equal("@user_na", prefix)
+  end
+
+  def test_get_completion_prefix_class_variable_with_prefix
+    @buffer.clear
+    @buffer.insert('@@class_va')
+    prefix = @ruby_mode.send(:get_completion_prefix)
+    assert_equal("@@class_va", prefix)
+  end
+
+  def test_get_completion_prefix_symbol_with_prefix
+    @buffer.clear
+    @buffer.insert(':my_sym')
+    prefix = @ruby_mode.send(:get_completion_prefix)
+    assert_equal("my_sym", prefix)
+  end
+
+  def test_get_completion_prefix_after_parenthesis
+    @buffer.clear
+    @buffer.insert('puts(mes')
+    prefix = @ruby_mode.send(:get_completion_prefix)
+    assert_equal("mes", prefix)
+  end
+
+  def test_get_completion_prefix_after_bracket
+    @buffer.clear
+    @buffer.insert('hash[:ke')
+    prefix = @ruby_mode.send(:get_completion_prefix)
+    assert_equal("ke", prefix)
+  end
+
+  def test_get_completion_prefix_with_question_mark
+    @buffer.clear
+    @buffer.insert('empty?')
+    prefix = @ruby_mode.send(:get_completion_prefix)
+    assert_equal("empty?", prefix)
+  end
+
+  def test_get_completion_prefix_with_exclamation_mark
+    @buffer.clear
+    @buffer.insert('reverse!')
+    prefix = @ruby_mode.send(:get_completion_prefix)
+    assert_equal("reverse!", prefix)
+  end
+
+  def test_get_completion_prefix_immediately_after_dot
+    @buffer.clear
+    @buffer.insert('"".')
+    prefix = @ruby_mode.send(:get_completion_prefix)
+    assert_equal("", prefix)
+  end
+
+  def test_get_completion_prefix_with_numbers
+    @buffer.clear
+    @buffer.insert('utf8')
+    prefix = @ruby_mode.send(:get_completion_prefix)
+    assert_equal("utf8", prefix)
+  end
 end

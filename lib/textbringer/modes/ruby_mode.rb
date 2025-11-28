@@ -193,17 +193,25 @@ module Textbringer
       end
 
       begin
-        # Get completions from LSP
-        client = RubyLSPClient.instance
-        completions = client.get_completions(@buffer)
+        # Get the prefix being completed first
+        prefix = get_completion_prefix
+
+        # Get completions from LSP at the start of the prefix
+        # We need to move cursor back to start of prefix before calling LSP
+        completions = @buffer.save_excursion do
+          # Move back to the start of the prefix
+          if prefix && !prefix.empty?
+            prefix.length.times { @buffer.backward_char }
+          end
+
+          client = RubyLSPClient.instance
+          client.get_completions(@buffer)
+        end
 
         if completions.empty?
           message("No completions found")
           return
         end
-
-        # Get the prefix being completed
-        prefix = get_completion_prefix
 
         # Filter completions by prefix if we have one
         if prefix && !prefix.empty?
