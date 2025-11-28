@@ -85,6 +85,9 @@ module Textbringer
       )
     /x
 
+    define_keymap :RUBY_MODE_MAP
+    RUBY_MODE_MAP.define_key("\e\t", :complete_symbol_command)
+
     def comment_start
       "#"
     end
@@ -93,6 +96,9 @@ module Textbringer
       super(buffer)
       @buffer[:indent_level] = CONFIG[:ruby_indent_level]
       @buffer[:indent_tabs_mode] = CONFIG[:ruby_indent_tabs_mode]
+      if CONFIG[:ruby_lsp_enabled]
+        buffer.keymap = RUBY_MODE_MAP
+      end
     end
 
     def forward_definition(n = number_prefix_arg || 1)
@@ -172,6 +178,80 @@ module Textbringer
         find_file(path)
       else
         raise EditorError, "Unknown file type"
+      end
+    end
+
+    # Complete symbol at point using LSP
+    define_local_command(:complete_symbol,
+                        doc: "Complete symbol at point using ruby-lsp") do
+      unless CONFIG[:ruby_lsp_enabled]
+        raise EditorError, "Ruby LSP completion is disabled. Set CONFIG[:ruby_lsp_enabled] = true"
+      end
+
+      unless RubyLSPClient.available?
+        raise EditorError, "ruby-lsp not found. Install with: gem install ruby-lsp"
+      end
+
+      begin
+        # Get completions from LSP
+        client = RubyLSPClient.instance
+        completions = client.get_completions(@buffer)
+
+        if completions.empty?
+          message("No completions found")
+          return
+        end
+
+        # Get the prefix being completed
+        prefix = get_completion_prefix
+
+        # Filter completions by prefix if we have one
+        if prefix && !prefix.empty?
+          completions = completions.select { |c|
+            c[:label].start_with?(prefix)
+          }
+        end
+
+        if completions.empty?
+          message("No completions matching '#{prefix}'")
+          return
+        end
+
+        # If only one completion, insert it directly
+        if completions.size == 1
+          insert_completion(completions.first, prefix)
+          message("Completed to: #{completions.first[:label]}")
+        else
+          # Multiple completions - show in completion list
+          show_completions(completions, prefix)
+        end
+      rescue => e
+        message("Completion failed: #{e.message}")
+      end
+    end
+
+    # Get hover documentation at point using LSP
+    define_local_command(:show_doc,
+                        doc: "Show documentation at point using ruby-lsp") do
+      unless CONFIG[:ruby_lsp_enabled]
+        raise EditorError, "Ruby LSP is disabled"
+      end
+
+      unless RubyLSPClient.available?
+        raise EditorError, "ruby-lsp not found"
+      end
+
+      begin
+        client = RubyLSPClient.instance
+        hover_text = client.get_hover(@buffer)
+
+        if hover_text && !hover_text.empty?
+          message(hover_text.lines.first.chomp)
+        else
+          message("No documentation available")
+        end
+      rescue => e
+        message("Failed to get documentation: #{e.message}")
       end
     end
 
@@ -365,6 +445,80 @@ module Textbringer
       ts[0][1] == :on_op && ts[0][2] == "="
     rescue NoMethodError # no token
       return false
+    end
+
+    # Get the prefix of the symbol being completed
+    def get_completion_prefix
+      @buffer.save_excursion do
+        start_pos = @buffer.point
+
+        # Move backward while we're in a symbol
+        while !@buffer.beginning_of_buffer? &&
+              @buffer.char_before =~ symbol_pattern
+          @buffer.backward_char
+        end
+
+        prefix_start = @buffer.point
+        prefix = @buffer.substring(prefix_start, start_pos)
+
+        prefix
+      end
+    end
+
+    # Insert a completion, replacing the prefix
+    def insert_completion(completion, prefix)
+      if prefix && !prefix.empty?
+        # Delete the prefix
+        prefix.length.times { @buffer.delete_char(-1) }
+      end
+
+      # Insert the completion text
+      text = completion[:insert_text] || completion[:label]
+      @buffer.insert(text)
+    end
+
+    # Show completions in the *Completions* buffer
+    def show_completions(completions, prefix)
+      # Extract just the labels
+      labels = completions.map { |c| c[:label] }
+
+      # Find common prefix among all completions
+      common = find_common_prefix(labels)
+
+      # If there's a common prefix longer than what we have, insert it
+      if common.length > (prefix ? prefix.length : 0)
+        if prefix && !prefix.empty?
+          additional = common[prefix.length..-1]
+          @buffer.insert(additional) if additional
+        else
+          @buffer.insert(common)
+        end
+      end
+
+      # Update the completion list
+      update_completions(labels)
+
+      message("#{completions.size} completions")
+    end
+
+    # Find common prefix among strings
+    def find_common_prefix(strings)
+      return "" if strings.empty?
+      return strings.first if strings.size == 1
+
+      min_length = strings.map(&:length).min
+      common_length = 0
+
+      min_length.times do |i|
+        char = strings.first[i]
+        if strings.all? { |s| s[i] == char }
+          common_length = i + 1
+        else
+          break
+        end
+      end
+
+      strings.first[0...common_length]
     end
 
     def find_test_target_path(base, namespace, name)

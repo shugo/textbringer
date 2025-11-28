@@ -832,4 +832,151 @@ EOF
   ### 
 EOF
   end
+
+  # LSP completion tests
+
+  def test_get_completion_prefix
+    @buffer.insert("hello_world")
+    prefix = @ruby_mode.send(:get_completion_prefix)
+    assert_equal("hello_world", prefix)
+
+    @buffer.clear
+    @buffer.insert("def foo\n  arr.ma")
+    prefix = @ruby_mode.send(:get_completion_prefix)
+    assert_equal("ma", prefix)
+
+    @buffer.clear
+    @buffer.insert('"hello".up')
+    prefix = @ruby_mode.send(:get_completion_prefix)
+    assert_equal("up", prefix)
+
+    @buffer.clear
+    @buffer.insert("Array.ne")
+    prefix = @ruby_mode.send(:get_completion_prefix)
+    assert_equal("ne", prefix)
+
+    @buffer.clear
+    @buffer.insert("@instance_var")
+    prefix = @ruby_mode.send(:get_completion_prefix)
+    assert_equal("@instance_var", prefix)
+
+    @buffer.clear
+    @buffer.insert("   ")
+    prefix = @ruby_mode.send(:get_completion_prefix)
+    assert_equal("", prefix)
+  end
+
+  def test_find_common_prefix
+    # All same prefix
+    common = @ruby_mode.send(:find_common_prefix, ["upcase", "upcase!", "upcase?"])
+    assert_equal("upcase", common)
+
+    # Partial prefix
+    common = @ruby_mode.send(:find_common_prefix, ["map", "max", "min"])
+    assert_equal("m", common)
+
+    # No common prefix
+    common = @ruby_mode.send(:find_common_prefix, ["select", "map", "each"])
+    assert_equal("", common)
+
+    # Single element
+    common = @ruby_mode.send(:find_common_prefix, ["test"])
+    assert_equal("test", common)
+
+    # Empty array
+    common = @ruby_mode.send(:find_common_prefix, [])
+    assert_equal("", common)
+
+    # Two elements with common prefix
+    common = @ruby_mode.send(:find_common_prefix, ["string", "strip"])
+    assert_equal("stri", common)
+
+    # Case sensitive
+    common = @ruby_mode.send(:find_common_prefix, ["Array", "array"])
+    assert_equal("", common)
+  end
+
+  def test_complete_symbol_disabled
+    old_enabled = CONFIG[:ruby_lsp_enabled]
+    begin
+      CONFIG[:ruby_lsp_enabled] = false
+      assert_raise(EditorError) do
+        @ruby_mode.complete_symbol
+      end
+    ensure
+      CONFIG[:ruby_lsp_enabled] = old_enabled
+    end
+  end
+
+  def test_show_doc_disabled
+    old_enabled = CONFIG[:ruby_lsp_enabled]
+    begin
+      CONFIG[:ruby_lsp_enabled] = false
+      assert_raise(EditorError) do
+        @ruby_mode.show_doc
+      end
+    ensure
+      CONFIG[:ruby_lsp_enabled] = old_enabled
+    end
+  end
+
+  def test_insert_completion
+    @buffer.insert("up")
+    completion = { label: "upcase", insert_text: "upcase" }
+    @ruby_mode.send(:insert_completion, completion, "up")
+    assert_equal("upcase", @buffer.to_s)
+
+    @buffer.clear
+    @buffer.insert("ma")
+    completion = { label: "map", insert_text: "map" }
+    @ruby_mode.send(:insert_completion, completion, "ma")
+    assert_equal("map", @buffer.to_s)
+
+    @buffer.clear
+    @buffer.insert("")
+    completion = { label: "test", insert_text: "test" }
+    @ruby_mode.send(:insert_completion, completion, "")
+    assert_equal("test", @buffer.to_s)
+
+    @buffer.clear
+    @buffer.insert("foo")
+    completion = { label: "foobar", insert_text: nil }
+    @ruby_mode.send(:insert_completion, completion, "foo")
+    assert_equal("foobar", @buffer.to_s)
+  end
+
+  def test_ruby_mode_keymap_defined
+    assert(defined?(RubyMode::RUBY_MODE_MAP))
+  end
+
+  def test_ruby_mode_keymap_binding
+    # Test that M-Tab is bound to complete_symbol_command
+    keymap = RubyMode::RUBY_MODE_MAP
+    assert_equal(:complete_symbol_command, keymap.lookup([?\e, ?\t]))
+  end
+
+  def test_ruby_mode_uses_keymap_when_lsp_enabled
+    old_enabled = CONFIG[:ruby_lsp_enabled]
+    begin
+      CONFIG[:ruby_lsp_enabled] = true
+      buffer = Buffer.new_buffer("test.rb")
+      buffer.apply_mode(RubyMode)
+      assert_equal(RubyMode::RUBY_MODE_MAP, buffer.keymap)
+    ensure
+      CONFIG[:ruby_lsp_enabled] = old_enabled
+    end
+  end
+
+  def test_ruby_mode_no_keymap_when_lsp_disabled
+    old_enabled = CONFIG[:ruby_lsp_enabled]
+    begin
+      CONFIG[:ruby_lsp_enabled] = false
+      buffer = Buffer.new_buffer("test.rb")
+      buffer.apply_mode(RubyMode)
+      # When LSP is disabled, keymap should not be set to RUBY_MODE_MAP
+      assert_not_equal(RubyMode::RUBY_MODE_MAP, buffer.keymap)
+    ensure
+      CONFIG[:ruby_lsp_enabled] = old_enabled
+    end
+  end
 end
