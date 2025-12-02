@@ -303,7 +303,7 @@ module Textbringer
                   buffer.insert(s)
                   Window.redisplay
                 rescue EOFError
-                  throw(:finish)
+                  throw(:finish) if output.eof? && error.eof?
                 rescue Errno::EAGAIN, Errno::EWOULDBLOCK
                   Window.redisplay
                   next
