@@ -38,6 +38,7 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency "unicode-blocks"
   spec.add_runtime_dependency "unicode-scripts"
   spec.add_runtime_dependency "unicode-types"
+  spec.add_runtime_dependency "ruby-lsp", ">= 0.22.0"
 
   spec.add_development_dependency "bundler"
   spec.add_development_dependency "rake", ">= 12.0"

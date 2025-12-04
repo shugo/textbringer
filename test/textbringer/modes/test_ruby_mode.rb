@@ -832,4 +832,259 @@ EOF
   ### 
 EOF
   end
+
+  # LSP completion tests
+
+  def test_get_completion_prefix
+    @buffer.insert("hello_world")
+    prefix = @ruby_mode.send(:get_completion_prefix)
+    assert_equal("hello_world", prefix)
+
+    @buffer.clear
+    @buffer.insert("def foo\n  arr.ma")
+    prefix = @ruby_mode.send(:get_completion_prefix)
+    assert_equal("ma", prefix)
+
+    @buffer.clear
+    @buffer.insert('"hello".up')
+    prefix = @ruby_mode.send(:get_completion_prefix)
+    assert_equal("up", prefix)
+
+    @buffer.clear
+    @buffer.insert("Array.ne")
+    prefix = @ruby_mode.send(:get_completion_prefix)
+    assert_equal("ne", prefix)
+
+    @buffer.clear
+    @buffer.insert("@instance_var")
+    prefix = @ruby_mode.send(:get_completion_prefix)
+    assert_equal("@instance_var", prefix)
+
+    @buffer.clear
+    @buffer.insert("   ")
+    prefix = @ruby_mode.send(:get_completion_prefix)
+    assert_equal("", prefix)
+  end
+
+  def test_find_common_prefix
+    # All same prefix
+    common = @ruby_mode.send(:find_common_prefix, ["upcase", "upcase!", "upcase?"])
+    assert_equal("upcase", common)
+
+    # Partial prefix
+    common = @ruby_mode.send(:find_common_prefix, ["map", "max", "min"])
+    assert_equal("m", common)
+
+    # No common prefix
+    common = @ruby_mode.send(:find_common_prefix, ["select", "map", "each"])
+    assert_equal("", common)
+
+    # Single element
+    common = @ruby_mode.send(:find_common_prefix, ["test"])
+    assert_equal("test", common)
+
+    # Empty array
+    common = @ruby_mode.send(:find_common_prefix, [])
+    assert_equal("", common)
+
+    # Two elements with common prefix
+    common = @ruby_mode.send(:find_common_prefix, ["string", "strip"])
+    assert_equal("stri", common)
+
+    # Case sensitive
+    common = @ruby_mode.send(:find_common_prefix, ["Array", "array"])
+    assert_equal("", common)
+  end
+
+  def test_complete_symbol_disabled
+    old_enabled = CONFIG[:ruby_lsp_enabled]
+    begin
+      CONFIG[:ruby_lsp_enabled] = false
+      assert_raise(EditorError) do
+        @ruby_mode.complete_symbol
+      end
+    ensure
+      CONFIG[:ruby_lsp_enabled] = old_enabled
+    end
+  end
+
+  def test_show_doc_disabled
+    old_enabled = CONFIG[:ruby_lsp_enabled]
+    begin
+      CONFIG[:ruby_lsp_enabled] = false
+      assert_raise(EditorError) do
+        @ruby_mode.show_doc
+      end
+    ensure
+      CONFIG[:ruby_lsp_enabled] = old_enabled
+    end
+  end
+
+  def test_insert_completion
+    @buffer.insert("up")
+    completion = { label: "upcase", insert_text: "upcase" }
+    @ruby_mode.send(:insert_completion, completion, "up")
+    assert_equal("upcase", @buffer.to_s)
+
+    @buffer.clear
+    @buffer.insert("ma")
+    completion = { label: "map", insert_text: "map" }
+    @ruby_mode.send(:insert_completion, completion, "ma")
+    assert_equal("map", @buffer.to_s)
+
+    @buffer.clear
+    @buffer.insert("")
+    completion = { label: "test", insert_text: "test" }
+    @ruby_mode.send(:insert_completion, completion, "")
+    assert_equal("test", @buffer.to_s)
+
+    @buffer.clear
+    @buffer.insert("foo")
+    completion = { label: "foobar", insert_text: nil }
+    @ruby_mode.send(:insert_completion, completion, "foo")
+    assert_equal("foobar", @buffer.to_s)
+  end
+
+  def test_ruby_mode_keymap_defined
+    assert(defined?(RubyMode::RUBY_MODE_MAP))
+  end
+
+  def test_ruby_mode_keymap_binding
+    # Test that M-Tab is bound to complete_symbol_command
+    keymap = RubyMode::RUBY_MODE_MAP
+    assert_equal(:complete_symbol_command, keymap.lookup([?\e, ?\t]))
+  end
+
+  def test_ruby_mode_uses_keymap_when_lsp_enabled
+    old_enabled = CONFIG[:ruby_lsp_enabled]
+    begin
+      CONFIG[:ruby_lsp_enabled] = true
+      buffer = Buffer.new_buffer("test.rb")
+      buffer.apply_mode(RubyMode)
+      assert_equal(RubyMode::RUBY_MODE_MAP, buffer.keymap)
+    ensure
+      CONFIG[:ruby_lsp_enabled] = old_enabled
+    end
+  end
+
+  def test_ruby_mode_no_keymap_when_lsp_disabled
+    old_enabled = CONFIG[:ruby_lsp_enabled]
+    begin
+      CONFIG[:ruby_lsp_enabled] = false
+      buffer = Buffer.new_buffer("test.rb")
+      buffer.apply_mode(RubyMode)
+      # When LSP is disabled, keymap should not be set to RUBY_MODE_MAP
+      assert_not_equal(RubyMode::RUBY_MODE_MAP, buffer.keymap)
+    ensure
+      CONFIG[:ruby_lsp_enabled] = old_enabled
+    end
+  end
+
+  # Tests for completion prefix extraction with different prefix lengths
+  # These tests verify the fix for the issue where "".su yields no completion
+  # while "".s yields completions
+  def test_get_completion_prefix_after_dot_with_single_char
+    @buffer.clear
+    @buffer.insert('"".s')
+    prefix = @ruby_mode.send(:get_completion_prefix)
+    assert_equal("s", prefix)
+  end
+
+  def test_get_completion_prefix_after_dot_with_two_chars
+    @buffer.clear
+    @buffer.insert('"".su')
+    prefix = @ruby_mode.send(:get_completion_prefix)
+    assert_equal("su", prefix)
+  end
+
+  def test_get_completion_prefix_after_dot_with_three_chars
+    @buffer.clear
+    @buffer.insert('"".sub')
+    prefix = @ruby_mode.send(:get_completion_prefix)
+    assert_equal("sub", prefix)
+  end
+
+  def test_get_completion_prefix_after_dot_with_longer_prefix
+    @buffer.clear
+    @buffer.insert('"".start_wi')
+    prefix = @ruby_mode.send(:get_completion_prefix)
+    assert_equal("start_wi", prefix)
+  end
+
+  def test_get_completion_prefix_method_chain_with_prefix
+    @buffer.clear
+    @buffer.insert('[1, 2, 3].map(&:to_s).jo')
+    prefix = @ruby_mode.send(:get_completion_prefix)
+    assert_equal("jo", prefix)
+  end
+
+  def test_get_completion_prefix_after_double_colon
+    @buffer.clear
+    @buffer.insert('String::EN')
+    prefix = @ruby_mode.send(:get_completion_prefix)
+    assert_equal("EN", prefix)
+  end
+
+  def test_get_completion_prefix_instance_variable_with_prefix
+    @buffer.clear
+    @buffer.insert('@user_na')
+    prefix = @ruby_mode.send(:get_completion_prefix)
+    assert_equal("@user_na", prefix)
+  end
+
+  def test_get_completion_prefix_class_variable_with_prefix
+    @buffer.clear
+    @buffer.insert('@@class_va')
+    prefix = @ruby_mode.send(:get_completion_prefix)
+    assert_equal("@@class_va", prefix)
+  end
+
+  def test_get_completion_prefix_symbol_with_prefix
+    @buffer.clear
+    @buffer.insert(':my_sym')
+    prefix = @ruby_mode.send(:get_completion_prefix)
+    assert_equal("my_sym", prefix)
+  end
+
+  def test_get_completion_prefix_after_parenthesis
+    @buffer.clear
+    @buffer.insert('puts(mes')
+    prefix = @ruby_mode.send(:get_completion_prefix)
+    assert_equal("mes", prefix)
+  end
+
+  def test_get_completion_prefix_after_bracket
+    @buffer.clear
+    @buffer.insert('hash[:ke')
+    prefix = @ruby_mode.send(:get_completion_prefix)
+    assert_equal("ke", prefix)
+  end
+
+  def test_get_completion_prefix_with_question_mark
+    @buffer.clear
+    @buffer.insert('empty?')
+    prefix = @ruby_mode.send(:get_completion_prefix)
+    assert_equal("empty?", prefix)
+  end
+
+  def test_get_completion_prefix_with_exclamation_mark
+    @buffer.clear
+    @buffer.insert('reverse!')
+    prefix = @ruby_mode.send(:get_completion_prefix)
+    assert_equal("reverse!", prefix)
+  end
+
+  def test_get_completion_prefix_immediately_after_dot
+    @buffer.clear
+    @buffer.insert('"".')
+    prefix = @ruby_mode.send(:get_completion_prefix)
+    assert_equal("", prefix)
+  end
+
+  def test_get_completion_prefix_with_numbers
+    @buffer.clear
+    @buffer.insert('utf8')
+    prefix = @ruby_mode.send(:get_completion_prefix)
+    assert_equal("utf8", prefix)
+  end
 end
