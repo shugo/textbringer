@@ -76,7 +76,7 @@ module Textbringer
       if CTAGS[:path] != path || CTAGS[:tags_mtime] != mtime
         CTAGS[:path] = path
         tags = Hash.new { |h, k| h[k] = [] }
-        File.read(path).scan(/^(.*?)\t(.*?)\t(.*?)(?:;".*)?$/) do
+        File.binread(path).scan(/^(.*?)\t(.*?)\t(.*?)(?:;".*)?$/) do
           |name, file, addr|
           n = tags[name].count { |f,| f == file } + 1
           tags[name].push([file, addr, n])
