@@ -109,7 +109,13 @@ module Textbringer
 
     define_command(:kill_region,
                    doc: "Copy and delete the region.") do
-      Buffer.current.kill_region
+      buffer = Buffer.current
+      buffer.copy_region
+      if buffer.read_only?
+        message("Buffer is read only: #{buffer.inspect}")
+      else
+        buffer.delete_region
+      end
     end
 
     define_command(:yank,

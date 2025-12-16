@@ -323,4 +323,34 @@ EOF
     assert_equal(true, Buffer.current.read_only?)
     assert_equal(true, Buffer.current.modified?)
   end
+
+  def test_kill_region_on_read_only_buffer
+    buffer = Buffer.current
+    insert("hello world")
+    buffer.read_only = true
+    
+    # Select "world"
+    goto_char(6)
+    set_mark_command
+    end_of_buffer
+
+    message_received = nil
+    echo_area = Window.echo_area
+    
+    # Temporarily override the show method of the echo_area for this test
+    echo_area.singleton_class.define_method(:show) do |text|
+      message_received = text
+    end
+
+    begin
+      kill_region
+    ensure
+      # Restore the original method to avoid side effects
+      echo_area.singleton_class.remove_method(:show)
+    end
+
+    assert_equal("Buffer is read only: #{buffer.inspect}", message_received)
+    assert_equal("world", KILL_RING.current)
+    assert_equal("hello world", buffer.to_s)
+  end
 end
