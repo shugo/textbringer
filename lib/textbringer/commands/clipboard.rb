@@ -29,23 +29,38 @@ module Textbringer
         Copy the region to the kill ring and the clipboard, and delete
         the region.
       EOD
-      kill_region
-      Clipboard.copy(KILL_RING.current)
+      begin
+        kill_region
+        Clipboard.copy(KILL_RING.current)
+      rescue ReadOnlyError
+        Clipboard.copy(KILL_RING.current)
+        raise
+      end
     end
 
     define_command(:clipboard_kill_line, doc: <<~EOD) do
         Kill the rest of the current line, and copy the killed text to
         the clipboard.
       EOD
-      kill_line
-      Clipboard.copy(KILL_RING.current)
+      begin
+        kill_line
+        Clipboard.copy(KILL_RING.current)
+      rescue ReadOnlyError
+        Clipboard.copy(KILL_RING.current)
+        raise
+      end
     end
 
     define_command(:clipboard_kill_word, doc: <<~EOD) do
         Kill a word, and copy the word to the clipboard.
       EOD
-      kill_word
-      Clipboard.copy(KILL_RING.current)
+      begin
+        kill_word
+        Clipboard.copy(KILL_RING.current)
+      rescue ReadOnlyError
+        Clipboard.copy(KILL_RING.current)
+        raise
+      end
     end
 
     define_command(:clipboard_yank, doc: <<~EOD) do

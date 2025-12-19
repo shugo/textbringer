@@ -25,6 +25,19 @@ class TestClipboard < Textbringer::TestCase
     assert_equal("かきくけこ\n", Clipboard.paste.encode("utf-8"))
   end
 
+  def test_clipboard_kill_region_read_only
+    insert("あいうえお\n")
+    set_mark_command
+    insert("かきくけこ\n")
+    Buffer.current.read_only = true
+    assert_raise(ReadOnlyError) do
+      clipboard_kill_region
+    end
+    assert_equal("あいうえお\nかきくけこ\n", Buffer.current.to_s)
+    assert_equal("かきくけこ\n", KILL_RING.current)
+    assert_equal("かきくけこ\n", Clipboard.paste.encode("utf-8"))
+  end
+
   def test_clipboard_kill_line
     insert("あいうえお\n")
     insert("かきくけこ\n")
@@ -35,12 +48,38 @@ class TestClipboard < Textbringer::TestCase
     assert_equal("あいうえお", Clipboard.paste.encode("utf-8"))
   end
 
+  def test_clipboard_kill_line_read_only
+    insert("あいうえお\n")
+    insert("かきくけこ\n")
+    beginning_of_buffer
+    Buffer.current.read_only = true
+    assert_raise(ReadOnlyError) do
+      clipboard_kill_line
+    end
+    assert_equal("あいうえお\nかきくけこ\n", Buffer.current.to_s)
+    assert_equal("あいうえお", KILL_RING.current)
+    assert_equal("あいうえお", Clipboard.paste.encode("utf-8"))
+  end
+
   def test_clipboard_kill_word
     insert("あいうえお\n")
     insert("かきくけこ\n")
     beginning_of_buffer
     clipboard_kill_word
     assert_equal("\nかきくけこ\n", Buffer.current.to_s)
+    assert_equal("あいうえお", KILL_RING.current)
+    assert_equal("あいうえお", Clipboard.paste.encode("utf-8"))
+  end
+
+  def test_clipboard_kill_word_read_only
+    insert("あいうえお\n")
+    insert("かきくけこ\n")
+    beginning_of_buffer
+    Buffer.current.read_only = true
+    assert_raise(ReadOnlyError) do
+      clipboard_kill_word
+    end
+    assert_equal("あいうえお\nかきくけこ\n", Buffer.current.to_s)
     assert_equal("あいうえお", KILL_RING.current)
     assert_equal("あいうえお", Clipboard.paste.encode("utf-8"))
   end
