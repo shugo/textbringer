@@ -24,6 +24,8 @@ unless STDIN.tty?
   exit 1
 end
 
+load_user_config("~/.textbringer/init.rb")
+
 Controller.current = Controller.new
 begin
   Window.start do
@@ -31,7 +33,6 @@ begin
     begin
       transient_mark_mode(true)
       Window.echo_area.clear_message
-      load_user_config("~/.textbringer/init.rb")
       Plugin.load_plugins
       load_user_config("~/.textbringer.rb")
       ruby_mode
