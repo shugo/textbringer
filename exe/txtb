@@ -24,11 +24,10 @@ unless STDIN.tty?
   exit 1
 end
 
-load_user_config("~/.textbringer/init.rb")
-
 Controller.current = Controller.new
 begin
   Window.start do
+    load_user_config("~/.textbringer/init.rb")
     $stdout = DefaultOutput.new
     begin
       transient_mark_mode(true)
