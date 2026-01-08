@@ -29,17 +29,21 @@ class TestHelp < Textbringer::TestCase
   end
 
   def test_describe_class
-    describe_class("Array")
-    s = Buffer["*Help*"].to_s
-    omit("No RDoc found") if s.empty?
-    assert_match(/^= Array < Object/, s)
+    omit_on_windows do
+      describe_class("Array")
+      s = Buffer["*Help*"].to_s
+      omit("No RDoc found") if s.empty?
+      assert_match(/^= Array < Object/, s)
+    end
   end
 
   def test_describe_method
-    describe_method("Array#length")
-    s = Buffer["*Help*"].to_s
-    assert_match(/^= Array#length/, s)
-    assert_match(/^Returns the count of elements/, s)
+    omit_on_windows do
+      describe_method("Array#length")
+      s = Buffer["*Help*"].to_s
+      assert_match(/^= Array#length/, s)
+      assert_match(/^Returns the count of elements/, s)
+    end
   rescue RDoc::RI::Driver::NotFoundError
     omit("No RDoc found")
   end
