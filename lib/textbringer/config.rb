@@ -1,5 +1,6 @@
 module Textbringer
   CONFIG = {
+    engine: :emacs,
     east_asian_ambiguous_width: 1,
     default_file_encoding: Encoding::UTF_8,
     default_file_format: :unix,
