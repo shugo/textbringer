@@ -8,6 +8,7 @@ module Textbringer
     attr_accessor :prefix_arg, :current_prefix_arg
     attr_reader :key_sequence, :last_key, :recursive_edit_level
     attr_reader :last_keyboard_macro
+    attr_accessor :engine
 
     @@current = nil
 
@@ -19,7 +20,8 @@ module Textbringer
       @@current = controller
     end
 
-    def initialize
+    def initialize(engine: CONFIG[:engine])
+      @engine = Engine[engine] || EmacsEngine
       @top_self = eval("self", TOPLEVEL_BINDING)
       @key_sequence = []
       @last_key = nil
@@ -61,13 +63,13 @@ module Textbringer
               @prefix_arg = nil
               message("#{keys} is undefined")
               Window.beep
-            elsif cmd.is_a?(Keymap)
-              # multi-stroke key binding?
+            elsif @engine.supports_multi_stroke? && cmd.is_a?(Keymap)
+              # multi-stroke key binding - wait for more keys
             else
               @this_command_keys = @key_sequence
               @key_sequence = []
               @this_command = cmd
-              @current_prefix_arg = @prefix_arg
+              @current_prefix_arg = @engine.supports_prefix_arg? ? @prefix_arg : nil
               @prefix_arg = nil
               begin
                 run_hooks(:pre_command_hook, remove_on_error: true)
@@ -245,9 +247,7 @@ module Textbringer
     end
 
     def key_binding(key_sequence)
-      @overriding_map&.lookup(key_sequence) ||
-      Buffer.current&.keymap&.lookup(key_sequence) ||
-        GLOBAL_MAP.lookup(key_sequence)
+      @engine.process_key_event(self, key_sequence)
     end
 
     private
