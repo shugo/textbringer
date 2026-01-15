@@ -126,7 +126,7 @@ module Textbringer
     attr_reader :test_key_buffer
     attr_writer :last_key
 
-    def initialize(*args)
+    def initialize(*, **)
       super
       @test_key_buffer = []
     end
@@ -152,6 +152,27 @@ module Textbringer
         @test_key_buffer.shift
       end
     end
+  end
+
+  class FakeEngine < Engine
+    register :fake
+    define_keymap :FAKE_ENGINE_MAP
+
+    class << self
+      attr_accessor :multi_stroke, :prefix_arg
+
+      def global_keymap = FAKE_ENGINE_MAP
+      def supports_multi_stroke? = @multi_stroke
+      def supports_prefix_arg? = @prefix_arg
+
+      def reset
+        @multi_stroke = false
+        @prefix_arg = false
+        FAKE_ENGINE_MAP.instance_variable_get(:@map).clear
+      end
+    end
+
+    reset
   end
 
   class FakeCursesWindow
