@@ -179,12 +179,14 @@ module Textbringer
         window.redisplay unless window.current?
       end
       current.redisplay
-      # Render floating windows on top
-      FloatingWindow.redisplay_all_floating if defined?(FloatingWindow)
-      # Ensure cursor position is from the current window, not floating windows
-      # Refresh current window's cursor position after floating windows
-      if defined?(FloatingWindow) && !FloatingWindow.floating_windows.empty?
-        current.window.noutrefresh if current && current.window
+      if defined?(FloatingWindow)
+        # Render floating windows on top
+        FloatingWindow.redisplay_all_floating
+        # Ensure cursor position is from the current window, not floating windows
+        # Refresh current window's cursor position after floating windows
+        if !FloatingWindow.floating_windows.empty?
+          current&.window&.noutrefresh
+        end
       end
       update
     end
