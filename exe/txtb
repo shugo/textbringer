@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 
 require "warning"
+require "optparse"
 
 Warning.ignore(/already initialized constant /)
 Warning.ignore(/previous definition of /)
@@ -10,6 +11,26 @@ require "textbringer"
 
 include Textbringer
 include Commands
+
+# Parse command-line options
+opts = OptionParser.new do |o|
+  o.banner = "Usage: txtb [options] [files...]"
+
+  o.on("--engine ENGINE", "Select editing engine: emacs (default), cua") do |e|
+    CONFIG[:engine] = e.to_sym
+  end
+
+  o.on("-h", "--help", "Show this help message") do
+    puts o
+    exit
+  end
+
+  o.on("-v", "--version", "Show version") do
+    puts "Textbringer #{Textbringer::VERSION}"
+    exit
+  end
+end
+files = opts.parse!(ARGV)
 
 def load_user_config(path)
   config_file = File.expand_path(path)
@@ -30,13 +51,16 @@ begin
     load_user_config("~/.textbringer/init.rb")
     $stdout = DefaultOutput.new
     begin
+      # Initialize the engine
+      Controller.current.engine.setup
+
       transient_mark_mode(true)
       Window.echo_area.clear_message
       Plugin.load_plugins
       load_user_config("~/.textbringer.rb")
       ruby_mode
-      if ARGV.size > 0
-        ARGV.each do |arg|
+      if files.size > 0
+        files.each do |arg|
           find_file(arg)
         end
       end
