@@ -215,6 +215,61 @@ module Textbringer
   end
   ::Curses.send(:remove_const, :Window)
   ::Curses.const_set(:Window, FakeCursesWindow)
+
+  class FakeCursesPad
+    attr_reader :cury, :curx, :contents
+
+    def initialize(lines, columns)
+      @lines = lines
+      @columns = columns
+      @curx = 0
+      @cury = 0
+      @contents = @lines.times.map { +"" }
+      @current_attr = 0
+    end
+
+    def erase
+      @contents.each do |line|
+        line.clear
+      end
+    end
+
+    def setpos(y, x)
+      @cury = y
+      @curx = x
+    end
+
+    def addstr(s)
+      if @cury < @contents.size
+        @contents[@cury].concat(s)
+        @curx = Textbringer::Buffer.display_width(@contents[@cury])
+      end
+    end
+
+    def attron(attr)
+      @current_attr |= attr
+    end
+
+    def attroff(attr)
+      @current_attr &= ~attr
+    end
+
+    def attrset(attr)
+      @current_attr = attr
+    end
+
+    def noutrefresh(pad_min_y, pad_min_x, screen_min_y, screen_min_x, screen_max_y, screen_max_x)
+      # For testing, just record that this was called
+      # Actual display is not needed in tests
+    end
+
+    def method_missing(mid, *args)
+    end
+  end
+  if ::Curses.const_defined?(:Pad)
+    ::Curses.send(:remove_const, :Pad)
+  end
+  ::Curses.const_set(:Pad, FakeCursesPad)
   
   class Window
     class << self
