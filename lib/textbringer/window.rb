@@ -179,6 +179,15 @@ module Textbringer
         window.redisplay unless window.current?
       end
       current.redisplay
+      if defined?(FloatingWindow)
+        # Render floating windows on top
+        FloatingWindow.redisplay_all_floating
+        # Ensure cursor position is from the current window, not floating windows
+        # Refresh current window's cursor position after floating windows
+        if !FloatingWindow.floating_windows.empty?
+          current&.window&.noutrefresh
+        end
+      end
       update
     end
 
@@ -230,7 +239,7 @@ module Textbringer
     end
 
     attr_reader :buffer, :lines, :columns, :y, :x, :window, :mode_line
-    attr_reader :top_of_window, :bottom_of_window
+    attr_reader :top_of_window, :bottom_of_window, :cursor
 
     def initialize(lines, columns, y, x)
       @lines = lines
