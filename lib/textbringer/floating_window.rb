@@ -26,7 +26,8 @@ module Textbringer
     # @param x [Integer] Screen X coordinate
     # @param buffer [Buffer, nil] Optional buffer, creates new if nil
     # @param face [Symbol, nil] Face name to apply to the window (default: :floating_window)
-    def initialize(lines, columns, y, x, buffer: nil, face: :floating_window)
+    # @param current_line_face [Symbol, nil] Face name to apply to the line containing point
+    def initialize(lines, columns, y, x, buffer: nil, face: :floating_window, current_line_face: nil)
       super(lines, columns, y, x)
 
       # Create or assign buffer
@@ -40,6 +41,7 @@ module Textbringer
 
       # Store face for rendering
       @face = face
+      @current_line_face = current_line_face
 
       # Track this floating window
       @@floating_windows << self
@@ -47,15 +49,15 @@ module Textbringer
     end
 
     # Factory methods for common positioning patterns
-    def self.at_cursor(lines:, columns:, window: Window.current, buffer: nil, face: :floating_window)
+    def self.at_cursor(lines:, columns:, window: Window.current, buffer: nil, face: :floating_window, current_line_face: nil)
       y, x = calculate_cursor_position(lines, columns, window)
-      new(lines, columns, y, x, buffer: buffer, face: face)
+      new(lines, columns, y, x, buffer: buffer, face: face, current_line_face: current_line_face)
     end
 
-    def self.centered(lines:, columns:, buffer: nil, face: :floating_window)
+    def self.centered(lines:, columns:, buffer: nil, face: :floating_window, current_line_face: nil)
       y = (Curses.lines - lines) / 2
       x = (Curses.cols - columns) / 2
-      new(lines, columns, y, x, buffer: buffer, face: face)
+      new(lines, columns, y, x, buffer: buffer, face: face, current_line_face: current_line_face)
     end
 
     # Override: Not part of main window list management
@@ -127,6 +129,7 @@ module Textbringer
       # Recreate pad with new size
       old_window = @window
       initialize_window(lines, columns, @y, @x)
+      old_window.close if old_window.respond_to?(:close)
 
       redisplay if visible?
       self
@@ -146,12 +149,43 @@ module Textbringer
           face_attrs = face.attributes if face
         end
 
+        # Get current line face attributes if specified
+        current_line_attrs = 0
+        if @current_line_face && Window.has_colors?
+          current_line_face = Face[@current_line_face]
+          current_line_attrs = current_line_face.attributes if current_line_face
+        end
+
         @window.attrset(face_attrs)
         @in_region = false
         @in_isearch = false
         @current_highlight_attrs = face_attrs
 
-        # Start from top of window
+        # First pass: find which line contains point
+        point_line = nil
+        point_pos = point.location
+        @buffer.point_to_mark(@top_of_window)
+        line_num = 0
+        while line_num < @lines && !@buffer.end_of_buffer?
+          line_start = @buffer.point
+          # Move to end of line or end of buffer
+          while !@buffer.end_of_buffer?
+            c = @buffer.char_after
+            break if c.nil? || c == "\n"
+            @buffer.forward_char
+          end
+          line_end = @buffer.point
+          @buffer.forward_char unless @buffer.end_of_buffer?  # Skip newline
+
+          # Check if point is on this line
+          if point_pos >= line_start && point_pos <= line_end
+            point_line = line_num
+          end
+
+          line_num += 1
+        end
+
+        # Start from top of window for actual rendering
         @buffer.point_to_mark(@top_of_window)
         @cursor.y = @cursor.x = 0
 
@@ -159,6 +193,13 @@ module Textbringer
         line_num = 0
         while line_num < @lines && !@buffer.end_of_buffer?
           @window.setpos(line_num, 0)
+
+          # Determine which face to use for this line
+          line_attrs = if @current_line_face && line_num == point_line
+                         current_line_attrs
+                       else
+                         face_attrs
+                       end
 
           # Render characters on this line
           col = 0
@@ -188,12 +229,12 @@ module Textbringer
             end
 
             # Apply face attributes to all characters
-            if face_attrs != 0
-              @window.attron(face_attrs)
+            if line_attrs != 0
+              @window.attron(line_attrs)
             end
             @window.addstr(s)
-            if face_attrs != 0
-              @window.attroff(face_attrs)
+            if line_attrs != 0
+              @window.attroff(line_attrs)
             end
 
             col += char_width
@@ -201,7 +242,12 @@ module Textbringer
           end
 
           # Fill remaining space on the line with the face background
-          if face_attrs != 0 && col < @columns
+          if line_attrs != 0 && col < @columns
+            @window.attron(line_attrs)
+            @window.addstr(" " * (@columns - col))
+            @window.attroff(line_attrs)
+          elsif line_attrs == 0 && face_attrs != 0 && col < @columns
+            # Use default face for padding if no line-specific attrs
             @window.attron(face_attrs)
             @window.addstr(" " * (@columns - col))
             @window.attroff(face_attrs)
@@ -257,7 +303,7 @@ module Textbringer
 
       # Prefer below cursor
       space_below = Curses.lines - cursor_y - 2  # -2 for echo area
-      space_above = cursor_y - window.y
+      space_above = cursor_y  # Screen space above cursor
 
       if space_below >= lines
         y = cursor_y + 1

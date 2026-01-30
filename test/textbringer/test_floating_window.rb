@@ -255,4 +255,57 @@ class TestFloatingWindow < Textbringer::TestCase
       @floating_window.redisplay
     end
   end
+
+  def test_current_line_face_parameter_default
+    @floating_window = FloatingWindow.new(5, 30, 10, 20)
+    # Should have no current_line_face by default
+    assert_nil(@floating_window.instance_variable_get(:@current_line_face))
+  end
+
+  def test_current_line_face_parameter_custom
+    @floating_window = FloatingWindow.new(5, 30, 10, 20, current_line_face: :region)
+    assert_equal(:region, @floating_window.instance_variable_get(:@current_line_face))
+  end
+
+  def test_current_line_face_at_cursor
+    @floating_window = FloatingWindow.at_cursor(lines: 5, columns: 30, current_line_face: :isearch)
+    assert_equal(:isearch, @floating_window.instance_variable_get(:@current_line_face))
+  end
+
+  def test_current_line_face_centered
+    @floating_window = FloatingWindow.centered(lines: 5, columns: 30, current_line_face: :link)
+    assert_equal(:link, @floating_window.instance_variable_get(:@current_line_face))
+  end
+
+  def test_redisplay_with_current_line_face
+    @floating_window = FloatingWindow.new(5, 30, 10, 20, face: :floating_window, current_line_face: :region)
+    @floating_window.buffer.insert("Line 1\n")
+    @floating_window.buffer.insert("Line 2\n")
+    @floating_window.buffer.insert("Line 3\n")
+    @floating_window.buffer.beginning_of_buffer
+    @floating_window.show
+
+    # Should not raise an error
+    assert_nothing_raised do
+      @floating_window.redisplay
+    end
+  end
+
+  def test_redisplay_with_current_line_face_point_on_different_lines
+    @floating_window = FloatingWindow.new(5, 30, 10, 20, face: :floating_window, current_line_face: :region)
+    @floating_window.buffer.insert("Line 1\n")
+    @floating_window.buffer.insert("Line 2\n")
+    @floating_window.buffer.insert("Line 3\n")
+    @floating_window.show
+
+    # Move point to different lines and redisplay
+    @floating_window.buffer.beginning_of_buffer
+    assert_nothing_raised { @floating_window.redisplay }
+
+    @floating_window.buffer.next_line
+    assert_nothing_raised { @floating_window.redisplay }
+
+    @floating_window.buffer.next_line
+    assert_nothing_raised { @floating_window.redisplay }
+  end
 end
