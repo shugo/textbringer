@@ -161,11 +161,11 @@ module Textbringer
             last_newline = old_text.rindex("\n")
             end_char = 1 + old_text[last_newline + 1..].size
           end
-          new_text = buffer.substring(beg_pos, end_pos)
           range = {
             start: { line: start_line - 1, character: start_char - 1 },
             end: { line: end_line - 1, character: end_char - 1 }
           }
+          new_text = ""
         end
 
         client.did_change(

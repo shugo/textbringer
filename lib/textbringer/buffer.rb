@@ -343,7 +343,7 @@ module Textbringer
     end
 
     def on_killed(&callback)
-      add_callback(:killed, callback)
+      on(:killed, &callback)
     end
 
     def current?
@@ -367,7 +367,7 @@ module Textbringer
     end
 
     def on_modified(&callback)
-      add_callback(:modified, callback)
+      on(:modified, &callback)
     end
 
     def [](name)
@@ -610,7 +610,7 @@ module Textbringer
       end
       self.modified = true
       @goal_column = nil
-      Utils.run_hooks(:after_change_functions, pos, @point, "") unless @undoing
+      Utils.run_hooks(:after_change_functions, pos, @point, "") unless @undoing || !current?
       self
     end
 
@@ -652,7 +652,7 @@ module Textbringer
         end
         push_undo(DeleteAction.new(self, s, s, str))
         self.modified = true
-        Utils.run_hooks(:after_change_functions, s, s, str) unless @undoing
+        Utils.run_hooks(:after_change_functions, s, s, str) unless @undoing || !current?
       elsif n < 0
         str = substring(pos, s)
         update_line_and_column(@point, pos)
@@ -668,7 +668,7 @@ module Textbringer
         @point = @gap_start = pos
         push_undo(DeleteAction.new(self, s, pos, str))
         self.modified = true
-        Utils.run_hooks(:after_change_functions, pos, pos, str) unless @undoing
+        Utils.run_hooks(:after_change_functions, pos, pos, str) unless @undoing || !current?
       end
       @goal_column = nil
     end
@@ -1023,7 +1023,7 @@ module Textbringer
         end
         push_undo(DeleteAction.new(self, old_pos, s, str))
         self.modified = true
-        Utils.run_hooks(:after_change_functions, s, s, str) unless @undoing
+        Utils.run_hooks(:after_change_functions, s, s, str) unless @undoing || !current?
       end
     end
 
@@ -1495,6 +1495,7 @@ module Textbringer
     end
 
     def pos_to_line_and_column(pos)
+      return [1, 1] if pos == 0
       text_before = substring(0, pos)
       line = text_before.count("\n") + 1
       last_newline = text_before.rindex("\n")
