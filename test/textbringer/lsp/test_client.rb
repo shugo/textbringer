@@ -151,6 +151,21 @@ class TestLSPServerRegistry < Textbringer::TestCase
     assert_equal("solargraph", config.command)
     assert_equal(["stdio"], config.args)
     assert_equal([/\.rb$/], config.file_patterns)
+    assert_nil(config.mode)
+  end
+
+  def test_register_with_mode
+    config = LSP::ServerRegistry.register(
+      "ruby",
+      command: "ruby-lsp",
+      args: [],
+      mode: "Ruby"
+    )
+
+    assert_equal("ruby", config.language_id)
+    assert_equal("ruby-lsp", config.command)
+    assert_equal("Ruby", config.mode)
+    assert_equal([], config.file_patterns)
   end
 
   def test_find_config_for_buffer
@@ -192,6 +207,55 @@ class TestLSPServerRegistry < Textbringer::TestCase
       config = LSP::ServerRegistry.find_config_for_buffer(buffer)
       assert_nil(config)
     end
+  end
+
+  def test_find_config_for_buffer_by_mode
+    LSP::ServerRegistry.register(
+      "ruby",
+      command: "ruby-lsp",
+      args: [],
+      mode: "Ruby"
+    )
+
+    buffer = Buffer.new_buffer("test.rb")
+    buffer.apply_mode(RubyMode)
+
+    config = LSP::ServerRegistry.find_config_for_buffer(buffer)
+    assert_not_nil(config)
+    assert_equal("ruby", config.language_id)
+  end
+
+  def test_find_config_for_buffer_by_mode_without_filename
+    LSP::ServerRegistry.register(
+      "ruby",
+      command: "ruby-lsp",
+      args: [],
+      mode: "Ruby"
+    )
+
+    buffer = Buffer.new_buffer("*scratch*")
+    buffer.apply_mode(RubyMode)
+
+    config = LSP::ServerRegistry.find_config_for_buffer(buffer)
+    assert_not_nil(config)
+    assert_equal("ruby", config.language_id)
+  end
+
+  def test_find_config_for_buffer_mode_takes_priority
+    LSP::ServerRegistry.register(
+      "ruby",
+      command: "ruby-lsp",
+      args: [],
+      mode: "Ruby",
+      file_patterns: [/\.rb$/]
+    )
+
+    # Mode matching should work even without a file name
+    buffer = Buffer.new_buffer("*scratch*")
+    buffer.apply_mode(RubyMode)
+
+    config = LSP::ServerRegistry.find_config_for_buffer(buffer)
+    assert_not_nil(config)
   end
 
   def test_find_config_for_buffer_without_filename

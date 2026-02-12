@@ -10,13 +10,9 @@ module Textbringer
     DOC
       buffer = Buffer.current
 
-      unless buffer.file_name
-        raise EditorError, "Buffer has no file name"
-      end
-
       client = LSP::ServerRegistry.get_client_for_buffer(buffer)
       unless client
-        raise EditorError, "No LSP server configured for this file type"
+        raise EditorError, "No LSP server configured for this buffer"
       end
 
       unless client.running? && client.initialized?
@@ -65,10 +61,6 @@ module Textbringer
     DOC
       buffer = Buffer.current
 
-      unless buffer.file_name
-        raise EditorError, "Buffer has no file name"
-      end
-
       client = LSP::ServerRegistry.get_client_for_buffer(buffer)
       if client
         if client.running?
@@ -77,7 +69,7 @@ module Textbringer
           message("Starting LSP server...")
         end
       else
-        message("No LSP server configured for this file type")
+        message("No LSP server configured for this buffer")
       end
     end
 

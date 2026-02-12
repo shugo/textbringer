@@ -24,13 +24,14 @@ module Textbringer
       class << self
         attr_reader :server_configs
 
-        def register(language_id, command:, args: [], file_patterns: [], interpreter_patterns: [])
+        def register(language_id, command:, args: [], file_patterns: [], interpreter_patterns: [], mode: nil)
           config = ServerConfig.new(
             language_id: language_id,
             command: command,
             args: args,
             file_patterns: file_patterns,
-            interpreter_patterns: interpreter_patterns
+            interpreter_patterns: interpreter_patterns,
+            mode: mode
           )
           @server_configs << config
           config
@@ -50,12 +51,16 @@ module Textbringer
         end
 
         def find_config_for_buffer(buffer)
-          return nil unless buffer.file_name
-
-          file_name = buffer.file_name
+          mode_name = buffer.mode&.name
 
           @server_configs.find do |config|
-            config.file_patterns.any? { |pattern| pattern.match?(file_name) }
+            if config.mode && mode_name
+              config.mode == mode_name
+            elsif buffer.file_name && !config.file_patterns.empty?
+              config.file_patterns.any? { |pattern| pattern.match?(buffer.file_name) }
+            else
+              false
+            end
           end
         end
 
@@ -63,7 +68,7 @@ module Textbringer
           config = find_config_for_buffer(buffer)
           return nil unless config
 
-          root_path = find_project_root(buffer.file_name)
+          root_path = find_project_root(buffer.file_name || Dir.pwd)
           client_key = "#{config.language_id}:#{root_path}"
 
           @clients[client_key] ||= begin
@@ -82,7 +87,7 @@ module Textbringer
           config = find_config_for_buffer(buffer)
           return unless config
 
-          root_path = find_project_root(buffer.file_name)
+          root_path = find_project_root(buffer.file_name || Dir.pwd)
           client_key = "#{config.language_id}:#{root_path}"
 
           client = @clients.delete(client_key)
@@ -120,14 +125,15 @@ module Textbringer
     end
 
     class ServerConfig
-      attr_reader :language_id, :command, :args, :file_patterns, :interpreter_patterns
+      attr_reader :language_id, :command, :args, :file_patterns, :interpreter_patterns, :mode
 
-      def initialize(language_id:, command:, args:, file_patterns:, interpreter_patterns:)
+      def initialize(language_id:, command:, args:, file_patterns:, interpreter_patterns:, mode:)
         @language_id = language_id
         @command = command
         @args = args
         @file_patterns = file_patterns
         @interpreter_patterns = interpreter_patterns
+        @mode = mode
       end
     end
   end
