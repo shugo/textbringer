@@ -111,34 +111,72 @@ module Textbringer
 
     def ensure_document_open(client, buffer)
       uri = buffer_uri(buffer)
-      version = LSP_DOCUMENT_VERSIONS[uri] || 0
 
-      if client.document_open?(uri)
-        # Close and reopen with current content to ensure server has latest
-        client.did_close(uri: uri)
+      unless client.document_open?(uri)
+        # Open the document for the first time
+        version = 1
+        LSP_DOCUMENT_VERSIONS[uri] = version
+        language_id = LSP::ServerRegistry.language_id_for_buffer(buffer) || "text"
+        client.did_open(
+          uri: uri,
+          language_id: language_id,
+          version: version,
+          text: buffer.to_s
+        )
+        # Set up incremental sync hook
+        lsp_setup_buffer_hooks(buffer, client, uri)
+        # Give server time to parse the document
+        sleep(0.5)
       end
-
-      # Open the document with current content
-      version = (version || 0) + 1
-      LSP_DOCUMENT_VERSIONS[uri] = version
-      language_id = LSP::ServerRegistry.language_id_for_buffer(buffer) || "text"
-      client.did_open(
-        uri: uri,
-        language_id: language_id,
-        version: version,
-        text: buffer.to_s
-      )
-      # Give server time to parse the document
-      sleep(0.5)
     end
 
     # Set up buffer hooks for document synchronization
-    def lsp_setup_buffer_hooks(buffer)
+    def lsp_setup_buffer_hooks(buffer, client, uri)
+      # Track changes and send incremental updates to LSP server
+      add_hook(:after_change_functions, local: true) do |beg_pos, end_pos, old_text|
+        next unless client.running? && client.document_open?(uri)
+
+        version = LSP_DOCUMENT_VERSIONS[uri] || 0
+        version += 1
+        LSP_DOCUMENT_VERSIONS[uri] = version
+
+        # Compute start position in LSP line/character coordinates
+        start_line, start_char = buffer.pos_to_line_and_column(beg_pos)
+
+        if old_text.empty?
+          # Insertion: old range is empty, new text is the inserted content
+          new_text = buffer.substring(beg_pos, end_pos)
+          range = {
+            start: { line: start_line - 1, character: start_char - 1 },
+            end: { line: start_line - 1, character: start_char - 1 }
+          }
+        else
+          # Deletion: compute old end position from the deleted text
+          newline_count = old_text.count("\n")
+          if newline_count == 0
+            end_line = start_line
+            end_char = start_char + old_text.size
+          else
+            end_line = start_line + newline_count
+            last_newline = old_text.rindex("\n")
+            end_char = 1 + old_text[last_newline + 1..].size
+          end
+          new_text = buffer.substring(beg_pos, end_pos)
+          range = {
+            start: { line: start_line - 1, character: start_char - 1 },
+            end: { line: end_line - 1, character: end_char - 1 }
+          }
+        end
+
+        client.did_change(
+          uri: uri, version: version,
+          text: new_text, range: range
+        )
+      end
+
       # Close document when buffer is killed
       buffer.on_killed do
-        client = LSP::ServerRegistry.get_client_for_buffer(buffer)
-        if client&.running?
-          uri = buffer_uri(buffer)
+        if client.running?
           client.did_close(uri: uri)
           LSP_DOCUMENT_VERSIONS.delete(uri)
         end

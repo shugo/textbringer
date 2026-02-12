@@ -610,6 +610,7 @@ module Textbringer
       end
       self.modified = true
       @goal_column = nil
+      Utils.run_hooks(:after_change_functions, pos, @point, "") unless @undoing
       self
     end
 
@@ -651,6 +652,7 @@ module Textbringer
         end
         push_undo(DeleteAction.new(self, s, s, str))
         self.modified = true
+        Utils.run_hooks(:after_change_functions, s, s, str) unless @undoing
       elsif n < 0
         str = substring(pos, s)
         update_line_and_column(@point, pos)
@@ -666,6 +668,7 @@ module Textbringer
         @point = @gap_start = pos
         push_undo(DeleteAction.new(self, s, pos, str))
         self.modified = true
+        Utils.run_hooks(:after_change_functions, pos, pos, str) unless @undoing
       end
       @goal_column = nil
     end
@@ -1020,6 +1023,7 @@ module Textbringer
         end
         push_undo(DeleteAction.new(self, old_pos, s, str))
         self.modified = true
+        Utils.run_hooks(:after_change_functions, s, s, str) unless @undoing
       end
     end
 
@@ -1488,6 +1492,18 @@ module Textbringer
       else
         "--"
       end
+    end
+
+    def pos_to_line_and_column(pos)
+      text_before = substring(0, pos)
+      line = text_before.count("\n") + 1
+      last_newline = text_before.rindex("\n")
+      column = if last_newline
+                 text_before.size - last_newline
+               else
+                 text_before.size + 1
+               end
+      [line, column]
     end
 
     private

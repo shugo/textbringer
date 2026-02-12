@@ -82,16 +82,28 @@ module Textbringer
         @open_documents[uri] = version
       end
 
-      def did_change(uri:, version:, text:)
+      def did_change(uri:, version:, text: nil, range: nil, range_length: nil)
         return unless @initialized
         return unless @open_documents.key?(uri)
+
+        # Support both full and incremental sync
+        content_change = if range
+                           # Incremental change
+                           change = { range: range }
+                           change[:rangeLength] = range_length if range_length
+                           change[:text] = text if text
+                           change
+                         else
+                           # Full document sync
+                           { text: text }
+                         end
 
         send_notification("textDocument/didChange", {
           textDocument: {
             uri: uri,
             version: version
           },
-          contentChanges: [{ text: text }]
+          contentChanges: [content_change]
         })
         @open_documents[uri] = version
       end

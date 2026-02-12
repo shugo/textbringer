@@ -375,20 +375,22 @@ module Textbringer
       end
     end
 
-    def run_hooks(name, remove_on_error: false)
-      hooks = Buffer.current[:hooks]
-      run_hooks_in(hooks, name, remove_on_error:) if hooks
-      run_hooks_in(HOOKS, name, remove_on_error:)
+    def run_hooks(name, *args, remove_on_error: false)
+      if Buffer.current
+        hooks = Buffer.current[:hooks]
+        run_hooks_in(hooks, name, *args, remove_on_error:) if hooks
+      end
+      run_hooks_in(HOOKS, name, *args, remove_on_error:)
     end
 
-    def run_hooks_in(hooks, name, remove_on_error: false)
+    def run_hooks_in(hooks, name, *args, remove_on_error: false)
       hooks[name].delete_if do |func|
         begin
           case func
           when Symbol
-            send(func)
+            send(func, *args)
           else
-            func.call
+            func.call(*args)
           end
           false
         rescue Exception => e
