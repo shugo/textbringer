@@ -277,10 +277,14 @@ module Textbringer
     end
 
     def file_name=(file_name)
+      old_file_name = @file_name
       @file_name = file_name
       basename = File.basename(file_name)
       if /\A#{Regexp.quote(basename)}(<\d+>)?\z/ !~ name
         self.name = basename
+      end
+      if old_file_name != file_name && current?
+        Utils.run_hooks(:after_set_visited_file_name_hook, old_file_name)
       end
     end
 

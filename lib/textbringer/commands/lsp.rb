@@ -210,5 +210,29 @@ module Textbringer
     def lsp_find_file_hook
       lsp_open_document(Buffer.current)
     end
+
+    # Reopen document when file name changes
+    HOOKS[:after_set_visited_file_name_hook].unshift(
+      :lsp_after_set_visited_file_name_hook
+    )
+
+    def lsp_after_set_visited_file_name_hook(old_file_name)
+      buffer = Buffer.current
+      return unless old_file_name
+
+      # Close the old document
+      old_uri = "file://#{old_file_name}"
+      client = LSP::ServerRegistry.get_client_for_buffer(buffer)
+      if client&.running? && client.document_open?(old_uri)
+        client.did_close(uri: old_uri)
+        LSP_DOCUMENT_VERSIONS.delete(old_uri)
+      end
+
+      # Reset hooks so they are reinstalled with the new URI
+      buffer[:lsp_hooks_installed] = false
+
+      # Open the new document
+      lsp_open_document(buffer)
+    end
   end
 end

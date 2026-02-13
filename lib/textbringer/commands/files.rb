@@ -103,8 +103,17 @@ module Textbringer
           next
         end
       end
-      Buffer.current.save(file_name)
+      set_visited_file_name(file_name)
+      Buffer.current.save
       message("Wrote #{Buffer.current.file_name}")
+    end
+
+    define_command(:set_visited_file_name,
+                   doc: "Change the file name of the current buffer.") do
+      |file_name = read_file_name("Set visited file name: ",
+                                  default: Buffer.current.file_name)|
+      file_name = File.expand_path(file_name)
+      Buffer.current.file_name = file_name
     end
 
     define_command(:set_buffer_file_encoding,
