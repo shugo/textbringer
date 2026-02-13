@@ -45,6 +45,7 @@ module Textbringer
       if config.key?("tab_width")
         Buffer.current[:tab_width] = config["tab_width"].to_i
       end
+      run_hooks(:find_file_hook)
     end
 
     define_command(:revert_buffer, doc: <<~EOD) do

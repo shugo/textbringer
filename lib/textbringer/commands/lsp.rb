@@ -20,8 +20,10 @@ module Textbringer
         return
       end
 
-      # Ensure document is open
-      ensure_document_open(client, buffer)
+      unless client.document_open?(buffer_uri(buffer))
+        message("LSP document not open; reopen the file to enable LSP")
+        return
+      end
 
       # Get completion position
       uri = buffer_uri(buffer)
@@ -125,27 +127,27 @@ module Textbringer
       "file://#{buffer.file_name}"
     end
 
-    def ensure_document_open(client, buffer)
-      uri = buffer_uri(buffer)
+    def lsp_open_document(buffer)
+      client = LSP::ServerRegistry.get_client_for_buffer(buffer)
+      return unless client
+      return unless client.running? && client.initialized?
+      return unless buffer.file_name
 
-      unless client.document_open?(uri)
-        # Open the document for the first time
-        version = 1
-        LSP_DOCUMENT_VERSIONS[uri] = version
-        language_id = LSP::ServerRegistry.language_id_for_buffer(buffer) || "text"
-        client.did_open(
-          uri: uri,
-          language_id: language_id,
-          version: version,
-          text: buffer.to_s
-        )
-        # Set up incremental sync hook (only once per buffer)
-        unless buffer[:lsp_hooks_installed]
-          lsp_setup_buffer_hooks(buffer, client, uri)
-          buffer[:lsp_hooks_installed] = true
-        end
-        # Give server time to parse the document
-        sleep(0.5)
+      uri = buffer_uri(buffer)
+      return if client.document_open?(uri)
+
+      version = 1
+      LSP_DOCUMENT_VERSIONS[uri] = version
+      language_id = LSP::ServerRegistry.language_id_for_buffer(buffer) || "text"
+      client.did_open(
+        uri: uri,
+        language_id: language_id,
+        version: version,
+        text: buffer.to_s
+      )
+      unless buffer[:lsp_hooks_installed]
+        lsp_setup_buffer_hooks(buffer, client, uri)
+        buffer[:lsp_hooks_installed] = true
       end
     end
 
@@ -201,5 +203,12 @@ module Textbringer
 
     # Keybinding: M-Tab for LSP completion
     GLOBAL_MAP.define_key("\M-\t", :lsp_completion)
+
+    # Open document with LSP server when a file is opened
+    HOOKS[:find_file_hook].unshift(:lsp_find_file_hook)
+
+    def lsp_find_file_hook
+      lsp_open_document(Buffer.current)
+    end
   end
 end
