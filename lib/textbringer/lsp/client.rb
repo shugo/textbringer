@@ -10,7 +10,7 @@ module Textbringer
       class ServerError < StandardError; end
       class TimeoutError < StandardError; end
 
-      attr_reader :root_path, :server_name
+      attr_reader :root_path, :server_name, :server_capabilities
 
       def initialize(command:, args: [], root_path:, server_name: nil)
         @command = command
@@ -147,6 +147,22 @@ module Textbringer
         end
       end
 
+      # Signature Help
+
+      def signature_help(uri:, line:, character:, context: nil, &callback)
+        return unless @initialized
+
+        params = {
+          textDocument: { uri: uri },
+          position: { line: line, character: character }
+        }
+        params[:context] = context if context
+
+        send_request("textDocument/signatureHelp", params) do |result, error|
+          callback.call(result, error) if callback
+        end
+      end
+
       private
 
       def initialize_server_sync
@@ -237,6 +253,14 @@ module Textbringer
               },
               completionItemKind: {
                 valueSet: (1..25).to_a
+              }
+            },
+            signatureHelp: {
+              signatureInformation: {
+                documentationFormat: ["plaintext"],
+                parameterInformation: {
+                  labelOffsetSupport: true
+                }
               }
             },
             synchronization: {
