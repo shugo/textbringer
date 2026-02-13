@@ -25,8 +25,9 @@ module Textbringer
 
       # Get completion position
       uri = buffer_uri(buffer)
-      line = buffer.current_line - 1  # LSP uses 0-based line numbers
-      character = buffer.current_column - 1  # LSP uses 0-based column
+      pos = lsp_position(buffer, buffer.point)
+      line = pos[:line]
+      character = pos[:character]
 
       # Calculate the start point for completion (beginning of current word)
       start_point = buffer.save_point do
@@ -97,7 +98,31 @@ module Textbringer
 
     # Helper methods
 
+    # Convert a string's character length to UTF-16 code unit count.
+    # LSP positions use UTF-16 offsets by default.
+    def lsp_utf16_length(str)
+      str.encode("UTF-16LE").bytesize / 2
+    end
+
+    # Compute LSP position (0-based line, UTF-16 character offset)
+    # from a buffer position.
+    def lsp_position(buffer, pos)
+      line, = buffer.pos_to_line_and_column(pos)
+      # Get the text from the start of the line to compute UTF-16 offset
+      line_start = buffer.save_point do
+        buffer.goto_char(pos)
+        buffer.beginning_of_line
+        buffer.point
+      end
+      text_on_line = buffer.substring(line_start, pos)
+      character = lsp_utf16_length(text_on_line)
+      { line: line - 1, character: character }
+    end
+
     def buffer_uri(buffer)
+      unless buffer.file_name
+        raise EditorError, "Buffer has no file name"
+      end
       "file://#{buffer.file_name}"
     end
 
@@ -115,8 +140,11 @@ module Textbringer
           version: version,
           text: buffer.to_s
         )
-        # Set up incremental sync hook
-        lsp_setup_buffer_hooks(buffer, client, uri)
+        # Set up incremental sync hook (only once per buffer)
+        unless buffer[:lsp_hooks_installed]
+          lsp_setup_buffer_hooks(buffer, client, uri)
+          buffer[:lsp_hooks_installed] = true
+        end
         # Give server time to parse the document
         sleep(0.5)
       end
@@ -132,30 +160,27 @@ module Textbringer
         version += 1
         LSP_DOCUMENT_VERSIONS[uri] = version
 
-        # Compute start position in LSP line/character coordinates
-        start_line, start_char = buffer.pos_to_line_and_column(beg_pos)
+        # Compute start position in LSP coordinates (0-based, UTF-16)
+        start_pos = lsp_position(buffer, beg_pos)
 
         if old_text.empty?
           # Insertion: old range is empty, new text is the inserted content
           new_text = buffer.substring(beg_pos, end_pos)
-          range = {
-            start: { line: start_line - 1, character: start_char - 1 },
-            end: { line: start_line - 1, character: start_char - 1 }
-          }
+          range = { start: start_pos, end: start_pos }
         else
           # Deletion: compute old end position from the deleted text
           newline_count = old_text.count("\n")
           if newline_count == 0
-            end_line = start_line
-            end_char = start_char + old_text.size
+            end_line = start_pos[:line]
+            end_char = start_pos[:character] + lsp_utf16_length(old_text)
           else
-            end_line = start_line + newline_count
+            end_line = start_pos[:line] + newline_count
             last_newline = old_text.rindex("\n")
-            end_char = 1 + old_text[last_newline + 1..].size
+            end_char = lsp_utf16_length(old_text[last_newline + 1..])
           end
           range = {
-            start: { line: start_line - 1, character: start_char - 1 },
-            end: { line: end_line - 1, character: end_char - 1 }
+            start: start_pos,
+            end: { line: end_line, character: end_char }
           }
           new_text = ""
         end

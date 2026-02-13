@@ -63,7 +63,8 @@ module Textbringer
       completion_popup_done
       # Execute the command for the key that closed the popup
       key = Controller.current.last_key
-      cmd = Buffer.current&.keymap&.lookup([key]) || GLOBAL_MAP.lookup([key])
+      buffer = Buffer.current
+      cmd = buffer&.keymap&.lookup([key]) || GLOBAL_MAP.lookup([key])
       if cmd.is_a?(Symbol)
         send(cmd)
       elsif cmd.respond_to?(:call)

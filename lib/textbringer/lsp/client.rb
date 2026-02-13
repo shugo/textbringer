@@ -34,15 +34,20 @@ module Textbringer
       def start
         return if @running
 
-        # Use Bundler's clean environment if available, otherwise manually clean
-        if defined?(Bundler)
-          Bundler.with_unbundled_env do
+        begin
+          # Use Bundler's clean environment if available
+          if defined?(Bundler)
+            Bundler.with_unbundled_env do
+              @stdin, @stdout, @stderr, @wait_thr =
+                Open3.popen3(@command, *@args)
+            end
+          else
             @stdin, @stdout, @stderr, @wait_thr =
               Open3.popen3(@command, *@args)
           end
-        else
-          @stdin, @stdout, @stderr, @wait_thr =
-            Open3.popen3(@command, *@args)
+        rescue Errno::ENOENT
+          Utils.message("LSP server command not found: #{@command}")
+          return
         end
 
         @running = true
@@ -263,19 +268,25 @@ module Textbringer
       end
 
       def cleanup
-        @running = false
-        @initialized = false
+        @mutex.synchronize do
+          @running = false
+          @initialized = false
+          @pending_requests.clear
+          @open_documents.clear
+        end
 
-        @reader_thread&.kill
-        @reader_thread = nil
-
-        @stdin&.close
-        @stdout&.close
-        @stderr&.close
+        # Close IO streams first so reader thread exits naturally
+        @stdin&.close rescue nil
+        @stdout&.close rescue nil
+        @stderr&.close rescue nil
         @stdin = @stdout = @stderr = nil
 
-        @pending_requests.clear
-        @open_documents.clear
+        # Wait for reader thread to finish, then force kill if needed
+        if @reader_thread && @reader_thread != Thread.current
+          @reader_thread.join(1)
+          @reader_thread.kill if @reader_thread.alive?
+        end
+        @reader_thread = nil
       end
 
       def send_request(method, params, &callback)
@@ -297,14 +308,17 @@ module Textbringer
       end
 
       def send_notification(method, params)
-        message = {
-          jsonrpc: "2.0",
-          method: method,
-          params: params
-        }
-        write_message(message)
+        @mutex.synchronize do
+          message = {
+            jsonrpc: "2.0",
+            method: method,
+            params: params
+          }
+          write_message(message)
+        end
       end
 
+      # NOTE: Callers must hold @mutex when calling this method.
       def write_message(message)
         return unless @stdin && !@stdin.closed?
 
@@ -316,7 +330,8 @@ module Textbringer
         @stdin.flush
       rescue IOError, Errno::EPIPE => e
         Utils.message("LSP write error: #{e.message}")
-        cleanup
+        @running = false
+        @initialized = false
       end
 
       def start_reader_thread
@@ -387,7 +402,7 @@ module Textbringer
 
       def handle_response(message)
         id = message["id"]
-        callback = @pending_requests.delete(id)
+        callback = @mutex.synchronize { @pending_requests.delete(id) }
         return unless callback
 
         if message.key?("error")
@@ -436,18 +451,20 @@ module Textbringer
       end
 
       def send_response(id, result, error)
-        message = {
-          jsonrpc: "2.0",
-          id: id
-        }
+        @mutex.synchronize do
+          message = {
+            jsonrpc: "2.0",
+            id: id
+          }
 
-        if error
-          message[:error] = error
-        else
-          message[:result] = result
+          if error
+            message[:error] = error
+          else
+            message[:result] = result
+          end
+
+          write_message(message)
         end
-
-        write_message(message)
       end
 
       def normalize_completion_result(result)

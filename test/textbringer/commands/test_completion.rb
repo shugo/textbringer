@@ -97,6 +97,7 @@ class TestCompletionCommands < Textbringer::TestCase
 
     refute(@popup.visible?)
     assert_equal("foo()", buffer.to_s)
+    assert_equal(5, buffer.point)
   end
 
   def test_completion_popup_accept_with_selection

@@ -91,7 +91,7 @@ module Textbringer
 
       if @floating_window && !@floating_window.deleted?
         @floating_window.resize(lines, columns)
-        y, x = FloatingWindow.send(:calculate_cursor_position, lines, columns, Window.current)
+        y, x = FloatingWindow.calculate_cursor_position(lines, columns, Window.current)
         @floating_window.move_to(y: y, x: x)
       else
         @floating_window = FloatingWindow.at_cursor(
@@ -159,7 +159,6 @@ module Textbringer
     def format_item(item)
       label = item[:label] || ""
       detail = item[:detail]
-      kind = item[:kind]
 
       # Build the display string
       result = label
