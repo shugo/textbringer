@@ -87,7 +87,6 @@ module Textbringer
     DOC
       buffer = Buffer.current
       LSP::ServerRegistry.stop_client_for_buffer(buffer)
-      sleep(0.2)
       client = LSP::ServerRegistry.get_client_for_buffer(buffer)
       if client
         message("LSP server restarting...")

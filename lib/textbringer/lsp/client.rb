@@ -255,12 +255,18 @@ module Textbringer
       def shutdown
         return unless @initialized
 
+        shutdown_cv = ConditionVariable.new
         send_request("shutdown", nil) do |_result, _error|
-          @initialized = false
+          @mutex.synchronize do
+            @initialized = false
+            shutdown_cv.signal
+          end
         end
 
-        # Wait briefly for shutdown response
-        sleep(0.1)
+        # Wait for shutdown response with timeout
+        @mutex.synchronize do
+          shutdown_cv.wait(@mutex, 3) if @initialized
+        end
       end
 
       def exit_server
