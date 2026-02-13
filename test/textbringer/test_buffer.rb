@@ -2096,4 +2096,69 @@ EOF
     assert_equal("ddd Ddd Ddd ", buffer_dd.to_s)
     assert_equal(12, buffer_dd.point)
   end
+
+  def test_pos_to_line_and_column
+    buffer = Buffer.new("hello\nworld\nfoo")
+    assert_equal([1, 1], buffer.pos_to_line_and_column(0))
+    assert_equal([1, 4], buffer.pos_to_line_and_column(3))
+    assert_equal([1, 6], buffer.pos_to_line_and_column(5))
+    assert_equal([2, 1], buffer.pos_to_line_and_column(6))
+    assert_equal([2, 4], buffer.pos_to_line_and_column(9))
+    assert_equal([3, 1], buffer.pos_to_line_and_column(12))
+    assert_equal([3, 4], buffer.pos_to_line_and_column(15))
+  end
+
+  def test_after_change_functions_insert
+    buffer = Buffer.new
+    Buffer.current = buffer
+    changes = []
+    add_hook(:after_change_functions, local: true) do |beg_pos, end_pos, old_text|
+      changes << [beg_pos, end_pos, old_text]
+    end
+    buffer.insert("hello")
+    assert_equal([[0, 5, ""]], changes)
+    buffer.insert(" world")
+    assert_equal([[0, 5, ""], [5, 11, ""]], changes)
+  end
+
+  def test_after_change_functions_delete
+    buffer = Buffer.new("hello world")
+    Buffer.current = buffer
+    changes = []
+    add_hook(:after_change_functions, local: true) do |beg_pos, end_pos, old_text|
+      changes << [beg_pos, end_pos, old_text]
+    end
+    # Forward delete: "hello world" -> "ello world", deletes 'h' at pos 0
+    buffer.delete_char(1)
+    assert_equal([[0, 0, "h"]], changes)
+    # Move to position 3 in "ello world" (before 'o')
+    buffer.forward_char(3)
+    # Backward delete: deletes 'l' at position 2
+    buffer.backward_delete_char
+    assert_equal([[0, 0, "h"], [2, 2, "l"]], changes)
+  end
+
+  def test_after_change_functions_delete_region
+    buffer = Buffer.new("hello world")
+    Buffer.current = buffer
+    changes = []
+    add_hook(:after_change_functions, local: true) do |beg_pos, end_pos, old_text|
+      changes << [beg_pos, end_pos, old_text]
+    end
+    buffer.delete_region(5, 11)
+    assert_equal([[5, 5, " world"]], changes)
+  end
+
+  def test_after_change_functions_not_called_during_undo
+    buffer = Buffer.new
+    Buffer.current = buffer
+    changes = []
+    add_hook(:after_change_functions, local: true) do |beg_pos, end_pos, old_text|
+      changes << [beg_pos, end_pos, old_text]
+    end
+    buffer.insert("hello")
+    assert_equal(1, changes.size)
+    buffer.undo
+    assert_equal(1, changes.size)  # Not called during undo
+  end
 end
