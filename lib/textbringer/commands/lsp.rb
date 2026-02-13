@@ -21,8 +21,7 @@ module Textbringer
       end
 
       unless client.document_open?(buffer_uri(buffer))
-        message("LSP document not open; reopen the file to enable LSP")
-        return
+        lsp_open_document(buffer)
       end
 
       # Get completion position
@@ -121,17 +120,17 @@ module Textbringer
     end
 
     def buffer_uri(buffer)
-      unless buffer.file_name
-        raise EditorError, "Buffer has no file name"
+      if buffer.file_name
+        "file://#{buffer.file_name}"
+      else
+        "untitled:#{buffer.name}"
       end
-      "file://#{buffer.file_name}"
     end
 
     def lsp_open_document(buffer)
       client = LSP::ServerRegistry.get_client_for_buffer(buffer)
       return unless client
       return unless client.running? && client.initialized?
-      return unless buffer.file_name
 
       uri = buffer_uri(buffer)
       return if client.document_open?(uri)
@@ -218,10 +217,10 @@ module Textbringer
 
     def lsp_after_set_visited_file_name_hook(old_file_name)
       buffer = Buffer.current
-      return unless old_file_name
 
       # Close the old document
-      old_uri = "file://#{old_file_name}"
+      old_uri = old_file_name ? "file://#{old_file_name}" : nil
+      return unless old_uri
       client = LSP::ServerRegistry.get_client_for_buffer(buffer)
       if client&.running? && client.document_open?(old_uri)
         client.did_close(uri: old_uri)
