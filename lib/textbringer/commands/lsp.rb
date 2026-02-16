@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 module Textbringer
   module Commands
     LSP_DOCUMENT_VERSIONS = {}

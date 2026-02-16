@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 module Textbringer
   class CompletionPopup
     MAX_VISIBLE_ITEMS = 10
@@ -176,7 +174,7 @@ module Textbringer
     end
 
     def truncate_to_width(str, max_width)
-      result = ""
+      result = +""
       current_width = 0
       str.each_char do |char|
         char_width = Buffer.display_width(char)
