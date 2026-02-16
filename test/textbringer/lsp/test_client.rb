@@ -107,6 +107,7 @@ class TestLSPClient < Textbringer::TestCase
     assert_equal(["plaintext"],
                  sig_help[:signatureInformation][:documentationFormat])
     assert(sig_help[:signatureInformation][:parameterInformation][:labelOffsetSupport])
+    assert(sig_help[:contextSupport])
   end
 
   def test_server_capabilities_initially_empty

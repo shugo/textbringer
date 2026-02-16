@@ -261,7 +261,8 @@ module Textbringer
                 parameterInformation: {
                   labelOffsetSupport: true
                 }
-              }
+              },
+              contextSupport: true
             },
             synchronization: {
               didSave: true,

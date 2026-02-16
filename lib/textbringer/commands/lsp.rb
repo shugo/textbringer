@@ -279,7 +279,7 @@ module Textbringer
       # Close any existing signature window
       lsp_close_signature_window
 
-      columns = [label.length + 2, Curses.cols - 2].min
+      columns = [[Buffer.display_width(label) + 2, Curses.cols - 2].min, 1].max
       win = FloatingWindow.at_cursor(
         lines: 1,
         columns: columns
