@@ -100,6 +100,19 @@ class TestLSPClient < Textbringer::TestCase
     assert(capabilities[:textDocument][:completion])
     assert(capabilities[:textDocument][:synchronization])
     refute(capabilities[:textDocument][:completion][:completionItem][:snippetSupport])
+
+    # Signature help capabilities
+    sig_help = capabilities[:textDocument][:signatureHelp]
+    assert(sig_help)
+    assert_equal(["plaintext"],
+                 sig_help[:signatureInformation][:documentationFormat])
+    assert(sig_help[:signatureInformation][:parameterInformation][:labelOffsetSupport])
+    assert(sig_help[:contextSupport])
+  end
+
+  def test_server_capabilities_initially_empty
+    client = create_client
+    assert_equal({}, client.server_capabilities)
   end
 
   def test_running_state_initially_false

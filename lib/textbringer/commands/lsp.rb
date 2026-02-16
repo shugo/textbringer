@@ -3,6 +3,9 @@
 module Textbringer
   module Commands
     LSP_DOCUMENT_VERSIONS = {}
+    LSP_STATUS = {
+      signature_window: nil
+    }
 
     define_command(:lsp_completion, doc: <<~DOC) do
       Request completion from the Language Server Protocol server.
@@ -54,6 +57,78 @@ module Textbringer
           )
         else
           message("No completions found")
+        end
+      end
+    end
+
+    define_command(:lsp_signature_help, doc: <<~DOC) do
+      Request signature help from the Language Server Protocol server.
+      Displays the signature of the function/method at the current cursor
+      position in a floating window.
+    DOC
+      buffer = Buffer.current
+
+      client = LSP::ServerRegistry.get_client_for_buffer(buffer)
+      unless client
+        raise EditorError, "No LSP server configured for this buffer"
+      end
+
+      unless client.running? && client.initialized?
+        message("LSP server not ready, please try again")
+        return
+      end
+
+      unless client.server_capabilities["signatureHelpProvider"]
+        message("LSP server does not support signature help")
+        return
+      end
+
+      unless client.document_open?(buffer_uri(buffer))
+        lsp_open_document(buffer)
+      end
+
+      uri = buffer_uri(buffer)
+      pos = lsp_position(buffer, buffer.point)
+
+      # Determine trigger character from the character before point
+      trigger_char = nil
+      trigger_chars = client.server_capabilities
+        .dig("signatureHelpProvider", "triggerCharacters") || []
+      if buffer.point > 0
+        char_before = buffer.save_point {
+          buffer.backward_char
+          buffer.char_after
+        }
+        trigger_char = char_before if trigger_chars.include?(char_before)
+      end
+
+      context = if trigger_char
+                  {
+                    triggerKind: 2, # TriggerCharacter
+                    triggerCharacter: trigger_char,
+                    isRetrigger: false
+                  }
+                else
+                  {
+                    triggerKind: 1, # Invoked
+                    isRetrigger: false
+                  }
+                end
+
+      client.signature_help(uri: uri, line: pos[:line], character: pos[:character], context: context) do |result, error|
+        if error
+          message("LSP signature help error: #{error["message"]}")
+        elsif result && result["signatures"] && !result["signatures"].empty?
+          active_index = result["activeSignature"] || 0
+          signature = result["signatures"][active_index]
+          label = signature["label"] if signature
+          if label
+            lsp_show_signature_window(label)
+          else
+            message("No signature information available")
+          end
+        else
+          message("No signature information available")
         end
       end
     end
@@ -200,8 +275,41 @@ module Textbringer
       end
     end
 
+    def lsp_show_signature_window(label)
+      # Close any existing signature window
+      lsp_close_signature_window
+
+      columns = [[Buffer.display_width(label) + 2, Curses.cols - 2].min, 1].max
+      win = FloatingWindow.at_cursor(
+        lines: 1,
+        columns: columns
+      )
+      win.buffer.insert(label)
+      win.buffer.beginning_of_buffer
+      win.show
+      LSP_STATUS[:signature_window] = win
+
+      add_hook(:pre_command_hook, :lsp_signature_pre_command_hook)
+    end
+
+    def lsp_close_signature_window
+      win = LSP_STATUS[:signature_window]
+      if win && !win.deleted?
+        win.close
+      end
+      LSP_STATUS[:signature_window] = nil
+    end
+
+    def lsp_signature_pre_command_hook
+      lsp_close_signature_window
+      remove_hook(:pre_command_hook, :lsp_signature_pre_command_hook)
+    end
+
     # Keybinding: M-Tab for LSP completion
     GLOBAL_MAP.define_key("\M-\t", :lsp_completion)
+
+    # Keybinding: F1 s for LSP signature help
+    GLOBAL_MAP.define_key([:f1, "s"], :lsp_signature_help)
 
     # Open document with LSP server when a file is opened
     HOOKS[:find_file_hook].unshift(:lsp_find_file_hook)
