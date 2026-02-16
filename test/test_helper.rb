@@ -3,6 +3,17 @@ require "test/unit"
 require "tmpdir"
 require "curses"
 
+if ENV["RBS_TRACE"] == "1"
+  require "rbs-trace"
+
+  trace = RBS::Trace.new
+  trace.enable
+  SimpleCov.at_exit do
+    trace.disable
+    trace.save_files(out_dir: "tmp/sig")
+  end
+end
+
 SimpleCov.profiles.define "textbringer" do
   add_filter "/test/"
 end
