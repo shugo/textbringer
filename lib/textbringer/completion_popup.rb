@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 module Textbringer
   class CompletionPopup
     MAX_VISIBLE_ITEMS = 10

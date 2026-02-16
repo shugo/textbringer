@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 module Textbringer
   module Commands
     define_keymap :COMPLETION_POPUP_MAP
