@@ -10,11 +10,12 @@ module Textbringer
 
       attr_reader :root_path, :server_name, :server_capabilities
 
-      def initialize(command:, args: [], root_path:, server_name: nil)
+      def initialize(command:, args: [], root_path:, server_name: nil, workspace_folders: [Dir.pwd])
         @command = command
         @args = args
         @root_path = root_path
         @server_name = server_name || command
+        @workspace_folders = workspace_folders
         @stdin = nil
         @stdout = nil
         @stderr = nil
@@ -175,6 +176,9 @@ module Textbringer
             processId: Process.pid,
             rootUri: "file://#{@root_path}",
             rootPath: @root_path,
+            workspaceFolders: @workspace_folders.map { |path|
+              { uri: "file://#{path}", name: File.basename(path) }
+            },
             capabilities: client_capabilities,
             trace: "off"
           }
@@ -270,7 +274,7 @@ module Textbringer
             }
           },
           workspace: {
-            workspaceFolders: false
+            workspaceFolders: true
           }
         }
       end

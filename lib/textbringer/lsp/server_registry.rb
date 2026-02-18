@@ -74,7 +74,8 @@ module Textbringer
               command: config.command,
               args: config.args,
               root_path: root_path,
-              server_name: config.language_id
+              server_name: config.language_id,
+              workspace_folders: [root_path]
             )
             client.start
             client
