@@ -140,6 +140,20 @@ class TestCompletionCommands < Textbringer::TestCase
     assert_equal("method_name()", buffer.to_s)
   end
 
+  def test_insert_completion_qualified_name
+    # Typing "Textbringer::Buf" where the symbol pattern only backs up to "Buf".
+    # start_point sits at 'B', but insert_text covers the full qualified name.
+    # The inserted text should replace "Textbringer::Buf", not just "Buf".
+    buffer.insert("Textbringer::Buf")
+    start_point = "Textbringer::".length  # symbol pattern stopped here
+    COMPLETION_POPUP_STATUS[:start_point] = start_point
+
+    item = { label: "Textbringer::Buffer", insert_text: "Textbringer::Buffer" }
+    insert_completion(item)
+
+    assert_equal("Textbringer::Buffer", buffer.to_s)
+  end
+
   def test_insert_completion_uses_label_as_fallback
     buffer.insert("foo")
     COMPLETION_POPUP_STATUS[:start_point] = 0

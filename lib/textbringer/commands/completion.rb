@@ -106,16 +106,27 @@ module Textbringer
       start_point = COMPLETION_POPUP_STATUS[:start_point]
       return unless start_point
 
-      # Get the text to insert
       insert_text = item[:insert_text] || item[:label]
       return unless insert_text
 
-      # Delete the prefix that was already typed
-      if buffer.point > start_point
-        buffer.delete_region(start_point, buffer.point)
+      # The server may return an insert_text that covers more than the typed
+      # symbol prefix (e.g. "Textbringer::Buffer" when the symbol pattern only
+      # backed up to "Buf"). Find the longest prefix of insert_text that is a
+      # suffix of the buffer text ending at point, and use that as the
+      # replacement range.
+      look_back = [buffer.point, insert_text.length].min
+      actual_start = start_point
+      if look_back > 0
+        text_before_point = buffer.substring(buffer.point - look_back, buffer.point)
+        look_back.downto(1) do |n|
+          if text_before_point.end_with?(insert_text[0, n])
+            actual_start = buffer.point - n
+            break
+          end
+        end
       end
 
-      # Insert the completion
+      buffer.delete_region(actual_start, buffer.point)
       buffer.insert(insert_text)
     end
   end
