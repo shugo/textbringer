@@ -1,9 +1,0 @@
-class TestDefaultOutput
-  def setup_1200: () -> Textbringer::DefaultOutput
-
-  def test_flush: () -> nil
-
-  def test_printf: () -> nil
-
-  def test_write: () -> nil
-end

@@ -1,3 +1,0 @@
-class TestColor
-  def test_aref: () -> Textbringer::EditorError
-end

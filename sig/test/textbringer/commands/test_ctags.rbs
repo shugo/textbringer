@@ -1,3 +1,0 @@
-class TestCtags
-  def test_find_tag: () -> Textbringer::EditorError
-end

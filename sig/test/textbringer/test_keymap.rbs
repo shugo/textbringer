@@ -1,7 +1,0 @@
-class TestKeymap
-  def test_global_map: () -> nil
-
-  def test_lookup: () -> ArgumentError
-
-  def test_s_key_name: () -> nil
-end
