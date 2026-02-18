@@ -52,12 +52,6 @@ class Textbringer::HelpMode
   def self.define_syntax: (Symbol, Regexp) -> Regexp
 end
 
-class TestMode::FooMode
-  def self.define_generic_command: (Symbol, **nil) -> Symbol
-
-  def self.inherited: (Class) -> Hash[untyped, untyped]
-end
-
 module Textbringer::Commands
   def backtrace_mode: () -> Array[untyped]
 
@@ -70,15 +64,6 @@ module Textbringer::Commands
   def jump_to_link_command: (*nil) -> Array[untyped]
                           | (*nil) -> Integer
                           | (*nil) -> nil
-
-  def foo_mode: () -> Array[untyped]
-
-  def foo_command: (*nil) -> nil
-                 | (*nil) -> Symbol
-
-  def bar_mode: () -> Array[untyped]
-
-  def baz_mode: () -> Array[untyped]
 
   def toggle_test_command: (*nil) -> Array[untyped]
                          | (*nil) -> nil

@@ -11,7 +11,7 @@ class Textbringer::Window
 
   def initialize: (Integer, Integer, Integer, Integer) -> void
 
-  def initialize_window: (Integer, Integer, Integer, Integer) -> Textbringer::FakeCursesWindow
+  def initialize_window: (Integer, Integer, Integer, Integer) -> void
 
   def buffer=: (Textbringer::Buffer) -> Textbringer::Mark
 
@@ -155,7 +155,7 @@ end
 class Textbringer::EchoArea
   def initialize: (*Integer) -> void
 
-  def initialize_window: (Integer, Integer, Integer, Integer) -> Textbringer::FakeCursesWindow
+  def initialize_window: (Integer, Integer, Integer, Integer) -> void
 
   def show: (String) -> String
 
