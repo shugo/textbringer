@@ -5,9 +5,7 @@ module Textbringer::Commands
 
   def find_file_read_only: (?String) -> nil
 
-  def find_source: (?TestFiles) -> Array[untyped]
-                 | (?Class) -> Array[untyped]
-                 | (?untyped) -> Array[untyped]
+  def find_source: (?untyped) -> Array[untyped]
 
   def make_directory: (?String) -> Array[untyped]
 

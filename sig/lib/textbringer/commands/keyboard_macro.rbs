@@ -20,7 +20,6 @@ module Textbringer::Commands
 
   def read_keyboard_macro: (String) -> String
 
-  def macro_foo: (?Integer) -> Integer
 
   def execute_keyboard_macro: (Array[untyped], ?Integer) -> Integer
 end

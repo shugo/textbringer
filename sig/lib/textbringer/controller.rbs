@@ -1,9 +1,9 @@
 class Textbringer::Controller
   def initialize: () -> void
 
-  def self.current=: (Textbringer::FakeController) -> Textbringer::FakeController
+  def self.current=: (Textbringer::Controller?) -> Textbringer::Controller?
 
-  def self.current: () -> Textbringer::FakeController
+  def self.current: () -> Textbringer::Controller?
 
   def close: () -> nil
 
