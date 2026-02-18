@@ -1,0 +1,3 @@
+module Textbringer::Plugin
+  def self.load_plugins: () -> Array[untyped]
+end

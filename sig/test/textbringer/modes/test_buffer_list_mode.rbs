@@ -1,0 +1,5 @@
+class TestBufferListMode
+  def setup_1048: () -> Textbringer::Buffer
+
+  def test_this_window: () -> nil
+end

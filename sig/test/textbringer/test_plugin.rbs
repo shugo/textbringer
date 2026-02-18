@@ -1,0 +1,13 @@
+module TestMode::FindFilesExt
+  def find_latest_files: (*String) -> Array[untyped]
+                       | (*String | bool) -> Array[untyped]
+
+  def self.files=: (nil) -> nil
+                 | (Array[untyped]) -> Array[untyped]
+end
+
+class TestMode
+  def teardown_1256: () -> nil
+
+  def test_load_plugins: () -> nil
+end

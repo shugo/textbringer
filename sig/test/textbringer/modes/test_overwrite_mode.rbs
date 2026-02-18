@@ -1,0 +1,9 @@
+class TestOverwriteMode
+  def setup_1096: () -> Textbringer::Buffer
+
+  def test_noundo_overwrite: () -> Textbringer::EditorError
+
+  def test_overwrite_mode: () -> nil
+
+  def test_undo_overwrite: () -> nil
+end

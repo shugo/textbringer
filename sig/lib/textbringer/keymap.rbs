@@ -1,0 +1,33 @@
+class Module
+  def define_keymap: (Symbol) -> Textbringer::Keymap
+end
+
+class Textbringer::Keymap
+  def initialize: () -> void
+
+  def define_key: (Symbol, Symbol) -> Symbol
+                | (String, Symbol) -> Symbol
+                | (Array[untyped], Symbol) -> Symbol
+                | (String, Proc) -> Proc
+                | (Array[untyped], Symbol) -> nil
+                | (Hash[untyped, untyped], Symbol) -> nil
+
+  def kbd: (Symbol) -> Array[untyped]
+         | (String) -> Array[untyped]
+         | (Array[untyped]) -> Array[untyped]
+         | (Hash[untyped, untyped]) -> nil
+
+  def handle_undefined_key: () -> Proc
+
+  def lookup: (Array[untyped]) -> nil
+            | (Array[untyped]) -> Symbol
+            | (Array[untyped]) -> Proc
+            | (Array[untyped]) -> Textbringer::Keymap
+
+  def self.key_sequence_string: (Array[untyped]) -> String
+
+  def self.key_name: (String) -> String
+                   | (Symbol) -> String
+
+  def each: (?Array[untyped]) -> Hash[untyped, untyped]
+end

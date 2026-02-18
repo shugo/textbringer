@@ -1,0 +1,5 @@
+class TestInputMethodCommands
+  def test_read_input_method_name: () -> nil
+
+  def test_toggle_input_method: () -> nil
+end

@@ -1,0 +1,95 @@
+module Textbringer::Utils
+  def self.run_hooks: (Symbol, *Integer | String, ?remove_on_error: bool) -> Array[untyped]
+                    | (Symbol, *nil, ?remove_on_error: bool) -> Array[untyped]
+                    | (Symbol, *String, ?remove_on_error: bool) -> Array[untyped]
+
+  def self.run_hooks_in: (Hash[untyped, untyped], Symbol, *Integer | String, ?remove_on_error: bool) -> Array[untyped]
+                       | (Hash[untyped, untyped], Symbol, *nil, ?remove_on_error: bool) -> Array[untyped]
+                       | (Hash[untyped, untyped], Symbol, *String, ?remove_on_error: bool) -> Array[untyped]
+
+  def run_hooks: (Symbol, *nil, ?remove_on_error: bool) -> Array[untyped]
+               | (Symbol, *nil, ?remove_on_error: bool) -> nil
+
+  def run_hooks_in: (Hash[untyped, untyped], Symbol, *nil, ?remove_on_error: bool) -> Array[untyped]
+                  | (Hash[untyped, untyped], Symbol, *nil, ?remove_on_error: bool) -> nil
+
+  def add_hook: (Symbol, ?nil, ?local: bool) -> Array[untyped]
+              | (Symbol, ?Symbol, ?local: bool) -> Array[untyped]
+              | (Symbol, ?Symbol, ?local: bool) -> nil
+              | (Symbol, ?Proc, ?local: bool) -> Array[untyped]
+
+  def get_hooks: (bool) -> Hash[untyped, untyped]
+
+  def insert: (*String) -> Textbringer::Buffer
+            | (*String) -> nil
+            | (*Textbringer::Commands::BufferPosition) -> Textbringer::Buffer
+
+  def message: (String, ?log: bool, ?sit_for: nil, ?sleep_for: nil) -> nil
+             | (String, ?log: bool, ?sit_for: Integer, ?sleep_for: nil) -> nil
+             | (String, ?log: bool, ?sit_for: Float, ?sleep_for: nil) -> nil
+             | (String, ?log: bool, ?sit_for: nil, ?sleep_for: Float) -> nil
+             | (Integer, ?log: bool, ?sit_for: nil, ?sleep_for: nil) -> nil
+
+  def read_from_minibuffer: (String, ?completion_proc: nil, ?default: nil, ?initial_value: nil, ?completion_ignore_case: bool, ?keymap: Textbringer::Keymap) -> String
+                          | (String, ?completion_proc: Proc, ?default: nil, ?initial_value: nil, ?completion_ignore_case: bool, ?keymap: Textbringer::Keymap) -> String
+                          | (String, ?completion_proc: Proc, ?default: String, ?initial_value: nil, ?completion_ignore_case: bool, ?keymap: Textbringer::Keymap) -> String
+                          | (String, ?completion_proc: nil, ?default: String, ?initial_value: nil, ?completion_ignore_case: bool, ?keymap: Textbringer::Keymap) -> String
+                          | (String, ?completion_proc: nil, ?default: nil, ?initial_value: nil, ?completion_ignore_case: bool, ?keymap: Textbringer::Keymap) -> nil
+
+  def delete_completions_window: () -> nil
+
+  def ruby_install_name: () -> String
+
+  def received_keyboard_quit?: () -> bool
+
+  def remove_hook: (Symbol, Symbol, ?local: bool) -> Symbol
+                 | (Symbol, Proc, ?local: bool) -> Proc
+
+  def show_exception: (RuntimeError) -> nil
+                    | (Textbringer::Quit) -> nil
+                    | (Textbringer::EditorError) -> nil
+                    | (SystemExit) -> nil
+
+  def set_transient_map: (Textbringer::Keymap) -> Textbringer::Keymap
+
+  def yes_or_no?: (String) -> bool
+
+  def read_file_name: (String, ?default: nil) -> String
+
+  def y_or_n?: (String) -> bool
+
+  def self_insert_and_exit_minibuffer: () -> nil
+
+  def complete_for_minibuffer: (String, Array[untyped]) -> Array[untyped]
+
+  def sit_for: (Integer, ?bool) -> nil
+             | (Float, ?bool) -> nil
+
+  def read_char: () -> String
+               | () -> nil
+
+  def read_single_char: (String, Array[untyped]) -> String
+
+  def foreground!: () -> String
+                 | () -> Thread::Queue
+
+  def foreground: () -> Integer
+
+  def gsub: (*Regexp) -> Textbringer::Buffer
+
+  def sleep_for: (Float) -> Integer
+
+  def read_buffer: (String, ?default: String) -> String
+
+  def read_command_name: (String) -> String
+
+  def read_event: () -> String
+                | () -> Symbol
+
+  def read_key_sequence: (String) -> Array[untyped]
+                       | (String) -> nil
+
+  def read_object: (?String) -> Class
+
+  def read_expression: (?String) -> String
+end

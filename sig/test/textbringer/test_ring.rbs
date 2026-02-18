@@ -1,0 +1,9 @@
+class TestKillRing
+  def test_map: () -> nil
+
+  def test_push: () -> nil
+
+  def test_rotate: () -> nil
+
+  def test_to_a: () -> nil
+end

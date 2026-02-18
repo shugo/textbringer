@@ -1,0 +1,87 @@
+class TestRubyMode
+  def setup_1128: () -> Textbringer::Buffer
+
+  def test_backward_definition: () -> nil
+
+  def test_compile: () -> nil
+
+  def test_default_compile_command: () -> nil
+
+  def test_forward_definition: () -> nil
+
+  def test_indent_line_after_class: () -> nil
+
+  def test_indent_line_after_hash_assignment: () -> nil
+
+  def test_indent_line_and: () -> nil
+
+  def test_indent_line_at_toplevel: () -> nil
+
+  def test_indent_line_begin: () -> nil
+
+  def test_indent_line_brace_block_with_param: () -> nil
+
+  def test_indent_line_class: () -> nil
+
+  def test_indent_line_comma: () -> nil
+
+  def test_indent_line_comma_in_hash: () -> nil
+
+  def test_indent_line_def_in_brace_and_paren: () -> nil
+
+  def test_indent_line_embedded_string: () -> nil
+
+  def test_indent_line_embexpr_end: () -> nil
+
+  def test_indent_line_endless_method_definition: () -> nil
+
+  def test_indent_line_endless_method_definition_with_params: () -> nil
+
+  def test_indent_line_extra_end: () -> nil
+
+  def test_indent_line_in_regexp: () -> nil
+
+  def test_indent_line_in_string: () -> nil
+
+  def test_indent_line_keyword_symbol: () -> nil
+
+  def test_indent_line_label: () -> nil
+
+  def test_indent_line_method_chain: () -> nil
+
+  def test_indent_line_modifier: () -> nil
+
+  def test_indent_line_multiline_args: () -> nil
+
+  def test_indent_line_op_cont: () -> nil
+
+  def test_indent_line_paren: () -> nil
+
+  def test_indent_line_paren_with_newline: () -> nil
+
+  def test_indent_line_paren_with_newline_and_comma: () -> nil
+
+  def test_indent_line_stabby_lambda: () -> nil
+
+  def test_indent_line_unmatch: () -> Textbringer::EditorError
+
+  def test_indent_line_unmatch_2: () -> Textbringer::EditorError
+
+  def test_indent_new_comment_line: () -> nil
+
+  def test_indent_region: () -> nil
+
+  def test_reindent_then_newline_and_indent: () -> nil
+
+  def test_reindent_then_newline_and_indent_after_cr: () -> nil
+
+  def test_symbol_pattern: () -> nil
+
+  def test_syntax_string_here_document: () -> nil
+
+  def test_syntax_string_here_document_quoted: () -> nil
+
+  def test_syntax_string_here_document_unterminated: () -> nil
+
+  def test_toggle_test: () -> Textbringer::EditorError
+end

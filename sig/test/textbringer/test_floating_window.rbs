@@ -1,0 +1,65 @@
+class TestFloatingWindow
+  def setup: () -> nil
+
+  def test_at_cursor: () -> nil
+
+  def teardown: () -> nil
+
+  def test_buffer_content: () -> nil
+
+  def test_centered: () -> nil
+
+  def test_class_level_tracking: () -> nil
+
+  def test_close: () -> nil
+
+  def test_close_all_floating: () -> nil
+
+  def test_close_preserves_custom_buffer: () -> nil
+
+  def test_current_line_face_at_cursor: () -> nil
+
+  def test_current_line_face_centered: () -> nil
+
+  def test_current_line_face_parameter_custom: () -> nil
+
+  def test_current_line_face_parameter_default: () -> nil
+
+  def test_face_parameter_at_cursor: () -> nil
+
+  def test_face_parameter_centered: () -> nil
+
+  def test_face_parameter_custom: () -> nil
+
+  def test_face_parameter_default: () -> nil
+
+  def test_face_parameter_nil: () -> nil
+
+  def test_floating_window_methods: () -> nil
+
+  def test_initialize: () -> nil
+
+  def test_initialize_with_custom_buffer: () -> nil
+
+  def test_move_to: () -> nil
+
+  def test_multiple_show_hide_does_not_change_focus: () -> Integer
+
+  def test_redisplay_all_floating: () -> nil
+
+  def test_redisplay_does_not_raise: () -> nil
+
+  def test_redisplay_with_current_line_face: () -> nil
+
+  def test_redisplay_with_current_line_face_point_on_different_lines: () -> nil
+
+  def test_redisplay_with_face: () -> nil
+
+  def test_redisplay_without_face: () -> nil
+
+  def test_resize: () -> nil
+
+  def test_show_and_hide: () -> nil
+
+  def test_show_does_not_change_focus: () -> nil
+end

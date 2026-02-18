@@ -1,0 +1,27 @@
+class TestFiles
+  def test_chdir: () -> nil
+
+  def test_find_file: () -> nil
+
+  def test_find_file_read_only: () -> nil
+
+  def test_find_file_with_editorconfig: () -> nil
+
+  def test_find_source: () -> nil
+
+  def test_make_directory: () -> nil
+
+  def test_pwd: () -> nil
+
+  def test_revert_buffer: () -> nil
+
+  def test_revert_buffer_with_encoding: () -> nil
+
+  def test_save_buffer: () -> nil
+
+  def test_set_buffer_file_encoding: () -> nil
+
+  def test_set_buffer_file_format: () -> nil
+
+  def test_write_file: () -> nil
+end

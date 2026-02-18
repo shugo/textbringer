@@ -1,0 +1,5 @@
+class TestDabbrev
+  def test_dabbrev_expand: () -> Textbringer::EditorError
+
+  def test_dabbrev_expand_command: () -> nil
+end

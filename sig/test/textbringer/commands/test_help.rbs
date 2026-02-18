@@ -1,0 +1,15 @@
+class TestHelp
+  def test_describe_bindings: () -> nil
+
+  def test_describe_char: () -> nil
+
+  def test_describe_class: () -> nil
+
+  def test_describe_command: () -> nil
+
+  def test_describe_key: () -> nil
+
+  def test_describe_method: () -> nil
+
+  def test_help_commands: () -> nil
+end

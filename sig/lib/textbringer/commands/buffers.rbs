@@ -1,0 +1,93 @@
+module Textbringer::Commands
+  def beginning_of_buffer: () -> Integer
+
+  def goto_line: (?Integer) -> Integer
+
+  def forward_char: (?Integer) -> nil
+
+  def back_to_indentation: () -> nil
+
+  def backward_char: (?Integer) -> nil
+
+  def end_of_line: () -> Integer
+
+  def end_of_buffer: () -> Integer
+
+  def backward_delete_char: (?Integer) -> nil
+
+  def backward_word: (?Integer) -> Integer
+
+  def capitalize_word: (?Integer) -> nil
+
+  def set_mark_command: (?nil) -> nil
+                      | (?bool) -> Textbringer::Mark
+
+  def undo: () -> nil
+
+  def delete_char: (?Integer) -> nil
+
+  def delete_indentation: () -> nil
+
+  def delete_region: () -> Array[untyped]
+
+  def downcase_word: (?Integer) -> nil
+
+  def push_mark: (?Integer) -> bool
+               | (?Integer) -> nil
+
+  def exchange_point_and_mark: () -> nil
+
+  def forward_word: (?Integer) -> Integer
+
+  def insert_char: (?String, ?Integer) -> Textbringer::Buffer
+
+  def kill_region: () -> Array[untyped]
+                 | () -> nil
+
+  def mark_whole_buffer: () -> Integer
+
+  def next_line: (?Integer) -> Integer
+
+  def open_line: () -> Textbringer::Buffer
+
+  def pop_mark: () -> Textbringer::Mark
+
+  def pop_to_mark: () -> Textbringer::Mark
+
+  def previous_line: (?Integer) -> Integer
+
+  def quoted_insert: (?Integer) -> Textbringer::Buffer
+                   | (?Integer) -> nil
+
+  def read_only_mode: () -> nil
+
+  def self_insert: (?Integer) -> Array[untyped]
+
+  def transpose_chars: () -> Textbringer::Buffer
+
+  def redo_command: () -> nil
+
+  def upcase_word: (?Integer) -> nil
+
+  def yank_pop: () -> nil
+              | () -> Symbol
+
+  def kill_line: () -> Symbol
+               | () -> nil
+
+  def yank: () -> Textbringer::Buffer
+
+  def zap_to_char: (?String, ?count: Integer) -> Array[untyped]
+
+  def copy_region: () -> Array[untyped]
+
+  def kill_word: () -> Symbol
+               | () -> nil
+
+  def beginning_of_line: () -> Integer
+
+  def goto_char: (?Integer) -> nil
+               | (?Integer) -> Integer
+
+  def newline: () -> Textbringer::Buffer
+end

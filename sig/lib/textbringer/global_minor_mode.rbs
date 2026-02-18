@@ -1,0 +1,7 @@
+class Textbringer::GlobalMinorMode
+  def self.inherited: (Class) -> Symbol
+end
+
+class Textbringer::TransientMarkMode
+  def self.enabled?: () -> bool
+end

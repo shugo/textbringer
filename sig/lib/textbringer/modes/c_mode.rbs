@@ -1,0 +1,21 @@
+class Textbringer::CMode
+  def initialize: (Textbringer::Buffer) -> void
+
+  def compile: (?String) -> nil
+
+  def default_compile_command: () -> String
+
+  def calculate_indentation: () -> Integer
+                           | () -> nil
+
+  def lex: (String) -> Array[untyped]
+         | (String) -> nil
+
+  def find_nearest_beginning_token: (Array[untyped]) -> Array[untyped]
+                                  | (Array[untyped]) -> nil
+
+  def indent_continued_statement: (Integer, Array[untyped], Integer) -> Integer
+                                | (Integer, Array[untyped], nil) -> Integer
+
+  def symbol_pattern: () -> Regexp
+end

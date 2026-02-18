@@ -1,0 +1,17 @@
+module Textbringer::Commands
+  def re_search_forward: (?Regexp) -> Integer
+                       | (?String) -> Integer
+
+  def re_search_backward: (?String) -> Integer
+                        | (?Regexp) -> Integer
+
+  def match_string: (Integer) -> String
+
+  def match_end: (Integer) -> Integer
+
+  def match_beginning: (Integer) -> Integer
+
+  def query_replace_regexp: (?String, ?String) -> nil
+
+  def replace_match: (String) -> nil
+end

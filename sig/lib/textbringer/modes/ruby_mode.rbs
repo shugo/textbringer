@@ -1,0 +1,57 @@
+class Textbringer::RubyMode
+  def initialize: (Textbringer::Buffer) -> void
+
+  def symbol_pattern: () -> Regexp
+
+  def backward_definition: (?Integer) -> nil
+
+  def compile: (?String) -> nil
+
+  def default_compile_command: () -> nil
+                             | () -> String
+
+  def forward_definition: (?Integer) -> nil
+
+  def calculate_indentation: () -> Integer
+                           | () -> nil
+
+  def beginning_of_indentation: () -> Integer
+
+  def space_width: (String) -> Integer
+
+  def lex: (String) -> Array[untyped]
+
+  def find_nearest_beginning_token: (Array[untyped]) -> Array[untyped]
+                                  | (Array[untyped]) -> Integer
+                                  | (Array[untyped]) -> nil
+
+  def endless_method_def?: (Array[untyped], Integer) -> bool
+
+  def modifier?: (Array[untyped], Integer) -> nil
+               | (Array[untyped], Integer) -> bool
+
+  def comment_start: () -> String
+
+  def toggle_test: () -> Array[untyped]
+                 | () -> nil
+
+  def find_test_path: (String, String, String) -> String
+                    | (String, String, String) -> nil
+
+  def find_first_path: (Array[untyped]) -> String
+                     | (Array[untyped]) -> nil
+
+  def find_test_target_path: (String, String, String) -> String
+                           | (String, nil, String) -> String
+                           | (String, String, String) -> nil
+end
+
+class Textbringer::RubyMode::PartialLiteralAnalyzer
+  def self.in_literal?: (String) -> bool
+
+  def in_literal?: () -> bool
+
+  def on_tstring_beg: (String) -> Integer
+
+  def on_tstring_end: (String) -> Integer
+end

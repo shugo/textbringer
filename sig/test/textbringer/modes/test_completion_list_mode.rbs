@@ -1,0 +1,5 @@
+class TestCompletionListMode
+  def setup_1080: () -> Textbringer::Buffer
+
+  def test_jump_to_location: () -> nil
+end

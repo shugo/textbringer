@@ -1,0 +1,36 @@
+class Textbringer::Ring
+  def initialize: (?Integer, ?on_delete: Proc) -> void
+
+  def clear: () -> Integer
+
+  def push: (Textbringer::Mark) -> Array[untyped]
+          | (String) -> Array[untyped]
+          | (Array[untyped]) -> Array[untyped]
+          | (String) -> String
+
+  def empty?: () -> bool
+
+  def current: () -> String
+             | () -> Textbringer::Mark
+             | () -> Array[untyped]
+             | () -> nil
+
+  def rotate: (Integer) -> String
+            | (Integer) -> Textbringer::Mark
+            | (Integer) -> Array[untyped]
+            | (Integer) -> nil
+
+  def get_index: (Integer) -> Integer
+               | (Integer) -> nil
+
+  def size: () -> Integer
+
+  def []: (?Integer) -> Textbringer::Mark
+
+  def pop: () -> Textbringer::Mark
+         | () -> String
+
+  def each: () -> Array[untyped]
+
+  def to_a: () -> Array[untyped]
+end

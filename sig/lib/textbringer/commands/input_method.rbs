@@ -1,0 +1,6 @@
+module Textbringer::Commands
+  def read_input_method_name: (String, ?default: String) -> String
+
+  def toggle_input_method: (?nil) -> bool
+                         | (?String) -> bool
+end

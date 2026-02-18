@@ -1,0 +1,19 @@
+module Textbringer::Commands
+  def clear_rectangle: () -> nil
+
+  def copy_rectangle_as_kill: () -> Array[untyped]
+
+  def delete_rectangle: () -> nil
+
+  def kill_rectangle: () -> nil
+
+  def open_rectangle: () -> nil
+
+  def yank_rectangle: () -> nil
+
+  def rectangle_number_lines: () -> nil
+
+  def string_insert_rectangle: (?String) -> nil
+
+  def string_rectangle: (?String) -> nil
+end

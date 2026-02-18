@@ -1,0 +1,3 @@
+class TestFace
+  def test_define: () -> nil
+end

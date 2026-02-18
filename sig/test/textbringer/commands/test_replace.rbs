@@ -1,0 +1,3 @@
+class TestReplace
+  def test_query_replace_regexp: () -> nil
+end

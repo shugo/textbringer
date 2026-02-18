@@ -1,0 +1,39 @@
+class Textbringer::Commands::Ispell
+  def initialize: () -> void
+
+  def check_word: (String) -> Array[untyped]
+
+  def send_command: (String) -> IO
+
+  def close: () -> nil
+
+  def personal_dictionary_modified?: () -> bool
+
+  def add_to_session_dictionary: (String) -> IO
+
+  def add_to_personal_dictionary: (String) -> bool
+end
+
+module Textbringer::Commands
+  def ispell_buffer: (?recursive_edit: bool) -> nil
+
+  def ispell_mode: () -> Textbringer::Keymap
+
+  def ispell_forward: () -> bool
+                    | () -> nil
+
+  def message_misspelled: () -> nil
+
+  def ispell_replace: () -> nil
+
+  def ensure_ispell_active: () -> nil
+
+  def ispell_done: () -> nil
+                 | () -> bool
+
+  def ispell_accept: () -> nil
+
+  def ispell_insert: () -> nil
+
+  def ispell_quit: () -> nil
+end

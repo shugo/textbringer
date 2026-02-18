@@ -1,0 +1,14 @@
+class TestInputMethod
+  def test_disable: () -> nil
+
+  def test_filter_event: () -> nil
+
+  def test_find: () -> Textbringer::EditorError
+
+  def test_list: () -> nil
+end
+
+class Textbringer::CapitalInputMethod
+  def handle_event: (String) -> String
+                  | (Symbol) -> Symbol
+end

@@ -1,0 +1,19 @@
+class TestBuffers
+  def test_fill_paragraph: () -> nil
+
+  def test_fill_region: () -> nil
+
+  def test_fill_region_insert_space: () -> nil
+
+  def test_fill_region_japanese: () -> nil
+
+  def test_fill_region_join_comma: () -> nil
+
+  def test_fill_region_join_comma_and_japanese: () -> nil
+
+  def test_fill_region_join_japanese: () -> nil
+
+  def test_fill_region_join_period: () -> nil
+
+  def test_fill_region_join_period_and_japanese: () -> nil
+end

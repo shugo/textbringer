@@ -1,0 +1,21 @@
+class TestController
+  def setup_1176: () -> Textbringer::Controller
+
+  def test_clear_message_if_echo_area_is_active: () -> nil
+
+  def teardown_1192: () -> nil
+
+  def test_clear_prefix_arg: () -> nil
+
+  def test_echo_input: () -> nil
+
+  def test_read_event: () -> nil
+
+  def test_read_event_wait_next_tick: () -> nil
+
+  def test_received_keyboard_quit?: () -> nil
+
+  def test_undefined_key: () -> nil
+
+  def test_wait_input: () -> nil
+end

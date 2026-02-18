@@ -1,0 +1,27 @@
+class TestIspell
+  def setup: () -> Textbringer::Commands::Ispell
+
+  def test_check_word_correct: () -> nil
+
+  def teardown: () -> nil
+
+  def test_check_word_incorrect: () -> nil
+
+  def test_ispell_buffer: () -> nil
+
+  def test_ispell_buffer_accept: () -> nil
+
+  def test_ispell_buffer_apostrophe: () -> nil
+
+  def test_ispell_buffer_email: () -> nil
+
+  def test_ispell_buffer_insert: () -> nil
+
+  def test_ispell_buffer_last_word: () -> nil
+
+  def test_ispell_buffer_not_modified: () -> nil
+
+  def test_ispell_buffer_not_stuck: () -> nil
+
+  def test_ispell_buffer_url: () -> nil
+end

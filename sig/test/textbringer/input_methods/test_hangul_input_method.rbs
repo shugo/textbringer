@@ -1,0 +1,17 @@
+class TestHangulInputMethod
+  def setup_976: () -> Textbringer::Buffer
+
+  def test_closed_syllable: () -> nil
+
+  def assert_self_insert: (String, String) -> nil
+                        | (nil, String) -> nil
+                        | (nil, nil) -> nil
+
+  def test_multiple_open_syllables: () -> nil
+
+  def test_open_syllable: () -> nil
+
+  def test_phrase: () -> nil
+
+  def test_single_jamo: () -> nil
+end

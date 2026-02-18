@@ -1,0 +1,183 @@
+class Textbringer::Window
+  def self.load_faces: () -> bool
+
+  def self.colors: () -> Integer
+
+  def self.has_colors=: (bool) -> bool
+
+  def self.lines: () -> Integer
+
+  def self.columns: () -> Integer
+
+  def initialize: (Integer, Integer, Integer, Integer) -> void
+
+  def initialize_window: (Integer, Integer, Integer, Integer) -> Textbringer::FakeCursesWindow
+
+  def buffer=: (Textbringer::Buffer) -> Textbringer::Mark
+
+  def delete_marks: () -> nil
+
+  def self.current=: (Textbringer::Window) -> Textbringer::Buffer
+                   | (Textbringer::EchoArea) -> Textbringer::Buffer
+
+  def deleted?: () -> bool
+
+  def restore_point: () -> Integer
+
+  def self.current: () -> Textbringer::Window
+                  | () -> Textbringer::EchoArea
+
+  def recenter_if_needed: () -> Integer
+                        | () -> nil
+
+  def recenter: () -> Integer
+
+  def beginning_of_line_and_count: (Integer, ?Integer) -> Integer
+
+  def escape: (String) -> String
+
+  def save_point: () -> Integer
+
+  def self.echo_area: () -> Textbringer::EchoArea
+
+  def current?: () -> bool
+
+  def self.minibuffer_selected: () -> nil
+                              | () -> Textbringer::Window
+
+  def self.minibuffer_selected=: (Textbringer::Window) -> Textbringer::Window
+                               | (nil) -> nil
+
+  def self.update: () -> nil
+
+  def self.redisplay: () -> nil
+
+  def has_input?: () -> bool
+
+  def redisplay: () -> nil
+
+  def redisplay_mode_line: () -> nil
+
+  def unicode_codepoint: (String) -> String
+                       | (nil) -> String
+
+  def framer: () -> nil
+            | () -> Integer
+
+  def highlight: () -> String
+               | () -> nil
+
+  def current_or_minibuffer_selected?: () -> bool
+
+  def update_cursor_and_attr: (Textbringer::Mark, Integer, Integer) -> nil
+                            | (Textbringer::Mark, Integer, Integer) -> bool
+
+  def compose_character: (Textbringer::Mark, Integer, Integer, String) -> String
+
+  def self.has_colors?: () -> bool
+
+  def delete: () -> bool
+
+  def self.list: (?include_echo_area: bool) -> Array[untyped]
+
+  def echo_area?: () -> bool
+
+  def split: (?nil) -> Array[untyped]
+           | (?Integer) -> Array[untyped]
+           | (?nil) -> nil
+
+  def resize: (Integer, Integer) -> Integer
+
+  def self.delete_window: (?Textbringer::Window) -> nil
+                        | (?Textbringer::Window) -> Textbringer::Window
+                        | (?Textbringer::EchoArea) -> nil
+
+  def self.beep: () -> nil
+
+  def wait_input: (Integer) -> nil
+                | (Integer) -> String
+
+  def read_event_nonblock: () -> String
+                         | () -> nil
+
+  def self.other_window: () -> Textbringer::Window
+                       | () -> Textbringer::EchoArea
+
+  def active?: () -> bool
+
+  def isearch_attr: () -> Integer
+
+  def region_attr: () -> Integer
+
+  def self.redraw: () -> nil
+
+  def redraw: () -> nil
+
+  def read_event: () -> String
+                | () -> Symbol
+
+  def get_char: () -> String
+              | () -> Integer
+
+  def calc_tab_width: (Integer) -> Integer
+
+  def compose_hangul_character: (Textbringer::Mark, Integer, Integer, String) -> String
+
+  def move: (Integer, Integer) -> Integer
+
+  def self.set_default_colors: (String, String) -> nil
+
+  def self.start: () -> nil
+
+  def close: () -> nil
+
+  def self.delete_other_windows: () -> nil
+                               | () -> Integer
+
+  def enlarge: (Integer) -> Array[untyped]
+             | (Integer) -> Integer
+
+  def self.resize: () -> Integer
+
+  def scroll_down: () -> Integer
+                 | () -> nil
+
+  def scroll_up: () -> Integer
+               | () -> nil
+
+  def shrink: (Integer) -> Integer
+            | (Integer) -> Array[untyped]
+
+  def shrink_if_larger_than_buffer: () -> Integer
+                                  | () -> nil
+end
+
+class Textbringer::EchoArea
+  def initialize: (*Integer) -> void
+
+  def initialize_window: (Integer, Integer, Integer, Integer) -> Textbringer::FakeCursesWindow
+
+  def show: (String) -> String
+
+  def active?: () -> bool
+
+  def redisplay: () -> nil
+
+  def escape: (String) -> String
+
+  def clear_message: () -> nil
+
+  def framer: () -> Integer
+
+  def editable_columns: () -> Integer
+
+  def clear: () -> String
+
+  def echo_area?: () -> bool
+
+  def redraw: () -> nil
+
+  def move: (Integer, Integer) -> Integer
+
+  def resize: (Integer, Integer) -> Integer
+end

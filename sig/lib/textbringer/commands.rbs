@@ -1,0 +1,21 @@
+module Textbringer::Commands
+  def self.define_command: (Symbol, ?doc: String, ?source_location_proc: nil) -> Symbol
+
+  def self.command_table: () -> Hash[untyped, untyped]
+
+  def define_command: (Symbol, ?doc: String, ?source_location_proc: nil) -> Symbol
+                    | (Symbol, ?doc: String, ?source_location_proc: Proc) -> Symbol
+                    | (String, ?doc: String, ?source_location_proc: nil) -> Symbol
+
+  def undefine_command: (Symbol) -> Textbringer::Command
+
+  def self.[]: (String) -> nil
+             | (String) -> Textbringer::Command
+             | (Symbol) -> Textbringer::Command
+
+  def self.list: () -> Array[untyped]
+end
+
+class Textbringer::Command
+  def source_location: () -> Array[untyped]
+end

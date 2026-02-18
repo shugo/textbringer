@@ -1,0 +1,12 @@
+class Textbringer::HiraganaInputMethod
+  def initialize: () -> void
+
+  def handle_event: (String) -> String
+                  | (String) -> nil
+                  | (Symbol) -> Symbol
+
+  def flush: (String) -> String
+           | (String) -> nil
+
+  def status: () -> String
+end

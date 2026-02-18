@@ -1,0 +1,29 @@
+class TestBuffers
+  def test_clear_rectangle: () -> nil
+
+  def test_clear_rectangle_with_short_lines: () -> nil
+
+  def test_copy_rectangle_as_kill: () -> nil
+
+  def test_delete_rectangle: () -> nil
+
+  def test_extract_rectangle: () -> nil
+
+  def test_kill_rectangle: () -> nil
+
+  def test_open_rectangle: () -> nil
+
+  def test_rectangle_boundaries: () -> nil
+
+  def test_rectangle_edge_cases: () -> nil
+
+  def test_rectangle_multibyte: () -> nil
+
+  def test_rectangle_number_lines: () -> nil
+
+  def test_string_insert_rectangle: () -> nil
+
+  def test_string_rectangle: () -> nil
+
+  def test_yank_rectangle: () -> nil
+end

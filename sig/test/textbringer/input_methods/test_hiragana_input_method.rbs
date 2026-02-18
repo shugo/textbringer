@@ -1,0 +1,9 @@
+class TestHiraganaInputMethod
+  def setup_992: () -> Textbringer::Buffer
+
+  def test_insert_direct: () -> nil
+
+  def test_insert_hiragana: () -> nil
+
+  def test_special_key: () -> nil
+end

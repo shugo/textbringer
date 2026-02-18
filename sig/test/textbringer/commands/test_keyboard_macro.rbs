@@ -1,0 +1,19 @@
+class TestKeyboardMacro
+  def test_call_last_keyboard_macro_undefined: () -> Textbringer::EditorError
+
+  def test_end_and_call_keyboard_macro: () -> nil
+
+  def test_end_keyboard_macro_empty: () -> Textbringer::EditorError
+
+  def test_end_keyboard_macro_not_recording: () -> Textbringer::EditorError
+
+  def test_end_or_call_keyboard_macro: () -> nil
+
+  def test_insert_keyboard_macro: () -> nil
+
+  def test_keyboard_macro: () -> nil
+
+  def test_name_last_keyboard_macro: () -> nil
+
+  def test_start_keyboard_macro_twice: () -> Textbringer::EditorError
+end

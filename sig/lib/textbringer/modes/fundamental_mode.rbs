@@ -1,0 +1,3 @@
+class Textbringer::FundamentalMode
+  def symbol_pattern: () -> Regexp
+end

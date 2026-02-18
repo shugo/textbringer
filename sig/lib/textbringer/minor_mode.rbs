@@ -1,0 +1,12 @@
+class Textbringer::MinorMode
+  def self.inherited: (Class) -> Symbol
+
+  def initialize: (Textbringer::Buffer) -> void
+
+  def name: () -> String
+end
+
+module Textbringer::Commands
+  def overwrite_mode: (?nil) -> Array[untyped]
+                    | (?nil) -> Textbringer::OverwriteMode
+end

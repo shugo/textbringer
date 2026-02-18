@@ -1,0 +1,39 @@
+class TestMisc
+  def test_abort_recursive_edit: () -> Textbringer::Quit
+
+  def test_digit_argument: () -> nil
+
+  def test_eval_buffer: () -> nil
+
+  def test_eval_expression: () -> nil
+
+  def test_eval_region: () -> nil
+
+  def test_execute_command: () -> Textbringer::EditorError
+
+  def test_exit_recursive_edit: () -> nil
+
+  def test_exit_textbringer: () -> SystemExit
+
+  def test_global_mark: () -> nil
+
+  def test_grep: () -> nil
+
+  def test_keybaord_quit: () -> Textbringer::Quit
+
+  def test_negative_argument: () -> nil
+
+  def test_number_prefix_arg: () -> nil
+
+  def test_shell_execute: () -> nil
+
+  def test_top_level: () -> nil
+
+  def test_universal_argument: () -> nil
+
+  def test_universal_argument_more: () -> nil
+
+  def test_version: () -> nil
+
+  def test_what_cursor_position: () -> nil
+end

@@ -1,0 +1,5 @@
+class TestProgrammingMode
+  def setup_1112: () -> Textbringer::Buffer
+
+  def test_indent_line: () -> Textbringer::EditorError
+end

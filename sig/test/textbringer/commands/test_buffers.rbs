@@ -1,0 +1,61 @@
+class TestBuffers
+  def test_back_to_indentation: () -> nil
+
+  def test_backward_char: () -> nil
+
+  def test_backward_delete_char: () -> nil
+
+  def test_backward_word: () -> nil
+
+  def test_capitalize_word: () -> nil
+
+  def test_delete_char: () -> nil
+
+  def test_delete_indentation: () -> nil
+
+  def test_delete_region: () -> nil
+
+  def test_downcase_word: () -> nil
+
+  def test_exchange_point_and_mark: () -> nil
+
+  def test_forward_char: () -> nil
+
+  def test_forward_word: () -> nil
+
+  def test_insert_char: () -> nil
+
+  def test_kill_region: () -> nil
+
+  def test_mark_whole_buffer: () -> nil
+
+  def test_next_line: () -> nil
+
+  def test_open_line: () -> nil
+
+  def test_pop_mark: () -> nil
+
+  def test_pop_to_mark: () -> nil
+
+  def test_previous_line: () -> nil
+
+  def test_push_mark: () -> nil
+
+  def test_quoted_insert: () -> Textbringer::EditorError
+
+  def test_read_only_mode: () -> nil
+
+  def test_self_insert: () -> nil
+
+  def test_set_mark_command: () -> nil
+
+  def test_transpose_chars: () -> nil
+
+  def test_undo: () -> nil
+
+  def test_upcase_word: () -> nil
+
+  def test_yank_pop: () -> nil
+
+  def test_zap_to_char: () -> nil
+end

@@ -1,0 +1,11 @@
+class TestRegister
+  def setup_912: () -> Hash[untyped, untyped]
+
+  def test_append_to_register: () -> ArgumentError
+
+  def test_increment_register: () -> nil
+
+  def test_insert_register: () -> nil
+
+  def test_jump_to_register: () -> ArgumentError
+end

@@ -1,0 +1,26 @@
+module Textbringer::Commands
+  def call_last_keyboard_macro: (?Integer) -> nil
+                              | (?Integer) -> Textbringer::Keymap
+
+  def start_keyboard_macro: () -> Array[untyped]
+                          | () -> nil
+
+  def end_and_call_keyboard_macro: (?Integer) -> Textbringer::Keymap
+
+  def end_keyboard_macro: () -> nil
+
+  def end_or_call_keyboard_macro: (?Integer) -> nil
+                                | (?Integer) -> Textbringer::Keymap
+
+  def name_last_keyboard_macro: (?String) -> Symbol
+                              | (?String) -> nil
+
+  def insert_keyboard_macro: (?String) -> nil
+                           | (?String) -> Textbringer::Buffer
+
+  def read_keyboard_macro: (String) -> String
+
+  def macro_foo: (?Integer) -> Integer
+
+  def execute_keyboard_macro: (Array[untyped], ?Integer) -> Integer
+end

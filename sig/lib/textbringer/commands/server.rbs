@@ -1,0 +1,31 @@
+module Textbringer::Commands
+  def server_start: () -> DRb::DRbServer
+                  | () -> nil
+
+  def server_kill: () -> nil
+
+  def server_edit_done: () -> Thread::Queue
+end
+
+class Textbringer::Server
+  def initialize: (String) -> void
+
+  def start: () -> DRb::DRbServer
+           | () -> nil
+
+  def unix_domain?: () -> bool
+
+  def unix_domain_server_alive?: () -> Integer
+                               | () -> bool
+
+  def unix_domain_socket_path: () -> String
+end
+
+class Textbringer::Server::FrontObject
+  def eval: (String) -> String
+
+  def with_redisplay: () -> String
+                    | () -> Thread::Queue
+
+  def visit_file: (String, ?wait: bool) -> Symbol
+end

@@ -1,0 +1,9 @@
+module Textbringer::Color
+  def self.[]: (Integer) -> Integer
+             | (String) -> Integer
+             | (String) -> nil
+
+  def self.find_color_number: (Integer) -> Integer
+                            | (String) -> Integer
+                            | (String) -> nil
+end

@@ -1,0 +1,59 @@
+class TestLSPClient
+  def test_client_capabilities: () -> nil
+
+  def create_client: () -> Textbringer::LSP::Client
+
+  def test_completion_item_kind_name: () -> nil
+
+  def test_document_open_tracking: () -> nil
+
+  def test_normalize_completion_item: () -> nil
+
+  def test_normalize_completion_item_with_text_edit: () -> nil
+
+  def test_normalize_completion_item_without_insert_text: () -> nil
+
+  def test_normalize_completion_result_nil: () -> nil
+
+  def test_normalize_completion_result_with_array: () -> nil
+
+  def test_normalize_completion_result_with_completion_list: () -> nil
+
+  def test_running_state_initially_false: () -> nil
+
+  def test_server_capabilities_initially_empty: () -> nil
+end
+
+class TestLSPServerRegistry
+  def setup: () -> Hash[untyped, untyped]
+
+  def test_find_config_for_buffer: () -> nil
+
+  def teardown: () -> nil
+
+  def test_find_config_for_buffer_by_mode: () -> nil
+
+  def test_find_config_for_buffer_by_mode_without_filename: () -> nil
+
+  def test_find_config_for_buffer_mode_takes_priority: () -> nil
+
+  def test_find_config_for_buffer_no_match: () -> nil
+
+  def test_find_config_for_buffer_without_filename: () -> nil
+
+  def test_find_project_root_fallback_to_file_directory: () -> nil
+
+  def test_find_project_root_with_gemfile: () -> nil
+
+  def test_find_project_root_with_git: () -> nil
+
+  def test_language_id_for_buffer: () -> nil
+
+  def test_language_id_for_buffer_no_match: () -> nil
+
+  def test_register: () -> nil
+
+  def test_register_with_mode: () -> nil
+
+  def test_unregister: () -> nil
+end
