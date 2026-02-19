@@ -1,0 +1,20 @@
+module Textbringer::Commands
+  def completion_popup_start: (items: Array[untyped], start_point: Integer, ?prefix: String) -> Array[untyped]
+                            | (items: Array[untyped], start_point: Integer, ?prefix: String) -> nil
+
+  def completion_popup_accept: () -> Symbol
+
+  def insert_completion: (Hash[untyped, untyped]) -> Textbringer::Buffer
+
+  def completion_popup_done: () -> Symbol
+
+  def completion_popup_next: () -> nil
+
+  def completion_popup_cancel: () -> Symbol
+
+  def self.completion_popup_mode_active?: () -> bool
+
+  def completion_popup_previous: () -> nil
+
+  def completion_popup_pre_command_hook: () -> Symbol
+end

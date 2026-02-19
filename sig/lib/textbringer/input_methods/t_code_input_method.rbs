@@ -1,0 +1,49 @@
+class Textbringer::TCodeInputMethod
+  def initialize: () -> void
+
+  def setup_dictionaries: () -> File
+                        | () -> nil
+
+  def status: () -> String
+
+  def handle_event: (String) -> nil
+                  | (String) -> String
+
+  def bushu_compose: () -> nil
+
+  def start_mazegaki_conversion: (?bool) -> nil
+
+  def find_mazegaki_start_pos: (bool) -> Array[untyped]
+
+  def mazegaki_lookup_yomi: (String, bool) -> nil
+                          | (String, bool) -> String
+
+  def mazegaki_convert: (Integer, String) -> nil
+
+  def mazegaki_lookup_candidates: (String) -> Array[untyped]
+
+  def process_mazegaki_conversion: (String, Integer) -> bool
+                                 | (String, nil) -> bool
+
+  def mazegaki_finish: (String) -> nil
+
+  def mazegaki_reset: () -> nil
+
+  def hide_help_window: () -> nil
+
+  def show_mazegaki_candidates: () -> Textbringer::Buffer
+                              | () -> nil
+
+  def mazegaki_limit: () -> Integer
+
+  def show_help: (String) -> Textbringer::Buffer
+               | (String) -> nil
+
+  def mazegaki_next_page: () -> nil
+
+  def mazegaki_relimit_right: () -> nil
+
+  def mazegaki_relimit_left: () -> nil
+
+  def show_stroke: () -> nil
+end

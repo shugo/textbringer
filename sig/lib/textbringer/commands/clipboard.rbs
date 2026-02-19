@@ -1,0 +1,17 @@
+module Textbringer::Commands
+  def clipboard_copy_region: () -> String
+
+  def clipboard_kill_line: () -> String
+                         | () -> nil
+
+  def clipboard_kill_region: () -> String
+                           | () -> nil
+
+  def clipboard_kill_word: () -> String
+                         | () -> nil
+
+  def clipboard_yank: () -> Symbol
+
+  def clipboard_yank_pop: () -> nil
+                        | () -> String
+end

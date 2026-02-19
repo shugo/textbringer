@@ -1,0 +1,7 @@
+class Textbringer::DefaultOutput
+  def flush: () -> nil
+
+  def printf: (*String | Integer) -> Textbringer::Buffer
+
+  def write: (*String) -> Textbringer::Buffer
+end

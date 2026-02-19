@@ -1,0 +1,3 @@
+class Textbringer::Quit
+  def initialize: () -> void
+end

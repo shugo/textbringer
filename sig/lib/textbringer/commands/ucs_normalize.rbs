@@ -1,0 +1,9 @@
+module Textbringer::Commands
+  def ucs_normalize_nfc_region: () -> nil
+
+  def ucs_normalize_nfd_region: () -> nil
+
+  def ucs_normalize_nfkc_region: () -> nil
+
+  def ucs_normalize_nfkd_region: () -> nil
+end

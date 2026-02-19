@@ -1,0 +1,29 @@
+module Textbringer::Commands
+  def find_file: (?String) -> Array[untyped]
+
+  def chdir: (?String) -> Integer
+
+  def find_file_read_only: (?String) -> nil
+
+  def find_source: (?untyped) -> Array[untyped]
+
+  def make_directory: (?String) -> Array[untyped]
+
+  def pwd: () -> nil
+
+  def revert_buffer: () -> nil
+                   | () -> bool
+
+  def revert_buffer_with_encoding: (?String) -> nil
+                                 | (?String) -> bool
+
+  def save_buffer: () -> nil
+
+  def set_buffer_file_encoding: (?String) -> String
+
+  def set_buffer_file_format: (?String) -> String
+
+  def write_file: (?String) -> nil
+
+  def set_visited_file_name: (?String) -> String
+end

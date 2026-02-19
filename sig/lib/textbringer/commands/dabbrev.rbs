@@ -1,0 +1,4 @@
+module Textbringer::Commands
+  def dabbrev_expand_command: () -> nil
+                            | () -> Array[untyped]
+end

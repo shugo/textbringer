@@ -1,0 +1,42 @@
+class Textbringer::FloatingWindow
+  def self.redisplay_all_floating: () -> Array[untyped]
+
+  def self.floating_windows: () -> Array[untyped]
+
+  def self.at_cursor: (lines: Integer, columns: Integer, ?window: Textbringer::Window, ?buffer: nil, ?face: Symbol, ?current_line_face: Symbol) -> Textbringer::FloatingWindow
+                    | (lines: Integer, columns: Integer, ?window: Textbringer::Window, ?buffer: nil, ?face: Symbol, ?current_line_face: nil) -> Textbringer::FloatingWindow
+
+  def self.calculate_cursor_position: (Integer, Integer, Textbringer::Window) -> Array[untyped]
+
+  def initialize: (Integer, Integer, Integer, Integer, ?buffer: nil, ?face: Symbol, ?current_line_face: Symbol) -> void
+                | (Integer, Integer, Integer, Integer, ?buffer: nil, ?face: Symbol, ?current_line_face: nil) -> void
+                | (Integer, Integer, Integer, Integer, ?buffer: Textbringer::Buffer, ?face: Symbol, ?current_line_face: nil) -> void
+                | (Integer, Integer, Integer, Integer, ?buffer: nil, ?face: nil, ?current_line_face: nil) -> void
+
+  def initialize_window: (Integer, Integer, Integer, Integer) -> nil
+
+  def show: () -> Textbringer::FloatingWindow
+
+  def redisplay: () -> nil
+
+  def visible?: () -> bool
+
+  def delete: () -> nil
+
+  def self.close_all_floating: () -> Array[untyped]
+
+  def hide: () -> Textbringer::FloatingWindow
+
+  def self.centered: (lines: Integer, columns: Integer, ?buffer: nil, ?face: Symbol, ?current_line_face: nil) -> Textbringer::FloatingWindow
+                   | (lines: Integer, columns: Integer, ?buffer: nil, ?face: Symbol, ?current_line_face: Symbol) -> Textbringer::FloatingWindow
+
+  def floating_window?: () -> bool
+
+  def echo_area?: () -> bool
+
+  def active?: () -> bool
+
+  def move_to: (y: Integer, x: Integer) -> Textbringer::FloatingWindow
+
+  def resize: (Integer, Integer) -> Textbringer::FloatingWindow
+end

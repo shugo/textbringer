@@ -1,0 +1,11 @@
+module Textbringer::Commands
+  def find_tag: (?bool) -> nil
+              | (?nil) -> Integer
+              | (?Symbol) -> Integer
+              | (?Symbol) -> nil
+              | (?nil) -> nil
+
+  def get_tags: () -> Hash[untyped, untyped]
+
+  def push_tag_mark_and_find_file: (String) -> Array[untyped]
+end

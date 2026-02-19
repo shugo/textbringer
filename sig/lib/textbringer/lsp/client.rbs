@@ -1,0 +1,21 @@
+class Textbringer::LSP::Client
+  def initialize: (command: String, root_path: String, ?args: Array[untyped], ?server_name: nil) -> void
+
+  def client_capabilities: () -> Hash[untyped, untyped]
+
+  def completion_item_kind_name: (Integer) -> String
+                               | (Integer) -> nil
+                               | (nil) -> nil
+
+  def document_open?: (String) -> bool
+
+  def normalize_completion_item: (Hash[untyped, untyped]) -> Hash[untyped, untyped]
+
+  def normalize_completion_result: (nil) -> Array[untyped]
+                                 | (Array[untyped]) -> Array[untyped]
+                                 | (Hash[untyped, untyped]) -> Array[untyped]
+
+  def running?: () -> bool
+
+  def initialized?: () -> bool
+end

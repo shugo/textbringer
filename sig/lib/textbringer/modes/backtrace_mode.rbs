@@ -1,0 +1,8 @@
+class Textbringer::BacktraceMode
+  def initialize: (Textbringer::Buffer) -> void
+
+  def jump_to_source_location: () -> nil
+
+  def get_source_location: () -> Array[untyped]
+                         | () -> nil
+end

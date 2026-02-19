@@ -1,0 +1,58 @@
+class Textbringer::Controller
+  def initialize: () -> void
+
+  def self.current=: (Textbringer::Controller?) -> Textbringer::Controller?
+
+  def self.current: () -> Textbringer::Controller?
+
+  def close: () -> nil
+
+  def read_event_nonblock: () -> String
+                         | () -> Integer
+                         | () -> nil
+                         | () -> Symbol
+
+  def read_event_with_keyboard_macro: (Symbol) -> String
+                                    | (Symbol) -> Integer
+                                    | (Symbol) -> nil
+                                    | (Symbol) -> Symbol
+
+  def executing_keyboard_macro?: () -> bool
+
+  def recursive_edit: () -> nil
+
+  def command_loop: (untyped) -> bool
+                  | (untyped) -> nil
+
+  def echo_input: () -> bool
+                | () -> nil
+
+  def key_binding: (Array[untyped]) -> Symbol
+                 | (Array[untyped]) -> Proc
+                 | (Array[untyped]) -> Textbringer::Keymap
+                 | (Array[untyped]) -> nil
+
+  def received_keyboard_quit?: () -> bool
+
+  def wait_input: (Integer) -> nil
+                | (Integer) -> String
+
+  def read_event: () -> String
+
+  def call_read_event_method: (Symbol) -> String
+                            | (Symbol) -> nil
+
+  def next_tick: () -> Integer
+
+  def call_last_keyboard_macro: (Integer) -> nil
+                              | (Integer) -> Integer
+
+  def start_keyboard_macro: () -> Array[untyped]
+                          | () -> nil
+
+  def recording_keyboard_macro?: () -> bool
+
+  def end_keyboard_macro: () -> nil
+
+  def execute_keyboard_macro: (Array[untyped], ?Integer) -> Integer
+end

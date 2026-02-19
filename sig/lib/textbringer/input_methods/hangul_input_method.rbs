@@ -1,0 +1,12 @@
+class Textbringer::HangulInputMethod
+  def handle_event: (String) -> String
+                  | (String) -> nil
+                  | (nil) -> nil
+
+  def decompose_prev: (String, String) -> Array[untyped]
+
+  def compose_hangul: (String, String) -> String
+                    | (String, String) -> nil
+
+  def status: () -> String
+end

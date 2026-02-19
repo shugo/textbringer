@@ -1,0 +1,5 @@
+class Textbringer::BufferListMode
+  def initialize: (Textbringer::Buffer) -> void
+
+  def this_window: () -> Textbringer::Buffer
+end

@@ -1,0 +1,8 @@
+module Textbringer::Commands
+  def lsp_find_file_hook: () -> nil
+
+  def lsp_open_document: (Textbringer::Buffer) -> nil
+
+  def lsp_after_set_visited_file_name_hook: (nil) -> nil
+                                          | (String) -> nil
+end

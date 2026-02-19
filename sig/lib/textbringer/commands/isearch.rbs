@@ -1,0 +1,38 @@
+module Textbringer::Commands
+  def isearch_mode?: () -> bool
+
+  def isearch_mode: (bool, ?recursive_edit: bool) -> nil
+
+  def isearch_prompt: () -> String
+
+  def isearch_pre_command_hook: () -> nil
+
+  def isearch_done: () -> nil
+
+  def isearch_forward: (**nil) -> nil
+                     | (**bool) -> nil
+
+  def isearch_abort: () -> nil
+
+  def isearch_backward: (**bool) -> nil
+
+  def isearch_printing_char: () -> Integer
+                           | () -> nil
+
+  def isearch_search: () -> Integer
+                    | () -> nil
+
+  def isearch_repeat_backward: () -> nil
+
+  def isearch_repeat: (bool) -> nil
+
+  def isearch_exit: () -> nil
+
+  def isearch_repeat_forward: () -> nil
+
+  def isearch_delete_char: () -> nil
+
+  def isearch_toggle_input_method: () -> nil
+
+  def isearch_yank_word_or_char: () -> nil
+end

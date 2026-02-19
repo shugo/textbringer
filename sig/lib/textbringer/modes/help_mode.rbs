@@ -1,0 +1,7 @@
+class Textbringer::HelpMode
+  def initialize: (Textbringer::Buffer) -> void
+
+  def jump_to_link: () -> Array[untyped]
+                  | () -> Integer
+                  | () -> nil
+end

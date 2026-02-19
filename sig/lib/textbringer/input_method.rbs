@@ -1,0 +1,28 @@
+class Textbringer::InputMethod
+  def self.inherited: (Class) -> Array[untyped]
+
+  def self.find: (String) -> Textbringer::HangulInputMethod
+               | (String) -> Textbringer::HiraganaInputMethod
+               | (String) -> Textbringer::CapitalInputMethod
+               | (String) -> nil
+               | (String) -> Textbringer::TCodeInputMethod
+
+  def initialize: () -> void
+
+  def toggle: () -> bool
+
+  def with_target_buffer: () -> nil
+                        | () -> Integer
+
+  def enabled?: () -> bool
+
+  def disable: () -> bool
+
+  def filter_event: (String) -> nil
+                  | (String) -> String
+                  | (Symbol) -> Symbol
+
+  def handle_event: (String) -> nil
+
+  def self.list: () -> Array[untyped]
+end

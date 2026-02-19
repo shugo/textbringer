@@ -1,0 +1,70 @@
+class Textbringer::Mode
+  def self.inherited: (Class) -> Hash[untyped, untyped]
+
+  def initialize: (Textbringer::Buffer) -> void
+
+  def self.list: () -> Array[untyped]
+
+  def name: () -> String
+
+  def syntax_table: () -> Hash[untyped, untyped]
+end
+
+class Textbringer::FundamentalMode
+  def self.inherited: (Class) -> Hash[untyped, untyped]
+end
+
+class Textbringer::ProgrammingMode
+  def self.define_generic_command: (Symbol, **String) -> Symbol
+
+  def self.inherited: (Class) -> Hash[untyped, untyped]
+end
+
+class Textbringer::RubyMode
+  def self.define_syntax: (Symbol, Regexp) -> Regexp
+end
+
+class Textbringer::CMode
+  def self.define_syntax: (Symbol, Regexp) -> Regexp
+end
+
+class Textbringer::BacktraceMode
+  def self.define_generic_command: (Symbol, **nil) -> Symbol
+
+  def self.define_syntax: (Symbol, Regexp) -> Regexp
+end
+
+class Textbringer::CompletionListMode
+  def self.define_generic_command: (Symbol, **nil) -> Symbol
+
+  def self.define_syntax: (Symbol, Regexp) -> Regexp
+end
+
+class Textbringer::BufferListMode
+  def self.define_local_command: (Symbol, **String) -> Symbol
+
+  def self.define_generic_command: (Symbol, **String) -> Symbol
+end
+
+class Textbringer::HelpMode
+  def self.define_generic_command: (Symbol, **nil) -> Symbol
+
+  def self.define_syntax: (Symbol, Regexp) -> Regexp
+end
+
+module Textbringer::Commands
+  def backtrace_mode: () -> Array[untyped]
+
+  def jump_to_source_location_command: (*nil) -> nil
+
+  def ruby_mode: () -> Array[untyped]
+
+  def fundamental_mode: () -> Array[untyped]
+
+  def jump_to_link_command: (*nil) -> Array[untyped]
+                          | (*nil) -> Integer
+                          | (*nil) -> nil
+
+  def toggle_test_command: (*nil) -> Array[untyped]
+                         | (*nil) -> nil
+end

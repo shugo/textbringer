@@ -1,0 +1,5 @@
+module Textbringer::Commands
+  def fill_paragraph: () -> nil
+
+  def fill_region: (?Integer, ?Integer) -> nil
+end

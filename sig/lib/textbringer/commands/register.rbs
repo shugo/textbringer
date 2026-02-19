@@ -1,0 +1,31 @@
+module Textbringer::Commands
+  def copy_to_register: (?String, ?Integer, ?Integer, ?nil) -> nil
+                      | (?String, ?Integer, ?Integer, ?bool) -> Array[untyped]
+
+  def append_to_register: (?String, ?Integer, ?Integer, ?nil) -> nil
+                        | (?String, ?Integer, ?Integer, ?Array[untyped]) -> Array[untyped]
+
+  def number_to_register: (?Integer, ?String) -> Integer
+
+  def increment_register: (?Integer, ?String) -> Integer
+                        | (?Integer, ?String) -> nil
+                        | (?Array[untyped], ?String) -> Array[untyped]
+
+  def point_to_register: (?String) -> Textbringer::Commands::BufferPosition
+                       | (?Integer) -> nil
+
+  def insert_register: (?String, ?nil) -> Integer
+                     | (?String, ?bool) -> nil
+
+  def jump_to_register: (?String) -> Integer
+                      | (?Integer) -> nil
+                      | (?String) -> nil
+
+  def read_register: (String) -> String
+end
+
+class Textbringer::Commands::BufferPosition
+  def initialize: (Textbringer::Buffer, Textbringer::Mark) -> void
+
+  def to_s: () -> String
+end

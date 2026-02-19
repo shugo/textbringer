@@ -1,0 +1,45 @@
+module Textbringer::Commands
+  def switch_to_buffer: (?Textbringer::Buffer, ?nil) -> Textbringer::Buffer
+                      | (?String, ?nil) -> Textbringer::Buffer
+                      | (?String, ?nil) -> nil
+                      | (?String, ?bool) -> Textbringer::Buffer
+
+  def split_window: () -> Array[untyped]
+                  | () -> nil
+
+  def other_window: () -> Textbringer::Window
+
+  def recenter: () -> nil
+
+  def list_buffers: (?Array[untyped]) -> Textbringer::Buffer
+
+  def kill_buffer: (?Textbringer::Buffer, ?force: bool) -> Array[untyped]
+                 | (?String, ?force: bool) -> nil
+
+  def bury_buffer: (?Textbringer::Buffer) -> Textbringer::Buffer
+
+  def unbury_buffer: () -> Textbringer::Buffer
+
+  def delete_other_windows: () -> nil
+                          | () -> Integer
+
+  def delete_window: () -> nil
+                   | () -> Textbringer::Window
+
+  def enlarge_window: (?Integer) -> Array[untyped]
+                    | (?Integer) -> Integer
+
+  def resize_window: () -> Integer
+
+  def scroll_down: () -> Integer
+                 | () -> nil
+
+  def scroll_up: () -> Integer
+               | () -> nil
+
+  def shrink_window: (?Integer) -> Integer
+                   | (?Integer) -> Array[untyped]
+
+  def shrink_window_if_larger_than_buffer: () -> Integer
+                                         | () -> nil
+end

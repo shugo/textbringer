@@ -1,0 +1,23 @@
+class Textbringer::LSP::ServerRegistry
+  def self.get_client_for_buffer: (Textbringer::Buffer) -> nil
+
+  def self.find_config_for_buffer: (Textbringer::Buffer) -> nil
+                                 | (Textbringer::Buffer) -> Textbringer::LSP::ServerConfig
+
+  def self.register: (String, command: String, ?args: Array[untyped], ?file_patterns: Array[untyped], ?interpreter_patterns: Array[untyped], ?mode: nil) -> Textbringer::LSP::ServerConfig
+                   | (String, command: String, ?args: Array[untyped], ?file_patterns: Array[untyped], ?interpreter_patterns: Array[untyped], ?mode: String) -> Textbringer::LSP::ServerConfig
+
+  def self.stop_all_clients: () -> Hash[untyped, untyped]
+
+  def self.find_project_root: (String) -> String
+
+  def self.language_id_for_buffer: (Textbringer::Buffer) -> String
+                                 | (Textbringer::Buffer) -> nil
+
+  def self.unregister: (String) -> Hash[untyped, untyped]
+end
+
+class Textbringer::LSP::ServerConfig
+  def initialize: (language_id: String, command: String, args: Array[untyped], file_patterns: Array[untyped], interpreter_patterns: Array[untyped], mode: nil) -> void
+                | (language_id: String, command: String, args: Array[untyped], file_patterns: Array[untyped], interpreter_patterns: Array[untyped], mode: String) -> void
+end

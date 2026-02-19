@@ -1,0 +1,5 @@
+class Textbringer::CompletionListMode
+  def initialize: (Textbringer::Buffer) -> void
+
+  def choose_completion: () -> nil
+end

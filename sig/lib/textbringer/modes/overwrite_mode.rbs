@@ -1,0 +1,15 @@
+class Textbringer::OverwriteMode
+  def enable: () -> Array[untyped]
+
+  def disable: () -> Proc
+end
+
+class Textbringer::OverwriteAction
+  def initialize: (Textbringer::Buffer, Integer, String, String) -> void
+
+  def merge: (String, String) -> String
+
+  def undo: () -> Integer
+
+  def redo: () -> Textbringer::Buffer
+end

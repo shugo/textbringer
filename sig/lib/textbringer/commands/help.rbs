@@ -1,0 +1,28 @@
+module Textbringer::Commands
+  def describe_bindings: () -> Array[untyped]
+                       | () -> nil
+
+  def show_help: () -> Textbringer::Buffer
+
+  def keymap_bindings: (Textbringer::Keymap) -> String
+
+  def push_help_command: (Array[untyped]) -> Array[untyped]
+                       | (Array[untyped]) -> nil
+
+  def describe_char: () -> Array[untyped]
+
+  def describe_class: (?String) -> Array[untyped]
+
+  def describe_command: (?String) -> nil
+                      | (?String) -> Array[untyped]
+
+  def command_help: (Textbringer::Command) -> String
+
+  def describe_key: (?Array[untyped]) -> Array[untyped]
+
+  def describe_method: (?String) -> Array[untyped]
+
+  def help_go_back: () -> nil
+
+  def help_go_forward: () -> nil
+end

@@ -1,0 +1,483 @@
+class Textbringer::Buffer
+  def self.global_mark_ring: () -> Textbringer::Ring
+
+  def self.kill_em_all: () -> nil
+
+  def self.new_buffer: (String, **nil) -> Textbringer::Buffer
+                     | (String, **String) -> Textbringer::Buffer
+                     | (String, **Integer) -> Textbringer::Buffer
+                     | (String, **Integer | bool) -> Textbringer::Buffer
+
+  def self.new_buffer_name: (String) -> String
+
+  def initialize: (?String, ?name: String, ?file_name: nil, ?file_encoding: Encoding, ?file_mtime: nil, ?new_file: bool, ?undo_limit: Integer, ?read_only: bool) -> void
+                | (?String, ?name: String, ?file_name: String, ?file_encoding: Encoding, ?file_mtime: nil, ?new_file: bool, ?undo_limit: Integer, ?read_only: bool) -> void
+                | (?String, ?name: nil, ?file_name: nil, ?file_encoding: Encoding, ?file_mtime: nil, ?new_file: bool, ?undo_limit: Integer, ?read_only: bool) -> void
+                | (?String, ?name: nil, ?file_name: nil, ?file_encoding: String, ?file_mtime: nil, ?new_file: bool, ?undo_limit: Integer, ?read_only: bool) -> void
+
+  def set_contents: (String, Encoding) -> Symbol
+                  | (String, String) -> Symbol
+                  | (String, Encoding) -> String
+
+  def file_encoding=: (Encoding) -> bool
+                    | (String) -> bool
+
+  def self.add: (Textbringer::Buffer) -> Array[untyped]
+
+  def point_min: () -> Integer
+
+  def new_mark: (?Integer) -> Textbringer::Mark
+
+  def []: (Symbol) -> nil
+        | (Symbol) -> Textbringer::Mark
+        | (Symbol) -> Hash[untyped, untyped]
+        | (Symbol) -> String
+        | (Symbol) -> Integer
+        | (Symbol) -> bool
+        | (Symbol) -> Array[untyped]
+        | (Symbol) -> Textbringer::Buffer
+        | (Symbol) -> Symbol
+        | (Symbol) -> Proc
+        | (Symbol) -> Thread::Queue
+
+  def point_to_mark: (Textbringer::Mark) -> Integer
+
+  def goto_char: (Integer) -> Integer
+               | (Integer) -> nil
+
+  def self.current=: (Textbringer::Buffer) -> Textbringer::Buffer
+                   | (nil) -> nil
+
+  def self.minibuffer: () -> Textbringer::Buffer
+
+  def self.current: () -> Textbringer::Buffer
+                  | () -> nil
+
+  def insert: (String, ?bool) -> Textbringer::Buffer
+            | (String, ?bool) -> nil
+            | (Integer, ?bool) -> Textbringer::Buffer
+            | (nil, ?bool) -> Textbringer::Buffer
+            | (Textbringer::Commands::BufferPosition, ?bool) -> Textbringer::Buffer
+
+  def binary?: () -> bool
+
+  def check_read_only_flag: () -> nil
+
+  def adjust_gap: (?Integer, ?Integer) -> Integer
+                | (?Integer, ?Integer) -> nil
+
+  def gap_size: () -> Integer
+
+  def update_line_and_column: (Integer, Integer) -> Integer
+                            | (Integer, Integer) -> nil
+
+  def user_to_gap: (Integer) -> Integer
+
+  def get_pos: (Integer, Integer) -> Integer
+             | (Integer, Integer) -> nil
+
+  def byte_after: (?Integer) -> String
+                | (?Integer) -> nil
+
+  def gap_to_user: (Integer) -> Integer
+                 | (Integer) -> nil
+
+  def substring: (Integer, Integer) -> String
+
+  def push_undo: (Textbringer::InsertAction) -> Array[untyped]
+               | (Textbringer::DeleteAction) -> Array[untyped]
+               | (Textbringer::DeleteAction) -> nil
+               | (Textbringer::CompositeAction) -> Array[untyped]
+               | (Textbringer::InsertAction) -> nil
+               | (Textbringer::OverwriteAction) -> Array[untyped]
+
+  def modified?: () -> bool
+
+  def modified=: (bool) -> nil
+
+  def fire_callbacks: (Symbol) -> nil
+
+  def current?: () -> bool
+
+  def apply_mode: (Class) -> Array[untyped]
+
+  def beginning_of_buffer: () -> Integer
+
+  def save_excursion: () -> Array[untyped]
+                    | () -> nil
+                    | () -> String
+                    | () -> Textbringer::Buffer
+                    | () -> Integer
+                    | () -> bool
+
+  def beginning_of_line: () -> Integer
+
+  def beginning_of_line?: () -> bool
+
+  def beginning_of_buffer?: () -> bool
+
+  def looking_at?: (Regexp) -> bool
+
+  def byteindex: (bool, Regexp, Integer) -> Integer
+               | (bool, Regexp, Integer) -> nil
+
+  def match_string: (Integer) -> String
+                  | (Integer) -> nil
+
+  def self.find_file: (String) -> Textbringer::Buffer
+
+  def self.open: (String, ?name: String) -> Textbringer::Buffer
+               | (String, ?name: String) -> nil
+
+  def revert: (?nil) -> bool
+            | (?nil) -> nil
+            | (?String) -> nil
+            | (?String) -> bool
+
+  def clear: () -> Array[untyped]
+
+  def read_only=: (bool) -> nil
+                | (bool) -> bool
+
+  def new_file?: () -> bool
+
+  def []=: (Symbol, Integer) -> Integer
+         | (Symbol, bool) -> bool
+         | (Symbol, Textbringer::Mark) -> Textbringer::Mark
+         | (Symbol, Hash[untyped, untyped]) -> Hash[untyped, untyped]
+         | (Symbol, String) -> String
+         | (Symbol, nil) -> nil
+         | (Symbol, Array[untyped]) -> Array[untyped]
+         | (Symbol, Textbringer::Buffer) -> Textbringer::Buffer
+         | (Symbol, Symbol) -> Symbol
+         | (Symbol, Proc) -> Proc
+         | (Symbol, Thread::Queue) -> Thread::Queue
+
+  def goto_line: (Integer) -> nil
+
+  def point_before_mark?: (Textbringer::Mark) -> bool
+
+  def point_after_mark?: (Textbringer::Mark) -> bool
+
+  def save_point: () -> Integer
+                | () -> Array[untyped]
+                | () -> nil
+                | () -> String
+
+  def byte_before: (?Integer) -> String
+
+  def point_max: () -> Integer
+
+  def bytesize: () -> Integer
+
+  def backward_char: (?Integer) -> nil
+
+  def forward_char: (?Integer) -> nil
+
+  def char_after: (?Integer) -> String
+                | (?Integer) -> nil
+
+  def self.display_width: (String) -> Integer
+
+  def end_of_buffer?: () -> bool
+
+  def mark_to_point: (Textbringer::Mark) -> Integer
+
+  def forward_line: (?Integer) -> Integer
+                  | (?Integer) -> nil
+
+  def end_of_line: () -> Integer
+
+  def end_of_line?: () -> bool
+
+  def get_line_and_column: (Integer) -> Array[untyped]
+
+  def delete_char: (?Integer) -> nil
+
+  def backward_delete_char: (?Integer) -> nil
+
+  def delete_region: (?Integer, ?Integer) -> Array[untyped]
+                   | (?Integer, ?Integer) -> nil
+
+  def self.region_boundaries: (Integer, Integer) -> Array[untyped]
+
+  def undo: () -> Array[untyped]
+          | () -> nil
+
+  def undo_or_redo: (Symbol, Array[untyped], Array[untyped]) -> Array[untyped]
+                  | (Symbol, Array[untyped], Array[untyped]) -> nil
+
+  def end_of_buffer: () -> Integer
+
+  def backward_line: (?Integer) -> Integer
+                   | (?Integer) -> nil
+
+  def backward_word: (?Integer, ?regexp: Regexp) -> Integer
+                   | (?Integer, ?regexp: Regexp) -> nil
+
+  def next_line: (?Integer) -> Integer
+
+  def get_goal_column: () -> Integer
+
+  def display_width: (String) -> Integer
+
+  def expand_tab: (String) -> String
+
+  def adjust_column: (Integer) -> nil
+
+  def capitalize_word: (?Integer) -> nil
+
+  def convert_word: (?Integer) -> nil
+
+  def forward_word: (?Integer, ?regexp: Regexp) -> Integer
+
+  def replace: (?String, ?start: Integer, ?end: Integer) -> nil
+             | (?nil, ?start: Integer, ?end: Integer) -> nil
+
+  def composite_edit: () -> nil
+
+  def to_s: () -> String
+
+  def char_before: (?Integer) -> nil
+                 | (?Integer) -> String
+
+  def mark: () -> nil
+          | () -> Integer
+
+  def copy_region: () -> nil
+                 | (?Integer, ?Integer, ?bool) -> Array[untyped]
+                 | (?Integer, ?Integer, ?bool) -> String
+
+  def set_mark: (?Integer) -> bool
+
+  def push_mark: (?Integer) -> bool
+               | (?Integer) -> nil
+
+  def push_global_mark: (?Integer, ?force: bool) -> bool
+
+  def on_global_mark_ring?: () -> bool
+
+  def current_symbol: () -> nil
+                    | () -> String
+
+  def skip_re_backward: (Regexp) -> nil
+
+  def skip_re_forward: (Regexp) -> nil
+
+  def gap_filled_with_nul?: () -> bool
+
+  def downcase_word: (?Integer) -> nil
+
+  def dump: (String) -> Integer
+
+  def self.load: (String) -> Textbringer::Buffer
+
+  def name=: (String) -> String
+           | (String) -> Textbringer::Buffer
+
+  def file_name=: (String) -> nil
+                | (String) -> Array[untyped]
+
+  def file_format=: (Symbol) -> Symbol
+                  | (Symbol) -> nil
+                  | (String) -> Symbol
+                  | (String) -> nil
+
+  def file_modified?: () -> bool
+
+  def save: (?String) -> bool
+          | (?String) -> nil
+          | (?nil) -> nil
+
+  def write_to_file: (File) -> Array[untyped]
+
+  def self.find_or_new: (String, **nil) -> Textbringer::Buffer
+                      | (String, **Integer) -> Textbringer::Buffer
+                      | (String, **Integer | bool) -> Textbringer::Buffer
+
+  def gsub: (*Regexp | String) -> Textbringer::Buffer
+          | (*Regexp) -> Textbringer::Buffer
+
+  def indent_to: (Integer) -> Textbringer::Buffer
+
+  def inspect: () -> String
+
+  def kill_line: (?bool) -> nil
+               | (?bool) -> Array[untyped]
+
+  def kill_region: (?Integer, ?Integer, ?bool) -> nil
+                 | (?Integer, ?Integer, ?bool) -> Array[untyped]
+
+  def kill_word: (?bool) -> nil
+               | (?bool) -> Array[untyped]
+
+  def point_at_mark?: (Textbringer::Mark) -> bool
+
+  def exchange_point_and_mark: (?Textbringer::Mark) -> Array[untyped]
+                             | (?nil) -> nil
+
+  def newline: () -> Textbringer::Buffer
+
+  def pos_to_line_and_column: (Integer) -> Array[untyped]
+
+  def previous_line: (?Integer) -> Integer
+
+  def re_search_backward: (String, ?raise_error: bool, ?count: Integer) -> Integer
+                        | (String, ?raise_error: bool, ?count: Integer) -> nil
+                        | (Regexp, ?raise_error: bool, ?count: Integer) -> Integer
+                        | (Regexp, ?raise_error: bool, ?count: Integer) -> nil
+
+  def new_regexp: (String) -> Regexp
+                | (Regexp) -> Regexp
+
+  def match_end: (Integer) -> Integer
+
+  def match_beginning: (Integer) -> Integer
+
+  def re_search_forward: (String, ?raise_error: bool, ?goto_beginning: bool, ?count: Integer) -> Integer
+                       | (Regexp, ?raise_error: bool, ?goto_beginning: bool, ?count: Integer) -> Integer
+                       | (String, ?raise_error: bool, ?goto_beginning: bool, ?count: Integer) -> nil
+                       | (Regexp, ?raise_error: bool, ?goto_beginning: bool, ?count: Integer) -> nil
+
+  def replace_match: (String) -> nil
+
+  def redo: () -> Array[untyped]
+          | () -> nil
+
+  def read_only?: () -> bool
+
+  def replace_regexp_forward: (String, String) -> Integer
+
+  def self.auto_detect_encodings: () -> Array[untyped]
+
+  def self.auto_detect_encodings=: (Array[untyped]) -> Array[untyped]
+
+  def self.dumped_buffers_exist?: (String) -> bool
+
+  def self.dump_unsaved_buffers: (String) -> Array[untyped]
+
+  def self.load_dumped_buffers: (String) -> Array[untyped]
+
+  def self.[]: (String) -> Textbringer::Buffer
+             | (String) -> nil
+
+  def self.each: () -> Array[untyped]
+
+  def self.count: () -> Integer
+
+  def self.last: () -> Textbringer::Buffer
+
+  def self.bury: (?Textbringer::Buffer) -> Textbringer::Buffer
+
+  def self.list: () -> Array[untyped]
+
+  def self.names: () -> Array[untyped]
+
+  def kill: () -> nil
+
+  def self.other: (?nil) -> Textbringer::Buffer
+                | (?Textbringer::Buffer) -> Textbringer::Buffer
+
+  def self.detect_encoding_proc: () -> Proc
+
+  def self.detect_encoding_proc=: (Proc) -> Proc
+
+  def transpose_chars: () -> nil
+                     | () -> Textbringer::Buffer
+
+  def upcase_word: (?Integer) -> nil
+
+  def set_visible_mark: (?Integer) -> Integer
+
+  def delete_visible_mark: () -> nil
+
+  def yank: () -> Textbringer::Buffer
+
+  def insert_for_yank: (String) -> Textbringer::Buffer
+
+  def yank_pop: () -> Textbringer::Buffer
+
+  def pop_mark: () -> Textbringer::Mark
+
+  def pop_to_mark: () -> Textbringer::Mark
+
+  def set_read_only: (bool) -> bool
+
+  def input_method_status: () -> String
+
+  def mode_names: () -> Array[untyped]
+
+  def disable_input_method: () -> nil
+                          | () -> bool
+
+  def filter_event: (String) -> String
+
+  def toggle_input_method: (String) -> bool
+                         | (nil) -> bool
+
+  def read_only_edit: () -> Array[untyped]
+                    | () -> Integer
+
+  def delete_isearch_mark: () -> nil
+
+  def set_isearch_mark: (?Integer) -> Integer
+
+  def activate_mark: () -> Integer
+
+  def mark_active?: () -> bool
+
+  def set_minor_mode: (Class, ?nil) -> Array[untyped]
+                    | (Class, ?nil) -> Textbringer::OverwriteMode
+                    | (Class, ?bool) -> Array[untyped]
+                    | (Class, ?bool) -> Textbringer::OverwriteMode
+
+  def replace_region: (?nil) -> nil
+end
+
+class Textbringer::Mark
+  def initialize: (Textbringer::Buffer, Integer) -> void
+
+  def delete: () -> Textbringer::Mark
+            | () -> nil
+
+  def dup: () -> Textbringer::Mark
+
+  def detach: () -> nil
+
+  def detached?: () -> bool
+
+  def deleted?: () -> bool
+end
+
+class Textbringer::InsertAction
+  def initialize: (Textbringer::Buffer, Integer, String) -> void
+
+  def undo: () -> nil
+
+  def merge: (String) -> String
+
+  def redo: () -> Textbringer::Buffer
+end
+
+class Textbringer::UndoableAction
+  def initialize: (Textbringer::Buffer, Integer) -> void
+end
+
+class Textbringer::DeleteAction
+  def initialize: (Textbringer::Buffer, Integer, Integer, String) -> void
+
+  def undo: () -> Integer
+
+  def redo: () -> nil
+end
+
+class Textbringer::CompositeAction
+  def initialize: (Textbringer::Buffer, Integer) -> void
+
+  def add_action: (Textbringer::DeleteAction) -> Array[untyped]
+                | (Textbringer::InsertAction) -> Array[untyped]
+
+  def undo: () -> Integer
+
+  def redo: () -> Array[untyped]
+end

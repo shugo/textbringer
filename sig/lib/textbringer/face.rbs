@@ -1,0 +1,19 @@
+class Textbringer::Face
+  def self.define: (Symbol, **bool) -> Textbringer::Face
+                 | (Symbol, **String | bool) -> Textbringer::Face
+                 | (Symbol, **nil) -> Textbringer::Face
+                 | (Symbol, **String) -> Textbringer::Face
+
+  def initialize: (Symbol, **bool) -> void
+                | (Symbol, **String | bool) -> void
+                | (Symbol, **nil) -> void
+                | (Symbol, **String) -> void
+
+  def update: (?foreground: Integer, ?background: Integer, ?bold: bool, ?underline: bool, ?reverse: bool) -> Textbringer::Face
+            | (?foreground: String, ?background: Integer, ?bold: bool, ?underline: bool, ?reverse: bool) -> Textbringer::Face
+            | (?foreground: String, ?background: String, ?bold: bool, ?underline: bool, ?reverse: bool) -> Textbringer::Face
+
+  def self.[]: (Symbol) -> Textbringer::Face
+
+  def self.delete: (Symbol) -> Textbringer::Face
+end

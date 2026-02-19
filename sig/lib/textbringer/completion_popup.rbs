@@ -1,0 +1,40 @@
+class Textbringer::CompletionPopup
+  def self.instance: () -> Textbringer::CompletionPopup
+
+  def initialize: () -> void
+
+  def show: (items: Array[untyped], start_point: Integer, ?prefix: String) -> Textbringer::FloatingWindow
+          | (items: Array[untyped], start_point: Integer, ?prefix: String) -> nil
+
+  def create_or_update_window: () -> Textbringer::FloatingWindow
+
+  def visible_item_count: () -> Integer
+
+  def calculate_width: () -> Integer
+
+  def display_width: (String) -> Integer
+
+  def render: () -> Integer
+
+  def calculate_scroll_offset: (Integer) -> Integer
+
+  def format_item: (Hash[untyped, untyped]) -> String
+
+  def accept: () -> Hash[untyped, untyped]
+            | () -> nil
+
+  def visible?: () -> bool
+
+  def current_item: () -> Hash[untyped, untyped]
+                  | () -> nil
+
+  def close: () -> String
+
+  def select_next: () -> nil
+
+  def cancel: () -> nil
+
+  def select_previous: () -> nil
+
+  def hide: () -> Textbringer::FloatingWindow
+end

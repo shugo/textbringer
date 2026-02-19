@@ -1,0 +1,14 @@
+class Textbringer::ProgrammingMode
+  def initialize: (Textbringer::Buffer) -> void
+
+  def indent_line: () -> bool
+                 | () -> nil
+
+  def calculate_indentation: () -> nil
+
+  def indent_new_comment_line: () -> Textbringer::Buffer
+
+  def indent_region: (?Integer, ?Integer) -> nil
+
+  def reindent_then_newline_and_indent: () -> nil
+end

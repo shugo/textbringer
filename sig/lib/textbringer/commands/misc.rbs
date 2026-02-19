@@ -1,0 +1,74 @@
+module Textbringer::Commands
+  def current_prefix_arg: () -> nil
+                        | () -> Array[untyped]
+                        | () -> Integer
+                        | () -> Symbol
+
+  def number_prefix_arg: () -> Integer
+
+  def prefix_numeric_value: (nil) -> Integer
+                          | (Integer) -> Integer
+                          | (Array[untyped]) -> Integer
+                          | (Symbol) -> Integer
+
+  def recursive_edit: () -> nil
+
+  def exit_recursive_edit: () -> nil
+
+  def shell_execute: (?String, ?buffer_name: String, ?mode: Class) -> nil
+
+  def complete_minibuffer_with_string: (String) -> Textbringer::Buffer
+
+  def universal_argument: () -> Textbringer::Keymap
+
+  def universal_argument_mode: () -> Textbringer::Keymap
+
+  def keyboard_quit: () -> nil
+
+  def next_global_mark: () -> Integer
+                      | () -> nil
+
+  def goto_global_mark: () -> Integer
+
+  def complete_minibuffer: () -> Textbringer::Buffer
+                         | () -> nil
+
+  def update_completions: (Array[untyped]) -> nil
+                        | (Array[untyped]) -> Textbringer::Buffer
+
+  def digit_argument: (?Array[untyped]) -> Textbringer::Keymap
+                    | (?nil) -> Textbringer::Keymap
+                    | (?Integer) -> Textbringer::Keymap
+                    | (?Symbol) -> Textbringer::Keymap
+
+  def abort_recursive_edit: () -> nil
+
+  def eval_buffer: () -> Integer
+
+  def eval_expression: (?String) -> Integer
+
+  def eval_region: () -> Integer
+
+  def execute_command: (?Symbol) -> nil
+
+  def version: () -> nil
+
+  def exit_textbringer: (?Integer) -> nil
+
+  def previous_global_mark: () -> nil
+                          | () -> Integer
+
+  def grep: (?String) -> nil
+
+  def negative_argument: (?nil) -> Textbringer::Keymap
+                       | (?Integer) -> Textbringer::Keymap
+                       | (?Symbol) -> Textbringer::Keymap
+
+  def top_level: () -> nil
+
+  def universal_argument_more: (?nil) -> nil
+                             | (?Array[untyped]) -> Textbringer::Keymap
+                             | (?Symbol) -> Textbringer::Keymap
+
+  def what_cursor_position: (?nil) -> nil
+end
