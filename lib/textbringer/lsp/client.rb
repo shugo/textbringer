@@ -10,12 +10,12 @@ module Textbringer
 
       attr_reader :root_path, :server_name, :server_capabilities
 
-      def initialize(command:, args: [], root_path:, server_name: nil, workspace_folders: [Dir.pwd])
+      def initialize(command:, args: [], root_path:, server_name: nil, workspace_folders: nil)
         @command = command
         @args = args
         @root_path = root_path
         @server_name = server_name || command
-        @workspace_folders = workspace_folders
+        @workspace_folders = Array(workspace_folders || @root_path)
         @stdin = nil
         @stdout = nil
         @stderr = nil
@@ -457,6 +457,11 @@ module Textbringer
         when "client/registerCapability"
           # Accept capability registration
           send_response(id, nil, nil)
+        when "workspace/workspaceFolders"
+          folders = @workspace_folders.map { |path|
+            { uri: "file://#{path}", name: File.basename(path) }
+          }
+          send_response(id, folders, nil)
         else
           # Unknown request - respond with method not found
           send_response(id, nil, {

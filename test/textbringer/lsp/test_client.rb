@@ -115,6 +115,19 @@ class TestLSPClient < Textbringer::TestCase
     assert_equal({}, client.server_capabilities)
   end
 
+  def test_workspace_folders_defaults_to_root_path
+    client = LSP::Client.new(command: "ruby", args: [], root_path: "/tmp/myproject")
+    assert_equal(["/tmp/myproject"], client.instance_variable_get(:@workspace_folders))
+  end
+
+  def test_workspace_folders_explicit
+    client = LSP::Client.new(
+      command: "ruby", args: [], root_path: "/tmp/root",
+      workspace_folders: ["/tmp/a", "/tmp/b"]
+    )
+    assert_equal(["/tmp/a", "/tmp/b"], client.instance_variable_get(:@workspace_folders))
+  end
+
   def test_running_state_initially_false
     client = create_client
     refute(client.running?)
