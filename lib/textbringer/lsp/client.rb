@@ -256,7 +256,8 @@ module Textbringer
               },
               completionItemKind: {
                 valueSet: (1..25).to_a
-              }
+              },
+              contextSupport: true
             },
             signatureHelp: {
               signatureInformation: {
