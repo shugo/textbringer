@@ -40,8 +40,23 @@ module Textbringer
       # Get prefix already typed
       prefix = buffer.substring(start_point, buffer.point)
 
+      # Determine trigger context: if the character immediately before start_point
+      # is a completion trigger character, inform the server so it returns
+      # member completions (e.g. after ".").
+      trigger_chars = client.server_capabilities
+        .dig("completionProvider", "triggerCharacters") || []
+      char_before_start = buffer.save_point {
+        buffer.goto_char(start_point)
+        buffer.point > 0 ? (buffer.backward_char; buffer.char_after) : nil
+      }
+      context = if prefix.empty? && trigger_chars.include?(char_before_start)
+                  { triggerKind: 2, triggerCharacter: char_before_start }
+                else
+                  { triggerKind: 1 }
+                end
+
       # Request completion
-      client.completion(uri: uri, line: line, character: character) do |items, error|
+      client.completion(uri: uri, line: line, character: character, context: context) do |items, error|
         if error
           message("LSP completion error: #{error["message"]}")
         elsif items && !items.empty?

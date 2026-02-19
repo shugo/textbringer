@@ -128,13 +128,14 @@ module Textbringer
 
       # Completion
 
-      def completion(uri:, line:, character:, &callback)
+      def completion(uri:, line:, character:, context: nil, &callback)
         return unless @initialized
 
         params = {
           textDocument: { uri: uri },
           position: { line: line, character: character }
         }
+        params[:context] = context if context
 
         send_request("textDocument/completion", params) do |result, error|
           if error
