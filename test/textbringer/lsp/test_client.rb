@@ -100,6 +100,7 @@ class TestLSPClient < Textbringer::TestCase
     assert(capabilities[:textDocument][:completion])
     assert(capabilities[:textDocument][:synchronization])
     refute(capabilities[:textDocument][:completion][:completionItem][:snippetSupport])
+    assert(capabilities[:textDocument][:completion][:contextSupport])
 
     # Signature help capabilities
     sig_help = capabilities[:textDocument][:signatureHelp]
