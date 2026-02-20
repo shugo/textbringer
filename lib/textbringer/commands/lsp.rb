@@ -245,7 +245,10 @@ module Textbringer
 
     # Set up buffer hooks for document synchronization
     def lsp_setup_buffer_hooks(buffer, client, uri)
-      # Track changes and send incremental updates to LSP server
+      # Track changes and send updates to LSP server.
+      # Sync kind is determined by the server's textDocumentSync capability:
+      #   1 = Full (send complete document text on every change)
+      #   2 = Incremental (send only the changed range)
       add_hook(:after_change_functions, local: true) do |beg_pos, end_pos, old_text|
         next unless client.running? && client.document_open?(uri)
 
@@ -253,35 +256,48 @@ module Textbringer
         version += 1
         LSP_DOCUMENT_VERSIONS[uri] = version
 
-        # Compute start position in LSP coordinates (0-based, UTF-16)
-        start_pos = lsp_position(buffer, beg_pos)
+        sync = client.server_capabilities["textDocumentSync"]
+        sync_kind = case sync
+                    when Integer then sync
+                    when Hash then sync["change"].to_i
+                    else 2
+                    end
 
-        if old_text.empty?
-          # Insertion: old range is empty, new text is the inserted content
-          new_text = buffer.substring(beg_pos, end_pos)
-          range = { start: start_pos, end: start_pos }
+        if sync_kind == 1
+          # Full document sync (e.g. solargraph)
+          client.did_change(uri: uri, version: version, text: buffer.to_s)
         else
-          # Deletion: compute old end position from the deleted text
-          newline_count = old_text.count("\n")
-          if newline_count == 0
-            end_line = start_pos[:line]
-            end_char = start_pos[:character] + lsp_utf16_length(old_text)
-          else
-            end_line = start_pos[:line] + newline_count
-            last_newline = old_text.rindex("\n")
-            end_char = lsp_utf16_length(old_text[last_newline + 1..])
-          end
-          range = {
-            start: start_pos,
-            end: { line: end_line, character: end_char }
-          }
-          new_text = ""
-        end
+          # Incremental sync
+          # Compute start position in LSP coordinates (0-based, UTF-16)
+          start_pos = lsp_position(buffer, beg_pos)
 
-        client.did_change(
-          uri: uri, version: version,
-          text: new_text, range: range
-        )
+          if old_text.empty?
+            # Insertion: old range is empty, new text is the inserted content
+            new_text = buffer.substring(beg_pos, end_pos)
+            range = { start: start_pos, end: start_pos }
+          else
+            # Deletion: compute old end position from the deleted text
+            newline_count = old_text.count("\n")
+            if newline_count == 0
+              end_line = start_pos[:line]
+              end_char = start_pos[:character] + lsp_utf16_length(old_text)
+            else
+              end_line = start_pos[:line] + newline_count
+              last_newline = old_text.rindex("\n")
+              end_char = lsp_utf16_length(old_text[last_newline + 1..])
+            end
+            range = {
+              start: start_pos,
+              end: { line: end_line, character: end_char }
+            }
+            new_text = ""
+          end
+
+          client.did_change(
+            uri: uri, version: version,
+            text: new_text, range: range
+          )
+        end
       end
 
       # Close document when buffer is killed
