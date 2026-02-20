@@ -191,6 +191,18 @@ module Textbringer
       end
     end
 
+    # Resolve textDocumentSync to a TextDocumentSyncKind integer.
+    # The server capability may be an Integer or a TextDocumentSyncOptions Hash.
+    # Returns 0 (None), 1 (Full), or 2 (Incremental). Defaults to 2.
+    def lsp_text_document_sync_kind(server_capabilities)
+      sync = server_capabilities["textDocumentSync"]
+      case sync
+      when Integer then sync
+      when Hash then sync["change"]&.to_i || 2
+      else 2
+      end
+    end
+
     # Convert a string's character length to UTF-16 code unit count.
     # LSP positions use UTF-16 offsets by default.
     def lsp_utf16_length(str)
@@ -256,15 +268,13 @@ module Textbringer
         version += 1
         LSP_DOCUMENT_VERSIONS[uri] = version
 
-        sync = client.server_capabilities["textDocumentSync"]
-        sync_kind = case sync
-                    when Integer then sync
-                    when Hash then sync["change"].to_i
-                    else 2
-                    end
+        sync_kind = lsp_text_document_sync_kind(client.server_capabilities)
+
+        next if sync_kind == 0 # None: server does not want change notifications
 
         if sync_kind == 1
-          # Full document sync (e.g. solargraph)
+          # Full document sync (e.g. solargraph). Note: buffer.to_s is called
+          # on every change; this is expected behavior for Full-sync servers.
           client.did_change(uri: uri, version: version, text: buffer.to_s)
         else
           # Incremental sync
