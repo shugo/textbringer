@@ -191,6 +191,18 @@ module Textbringer
       end
     end
 
+    # Resolve textDocumentSync to a TextDocumentSyncKind integer.
+    # The server capability may be an Integer or a TextDocumentSyncOptions Hash.
+    # Returns 0 (None), 1 (Full), or 2 (Incremental). Defaults to 2.
+    def lsp_text_document_sync_kind(server_capabilities)
+      sync = server_capabilities["textDocumentSync"]
+      case sync
+      when Integer then sync
+      when Hash then sync["change"]&.to_i || 2
+      else 2
+      end
+    end
+
     # Convert a string's character length to UTF-16 code unit count.
     # LSP positions use UTF-16 offsets by default.
     def lsp_utf16_length(str)
@@ -245,7 +257,10 @@ module Textbringer
 
     # Set up buffer hooks for document synchronization
     def lsp_setup_buffer_hooks(buffer, client, uri)
-      # Track changes and send incremental updates to LSP server
+      # Track changes and send updates to LSP server.
+      # Sync kind is determined by the server's textDocumentSync capability:
+      #   1 = Full (send complete document text on every change)
+      #   2 = Incremental (send only the changed range)
       add_hook(:after_change_functions, local: true) do |beg_pos, end_pos, old_text|
         next unless client.running? && client.document_open?(uri)
 
@@ -253,35 +268,46 @@ module Textbringer
         version += 1
         LSP_DOCUMENT_VERSIONS[uri] = version
 
-        # Compute start position in LSP coordinates (0-based, UTF-16)
-        start_pos = lsp_position(buffer, beg_pos)
+        sync_kind = lsp_text_document_sync_kind(client.server_capabilities)
 
-        if old_text.empty?
-          # Insertion: old range is empty, new text is the inserted content
-          new_text = buffer.substring(beg_pos, end_pos)
-          range = { start: start_pos, end: start_pos }
+        next if sync_kind == 0 # None: server does not want change notifications
+
+        if sync_kind == 1
+          # Full document sync (e.g. solargraph). Note: buffer.to_s is called
+          # on every change; this is expected behavior for Full-sync servers.
+          client.did_change(uri: uri, version: version, text: buffer.to_s)
         else
-          # Deletion: compute old end position from the deleted text
-          newline_count = old_text.count("\n")
-          if newline_count == 0
-            end_line = start_pos[:line]
-            end_char = start_pos[:character] + lsp_utf16_length(old_text)
-          else
-            end_line = start_pos[:line] + newline_count
-            last_newline = old_text.rindex("\n")
-            end_char = lsp_utf16_length(old_text[last_newline + 1..])
-          end
-          range = {
-            start: start_pos,
-            end: { line: end_line, character: end_char }
-          }
-          new_text = ""
-        end
+          # Incremental sync
+          # Compute start position in LSP coordinates (0-based, UTF-16)
+          start_pos = lsp_position(buffer, beg_pos)
 
-        client.did_change(
-          uri: uri, version: version,
-          text: new_text, range: range
-        )
+          if old_text.empty?
+            # Insertion: old range is empty, new text is the inserted content
+            new_text = buffer.substring(beg_pos, end_pos)
+            range = { start: start_pos, end: start_pos }
+          else
+            # Deletion: compute old end position from the deleted text
+            newline_count = old_text.count("\n")
+            if newline_count == 0
+              end_line = start_pos[:line]
+              end_char = start_pos[:character] + lsp_utf16_length(old_text)
+            else
+              end_line = start_pos[:line] + newline_count
+              last_newline = old_text.rindex("\n")
+              end_char = lsp_utf16_length(old_text[last_newline + 1..])
+            end
+            range = {
+              start: start_pos,
+              end: { line: end_line, character: end_char }
+            }
+            new_text = ""
+          end
+
+          client.did_change(
+            uri: uri, version: version,
+            text: new_text, range: range
+          )
+        end
       end
 
       # Close document when buffer is killed
