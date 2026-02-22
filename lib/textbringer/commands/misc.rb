@@ -55,6 +55,7 @@ module Textbringer
       result = eval(buffer.substring(b, e), TOPLEVEL_BINDING,
                     "(eval_region)", 1)
       message(result.inspect)
+      buffer.deactivate_mark
       result
     end
 
