@@ -114,6 +114,7 @@ module Textbringer
       case event
       when "\C-j"
         @mode = :hiragana
+        Window.redisplay
         nil
       when "q"
         if @mode == :hiragana
@@ -121,12 +122,15 @@ module Textbringer
         elsif @mode == :katakana || @mode == :hankaku_katakana
           @mode = :hiragana
         end
+        Window.redisplay
         nil
       when "l"
         @mode = :ascii
+        Window.redisplay
         nil
       when "L"
         @mode = :zenkaku_ascii
+        Window.redisplay
         nil
       when /\A[A-Z]\z/
         if [:hiragana, :katakana, :hankaku_katakana].include?(@mode)
