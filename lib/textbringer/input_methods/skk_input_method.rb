@@ -1,4 +1,9 @@
+require "open-uri"
+require "fileutils"
+
 module Textbringer
+  CONFIG[:skk_dictionary_path] = File.expand_path("~/.textbringer/skk/SKK-JISYO.L")
+
   class SkkInputMethod < InputMethod
     HIRAGANA_TABLE = {
       "a" => "あ", "i" => "い", "u" => "う", "e" => "え", "o" => "お",
@@ -93,8 +98,6 @@ module Textbringer
     HANKAKU_KATAKANA_PREFIXES = HANKAKU_KATAKANA_TABLE.keys.flat_map { |s|
       (s.size - 1).times.map { |i| s[0, i + 1] }
     }.uniq
-
-    DICTIONARY_PATH = File.expand_path("~/.textbringer/skk/SKK-JISYO.L")
 
     DEFAULT_CURSOR_COLORS = {
       hiragana:         "pink",
@@ -569,7 +572,7 @@ module Textbringer
     def ensure_dictionary_loaded
       return if @okuriiari
 
-      path = CONFIG[:skk_dictionary] || DICTIONARY_PATH
+      path = CONFIG[:skk_dictionary_path]
       @okuriiari = {}
       @okurinasi = {}
       section = :okuriiari
@@ -746,6 +749,25 @@ module Textbringer
       return unless STDOUT.tty?
       STDOUT.write("\e]112\a")
       STDOUT.flush
+    end
+  end
+
+  SKK_DICTIONARY_URL = "https://github.com/skk-dev/dict/raw/090619ac57ef230a0506c191b569fc8c82b1025b/SKK-JISYO.L"
+
+  module Commands
+    define_command(:skk_download_dictionary, doc: "Download SKK dictionary") do
+      path = CONFIG[:skk_dictionary_path]
+      if File.exist?(path) && !yes_or_no?("#{path} already exists.  Overwrite it?")
+        return
+      end
+      background do
+        URI.open(SKK_DICTIONARY_URL) do |f|
+          File.binwrite(path, f.read)
+        end
+        foreground do
+          message("Downloaded to #{path}")
+        end
+      end
     end
   end
 end
