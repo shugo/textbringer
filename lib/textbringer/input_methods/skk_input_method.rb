@@ -41,6 +41,7 @@ module Textbringer
       "xtu" => "っ", "xtsu" => "っ",
       "xya" => "ゃ", "xyu" => "ゅ", "xyo" => "ょ",
       "xa" => "ぁ", "xi" => "ぃ", "xu" => "ぅ", "xe" => "ぇ", "xo" => "ぉ",
+      "," => "、", "." => "。",
     }
 
     HIRAGANA_PREFIXES = HIRAGANA_TABLE.keys.flat_map { |s|
@@ -86,6 +87,7 @@ module Textbringer
       "mya" => "ﾐｬ", "myu" => "ﾐｭ", "myo" => "ﾐｮ",
       "rya" => "ﾘｬ", "ryu" => "ﾘｭ", "ryo" => "ﾘｮ",
       "fa" => "ﾌｧ", "fi" => "ﾌｨ", "fu" => "ﾌ", "fe" => "ﾌｪ", "fo" => "ﾌｫ",
+      "," => "､", "." => "｡",
     }
 
     HANKAKU_KATAKANA_PREFIXES = HANKAKU_KATAKANA_TABLE.keys.flat_map { |s|

@@ -23,6 +23,19 @@ class TestSKKInputMethod < Textbringer::TestCase
     assert_equal("か", @buffer.to_s)
   end
 
+  def test_hiragana_punctuation
+    @im.handle_event(",")
+    @im.handle_event(".")
+    assert_equal("、。", @buffer.to_s)
+  end
+
+  def test_katakana_punctuation
+    @im.handle_event("q")
+    @im.handle_event(",")
+    @im.handle_event(".")
+    assert_equal("、。", @buffer.to_s)
+  end
+
   def test_hiragana_nn
     @im.handle_event("n")
     @im.handle_event("n")
@@ -348,6 +361,13 @@ class TestSKKInputMethod < Textbringer::TestCase
     @im.handle_event("k")
     @im.handle_event("a")
     assert_equal("ｶ", @buffer.to_s)
+  end
+
+  def test_hankaku_katakana_punctuation
+    @im.handle_event("\C-q")
+    @im.handle_event(",")
+    @im.handle_event(".")
+    assert_equal("､｡", @buffer.to_s)
   end
 
   # --- Mode-switch key passthrough in ASCII/zenkaku modes ---
