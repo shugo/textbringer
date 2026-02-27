@@ -319,21 +319,8 @@ class TestSKKInputMethod < Textbringer::TestCase
   # --- Okuri-ari (okurigana) ---
 
   def test_okurigana_triggers_lookup
-    # Type か + shift-K for okurigana
-    @im.handle_event("K")
-    @im.handle_event("a")
-    @im.handle_event("k")  # lowercase during yomi just adds to yomi
-    # Actually to trigger okurigana we need uppercase in converting phase
-    # Let's test: type "書K" -> 書く
-    # Reset and use proper okurigana sequence
-    @buffer.delete_region(0, @buffer.point)
-    @im.instance_variable_set(:@phase, :normal)
-    @im.instance_variable_set(:@yomi, +"")
-    @im.instance_variable_set(:@roman_buffer, +"")
-    @im.instance_variable_set(:@marker_pos, nil)
-
-    # ka + K (shift-K starts okurigana with 'k')
-    @im.handle_event("K")  # start converting with 'k' in roman_buffer
+    # Type "書K" sequence: K starts converting, a gives か yomi, K starts okurigana
+    @im.handle_event("K")  # start converting
     @im.handle_event("a")  # yomi = か
     @im.handle_event("K")  # start okurigana with 'k'
     @im.handle_event("u")  # okurigana kana = く, triggers lookup
@@ -341,6 +328,68 @@ class TestSKKInputMethod < Textbringer::TestCase
     assert_equal("▼", @im.status)
     assert_match(/\A▼/, @buffer.to_s)
     assert_match(/く\z/, @buffer.to_s)
+  end
+
+  # --- Hankaku katakana mode ---
+
+  def test_ctrl_q_switches_to_hankaku_katakana
+    @im.handle_event("\C-q")
+    assert_equal("ｱ", @im.status)
+  end
+
+  def test_ctrl_q_switches_back_to_hiragana
+    @im.handle_event("\C-q")
+    @im.handle_event("\C-q")
+    assert_equal("あ", @im.status)
+  end
+
+  def test_hankaku_katakana_basic
+    @im.handle_event("\C-q")
+    @im.handle_event("k")
+    @im.handle_event("a")
+    assert_equal("ｶ", @buffer.to_s)
+  end
+
+  # --- Mode-switch key passthrough in ASCII/zenkaku modes ---
+
+  def test_q_passes_through_in_ascii
+    @im.handle_event("l")
+    result = @im.handle_event("q")
+    assert_equal("q", result)
+    assert_equal("A", @im.status)
+  end
+
+  def test_l_passes_through_in_ascii
+    @im.handle_event("l")
+    result = @im.handle_event("l")
+    assert_equal("l", result)
+    assert_equal("A", @im.status)
+  end
+
+  def test_L_passes_through_in_zenkaku
+    @im.handle_event("L")
+    result = @im.handle_event("L")
+    assert_equal("Ｌ", result)
+    assert_equal("Ａ", @im.status)
+  end
+
+  def test_roman_buffer_cleared_on_mode_switch
+    @im.handle_event("k")     # pending romaji prefix
+    @im.handle_event("l")     # switch to ASCII (clears roman_buffer)
+    @im.handle_event("\C-j")  # switch back to hiragana
+    @im.handle_event("a")     # should insert "あ", not "か"
+    assert_equal("あ", @buffer.to_s)
+  end
+
+  def test_roman_buffer_cleared_after_confirm_selecting
+    @im.handle_event("K")
+    @im.handle_event("a")
+    @im.handle_event(" ")
+    @im.handle_event("\r")    # confirm selection
+    # roman_buffer is empty; typing "a" now should produce "あ" cleanly
+    @im.handle_event("a")
+    candidate = @buffer.to_s
+    assert_match(/あ\z/, candidate)
   end
 
   # --- Status display ---

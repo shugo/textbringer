@@ -159,29 +159,62 @@ module Textbringer
 
       case event
       when "\C-j"
+        @roman_buffer = +""
         @mode = :hiragana
         Window.redisplay
         update_cursor_color
         nil
+      when "\C-q"
+        if [:hiragana, :katakana].include?(@mode)
+          @roman_buffer = +""
+          @mode = :hankaku_katakana
+          Window.redisplay
+          update_cursor_color
+        elsif @mode == :hankaku_katakana
+          @roman_buffer = +""
+          @mode = :hiragana
+          Window.redisplay
+          update_cursor_color
+        else
+          return process_romaji(event)
+        end
+        nil
       when "q"
         if @mode == :hiragana
+          @roman_buffer = +""
           @mode = :katakana
+          Window.redisplay
+          update_cursor_color
+          nil
         elsif @mode == :katakana || @mode == :hankaku_katakana
+          @roman_buffer = +""
           @mode = :hiragana
+          Window.redisplay
+          update_cursor_color
+          nil
+        else
+          process_romaji(event)
         end
-        Window.redisplay
-        update_cursor_color
-        nil
       when "l"
-        @mode = :ascii
-        Window.redisplay
-        update_cursor_color
-        nil
+        if [:hiragana, :katakana, :hankaku_katakana].include?(@mode)
+          @roman_buffer = +""
+          @mode = :ascii
+          Window.redisplay
+          update_cursor_color
+          nil
+        else
+          process_romaji(event)
+        end
       when "L"
-        @mode = :zenkaku_ascii
-        Window.redisplay
-        update_cursor_color
-        nil
+        if [:hiragana, :katakana, :hankaku_katakana].include?(@mode)
+          @roman_buffer = +""
+          @mode = :zenkaku_ascii
+          Window.redisplay
+          update_cursor_color
+          nil
+        else
+          process_romaji(event)
+        end
       when /\A[A-Z]\z/
         if [:hiragana, :katakana, :hankaku_katakana].include?(@mode)
           start_converting(event.downcase)
@@ -189,7 +222,7 @@ module Textbringer
           process_romaji(event)
         end
       when /\A[\x00-\x09\x0b-\x1f\x7f]\z/
-        # Control characters other than C-j pass through unchanged
+        # Control characters other than C-j and C-q pass through unchanged
         @roman_buffer = +""
         event
       else
@@ -508,6 +541,7 @@ module Textbringer
       end
       @phase = :normal
       @yomi = +""
+      @roman_buffer = +""
       @okuri_roman = nil
       @okuri_kana = nil
       @candidates = []
@@ -523,6 +557,7 @@ module Textbringer
         buffer.insert("▽" + @yomi + (@okuri_kana || ""))
       end
       @phase = :converting
+      @roman_buffer = +""
       @candidates = []
       @candidate_index = 0
       Window.redisplay
@@ -694,6 +729,7 @@ module Textbringer
     end
 
     def update_cursor_color
+      return unless STDOUT.tty?
       colors = CONFIG[:skk_cursor_colors] || DEFAULT_CURSOR_COLORS
       color = colors[@mode]
       if color
@@ -705,6 +741,7 @@ module Textbringer
     end
 
     def reset_cursor_color
+      return unless STDOUT.tty?
       STDOUT.write("\e]112\a")
       STDOUT.flush
     end
