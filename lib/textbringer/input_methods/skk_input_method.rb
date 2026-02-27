@@ -68,16 +68,14 @@ module Textbringer
       (s.size - 1).times.map { |i| s[0, i + 1] }
     }.uniq
 
-    DICTIONARY_PATH = File.expand_path("../../../../data/SKK-JISYO.L", __FILE__)
+    DICTIONARY_PATH = File.expand_path("~/.textbringer/skk/SKK-JISYO.L")
 
     DEFAULT_CURSOR_COLORS = {
-      hiragana:         "green",
-      katakana:         "cyan",
-      hankaku_katakana: "cyan",
-      zenkaku_ascii:    "magenta",
+      hiragana:         "pink",
+      katakana:         "green",
+      hankaku_katakana: "blue",
+      zenkaku_ascii:    "yellow",
       ascii:            nil,    # nil = reset to terminal default
-      converting:       "yellow",
-      selecting:        "red",
     }
 
     def initialize
@@ -673,8 +671,7 @@ module Textbringer
 
     def update_cursor_color
       colors = CONFIG[:skk_cursor_colors] || DEFAULT_CURSOR_COLORS
-      key = @phase == :normal ? @mode : @phase
-      color = colors[key]
+      color = colors[@mode]
       if color
         STDOUT.write("\e]12;#{color}\a")
       else
