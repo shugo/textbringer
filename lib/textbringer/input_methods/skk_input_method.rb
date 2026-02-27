@@ -70,6 +70,16 @@ module Textbringer
 
     DICTIONARY_PATH = File.expand_path("../../../../data/SKK-JISYO.L", __FILE__)
 
+    DEFAULT_CURSOR_COLORS = {
+      hiragana:         "green",
+      katakana:         "cyan",
+      hankaku_katakana: "cyan",
+      zenkaku_ascii:    "magenta",
+      ascii:            nil,    # nil = reset to terminal default
+      converting:       "yellow",
+      selecting:        "red",
+    }
+
     def initialize
       super
       @mode = :hiragana  # :hiragana | :katakana | :hankaku_katakana | :zenkaku_ascii | :ascii
@@ -83,6 +93,20 @@ module Textbringer
       @marker_pos = nil
       @okuriiari = nil
       @okurinasi = nil
+    end
+
+    def toggle
+      super
+      if @enabled
+        update_cursor_color
+      else
+        reset_cursor_color
+      end
+    end
+
+    def disable
+      super
+      reset_cursor_color
     end
 
     def status
@@ -115,6 +139,7 @@ module Textbringer
       when "\C-j"
         @mode = :hiragana
         Window.redisplay
+        update_cursor_color
         nil
       when "q"
         if @mode == :hiragana
@@ -123,14 +148,17 @@ module Textbringer
           @mode = :hiragana
         end
         Window.redisplay
+        update_cursor_color
         nil
       when "l"
         @mode = :ascii
         Window.redisplay
+        update_cursor_color
         nil
       when "L"
         @mode = :zenkaku_ascii
         Window.redisplay
+        update_cursor_color
         nil
       when /\A[A-Z]\z/
         if [:hiragana, :katakana, :hankaku_katakana].include?(@mode)
@@ -364,6 +392,7 @@ module Textbringer
         buffer.insert("▽")
       end
       Window.redisplay
+      update_cursor_color
       process_converting_romaji(first_char)
       nil
     end
@@ -384,6 +413,7 @@ module Textbringer
       @okuri_kana = nil
       @marker_pos = nil
       Window.redisplay
+      update_cursor_color
     end
 
     def commit_converting
@@ -398,6 +428,7 @@ module Textbringer
       @okuri_kana = nil
       @marker_pos = nil
       Window.redisplay
+      update_cursor_color
     end
 
     def start_selecting
@@ -426,6 +457,7 @@ module Textbringer
         buffer.insert("▼" + @candidates[0] + (@okuri_kana || ""))
       end
       Window.redisplay
+      update_cursor_color
     end
 
     def next_candidate
@@ -460,6 +492,7 @@ module Textbringer
       @candidate_index = 0
       @marker_pos = nil
       Window.redisplay
+      update_cursor_color
     end
 
     def cancel_selecting
@@ -471,6 +504,7 @@ module Textbringer
       @candidates = []
       @candidate_index = 0
       Window.redisplay
+      update_cursor_color
     end
 
     def ensure_dictionary_loaded
@@ -635,6 +669,23 @@ module Textbringer
 
     def hiragana_prefixes_for_converting
       HIRAGANA_PREFIXES
+    end
+
+    def update_cursor_color
+      colors = CONFIG[:skk_cursor_colors] || DEFAULT_CURSOR_COLORS
+      key = @phase == :normal ? @mode : @phase
+      color = colors[key]
+      if color
+        STDOUT.write("\e]12;#{color}\a")
+      else
+        reset_cursor_color
+      end
+      STDOUT.flush
+    end
+
+    def reset_cursor_color
+      STDOUT.write("\e]112\a")
+      STDOUT.flush
     end
   end
 end
