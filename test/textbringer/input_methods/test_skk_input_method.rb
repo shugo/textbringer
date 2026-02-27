@@ -4,7 +4,7 @@ class TestSKKInputMethod < Textbringer::TestCase
   SKK_TEST_DICT = File.expand_path("../../fixtures/SKK-JISYO.test", __dir__)
 
   setup do
-    CONFIG[:skk_dictionary] = SKK_TEST_DICT
+    CONFIG[:skk_dictionary_path] = SKK_TEST_DICT
     @buffer = Buffer.new_buffer("test")
     @buffer.toggle_input_method("skk")
     @im = @buffer.input_method
