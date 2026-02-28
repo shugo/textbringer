@@ -762,7 +762,10 @@ module Textbringer
       end
       background do
         URI.open(SKK_DICTIONARY_URL) do |f|
-          File.binwrite(path, f.read)
+          FileUtils.mkdir_p(File.dirname(path))
+          File.open(path, "wb") do |out|
+            IO.copy_stream(f, out)
+          end
         end
         foreground do
           message("Downloaded to #{path}")
