@@ -18,8 +18,8 @@ module Textbringer
       :backward_char,
       :forward_word,
       :backward_word,
-      :scroll_up_command,
-      :scroll_down_command,
+      :scroll_up,
+      :scroll_down,
       :beginning_of_buffer,
       :end_of_buffer,
       # Search commands
