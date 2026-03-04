@@ -191,7 +191,7 @@ module Textbringer
           if interactive_form.elements.length > 1
             interactive_spec = interactive_form.elements[1]
           else
-            interactive_spec = :no_args
+            interactive_spec = List.new(elements: [], dotted: nil, location: nil)
           end
         end
 
@@ -202,7 +202,7 @@ module Textbringer
         body_str = "nil" if body_str.empty?
         wrapped_body = binding_str.empty? ? body_str : "#{binding_str} { #{body_str} }"
 
-        if interactive_spec && interactive_spec != :no_args
+        if interactive_spec
           spec_str = compile_form(interactive_spec)
           doc_str = doc ? doc.inspect : "nil"
           "R.defun_interactive(:\"#{escape_sym(name)}\", #{spec_str}, #{doc_str}) { |#{param_str}| #{wrapped_body} }"

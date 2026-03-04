@@ -131,11 +131,9 @@ module Textbringer
         def defun_interactive(name, spec, doc = nil, &block)
           function_table[name] = block
           # Register as a Textbringer command
-          if defined?(Textbringer::Commands)
-            Textbringer::Commands.define_command(name, doc: doc || "Elisp command: #{name}") do
-              args = parse_interactive_spec(spec)
-              Runtime.funcall(name, *args)
-            end
+          define_command(name, doc: doc || "Elisp command: #{name}") do
+            args = Runtime.parse_interactive_spec(spec)
+            Runtime.funcall(name, *args)
           end
           name
         end
@@ -374,17 +372,17 @@ module Textbringer
             when "s"
               prompt = extract_prompt(spec, i)
               i += prompt.length
-              args << Textbringer::Commands.read_from_minibuffer(prompt)
+              args << read_from_minibuffer(prompt)
             when "n"
               prompt = extract_prompt(spec, i)
               i += prompt.length
-              args << Textbringer::Commands.read_from_minibuffer(prompt).to_i
+              args << read_from_minibuffer(prompt).to_i
             when "r"
               b = Textbringer::Buffer.current
               args << [b.point, b.mark].min
               args << [b.point, b.mark].max
             when "p"
-              args << (Textbringer::Commands.current_prefix_arg || 1)
+              args << (current_prefix_arg || 1)
             when "\n"
               # separator, skip
             else
