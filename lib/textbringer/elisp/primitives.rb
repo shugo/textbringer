@@ -180,9 +180,7 @@ module Textbringer
                 else
                   format(fmt, *args)
                 end
-          if defined?(Textbringer::Commands)
-            Textbringer::Commands.message(msg)
-          end
+          message(msg)
           msg
         end
 
