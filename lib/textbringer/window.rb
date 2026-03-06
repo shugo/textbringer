@@ -414,7 +414,7 @@ module Textbringer
         face = Face[name]
         if face
           @highlight_on[b] = face
-          @highlight_off[e] = face
+          @highlight_off[e] = true
         end
       end
     end
