@@ -12,6 +12,7 @@ module Textbringer
     end
 
     HAVE_GET_KEY_MODIFIERS = defined?(Curses.get_key_modifiers)
+    HAVE_ATTR_SET = Curses::Window.method_defined?(:attr_set)
     if HAVE_GET_KEY_MODIFIERS
       ALT_NUMBER_BASE = Curses::ALT_0 - ?0.ord
       ALT_ALPHA_BASE = Curses::ALT_A - ?a.ord
@@ -261,7 +262,7 @@ module Textbringer
       @cursor = Cursor.new(0, 0)
       @in_region = false
       @in_isearch = false
-      @current_highlight_attrs = 0
+      @current_hl_face = nil
     end
 
     def echo_area?
@@ -410,10 +411,10 @@ module Textbringer
           b = @buffer.point
         end
         name = names.find { |n| $~[n] }
-        attributes = Face[name]&.attributes
-        if attributes
-          @highlight_on[b] = attributes
-          @highlight_off[e] = attributes
+        face = Face[name]
+        if face
+          @highlight_on[b] = face
+          @highlight_off[e] = true
         end
       end
     end
@@ -434,45 +435,30 @@ module Textbringer
         highlight
         @window.erase
         @window.setpos(0, 0)
-        @window.attrset(0)
         @in_region = false
         @in_isearch = false
-        @current_highlight_attrs = 0
+        @current_hl_face = nil
         if current_or_minibuffer_selected? && @buffer.visible_mark &&
            @buffer.point_after_mark?(@buffer.visible_mark)
-          @window.attron(region_attr)
           @in_region = true
         end
         if current_or_minibuffer_selected? && @buffer.isearch_mark &&
            @buffer.point_after_mark?(@buffer.isearch_mark)
-          # If already in region, switch to isearch (priority)
-          if @in_region
-            @window.attroff(region_attr)
-          end
-          @window.attron(isearch_attr)
+          @in_region = false
           @in_isearch = true
         end
+        apply_window_attrs(@window)
         while !@buffer.end_of_buffer?
           cury = @window.cury
           curx = @window.curx
           update_cursor_and_attr(point, cury, curx)
-          if attrs = @highlight_off[@buffer.point]
-            if @in_region || @in_isearch
-              # In region: only turn off non-color attributes (bold, underline, etc.)
-              @window.attroff(attrs & ~Curses::A_COLOR)
-            else
-              @window.attroff(attrs)
-            end
-            @current_highlight_attrs = 0
+          if @highlight_off[@buffer.point]
+            @current_hl_face = nil
+            apply_window_attrs(@window)
           end
-          if attrs = @highlight_on[@buffer.point]
-            if @in_region || @in_isearch
-              # In region: only turn on non-color attributes (preserve region background)
-              @window.attron(attrs & ~Curses::A_COLOR)
-            else
-              @window.attron(attrs)
-            end
-            @current_highlight_attrs = attrs
+          if face = @highlight_on[@buffer.point]
+            @current_hl_face = face
+            apply_window_attrs(@window)
           end
           c = @buffer.char_after
           if c == "\n"
@@ -517,12 +503,7 @@ module Textbringer
           break if newx == columns && cury == lines - 2
           @buffer.forward_char
         end
-        if current_or_minibuffer_selected? && @buffer.isearch_mark
-          @window.attroff(isearch_attr)
-        end
-        if current_or_minibuffer_selected? && @buffer.visible_mark
-          @window.attroff(region_attr)
-        end
+        apply_window_attrs(@window)
         @buffer.mark_to_point(@bottom_of_window)
         if @buffer.point_at_mark?(point)
           @cursor.y = @window.cury
@@ -712,8 +693,16 @@ module Textbringer
     def redisplay_mode_line
       @mode_line.erase
       @mode_line.setpos(0, 0)
-      attrs = @@has_colors ? Face[:mode_line].attributes : Curses::A_REVERSE
-      @mode_line.attrset(attrs)
+      if @@has_colors
+        face = Face[:mode_line]
+        if HAVE_ATTR_SET
+          @mode_line.attr_set(face.text_attrs, face.color_pair)
+        else
+          @mode_line.attrset(face.attributes)
+        end
+      else
+        @mode_line.attrset(Curses::A_REVERSE)
+      end
       @mode_line.addstr("#{@buffer.input_method_status} #{@buffer.name} ")
       @mode_line.addstr("[+]") if @buffer.modified?
       @mode_line.addstr("[RO]") if @buffer.read_only?
@@ -731,7 +720,7 @@ module Textbringer
       @mode_line.addstr(" #{line},#{column}")
       @mode_line.addstr(" (#{@buffer.mode_names.join(' ')})")
       @mode_line.addstr(" " * (columns - @mode_line.curx))
-      @mode_line.attrset(0)
+      HAVE_ATTR_SET ? @mode_line.attr_set(0, 0) : @mode_line.attrset(0)
       @mode_line.noutrefresh
     end
 
@@ -746,45 +735,28 @@ module Textbringer
     end
 
     def update_cursor_and_attr(point, cury, curx)
+      changed = false
       if @buffer.point_at_mark?(point)
         @cursor.y = cury
         @cursor.x = curx
         # Handle visible mark transitions
         if current_or_minibuffer_selected? && @buffer.visible_mark
           if @buffer.point_after_mark?(@buffer.visible_mark)
-            unless @in_isearch
-              @window.attroff(region_attr)
-              # Restore syntax highlighting colors after exiting region
-              if @current_highlight_attrs != 0
-                @window.attron(@current_highlight_attrs)
-              end
-            end
             @in_region = false
+            changed = true
           elsif @buffer.point_before_mark?(@buffer.visible_mark)
-            unless @in_isearch
-              @window.attron(region_attr)
-            end
             @in_region = true
+            changed = true
           end
         end
         # Handle isearch mark transitions
         if current_or_minibuffer_selected? && @buffer.isearch_mark
           if @buffer.point_after_mark?(@buffer.isearch_mark)
-            @window.attroff(isearch_attr)
             @in_isearch = false
-            # If we were covering a region, restore it
-            if @in_region
-              @window.attron(region_attr)
-            elsif @current_highlight_attrs != 0
-              @window.attron(@current_highlight_attrs)
-            end
+            changed = true
           elsif @buffer.point_before_mark?(@buffer.isearch_mark)
-            # Entering isearch - turn off region if active
-            if @in_region
-              @window.attroff(region_attr)
-            end
-            @window.attron(isearch_attr)
             @in_isearch = true
+            changed = true
           end
         end
       end
@@ -792,42 +764,25 @@ module Textbringer
       if current_or_minibuffer_selected? && @buffer.isearch_mark &&
          @buffer.point_at_mark?(@buffer.isearch_mark)
         if @buffer.point_after_mark?(point)
-          @window.attroff(isearch_attr)
           @in_isearch = false
-          # If we have a region underneath, restore it
-          if @in_region
-            @window.attron(region_attr)
-          elsif @current_highlight_attrs != 0
-            @window.attron(@current_highlight_attrs)
-          end
+          changed = true
         elsif @buffer.point_before_mark?(point)
-          # Entering isearch - turn off region if active
-          if @in_region
-            @window.attroff(region_attr)
-          end
-          @window.attron(isearch_attr)
           @in_isearch = true
+          changed = true
         end
       end
       # Handle transitions when point crosses visible mark
       if current_or_minibuffer_selected? && @buffer.visible_mark &&
           @buffer.point_at_mark?(@buffer.visible_mark)
         if @buffer.point_after_mark?(point)
-          unless @in_isearch
-            @window.attroff(region_attr)
-            # Restore syntax highlighting colors after exiting region
-            if @current_highlight_attrs != 0
-              @window.attron(@current_highlight_attrs)
-            end
-          end
           @in_region = false
+          changed = true
         elsif @buffer.point_before_mark?(point)
-          unless @in_isearch
-            @window.attron(region_attr)
-          end
           @in_region = true
+          changed = true
         end
       end
+      apply_window_attrs(@window) if changed
     end
 
     def compose_character(point, cury, curx, c)
@@ -1004,6 +959,34 @@ module Textbringer
       end
     end
 
+    def apply_window_attrs(win)
+      if @in_isearch
+        face = Face[:isearch]
+      elsif @in_region
+        face = Face[:region]
+      else
+        face = @current_hl_face
+      end
+
+      if HAVE_ATTR_SET
+        if face
+          text_attrs = face.text_attrs
+          text_attrs |= @current_hl_face.text_attrs if @in_region && @current_hl_face
+          win.attr_set(text_attrs, face.color_pair)
+        else
+          win.attr_set(0, 0)
+        end
+      else
+        if face
+          attrs = face.attributes
+          attrs |= (@current_hl_face.attributes & ~Curses::A_COLOR) if @in_region && @current_hl_face
+          win.attrset(attrs)
+        else
+          win.attrset(0)
+        end
+      end
+    end
+
     def region_attr
       @@has_colors ? Face[:region].attributes : Curses::A_REVERSE
     end
@@ -1057,10 +1040,10 @@ module Textbringer
           @window.addstr(@buffer.input_method_status)
         end
         @window.setpos(0, 0)
-        @window.attrset(0)
+        HAVE_ATTR_SET ? @window.attr_set(0, 0) : @window.attrset(0)
         @in_region = false
         @in_isearch = false
-        @current_highlight_attrs = 0
+        @current_hl_face = nil
         if @message
           @window.addstr(escape(@message))
         else

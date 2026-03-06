@@ -2,7 +2,7 @@ require "curses"
 
 module Textbringer
   class Face
-    attr_reader :name, :attributes
+    attr_reader :name, :attributes, :color_pair, :text_attrs
 
     @@face_table = {}
     @@next_color_pair = 1
@@ -39,11 +39,11 @@ module Textbringer
       @reverse = reverse
       Curses.init_pair(@color_pair,
                        Color[foreground], Color[background])
-      @attributes = 0
-      @attributes |= Curses.color_pair(@color_pair)
-      @attributes |= Curses::A_BOLD if bold
-      @attributes |= Curses::A_UNDERLINE if underline
-      @attributes |= Curses::A_REVERSE if reverse
+      @text_attrs = 0
+      @text_attrs |= Curses::A_BOLD if bold
+      @text_attrs |= Curses::A_UNDERLINE if underline
+      @text_attrs |= Curses::A_REVERSE if reverse
+      @attributes = Curses.color_pair(@color_pair) | @text_attrs
       self
     end
   end
