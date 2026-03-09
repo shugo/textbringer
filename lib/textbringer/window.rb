@@ -1,6 +1,16 @@
 require "curses"
 require_relative "window/fallback_characters"
 
+unless Curses::Window.method_defined?(:attr_set)
+  using Module.new {
+    refine Curses::Window do
+      def attr_set(attrs, pair)
+        attrset(attrs | Curses.color_pair(pair))
+      end
+    end
+  }
+end
+
 module Textbringer
   class Window
     Cursor = Struct.new(:y, :x)
@@ -12,7 +22,6 @@ module Textbringer
     end
 
     HAVE_GET_KEY_MODIFIERS = defined?(Curses.get_key_modifiers)
-    HAVE_ATTR_SET = Curses::Window.method_defined?(:attr_set)
     if HAVE_GET_KEY_MODIFIERS
       ALT_NUMBER_BASE = Curses::ALT_0 - ?0.ord
       ALT_ALPHA_BASE = Curses::ALT_A - ?a.ord
@@ -695,11 +704,7 @@ module Textbringer
       @mode_line.setpos(0, 0)
       if @@has_colors
         face = Face[:mode_line]
-        if HAVE_ATTR_SET
-          @mode_line.attr_set(face.text_attrs, face.color_pair)
-        else
-          @mode_line.attrset(face.attributes)
-        end
+        @mode_line.attr_set(face.text_attrs, face.color_pair)
       else
         @mode_line.attrset(Curses::A_REVERSE)
       end
@@ -720,7 +725,7 @@ module Textbringer
       @mode_line.addstr(" #{line},#{column}")
       @mode_line.addstr(" (#{@buffer.mode_names.join(' ')})")
       @mode_line.addstr(" " * (columns - @mode_line.curx))
-      HAVE_ATTR_SET ? @mode_line.attr_set(0, 0) : @mode_line.attrset(0)
+      @mode_line.attr_set(0, 0)
       @mode_line.noutrefresh
     end
 
@@ -959,6 +964,10 @@ module Textbringer
       end
     end
 
+    def apply_face_attrs(win, face)
+      win.attr_set(face&.text_attrs || 0, face&.color_pair || 0)
+    end
+
     def apply_window_attrs(win)
       if @in_isearch
         face = Face[:isearch]
@@ -968,22 +977,12 @@ module Textbringer
         face = @current_hl_face
       end
 
-      if HAVE_ATTR_SET
-        if face
-          text_attrs = face.text_attrs
-          text_attrs |= @current_hl_face.text_attrs if @in_region && @current_hl_face
-          win.attr_set(text_attrs, face.color_pair)
-        else
-          win.attr_set(0, 0)
-        end
+      if face
+        text_attrs = face.text_attrs
+        text_attrs |= @current_hl_face.text_attrs if @in_region && @current_hl_face
+        win.attr_set(text_attrs, face.color_pair)
       else
-        if face
-          attrs = face.attributes
-          attrs |= (@current_hl_face.attributes & ~Curses::A_COLOR) if @in_region && @current_hl_face
-          win.attrset(attrs)
-        else
-          win.attrset(0)
-        end
+        win.attr_set(0, 0)
       end
     end
 
@@ -1040,7 +1039,7 @@ module Textbringer
           @window.addstr(@buffer.input_method_status)
         end
         @window.setpos(0, 0)
-        HAVE_ATTR_SET ? @window.attr_set(0, 0) : @window.attrset(0)
+        @window.attr_set(0, 0)
         @in_region = false
         @in_isearch = false
         @current_hl_face = nil
