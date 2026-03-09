@@ -263,7 +263,6 @@ module Textbringer
 
     private
 
-    # Override to create Curses::Pad instead of Curses::Window
     def apply_face_attrs(win, face)
       if Window::HAVE_ATTR_SET
         win.attr_set(face&.text_attrs || 0, face&.color_pair || 0)
@@ -272,6 +271,7 @@ module Textbringer
       end
     end
 
+    # Override to create Curses::Pad instead of Curses::Window
     def initialize_window(num_lines, num_columns, y, x)
       @window = Curses::Pad.new(num_lines, num_columns)
       # Note: Pad position is set during refresh, not at creation
