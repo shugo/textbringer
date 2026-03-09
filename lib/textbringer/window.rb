@@ -156,6 +156,10 @@ module Textbringer
         Curses.start_color
         Curses.use_default_colors
         load_faces
+      else
+        Face.define :mode_line, reverse: true
+        Face.define :region, reverse: true
+        Face.define :isearch, underline: true
       end
       begin
         window =
@@ -702,12 +706,8 @@ module Textbringer
     def redisplay_mode_line
       @mode_line.erase
       @mode_line.setpos(0, 0)
-      if @@has_colors
-        face = Face[:mode_line]
-        @mode_line.attr_set(face.text_attrs, face.color_pair)
-      else
-        @mode_line.attrset(Curses::A_REVERSE)
-      end
+      face = Face[:mode_line]
+      @mode_line.attr_set(face.text_attrs, face.color_pair)
       @mode_line.addstr("#{@buffer.input_method_status} #{@buffer.name} ")
       @mode_line.addstr("[+]") if @buffer.modified?
       @mode_line.addstr("[RO]") if @buffer.read_only?
