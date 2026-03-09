@@ -979,7 +979,9 @@ module Textbringer
 
       if face
         text_attrs = face.text_attrs
-        text_attrs |= @current_hl_face.text_attrs if @in_region && @current_hl_face
+        if (@in_isearch || @in_region) && @current_hl_face
+          text_attrs |= @current_hl_face.text_attrs
+        end
         win.attr_set(text_attrs, face.color_pair)
       else
         win.attr_set(0, 0)
