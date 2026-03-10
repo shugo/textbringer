@@ -36,6 +36,12 @@ module Textbringer
       @enabled = false
     end
 
+    def on_activate
+    end
+
+    def on_deactivate
+    end
+
     def enabled?
       @enabled
     end
