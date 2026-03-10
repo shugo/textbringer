@@ -778,20 +778,14 @@ module Textbringer
       host = CONFIG[:skk_server_host]
       return false unless host
       port = CONFIG[:skk_server_port] || 1178
-      begin
-        Timeout.timeout(SKK_SERVER_TIMEOUT) do
-          @skk_server_socket = TCPSocket.new(host, port)
-        end
-        true
-      rescue Timeout::Error, SocketError, Errno::ECONNREFUSED,
-             Errno::EHOSTUNREACH, Errno::ENETUNREACH, StandardError
-        @skk_server_socket = nil
-        false
+      Timeout.timeout(SKK_SERVER_TIMEOUT) do
+        @skk_server_socket = TCPSocket.new(host, port)
       end
+      true
     end
 
     def skk_server_lookup(lookup_key)
-      return nil unless skk_server_connect
+      skk_server_connect
       begin
         Timeout.timeout(SKK_SERVER_TIMEOUT) do
           @skk_server_socket.write("1#{lookup_key} \n".encode("EUC-JP"))

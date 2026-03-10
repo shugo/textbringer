@@ -507,7 +507,9 @@ class TestSKKInputMethod < Textbringer::TestCase
       CONFIG[:skk_server_port] = 1  # nothing listening here
       @im.handle_event("K")
       @im.handle_event("a")
-      @im.handle_event(" ")
+      assert_raise(Errno::ECONNREFUSED) do
+        @im.handle_event(" ")
+      end
       # graceful: no crash, stays in converting or shows no conversion
       assert([:converting, :normal].include?(@im.instance_variable_get(:@phase)))
     ensure
