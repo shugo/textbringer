@@ -797,7 +797,7 @@ module Textbringer
           candidates = body.split("/").map { |c| c.split(";").first&.strip }.compact.reject(&:empty?)
           candidates.empty? ? nil : candidates
         end
-      rescue Timeout::Error, IOError, Errno::EPIPE, Errno::ECONNRESET, StandardError
+      rescue Timeout::Error, IOError, Errno::EPIPE, Errno::ECONNRESET
         @skk_server_socket.close rescue nil
         @skk_server_socket = nil
         nil
