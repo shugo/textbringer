@@ -175,6 +175,7 @@ module Textbringer
         @@started = true
         yield
       ensure
+        Buffer.current&.input_method&.on_deactivate
         @@list.each do |win|
           win.close
         end

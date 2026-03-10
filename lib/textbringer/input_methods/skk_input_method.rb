@@ -143,6 +143,14 @@ module Textbringer
       close_skk_server
     end
 
+    def on_activate
+      update_cursor_color if @enabled
+    end
+
+    def on_deactivate
+      reset_cursor_color if @enabled
+    end
+
     def status
       case @phase
       when :converting then "▽"

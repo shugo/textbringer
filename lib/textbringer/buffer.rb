@@ -112,11 +112,13 @@ module Textbringer
     end
 
     def self.current=(buffer)
+      @@current&.input_method&.on_deactivate
       if buffer && buffer.name && @@table.key?(buffer.name)
         @@list.delete(buffer)
         @@list.unshift(buffer)
       end
       @@current = buffer
+      @@current&.input_method&.on_activate
     end
 
     def self.minibuffer
