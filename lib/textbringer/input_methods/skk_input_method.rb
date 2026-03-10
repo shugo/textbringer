@@ -50,7 +50,7 @@ module Textbringer
       "xtu" => "っ", "xtsu" => "っ",
       "xya" => "ゃ", "xyu" => "ゅ", "xyo" => "ょ",
       "xa" => "ぁ", "xi" => "ぃ", "xu" => "ぅ", "xe" => "ぇ", "xo" => "ぉ",
-      "," => "、", "." => "。",
+      "," => "、", "." => "。", "-" => "ー",
     }
 
     HIRAGANA_PREFIXES = HIRAGANA_TABLE.keys.flat_map { |s|
