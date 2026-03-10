@@ -412,6 +412,135 @@ class TestSKKInputMethod < Textbringer::TestCase
     assert_match(/あ\z/, candidate)
   end
 
+  # --- SKK server client ---
+
+  class TestSKKServerClient < Textbringer::TestCase
+    def setup
+      super
+      # Start a minimal TCP server on an ephemeral port
+      @server = TCPServer.new("127.0.0.1", 0)
+      @port = @server.addr[1]
+      @server_thread = Thread.new do
+        loop do
+          begin
+            client = @server.accept
+          rescue IOError
+            break
+          end
+          Thread.new(client) do |c|
+            while (line = c.gets("\n"))
+              line = line.encode("UTF-8", "EUC-JP", invalid: :replace, undef: :replace)
+              if line.start_with?("0")
+                c.close
+                break
+              elsif line.start_with?("1")
+                key = line[1..].strip
+                if key == "かんじ"
+                  c.write("1/漢字/感じ/\n".encode("EUC-JP"))
+                else
+                  c.write("4#{key} \n".encode("EUC-JP"))
+                end
+              end
+            end
+          end
+        end
+      end
+
+      CONFIG[:skk_server_host] = "127.0.0.1"
+      CONFIG[:skk_server_port] = @port
+      @buffer = Buffer.new_buffer("test_server")
+      @buffer.toggle_input_method("skk")
+      @im = @buffer.input_method
+      switch_to_buffer(@buffer)
+    end
+
+    def teardown
+      @im.disable
+      CONFIG[:skk_server_host] = nil
+      CONFIG[:skk_server_port] = 1178
+      @server.close rescue nil
+      @server_thread.kill
+      @server_thread.join(1)
+      super
+    end
+
+    def test_server_returns_candidates
+      @im.handle_event("K")
+      @im.handle_event("a")
+      @im.handle_event("n")
+      @im.handle_event("j")
+      @im.handle_event("i")
+      @im.handle_event(" ")
+      assert_equal("▼", @im.status)
+      assert_match(/\A▼/, @buffer.to_s)
+    end
+
+    def test_server_not_found
+      @im.handle_event("A")
+      @im.handle_event("x")
+      @im.handle_event("x")
+      @im.handle_event("x")
+      @im.handle_event(" ")
+      # No conversion: stays in converting phase
+      assert_equal("▽", @im.status)
+    end
+
+    def test_no_server_host_uses_local_dict
+      CONFIG[:skk_server_host] = nil
+      CONFIG[:skk_dictionary_path] = SKK_TEST_DICT
+      buf = Buffer.new_buffer("local_test")
+      buf.toggle_input_method("skk")
+      im = buf.input_method
+      switch_to_buffer(buf)
+      im.handle_event("K")
+      im.handle_event("a")
+      im.handle_event(" ")
+      # With local dict, か should have a candidate
+      assert_equal("▼", im.status)
+      assert_nil(im.instance_variable_get(:@skk_server_socket))
+    ensure
+      CONFIG[:skk_server_host] = nil
+    end
+
+    def test_connection_refused_graceful
+      CONFIG[:skk_server_host] = "127.0.0.1"
+      CONFIG[:skk_server_port] = 1  # nothing listening here
+      @im.handle_event("K")
+      @im.handle_event("a")
+      assert_raise(Errno::ECONNREFUSED) do
+        @im.handle_event(" ")
+      end
+      # graceful: no crash, stays in converting or shows no conversion
+      assert([:converting, :normal].include?(@im.instance_variable_get(:@phase)))
+    ensure
+      CONFIG[:skk_server_port] = @port
+    end
+
+    def test_server_mode_does_not_load_local_dict
+      @im.handle_event("K")
+      @im.handle_event("a")
+      @im.handle_event("n")
+      @im.handle_event("j")
+      @im.handle_event("i")
+      @im.handle_event(" ")
+      assert_nil(@im.instance_variable_get(:@okuriiari))
+      assert_nil(@im.instance_variable_get(:@okurinasi))
+    end
+
+    def test_disable_closes_socket
+      @im.handle_event("K")
+      @im.handle_event("a")
+      @im.handle_event("n")
+      @im.handle_event("j")
+      @im.handle_event("i")
+      @im.handle_event(" ")
+      # Socket should have been created
+      refute_nil(@im.instance_variable_get(:@skk_server_socket))
+      @im.disable
+      assert_nil(@im.instance_variable_get(:@skk_server_socket))
+    end
+  end
+
   # --- Status display ---
 
   def test_status_hiragana

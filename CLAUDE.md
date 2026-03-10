@@ -35,12 +35,6 @@ txtb
 # Run all tests
 bundle exec rake test
 
-# Or simply (default task)
-bundle exec rake
-
-# On Ubuntu/Linux (for CI)
-xvfb-run bundle exec rake test
-
 # Run a single test file
 ruby -Ilib:test test/textbringer/test_buffer.rb
 ```

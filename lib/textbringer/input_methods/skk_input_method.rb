@@ -1,8 +1,12 @@
 require "open-uri"
 require "fileutils"
+require "socket"
+require "timeout"
 
 module Textbringer
   CONFIG[:skk_dictionary_path] = File.expand_path("~/.textbringer/skk/SKK-JISYO.L")
+  CONFIG[:skk_server_host] = nil   # nil = disabled (default)
+  CONFIG[:skk_server_port] = 1178
 
   class SkkInputMethod < InputMethod
     HIRAGANA_TABLE = {
@@ -120,6 +124,7 @@ module Textbringer
       @marker_pos = nil
       @okuriiari = nil
       @okurinasi = nil
+      @skk_server_socket = nil
     end
 
     def toggle
@@ -128,12 +133,14 @@ module Textbringer
         update_cursor_color
       else
         reset_cursor_color
+        close_skk_server
       end
     end
 
     def disable
       super
       reset_cursor_color
+      close_skk_server
     end
 
     def status
@@ -492,16 +499,19 @@ module Textbringer
     end
 
     def start_selecting
-      ensure_dictionary_loaded
-
       lookup_key = if @okuri_roman
         @yomi + @okuri_roman
       else
         @yomi
       end
 
-      dict = @okuri_roman ? @okuriiari : @okurinasi
-      candidates = dict[lookup_key]
+      candidates = if CONFIG[:skk_server_host]
+        skk_server_lookup(lookup_key)
+      else
+        ensure_dictionary_loaded
+        dict = @okuri_roman ? @okuriiari : @okurinasi
+        dict[lookup_key]
+      end
 
       if candidates.nil? || candidates.empty?
         message("No conversion: #{@yomi}")
@@ -749,6 +759,49 @@ module Textbringer
       return unless STDOUT.tty?
       STDOUT.write("\e]112\a")
       STDOUT.flush
+    end
+
+    SKK_SERVER_TIMEOUT = 3  # seconds
+
+    def close_skk_server
+      return unless @skk_server_socket
+      begin
+        @skk_server_socket.write("0\n")
+      rescue IOError, Errno::EPIPE
+      end
+      @skk_server_socket.close rescue nil
+      @skk_server_socket = nil
+    end
+
+    def skk_server_connect
+      return true if @skk_server_socket && !@skk_server_socket.closed?
+      host = CONFIG[:skk_server_host]
+      return false unless host
+      port = CONFIG[:skk_server_port] || 1178
+      Timeout.timeout(SKK_SERVER_TIMEOUT) do
+        @skk_server_socket = TCPSocket.new(host, port)
+      end
+      true
+    end
+
+    def skk_server_lookup(lookup_key)
+      skk_server_connect
+      begin
+        Timeout.timeout(SKK_SERVER_TIMEOUT) do
+          @skk_server_socket.write("1#{lookup_key} \n".encode("EUC-JP"))
+          response = @skk_server_socket.gets("\n")
+          return nil unless response
+          response = response.encode("UTF-8", "EUC-JP", invalid: :replace, undef: :replace).chomp
+          return nil unless response.start_with?("1/")
+          body = response[2..]
+          candidates = body.split("/").map { |c| c.split(";").first&.strip }.compact.reject(&:empty?)
+          candidates.empty? ? nil : candidates
+        end
+      rescue Timeout::Error, IOError, Errno::EPIPE, Errno::ECONNRESET
+        @skk_server_socket.close rescue nil
+        @skk_server_socket = nil
+        nil
+      end
     end
   end
 
