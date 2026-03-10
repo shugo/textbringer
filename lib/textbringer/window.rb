@@ -987,14 +987,6 @@ module Textbringer
         win.attr_set(0, 0)
       end
     end
-
-    def region_attr
-      @@has_colors ? Face[:region].attributes : Curses::A_REVERSE
-    end
-
-    def isearch_attr
-      @@has_colors ? Face[:isearch].attributes : Curses::A_UNDERLINE
-    end
   end
 
   class EchoArea < Window
