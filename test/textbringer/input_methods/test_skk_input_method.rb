@@ -343,6 +343,46 @@ class TestSKKInputMethod < Textbringer::TestCase
     assert_match(/く\z/, @buffer.to_s)
   end
 
+  def test_okurigana_single_vowel_lookup
+    # "KaU": yomi=か, okurigana is just the vowel "u"="う", lookup key "かu"
+    @im.handle_event("K")
+    @im.handle_event("a")
+    @im.handle_event("U")
+    @im.handle_event(" ")
+    assert_equal("▼", @im.status)
+    assert_match(/\A▼/, @buffer.to_s)
+    assert_match(/う\z/, @buffer.to_s)
+  end
+
+  def test_okurigana_single_vowel_confirm
+    @im.handle_event("K")
+    @im.handle_event("a")
+    @im.handle_event("U")
+    @im.handle_event(" ")
+    @im.handle_event("\r")
+    assert_equal("買う", @buffer.to_s)
+  end
+
+  def test_okurigana_vowel_start_selecting
+    # "KaE": capital vowel immediately completes okurigana "え" and triggers lookup
+    @im.handle_event("K")
+    @im.handle_event("a")
+    @im.handle_event("E")
+    assert_equal("▼", @im.status)
+    assert_match(/\A▼/, @buffer.to_s)
+    assert_match(/え\z/, @buffer.to_s)
+  end
+
+  def test_okurigana_vowel_start_kaeru
+    # "KaEru": E triggers lookup, r confirms, ru inserts "る" → "変える"
+    @im.handle_event("K")
+    @im.handle_event("a")
+    @im.handle_event("E")
+    @im.handle_event("r")
+    @im.handle_event("u")
+    assert_equal("変える", @buffer.to_s)
+  end
+
   # --- Hankaku katakana mode ---
 
   def test_ctrl_q_switches_to_hankaku_katakana

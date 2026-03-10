@@ -404,8 +404,8 @@ module Textbringer
       if kana
         @roman_buffer = +""
         if @okuri_roman
-          # Completing okurigana
-          @okuri_kana = kana
+          # Completing okurigana (accumulate in case a vowel kana was already prepended)
+          @okuri_kana = (@okuri_kana || "") + kana
           with_target_buffer do |buffer|
             buffer.insert(kana)
           end
@@ -444,7 +444,14 @@ module Textbringer
       first_char = @roman_buffer[0]
       last_char = @roman_buffer[-1]
       @roman_buffer = +""
-      append_yomi_kana(first_char)
+      if @okuri_roman && (kana = HIRAGANA_TABLE[first_char])
+        # Vowel starts okurigana: accumulate kana and continue buffering the rest
+        @okuri_kana = (@okuri_kana || "") + kana
+        with_target_buffer { |b| b.insert(kana) }
+        Window.redisplay
+      else
+        append_yomi_kana(first_char)
+      end
       process_converting_romaji(last_char)
     end
 
@@ -474,7 +481,18 @@ module Textbringer
 
     def start_okurigana(consonant)
       @okuri_roman = consonant.dup
-      @roman_buffer = consonant.dup
+      kana = HIRAGANA_TABLE[consonant]
+      if kana
+        # Vowel okurigana: insert the kana immediately and record it in @okuri_kana.
+        # (A vowel is never a prefix of a longer romaji sequence, so it's always complete.)
+        @okuri_kana = kana
+        @roman_buffer = +""
+        with_target_buffer { |b| b.insert(kana) }
+        Window.redisplay
+        start_selecting
+      else
+        @roman_buffer = consonant.dup
+      end
     end
 
     def cancel_converting
