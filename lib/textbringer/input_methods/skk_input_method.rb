@@ -50,7 +50,11 @@ module Textbringer
       "xtu" => "っ", "xtsu" => "っ",
       "xya" => "ゃ", "xyu" => "ゅ", "xyo" => "ょ",
       "xa" => "ぁ", "xi" => "ぃ", "xu" => "ぅ", "xe" => "ぇ", "xo" => "ぉ",
-      " " => "　", "-" => "ー", "," => "、", "." => "。", "/" => "・", "[" => "「", "]" => "」",
+      "-" => "ー", "," => "、", "." => "。", "[" => "「", "]" => "」",
+      "z-" => "～", "z." => "…", "z/" => "・", "z," => "‥",
+      "z(" => "（", "z)" => "）", "z[" => "『", "z]" => "』",
+      "zh" => "←", "zj" => "↓", "zk" => "↑", "zl" => "→", "zL" => "⇒",
+      "z " => "　",
     }
 
     HIRAGANA_PREFIXES = HIRAGANA_TABLE.keys.flat_map { |s|
@@ -216,7 +220,7 @@ module Textbringer
           process_romaji(event)
         end
       when "l"
-        if [:hiragana, :katakana, :hankaku_katakana].include?(@mode)
+        if @roman_buffer != "z" && [:hiragana, :katakana, :hankaku_katakana].include?(@mode)
           @roman_buffer = +""
           @mode = :ascii
           Window.redisplay
@@ -226,7 +230,7 @@ module Textbringer
           process_romaji(event)
         end
       when "L"
-        if [:hiragana, :katakana, :hankaku_katakana].include?(@mode)
+        if @roman_buffer != "z" && [:hiragana, :katakana, :hankaku_katakana].include?(@mode)
           @roman_buffer = +""
           @mode = :zenkaku_ascii
           Window.redisplay
