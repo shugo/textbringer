@@ -579,6 +579,104 @@ class TestSKKInputMethod < Textbringer::TestCase
     end
   end
 
+  # --- z + ? zenkaku conversion ---
+
+  def test_z_hyphen_inserts_wave_dash
+    @im.handle_event("z")
+    @im.handle_event("-")
+    assert_equal("～", @buffer.to_s)
+  end
+
+  def test_z_period_inserts_ellipsis
+    @im.handle_event("z")
+    @im.handle_event(".")
+    assert_equal("…", @buffer.to_s)
+  end
+
+  def test_z_slash_inserts_nakaguro
+    @im.handle_event("z")
+    @im.handle_event("/")
+    assert_equal("・", @buffer.to_s)
+  end
+
+  def test_z_comma_inserts_two_dot_ellipsis
+    @im.handle_event("z")
+    @im.handle_event(",")
+    assert_equal("‥", @buffer.to_s)
+  end
+
+  def test_z_open_paren_inserts_fullwidth_open_paren
+    @im.handle_event("z")
+    @im.handle_event("(")
+    assert_equal("（", @buffer.to_s)
+  end
+
+  def test_z_close_paren_inserts_fullwidth_close_paren
+    @im.handle_event("z")
+    @im.handle_event(")")
+    assert_equal("）", @buffer.to_s)
+  end
+
+  def test_z_open_bracket_inserts_double_open_bracket
+    @im.handle_event("z")
+    @im.handle_event("[")
+    assert_equal("『", @buffer.to_s)
+  end
+
+  def test_z_close_bracket_inserts_double_close_bracket
+    @im.handle_event("z")
+    @im.handle_event("]")
+    assert_equal("』", @buffer.to_s)
+  end
+
+  def test_z_h_inserts_left_arrow
+    @im.handle_event("z")
+    @im.handle_event("h")
+    assert_equal("←", @buffer.to_s)
+  end
+
+  def test_z_j_inserts_down_arrow
+    @im.handle_event("z")
+    @im.handle_event("j")
+    assert_equal("↓", @buffer.to_s)
+  end
+
+  def test_z_k_inserts_up_arrow
+    @im.handle_event("z")
+    @im.handle_event("k")
+    assert_equal("↑", @buffer.to_s)
+  end
+
+  def test_z_l_inserts_right_arrow
+    @im.handle_event("z")
+    @im.handle_event("l")
+    assert_equal("→", @buffer.to_s)
+  end
+
+  def test_z_uppercase_l_inserts_double_right_arrow
+    @im.handle_event("z")
+    @im.handle_event("L")
+    assert_equal("⇒", @buffer.to_s)
+  end
+
+  def test_z_space_inserts_ideographic_space
+    @im.handle_event("z")
+    @im.handle_event(" ")
+    assert_equal("　", @buffer.to_s)
+  end
+
+  def test_z_l_does_not_switch_to_ascii
+    @im.handle_event("z")
+    @im.handle_event("l")
+    assert_equal("あ", @im.status)
+  end
+
+  def test_z_uppercase_l_does_not_switch_to_zenkaku_ascii
+    @im.handle_event("z")
+    @im.handle_event("L")
+    assert_equal("あ", @im.status)
+  end
+
   # --- Status display ---
 
   def test_status_hiragana
