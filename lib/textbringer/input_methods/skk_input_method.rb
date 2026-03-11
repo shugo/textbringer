@@ -479,9 +479,9 @@ module Textbringer
       nil
     end
 
-    def start_okurigana(consonant)
-      @okuri_roman = consonant.dup
-      kana = HIRAGANA_TABLE[consonant]
+    def start_okurigana(c)
+      @okuri_roman = c.dup
+      kana = HIRAGANA_TABLE[c]
       if kana
         # Vowel okurigana: insert the kana immediately and record it in @okuri_kana.
         # (A vowel is never a prefix of a longer romaji sequence, so it's always complete.)
@@ -491,7 +491,7 @@ module Textbringer
         Window.redisplay
         start_selecting
       else
-        @roman_buffer = consonant.dup
+        @roman_buffer = c.dup
       end
     end
 

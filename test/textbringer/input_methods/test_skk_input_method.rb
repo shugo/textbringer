@@ -348,7 +348,6 @@ class TestSKKInputMethod < Textbringer::TestCase
     @im.handle_event("K")
     @im.handle_event("a")
     @im.handle_event("U")
-    @im.handle_event(" ")
     assert_equal("▼", @im.status)
     assert_match(/\A▼/, @buffer.to_s)
     assert_match(/う\z/, @buffer.to_s)
@@ -358,7 +357,6 @@ class TestSKKInputMethod < Textbringer::TestCase
     @im.handle_event("K")
     @im.handle_event("a")
     @im.handle_event("U")
-    @im.handle_event(" ")
     @im.handle_event("\r")
     assert_equal("買う", @buffer.to_s)
   end
