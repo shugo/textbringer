@@ -74,23 +74,23 @@ class TestSKKInputMethod < Textbringer::TestCase
 
   def test_q_switches_to_katakana
     @im.handle_event("q")
-    assert_equal("ア", @im.status)
+    assert_equal("カナ", @im.status)
   end
 
   def test_q_switches_back_to_hiragana
     @im.handle_event("q")
     @im.handle_event("q")
-    assert_equal("あ", @im.status)
+    assert_equal("かな", @im.status)
   end
 
   def test_l_switches_to_ascii
     @im.handle_event("l")
-    assert_equal("A", @im.status)
+    assert_equal("SKK:", @im.status)
   end
 
   def test_L_switches_to_zenkaku_ascii
     @im.handle_event("L")
-    assert_equal("Ａ", @im.status)
+    assert_equal("全英", @im.status)
   end
 
   # --- Katakana mode ---
@@ -174,7 +174,7 @@ class TestSKKInputMethod < Textbringer::TestCase
     # C-h commits the conversion (removes ▽, keeps kana) and passes through
     assert_equal("\C-h", result)
     assert_equal("か", @buffer.to_s)
-    assert_equal("あ", @im.status)
+    assert_equal("かな", @im.status)
   end
 
   def test_ctrl_h_passes_through_selecting
@@ -186,14 +186,14 @@ class TestSKKInputMethod < Textbringer::TestCase
     # C-h confirms the selection and passes through
     assert_equal("\C-h", result)
     assert_equal(first, @buffer.to_s)
-    assert_equal("あ", @im.status)
+    assert_equal("かな", @im.status)
   end
 
   # --- Converting phase ---
 
   def test_converting_starts_with_uppercase
     @im.handle_event("K")
-    assert_equal("▽", @im.status)
+    assert_equal("かな", @im.status)
     assert_equal("▽", @buffer.to_s)
   end
 
@@ -217,7 +217,7 @@ class TestSKKInputMethod < Textbringer::TestCase
     @im.handle_event("a")
     @im.handle_event("\C-g")
     assert_equal("", @buffer.to_s)
-    assert_equal("あ", @im.status)
+    assert_equal("かな", @im.status)
   end
 
   def test_confirm_kana_with_ctrl_j
@@ -225,7 +225,7 @@ class TestSKKInputMethod < Textbringer::TestCase
     @im.handle_event("a")
     @im.handle_event("\C-j")
     assert_equal("か", @buffer.to_s)
-    assert_equal("あ", @im.status)
+    assert_equal("かな", @im.status)
   end
 
   def test_non_string_event_commits_converting
@@ -246,7 +246,7 @@ class TestSKKInputMethod < Textbringer::TestCase
     @im.handle_event("j")
     @im.handle_event("i")
     @im.handle_event(" ")
-    assert_equal("▼", @im.status)
+    assert_equal("かな", @im.status)
     # Buffer should start with ▼ followed by a kanji candidate
     assert_match(/\A▼/, @buffer.to_s)
   end
@@ -259,7 +259,7 @@ class TestSKKInputMethod < Textbringer::TestCase
     @im.handle_event("x")
     @im.handle_event(" ")
     # Should still be in converting phase (no candidates)
-    assert_equal("▽", @im.status)
+    assert_equal("かな", @im.status)
   end
 
   def test_confirm_selection_with_enter
@@ -272,7 +272,7 @@ class TestSKKInputMethod < Textbringer::TestCase
     first_candidate = @buffer.to_s.sub(/\A▼/, "")
     @im.handle_event("\r")
     assert_equal(first_candidate, @buffer.to_s)
-    assert_equal("あ", @im.status)
+    assert_equal("かな", @im.status)
   end
 
   def test_confirm_selection_with_ctrl_m
@@ -315,7 +315,7 @@ class TestSKKInputMethod < Textbringer::TestCase
     @im.handle_event("a")
     @im.handle_event(" ")
     @im.handle_event("\C-g")
-    assert_equal("▽", @im.status)
+    assert_equal("かな", @im.status)
     assert_equal("▽か", @buffer.to_s)
   end
 
@@ -338,7 +338,7 @@ class TestSKKInputMethod < Textbringer::TestCase
     @im.handle_event("K")  # start okurigana with 'k'
     @im.handle_event("u")  # okurigana kana = く, triggers lookup
     # Should now be in selecting phase with ▼
-    assert_equal("▼", @im.status)
+    assert_equal("かな", @im.status)
     assert_match(/\A▼/, @buffer.to_s)
     assert_match(/く\z/, @buffer.to_s)
   end
@@ -348,7 +348,7 @@ class TestSKKInputMethod < Textbringer::TestCase
     @im.handle_event("K")
     @im.handle_event("a")
     @im.handle_event("U")
-    assert_equal("▼", @im.status)
+    assert_equal("かな", @im.status)
     assert_match(/\A▼/, @buffer.to_s)
     assert_match(/う\z/, @buffer.to_s)
   end
@@ -366,7 +366,7 @@ class TestSKKInputMethod < Textbringer::TestCase
     @im.handle_event("K")
     @im.handle_event("a")
     @im.handle_event("E")
-    assert_equal("▼", @im.status)
+    assert_equal("かな", @im.status)
     assert_match(/\A▼/, @buffer.to_s)
     assert_match(/え\z/, @buffer.to_s)
   end
@@ -385,13 +385,13 @@ class TestSKKInputMethod < Textbringer::TestCase
 
   def test_ctrl_q_switches_to_hankaku_katakana
     @im.handle_event("\C-q")
-    assert_equal("ｱ", @im.status)
+    assert_equal("半ｶﾅ", @im.status)
   end
 
   def test_ctrl_q_switches_back_to_hiragana
     @im.handle_event("\C-q")
     @im.handle_event("\C-q")
-    assert_equal("あ", @im.status)
+    assert_equal("かな", @im.status)
   end
 
   def test_hankaku_katakana_basic
@@ -414,21 +414,21 @@ class TestSKKInputMethod < Textbringer::TestCase
     @im.handle_event("l")
     result = @im.handle_event("q")
     assert_equal("q", result)
-    assert_equal("A", @im.status)
+    assert_equal("SKK:", @im.status)
   end
 
   def test_l_passes_through_in_ascii
     @im.handle_event("l")
     result = @im.handle_event("l")
     assert_equal("l", result)
-    assert_equal("A", @im.status)
+    assert_equal("SKK:", @im.status)
   end
 
   def test_L_passes_through_in_zenkaku
     @im.handle_event("L")
     result = @im.handle_event("L")
     assert_equal("Ｌ", result)
-    assert_equal("Ａ", @im.status)
+    assert_equal("全英", @im.status)
   end
 
   def test_roman_buffer_cleared_on_mode_switch
@@ -509,7 +509,7 @@ class TestSKKInputMethod < Textbringer::TestCase
       @im.handle_event("j")
       @im.handle_event("i")
       @im.handle_event(" ")
-      assert_equal("▼", @im.status)
+      assert_equal("かな", @im.status)
       assert_match(/\A▼/, @buffer.to_s)
     end
 
@@ -520,7 +520,7 @@ class TestSKKInputMethod < Textbringer::TestCase
       @im.handle_event("x")
       @im.handle_event(" ")
       # No conversion: stays in converting phase
-      assert_equal("▽", @im.status)
+      assert_equal("かな", @im.status)
     end
 
     def test_no_server_host_uses_local_dict
@@ -534,7 +534,7 @@ class TestSKKInputMethod < Textbringer::TestCase
       im.handle_event("a")
       im.handle_event(" ")
       # With local dict, か should have a candidate
-      assert_equal("▼", im.status)
+      assert_equal("かな", im.status)
       assert_nil(im.instance_variable_get(:@skk_server_socket))
     ensure
       CONFIG[:skk_server_host] = nil
@@ -582,33 +582,33 @@ class TestSKKInputMethod < Textbringer::TestCase
   # --- Status display ---
 
   def test_status_hiragana
-    assert_equal("あ", @im.status)
+    assert_equal("かな", @im.status)
   end
 
   def test_status_katakana
     @im.handle_event("q")
-    assert_equal("ア", @im.status)
+    assert_equal("カナ", @im.status)
   end
 
   def test_status_ascii
     @im.handle_event("l")
-    assert_equal("A", @im.status)
+    assert_equal("SKK:", @im.status)
   end
 
   def test_status_zenkaku
     @im.handle_event("L")
-    assert_equal("Ａ", @im.status)
+    assert_equal("全英", @im.status)
   end
 
   def test_status_converting
     @im.handle_event("K")
-    assert_equal("▽", @im.status)
+    assert_equal("かな", @im.status)
   end
 
   def test_status_selecting
     @im.handle_event("K")
     @im.handle_event("a")
     @im.handle_event(" ")
-    assert_equal("▼", @im.status)
+    assert_equal("かな", @im.status)
   end
 end
