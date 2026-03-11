@@ -107,6 +107,14 @@ module Textbringer
       (s.size - 1).times.map { |i| s[0, i + 1] }
     }.uniq
 
+    STATUS_NAMES = {
+      hiragana: "かな",
+      katakana: "カナ",
+      hankaku_katakana: "半ｶﾅ",
+      zenkaku_ascii: "全英",
+      ascii: "SKK:"
+    }
+
     DEFAULT_CURSOR_COLORS = {
       hiragana:         "pink",
       katakana:         "green",
@@ -156,13 +164,7 @@ module Textbringer
     end
 
     def status
-      case @phase
-      when :converting then "▽"
-      when :selecting  then "▼"
-      else
-        { hiragana: "あ", katakana: "ア", hankaku_katakana: "ｱ",
-          zenkaku_ascii: "Ａ", ascii: "A" }[@mode]
-      end
+      STATUS_NAMES[@mode]
     end
 
     def handle_event(event)
