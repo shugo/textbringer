@@ -77,7 +77,7 @@ RUN ARCH=$(dpkg --print-architecture) && \
 USER node
 
 # Install rbenv and ruby-build
-ARG RUBY_VERSION=3.4.7
+ARG RUBY_VERSION=4.0.1
 RUN git clone https://github.com/rbenv/rbenv.git ~/.rbenv && \
   git clone https://github.com/rbenv/ruby-build.git ~/.rbenv/plugins/ruby-build && \
   echo 'export PATH="$HOME/.rbenv/bin:$PATH"' >> ~/.zshrc && \
@@ -85,7 +85,7 @@ RUN git clone https://github.com/rbenv/rbenv.git ~/.rbenv && \
   echo 'export PATH="$HOME/.rbenv/bin:$PATH"' >> ~/.bashrc && \
   echo 'eval "$(rbenv init - bash)"' >> ~/.bashrc
 
-# Install Ruby 3.4.7
+# Install Ruby
 ENV PATH="/home/node/.rbenv/bin:/home/node/.rbenv/shims:$PATH"
 RUN rbenv install ${RUBY_VERSION} && \
   rbenv global ${RUBY_VERSION} && \
