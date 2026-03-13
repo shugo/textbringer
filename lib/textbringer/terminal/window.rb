@@ -132,6 +132,8 @@ module Textbringer
               end
             end
           end
+          # Record cursor position in screen coordinates for doupdate
+          Terminal.set_cursor(@y + @cury, @x + @curx)
         end
       end
 

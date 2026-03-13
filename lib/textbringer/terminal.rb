@@ -14,6 +14,8 @@ module Textbringer
     @cols = 80
     @old_tio = nil
     @colors = 256
+    @cursor_y = 0
+    @cursor_x = 0
 
     class << self
       attr_reader :virtual_screen, :physical_screen, :input_reader
@@ -161,16 +163,17 @@ module Textbringer
 
         output = @virtual_screen.flush_diff(@physical_screen)
         unless output.empty?
-          # Position cursor at the right place
           STDOUT.write(output)
         end
-        # Show cursor at the right position (set by Window.redisplay)
+        # Move cursor to the position set by the last noutrefresh
+        STDOUT.write("\e[#{@cursor_y + 1};#{@cursor_x + 1}H")
         STDOUT.write("\e[?25h")
         STDOUT.flush
       end
 
       def set_cursor(y, x)
-        STDOUT.write("\e[#{y + 1};#{x + 1}H")
+        @cursor_y = y
+        @cursor_x = x
       end
 
       def unget_char(ch)
