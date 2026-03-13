@@ -1,17 +1,17 @@
-require "curses"
+require_relative "terminal"
 
 module Textbringer
   module Color
     BASIC_COLORS = {
       "default" => -1,
-      "black" => Curses::COLOR_BLACK,
-      "red" => Curses::COLOR_RED,
-      "green" => Curses::COLOR_GREEN,
-      "yellow" => Curses::COLOR_YELLOW,
-      "blue" => Curses::COLOR_BLUE,
-      "magenta" => Curses::COLOR_MAGENTA,
-      "cyan" => Curses::COLOR_CYAN,
-      "white" => Curses::COLOR_WHITE,
+      "black" => Terminal::COLOR_BLACK,
+      "red" => Terminal::COLOR_RED,
+      "green" => Terminal::COLOR_GREEN,
+      "yellow" => Terminal::COLOR_YELLOW,
+      "blue" => Terminal::COLOR_BLUE,
+      "magenta" => Terminal::COLOR_MAGENTA,
+      "cyan" => Terminal::COLOR_CYAN,
+      "white" => Terminal::COLOR_WHITE,
       "brightblack" => 8,
       "brightred" => 9,
       "brightgreen" => 10,

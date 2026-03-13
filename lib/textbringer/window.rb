@@ -1,31 +1,11 @@
-require "curses"
+require_relative "terminal"
 require_relative "window/fallback_characters"
-
-unless Curses::Window.method_defined?(:attr_set)
-  using Module.new {
-    refine Curses::Window do
-      def attr_set(attrs, pair)
-        attrset(attrs | Curses.color_pair(pair))
-      end
-    end
-  }
-end
 
 module Textbringer
   class Window
     Cursor = Struct.new(:y, :x)
 
-    KEY_NAMES = {}
-    Curses.constants.grep(/\AKEY_/).each do |name|
-      KEY_NAMES[Curses.const_get(name)] =
-        name.slice(/\AKEY_(.*)/, 1).downcase.intern
-    end
-
-    HAVE_GET_KEY_MODIFIERS = defined?(Curses.get_key_modifiers)
-    if HAVE_GET_KEY_MODIFIERS
-      ALT_NUMBER_BASE = Curses::ALT_0 - ?0.ord
-      ALT_ALPHA_BASE = Curses::ALT_A - ?a.ord
-    end
+    KEY_NAMES = Terminal::Input::KEY_NAMES.dup
 
     @@started = false
     @@list = []
@@ -129,11 +109,11 @@ module Textbringer
     end
 
     def self.colors
-      Curses.colors
+      Terminal.colors
     end
 
     def self.set_default_colors(fg, bg)
-      Curses.assume_default_colors(Color[fg], Color[bg])
+      Terminal.assume_default_colors(Color[fg], Color[bg])
       Window.redraw
     end
 
@@ -147,14 +127,9 @@ module Textbringer
       if @@started
         raise EditorError, "Already started"
       end
-      Curses.init_screen
-      Curses.noecho
-      Curses.raw
-      Curses.nonl
-      self.has_colors = Curses.has_colors?
+      Terminal.init_screen
+      self.has_colors = Terminal.has_colors?
       if has_colors?
-        Curses.start_color
-        Curses.use_default_colors
         load_faces
       else
         Face.define :mode_line, reverse: true
@@ -180,10 +155,7 @@ module Textbringer
           win.close
         end
         @@list.clear
-        Curses.echo
-        Curses.noraw
-        Curses.nl
-        Curses.close_screen
+        Terminal.close_screen
         @@started = false
       end
     end
@@ -216,15 +188,15 @@ module Textbringer
     end
 
     def self.update
-      Curses.doupdate
+      Terminal.doupdate
     end
 
     def self.lines
-      Curses.lines
+      Terminal.lines
     end
 
     def self.columns
-      Curses.cols
+      Terminal.cols
     end
 
     def self.resize
@@ -251,7 +223,7 @@ module Textbringer
     end
 
     def self.beep
-      Curses.beep
+      Terminal.beep
     end
 
     attr_reader :buffer, :lines, :columns, :y, :x, :window, :mode_line
@@ -343,15 +315,6 @@ module Textbringer
     def read_event
       key = get_char
       if key.is_a?(Integer)
-        if HAVE_GET_KEY_MODIFIERS
-          if Curses::ALT_0 <= key && key <= Curses::ALT_9
-            @key_buffer.push((key - ALT_NUMBER_BASE).chr)
-            return "\e"
-          elsif Curses::ALT_A <= key && key <= Curses::ALT_Z
-            @key_buffer.push((key - ALT_ALPHA_BASE).chr)
-            return "\e"
-          end
-        end
         KEY_NAMES[key] || key
       else
         key&.encode(Encoding::UTF_8)
@@ -678,8 +641,8 @@ module Textbringer
     private
 
     def initialize_window(num_lines, num_columns, y, x)
-      @window = Curses::Window.new(num_lines - 1, num_columns, y, x)
-      @mode_line = Curses::Window.new(1, num_columns, y + num_lines - 1, x)
+      @window = Terminal::Window.new(num_lines - 1, num_columns, y, x)
+      @mode_line = Terminal::Window.new(1, num_columns, y + num_lines - 1, x)
     end
 
     def framer
@@ -802,8 +765,6 @@ module Textbringer
         when /\p{Variation_Selector}/
           c += nextc
         when /[\p{Mn}\p{Me}]/ # nonspacing & enclosing marks
-          # Normalize パ (U+30CF + U+309A) to パ (U+30D1) so that curses can
-          # caluculate display width correctly.
           newc = (c + nextc).unicode_normalize(:nfc)
           return c if newc.size != c.size
           c = newc
@@ -933,32 +894,11 @@ module Textbringer
 
     def get_char
       if @key_buffer.empty?
-        Curses.save_key_modifiers(true) if HAVE_GET_KEY_MODIFIERS
-        begin
-          need_retry = false
-          if @raw_key_buffer.empty?
-            key = @window.get_char
-          else
-            key = @raw_key_buffer.shift
-          end
-          if HAVE_GET_KEY_MODIFIERS
-            mods = Curses.get_key_modifiers
-            if key.is_a?(String) && key.ascii_only?
-              if (mods & Curses::PDC_KEY_MODIFIER_CONTROL) != 0
-                key = key == ?? ? "\x7f" : (key.ord & 0x9f).chr
-              end
-              if (mods & Curses::PDC_KEY_MODIFIER_ALT) != 0
-                if key == "\0"
-                  # Alt + `, Alt + < etc. return NUL, so ignore it.
-                  need_retry = true
-                else
-                  @key_buffer.push(key)
-                  key = "\e"
-                end
-              end
-            end
-          end
-        end while need_retry
+        if @raw_key_buffer.empty?
+          key = @window.get_char
+        else
+          key = @raw_key_buffer.shift
+        end
         key
       else
         @key_buffer.shift
@@ -1101,7 +1041,7 @@ module Textbringer
     private
 
     def initialize_window(num_lines, num_columns, y, x)
-      @window = Curses::Window.new(num_lines, num_columns, y, x)
+      @window = Terminal::Window.new(num_lines, num_columns, y, x)
     end
 
     def escape(s)

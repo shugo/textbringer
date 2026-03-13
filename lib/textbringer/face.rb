@@ -1,4 +1,4 @@
-require "curses"
+require_relative "terminal"
 
 module Textbringer
   class Face
@@ -37,13 +37,13 @@ module Textbringer
       @bold = bold
       @underline = underline
       @reverse = reverse
-      Curses.init_pair(@color_pair,
+      Terminal.init_pair(@color_pair,
                        Color[foreground], Color[background])
       @text_attrs = 0
-      @text_attrs |= Curses::A_BOLD if bold
-      @text_attrs |= Curses::A_UNDERLINE if underline
-      @text_attrs |= Curses::A_REVERSE if reverse
-      @attributes = Curses.color_pair(@color_pair) | @text_attrs
+      @text_attrs |= Terminal::A_BOLD if bold
+      @text_attrs |= Terminal::A_UNDERLINE if underline
+      @text_attrs |= Terminal::A_REVERSE if reverse
+      @attributes = Terminal.color_pair(@color_pair) | @text_attrs
       self
     end
   end
