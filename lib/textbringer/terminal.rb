@@ -6,6 +6,14 @@ require_relative "terminal/pad"
 
 module Textbringer
   module Terminal
+    module Termios
+      # TIOCGWINSZ: get terminal window size
+      TIOCGWINSZ = case RUBY_PLATFORM
+                   when /linux/  then 0x5413
+                   when /darwin/ then 0x40087468
+                   else               0x5413
+                   end
+    end
     @color_pairs = {}  # pair_number => [fg, bg]
     @virtual_screen = nil
     @physical_screen = nil
@@ -187,14 +195,22 @@ module Textbringer
       private
 
       def update_size
-        begin
-          rows, cols = IO.console_size
-          @lines = rows
-          @cols = cols
-        rescue
-          @lines = (ENV["LINES"] || 24).to_i
-          @cols = (ENV["COLUMNS"] || 80).to_i
+        # TIOCGWINSZ ioctl fills a winsize struct: rows, cols, xpixel, ypixel (each uint16)
+        buf = "\x00" * 8
+        if STDOUT.respond_to?(:ioctl) &&
+            STDOUT.ioctl(Termios::TIOCGWINSZ, buf) >= 0
+          rows, cols = buf.unpack("S!S!")
+          if rows > 0 && cols > 0
+            @lines = rows
+            @cols = cols
+            return
+          end
         end
+        @lines = (ENV["LINES"] || 24).to_i
+        @cols = (ENV["COLUMNS"] || 80).to_i
+      rescue Errno::ENOTTY, NotImplementedError
+        @lines = (ENV["LINES"] || 24).to_i
+        @cols = (ENV["COLUMNS"] || 80).to_i
       end
 
       def install_sigwinch_handler
