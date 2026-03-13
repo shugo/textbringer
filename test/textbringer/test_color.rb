@@ -2,9 +2,9 @@ require_relative "../test_helper"
 
 class TestColor < Textbringer::TestCase
   def test_aref
-    assert_equal(Curses::COLOR_BLACK, Color["black"])
-    assert_equal(Curses::COLOR_MAGENTA, Color["magenta"])
-    assert_equal(Curses::COLOR_WHITE, Color["white"])
+    assert_equal(Terminal::COLOR_BLACK, Color["black"])
+    assert_equal(Terminal::COLOR_MAGENTA, Color["magenta"])
+    assert_equal(Terminal::COLOR_WHITE, Color["white"])
     assert_equal(8, Color["brightblack"])
     assert_equal(15, Color["brightwhite"])
 
@@ -23,18 +23,18 @@ class TestColor < Textbringer::TestCase
     assert_equal(8, Color[8])
     assert_equal(255, Color[255])
 
-    Curses.colors = 16
+    Terminal.colors = 16
     assert_equal(15, Color["brightwhite"])
     assert_equal(-1, Color["#000000"])
 
-    Curses.colors = 8
-    assert_equal(Curses::COLOR_WHITE, Color["white"])
+    Terminal.colors = 8
+    assert_equal(Terminal::COLOR_WHITE, Color["white"])
     assert_equal(-1, Color["brightblack"])
 
     assert_raise(EditorError) do
       Color["foo"]
     end
   ensure
-    Curses.colors = 256
+    Terminal.colors = 256
   end
 end

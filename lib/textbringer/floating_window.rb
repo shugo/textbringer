@@ -1,4 +1,4 @@
-require "curses"
+require_relative "terminal"
 
 module Textbringer
   class FloatingWindow < Window
@@ -55,8 +55,8 @@ module Textbringer
     end
 
     def self.centered(lines:, columns:, buffer: nil, face: :floating_window, current_line_face: nil)
-      y = (Curses.lines - lines) / 2
-      x = (Curses.cols - columns) / 2
+      y = (Terminal.lines - lines) / 2
+      x = (Terminal.cols - columns) / 2
       new(lines, columns, y, x, buffer: buffer, face: face, current_line_face: current_line_face)
     end
 
@@ -263,9 +263,9 @@ module Textbringer
 
     private
 
-    # Override to create Curses::Pad instead of Curses::Window
+    # Override to create Terminal::Pad instead of Terminal::Window
     def initialize_window(num_lines, num_columns, y, x)
-      @window = Curses::Pad.new(num_lines, num_columns)
+      @window = Terminal::Pad.new(num_lines, num_columns)
       # Note: Pad position is set during refresh, not at creation
       # No mode_line for floating windows
       @mode_line = nil
@@ -277,7 +277,7 @@ module Textbringer
       cursor_x = window.x + window.cursor.x
 
       # Prefer below cursor
-      space_below = Curses.lines - cursor_y - 2  # -2 for echo area
+      space_below = Terminal.lines - cursor_y - 2  # -2 for echo area
       space_above = cursor_y  # Screen space above cursor
 
       if space_below >= lines
@@ -286,14 +286,14 @@ module Textbringer
         y = cursor_y - lines
       else
         # Not enough space, show below and clip
-        y = [cursor_y + 1, Curses.lines - lines - 1].max
+        y = [cursor_y + 1, Terminal.lines - lines - 1].max
         y = [y, 0].max
       end
 
       # Adjust x to prevent overflow
       x = cursor_x
-      if x + columns > Curses.cols
-        x = [Curses.cols - columns, 0].max
+      if x + columns > Terminal.cols
+        x = [Terminal.cols - columns, 0].max
       end
 
       [y, x]

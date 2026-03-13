@@ -121,7 +121,7 @@ class TestBuffers < Textbringer::TestCase
     quoted_insert(3)
     assert_equal("\C-v\C-l\C-l\C-l", Buffer.current.to_s)
 
-    push_keys([Curses::KEY_LEFT])
+    push_keys([Terminal::Input::KEY_CODES[:left]])
     assert_raise(EditorError) do
       quoted_insert
     end

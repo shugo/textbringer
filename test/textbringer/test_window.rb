@@ -304,30 +304,8 @@ EOF
     @window.window.push_key("a")
     assert_equal("a", @window.read_event)
 
-    @window.window.push_key(Curses::KEY_RIGHT)
+    @window.window.push_key(Terminal::Input::KEY_CODES[:right])
     assert_equal(:right, @window.read_event)
-
-    @window.window.push_key(Curses::ALT_0 + 3)
-    assert_equal("\e", @window.read_event)
-    assert_equal("3", @window.read_event)
-
-    @window.window.push_key(Curses::ALT_A + 5)
-    assert_equal("\e", @window.read_event)
-    assert_equal("f", @window.read_event)
-
-    Curses.set_key_modifiers(Curses::PDC_KEY_MODIFIER_CONTROL)
-    @window.window.push_key("a")
-    assert_equal("\C-a", @window.read_event)
-    @window.window.push_key("?")
-    assert_equal("\x7f", @window.read_event)
-
-    Curses.set_key_modifiers(Curses::PDC_KEY_MODIFIER_ALT)
-    @window.window.push_key("\0")
-    @window.window.push_key("a")
-    assert_equal("\e", @window.read_event)
-    assert_equal("a", @window.read_event)
-  ensure
-    Curses.set_key_modifiers(0)
   end
 
   def test_read_event_nonblock
@@ -340,14 +318,6 @@ EOF
 
     @window.window.push_key("a")
     assert_equal("a", @window.wait_input(1))
-
-    Curses.set_key_modifiers(Curses::PDC_KEY_MODIFIER_ALT)
-    @window.window.push_key("\0")
-    @window.window.push_key("a")
-    assert_equal("\e", @window.read_event)
-    assert_equal("a", @window.wait_input(1))
-  ensure
-    Curses.set_key_modifiers(0)
   end
 
   def test_has_input?
@@ -355,14 +325,6 @@ EOF
 
     @window.window.push_key("a")
     assert_equal(true, @window.has_input?)
-
-    Curses.set_key_modifiers(Curses::PDC_KEY_MODIFIER_ALT)
-    @window.window.push_key("\0")
-    @window.window.push_key("a")
-    assert_equal("\e", @window.read_event)
-    assert_equal(true, @window.has_input?)
-  ensure
-    Curses.set_key_modifiers(0)
   end
 
   def test_echo_area_redisplay
@@ -426,10 +388,10 @@ EOF
 
   def test_s_set_default_colors
     Window.set_default_colors("black", "white")
-    assert_equal([0, 7], Curses.default_colors)
+    assert_equal([0, 7], Terminal.default_colors)
 
     Window.set_default_colors("default", "default")
-    assert_equal([-1, -1], Curses.default_colors)
+    assert_equal([-1, -1], Terminal.default_colors)
   end
 
   private

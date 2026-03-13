@@ -18,8 +18,11 @@ module Textbringer
     end
 
     define_command(:suspend_textbringer) do
-      Curses.close_screen
+      Terminal.close_screen
       Process.kill(:STOP, 0)
+      Terminal.reinit_screen
+      Window.resize
+      Window.redraw
     end
 
     define_command(:execute_command) do
