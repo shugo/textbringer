@@ -15,10 +15,13 @@ module Textbringer
     class ScreenBuffer
       attr_reader :lines, :cols
 
-      def initialize(lines, cols)
+      def initialize(lines, cols, dirty: false)
         @lines = lines
         @cols = cols
-        @cells = Array.new(lines) { Array.new(cols) { Cell.new(" ", 0, -1, -1, false) } }
+        # Use a NUL sentinel when dirty so flush_diff re-renders every cell,
+        # including spaces, ensuring correct SGR across the whole screen.
+        sentinel = dirty ? "\x00" : " "
+        @cells = Array.new(lines) { Array.new(cols) { Cell.new(sentinel, 0, -1, -1, false) } }
       end
 
       def resize(lines, cols)

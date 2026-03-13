@@ -84,12 +84,12 @@ module Textbringer
         system("stty raw -echo -icanon -isig")
         STDOUT.write("\e[?1049h")
         STDOUT.write("\e[?25l")
-        STDOUT.write("\e[2J\e[H")
+        STDOUT.write("\e[0m\e[2J\e[H")
         STDOUT.write("\e[?1h")
         STDOUT.flush
 
         @virtual_screen = ScreenBuffer.new(@lines, @cols)
-        @physical_screen = ScreenBuffer.new(@lines, @cols)
+        @physical_screen = ScreenBuffer.new(@lines, @cols, dirty: true)
         @input_reader = Input::Reader.new(STDIN)
       end
 
@@ -175,6 +175,8 @@ module Textbringer
         end
         # Move cursor to the position set by the last noutrefresh
         STDOUT.write("\e[#{@cursor_y + 1};#{@cursor_x + 1}H")
+        # Always reset SGR so the terminal is never left in a face's state
+        STDOUT.write("\e[0m")
         STDOUT.write("\e[?25h")
         STDOUT.flush
       end
@@ -220,9 +222,11 @@ module Textbringer
           update_size
           if @lines != old_lines || @cols != old_cols
             @virtual_screen = ScreenBuffer.new(@lines, @cols)
-            @physical_screen = ScreenBuffer.new(@lines, @cols)
-            # Clear screen after resize
-            STDOUT.write("\e[2J")
+            # Dirty physical forces flush_diff to re-render every cell,
+            # ensuring correct SGR even for spaces and line endings.
+            @physical_screen = ScreenBuffer.new(@lines, @cols, dirty: true)
+            # Reset SGR before clearing so \e[2J uses default background.
+            STDOUT.write("\e[0m\e[2J")
             STDOUT.flush
             # Push a resize event
             @input_reader&.instance_variable_get(:@buf)&.push(
