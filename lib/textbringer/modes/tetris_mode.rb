@@ -98,7 +98,7 @@ module Textbringer
 
     define_local_command(:tetris_new_game, doc: "Start a new Tetris game.") do
       @grid&.stop_timer
-      @grid = gamegrid_init(BOARD_WIDTH + 2, BOARD_HEIGHT + 2)
+      @grid = gamegrid_init(BOARD_WIDTH + 3, BOARD_HEIGHT + 2)
       @grid.set_display_option(0, char: "  ")
       @grid.set_display_option(BORDER_VALUE, char: "[]", face: :gamegrid_border)
       PIECE_COLORS.each { |v, f| @grid.set_display_option(v, char: "[]", face: f) }
@@ -260,30 +260,31 @@ module Textbringer
     end
 
     def update_grid
+      # col 0 is the left margin (empty); border starts at col 1
       # Border: top and bottom rows
-      (BOARD_WIDTH + 2).times do |x|
-        @grid.set_cell(x, 0,              BORDER_VALUE)
-        @grid.set_cell(x, BOARD_HEIGHT + 1, BORDER_VALUE)
+      (BOARD_WIDTH + 2).times do |i|
+        @grid.set_cell(i + 1, 0,               BORDER_VALUE)
+        @grid.set_cell(i + 1, BOARD_HEIGHT + 1, BORDER_VALUE)
       end
       # Border: left and right columns (inner rows only)
       BOARD_HEIGHT.times do |y|
-        @grid.set_cell(0,              y + 1, BORDER_VALUE)
-        @grid.set_cell(BOARD_WIDTH + 1, y + 1, BORDER_VALUE)
+        @grid.set_cell(1,               y + 1, BORDER_VALUE)
+        @grid.set_cell(BOARD_WIDTH + 2, y + 1, BORDER_VALUE)
       end
-      # Board content, offset by (1, 1)
+      # Board content, offset by (2, 1)
       BOARD_HEIGHT.times do |y|
         BOARD_WIDTH.times do |x|
-          @grid.set_cell(x + 1, y + 1, @board[y][x])
+          @grid.set_cell(x + 2, y + 1, @board[y][x])
         end
       end
       return if @game_over
-      # Current piece, offset by (1, 1)
+      # Current piece, offset by (2, 1)
       PIECES[@piece_type][@piece_rot].each_with_index do |row, row_i|
         row.each_with_index do |cell, col_i|
           next if cell == 0
-          bx = @piece_x + col_i + 1
+          bx = @piece_x + col_i + 2
           by = @piece_y + row_i + 1
-          next if bx < 1 || bx > BOARD_WIDTH || by < 1 || by > BOARD_HEIGHT
+          next if bx < 2 || bx > BOARD_WIDTH + 1 || by < 1 || by > BOARD_HEIGHT
           @grid.set_cell(bx, by, @piece_type)
         end
       end

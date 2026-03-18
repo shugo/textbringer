@@ -263,7 +263,7 @@ class TestTetrisMode < Textbringer::TestCase
     grid_rows = TetrisMode::BOARD_HEIGHT + 2
     assert_equal(grid_rows, lines.size - 1)
     lines[0...grid_rows].each do |line|
-      assert_equal((TetrisMode::BOARD_WIDTH + 2) * 2, line.length)
+      assert_equal((TetrisMode::BOARD_WIDTH + 3) * 2, line.length)
     end
   end
 
