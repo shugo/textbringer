@@ -1,4 +1,5 @@
 require "fileutils"
+require "time"
 
 module Textbringer
   class Gamegrid
@@ -96,7 +97,7 @@ module Textbringer
         loop do
           sleep(interval)
           Controller.current.next_tick(&callback)
-        rescue
+        rescue ThreadError
           break
         end
       end
@@ -116,7 +117,8 @@ module Textbringer
     # Score persistence
 
     def self.score_file_path(game_name)
-      File.expand_path("~/.textbringer/scores/#{game_name}.scores")
+      safe_name = File.basename(game_name).gsub(/[^A-Za-z0-9_\-]/, "_")
+      File.expand_path("~/.textbringer/scores/#{safe_name}.scores")
     end
 
     def self.add_score(game_name, score, player_name: "anonymous")

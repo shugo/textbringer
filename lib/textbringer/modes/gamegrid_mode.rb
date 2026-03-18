@@ -17,8 +17,7 @@ module Textbringer
 
 
     define_local_command(:gamegrid_init,
-                         doc: "Initialize a gamegrid in the current buffer.") do
-      |width, height|
+                         doc: "Initialize a gamegrid in the current buffer.") do |width, height|
       grid = Gamegrid.new(width, height)
       @buffer[:gamegrid] = grid
       @buffer.read_only = true

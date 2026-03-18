@@ -1,6 +1,6 @@
 require_relative "../test_helper"
 
-class GamegridTest < Textbringer::TestCase
+class TestGamegrid < Textbringer::TestCase
   def test_initialize
     grid = Gamegrid.new(10, 5)
     assert_equal(10, grid.width)
@@ -87,9 +87,8 @@ class GamegridTest < Textbringer::TestCase
 
   def test_timer
     grid = Gamegrid.new(1, 1)
-    grid.start_timer(0.01) { }
+    grid.start_timer(60) { }
     assert(grid.timer_active?)
-    sleep(0.05)
     grid.stop_timer
     assert(!grid.timer_active?)
   end

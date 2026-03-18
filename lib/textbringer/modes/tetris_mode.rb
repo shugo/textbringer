@@ -162,6 +162,11 @@ module Textbringer
     define_local_command(:tetris_pause, doc: "Toggle game pause.") do
       return if @game_over || !@grid
       @paused = !@paused
+      if @paused
+        @grid.stop_timer
+      else
+        start_game_timer
+      end
       render_board
     end
 
