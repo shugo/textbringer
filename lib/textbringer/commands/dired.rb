@@ -17,6 +17,11 @@ module Textbringer
           buffer.insert(DiredMode.generate_listing(dir))
           buffer.beginning_of_buffer
           buffer.forward_line
+          until buffer.end_of_buffer?
+            buffer.beginning_of_line
+            break unless buffer.looking_at?(/^[D ] \S+\s+\d+\s+[\d-]+\s+[\d:]+\s+\.\.?\/$/)
+            buffer.forward_line
+          end
         end
       end
       switch_to_buffer(buffer)

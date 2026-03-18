@@ -50,7 +50,6 @@ module Textbringer
     def self.generate_listing(dir)
       entries = []
       Dir.foreach(dir) do |name|
-        next if name == "." || name == ".."
         path = File.join(dir, name)
         begin
           stat = File.lstat(path)
