@@ -5,6 +5,10 @@ module Textbringer
   module Commands
     define_command(:find_file, doc: "Open or create a file.") do
       |file_name = read_file_name("Find file: ", default: (Buffer.current.file_name ? File.dirname(Buffer.current.file_name) : Dir.pwd) + "/")|
+      if File.directory?(file_name)
+        dired(file_name)
+        next
+      end
       config = EditorConfig.load_file(file_name)
       buffer = Buffer.find_file(file_name)
       if buffer.new_file?
