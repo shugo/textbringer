@@ -164,13 +164,11 @@ module Textbringer
     end
 
     define_local_command(:dired_unmark_all, doc: "Remove all deletion flags.") do
-      @buffer.read_only_edit do
-        @buffer.save_excursion do
-          @buffer.beginning_of_buffer
-          while !@buffer.end_of_buffer?
-            set_flag(" ")
-            @buffer.next_line
-          end
+      @buffer.save_excursion do
+        @buffer.beginning_of_buffer
+        while !@buffer.end_of_buffer?
+          set_flag(" ")
+          @buffer.next_line
         end
       end
     end
