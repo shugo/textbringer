@@ -12,7 +12,7 @@ module Textbringer
       buffer = Buffer.find_or_new(buf_name, undo_limit: 0, read_only: true)
       buffer[:dired_directory] = dir
       buffer.apply_mode(DiredMode) unless buffer.mode.is_a?(DiredMode)
-      if buffer.to_s.empty?
+      if buffer.bytesize == 0
         buffer.read_only_edit do
           buffer.insert(DiredMode.generate_listing(dir))
           buffer.beginning_of_buffer
