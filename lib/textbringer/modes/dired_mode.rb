@@ -228,11 +228,32 @@ module Textbringer
 
     define_local_command(:dired_revert, doc: "Refresh directory listing.") do
       dir = @buffer[:dired_directory]
+      saved_name = current_file_name
+      saved_line = @buffer.current_line
       @buffer.read_only_edit do
         @buffer.clear
         @buffer.insert(DiredMode.generate_listing(dir))
         @buffer.beginning_of_buffer
         @buffer.forward_line
+      end
+      if saved_name
+        @buffer.beginning_of_buffer
+        found = false
+        while !@buffer.end_of_buffer?
+          if current_file_name == saved_name
+            found = true
+            break
+          end
+          @buffer.next_line
+        end
+        unless found
+          goto_line(saved_line)
+          @buffer.beginning_of_line
+          if @buffer.end_of_buffer? || current_file_name.nil?
+            @buffer.end_of_buffer
+            @buffer.previous_line while current_file_name.nil? && @buffer.current_line > 2
+          end
+        end
       end
     end
 
