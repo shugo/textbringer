@@ -16,6 +16,16 @@ class TestFiles < Textbringer::TestCase
     end
   end
 
+  def test_find_file_with_directory
+    mkcdtmpdir do
+      Dir.mkdir("subdir")
+      find_file("subdir")
+      assert_instance_of(Textbringer::DiredMode, Buffer.current.mode)
+      assert_equal(File.expand_path("subdir"), Buffer.current[:dired_directory])
+      assert(Buffer.current.read_only?)
+    end
+  end
+
   def test_find_file_read_only
     mkcdtmpdir do
       assert_raise(EditorError) do

@@ -141,6 +141,7 @@ module Textbringer
       require_relative "faces/basic"
       require_relative "faces/programming"
       require_relative "faces/completion"
+      require_relative "faces/dired"
     end
 
     def self.start
