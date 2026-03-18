@@ -21,9 +21,9 @@ module Textbringer
     # Deletion-flagged lines
     define_syntax :region,  /^D .+$/
     # Symlinks
-    define_syntax :link,    /^[ D] \S+\s+\d+\s+[\d-]+ [\d:]+ \S+ -> .+$/
+    define_syntax :link,    /^[ D] \S+\s+\d+\s+[\d-]+ [\d:]+ .+ -> .+$/
     # Directories
-    define_syntax :keyword, /^[ D] d\S+\s+\d+\s+[\d-]+ [\d:]+ \S+\/$/
+    define_syntax :keyword, /^[ D] d\S+\s+\d+\s+[\d-]+ [\d:]+ .+\/$/
     # Executables
     define_syntax :string,  /^[ D] -[r-][w-]x.+$/
 
