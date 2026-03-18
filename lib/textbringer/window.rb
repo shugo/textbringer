@@ -142,6 +142,7 @@ module Textbringer
       require_relative "faces/programming"
       require_relative "faces/completion"
       require_relative "faces/dired"
+      require_relative "faces/gamegrid"
     end
 
     def self.start
@@ -403,6 +404,10 @@ module Textbringer
     def highlight
       @highlight_on = {}
       @highlight_off = {}
+      if (override = @buffer[:highlight_override])
+        @highlight_on, @highlight_off = override.call
+        return
+      end
       return if !@@has_colors || !CONFIG[:syntax_highlight] || @buffer.binary?
       syntax_table = @buffer.mode.syntax_table || DEFAULT_SYNTAX_TABLE
       if @buffer.bytesize < CONFIG[:highlight_buffer_size_limit]
