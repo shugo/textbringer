@@ -3,7 +3,9 @@ module Textbringer
     define_keymap :DIRED_MODE_MAP
     DIRED_MODE_MAP.define_key("n",    :dired_next_line_command)
     DIRED_MODE_MAP.define_key(" ",    :dired_next_line_command)
+    DIRED_MODE_MAP.define_key("\C-n", :dired_next_line_command)
     DIRED_MODE_MAP.define_key("p",    :dired_previous_line_command)
+    DIRED_MODE_MAP.define_key("\C-p", :dired_previous_line_command)
     DIRED_MODE_MAP.define_key("^",    :dired_up_directory_command)
     DIRED_MODE_MAP.define_key("\C-m", :dired_find_file_command)
     DIRED_MODE_MAP.define_key("f",    :dired_find_file_command)
