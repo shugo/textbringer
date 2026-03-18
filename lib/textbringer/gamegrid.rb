@@ -6,9 +6,10 @@ module Textbringer
     attr_reader :width, :height
     attr_accessor :score
 
-    def initialize(width, height)
+    def initialize(width, height, margin_left: 0)
       @width = width
       @height = height
+      @margin_left = margin_left
       @grid = Array.new(height) { Array.new(width, 0) }
       @faces = Array.new(height) { Array.new(width, nil) }
       @display_options = {}
@@ -54,8 +55,9 @@ module Textbringer
     # Rendering
 
     def render
+      margin = " " * @margin_left
       @height.times.map { |y|
-        @width.times.map { |x|
+        margin + @width.times.map { |x|
           cell_char(@grid[y][x])
         }.join
       }.join("\n")
@@ -66,6 +68,7 @@ module Textbringer
       highlight_off = {}
       offset = 0
       @height.times do |y|
+        offset += @margin_left
         @width.times do |x|
           value = @grid[y][x]
           # Priority: explicit set_face > display_option face > nil

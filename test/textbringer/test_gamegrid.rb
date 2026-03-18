@@ -68,6 +68,24 @@ class TestGamegrid < Textbringer::TestCase
     assert_equal(true, highlight_off[1])
   end
 
+  def test_render_with_margin_left
+    grid = Gamegrid.new(2, 2, margin_left: 3)
+    grid.set_display_option(0, char: ".")
+    lines = grid.render.split("\n")
+    assert_equal("   ..", lines[0])
+    assert_equal("   ..", lines[1])
+  end
+
+  def test_face_map_with_margin_left
+    grid = Gamegrid.new(2, 1, margin_left: 3)
+    grid.set_display_option(1, char: "#", face: :gamegrid_red)
+    grid.set_cell(0, 0, 1)
+    highlight_on, _off = grid.face_map
+    # First cell starts at offset 3 (margin), not 0
+    assert_equal(Face[:gamegrid_red], highlight_on[3])
+    assert_nil(highlight_on[0])
+  end
+
   def test_face_map_explicit_face_overrides_display_option
     grid = Gamegrid.new(2, 1)
     grid.set_display_option(1, char: "#", face: :gamegrid_red)
