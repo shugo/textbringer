@@ -258,11 +258,12 @@ class TestTetrisMode < Textbringer::TestCase
   # ── rendering ──────────────────────────────────────────────────────────────
 
   def test_render_produces_correct_dimensions
-    # Buffer should contain BOARD_HEIGHT rows of BOARD_WIDTH*2 chars + status
+    # Grid is (BOARD_WIDTH+2) × (BOARD_HEIGHT+2); buffer has grid rows + status line
     lines = @buffer.to_s.split("\n")
-    assert_equal(TetrisMode::BOARD_HEIGHT, lines.size - 1)  # 20 board rows + status
-    lines[0...TetrisMode::BOARD_HEIGHT].each do |line|
-      assert_equal(TetrisMode::BOARD_WIDTH * 2, line.length)
+    grid_rows = TetrisMode::BOARD_HEIGHT + 2
+    assert_equal(grid_rows, lines.size - 1)
+    lines[0...grid_rows].each do |line|
+      assert_equal((TetrisMode::BOARD_WIDTH + 2) * 2, line.length)
     end
   end
 
