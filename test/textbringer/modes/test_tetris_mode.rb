@@ -258,36 +258,12 @@ class TestTetrisMode < Textbringer::TestCase
   # ── rendering ──────────────────────────────────────────────────────────────
 
   def test_render_produces_correct_dimensions
-    # Buffer: 20 board rows + blank + status + "Next:" + 4 preview rows
+    # Buffer should contain BOARD_HEIGHT rows of BOARD_WIDTH*2 chars + status
     lines = @buffer.to_s.split("\n")
-    assert(lines.size >= TetrisMode::BOARD_HEIGHT + 1 + TetrisMode::PREVIEW_SIZE)
+    assert_equal(TetrisMode::BOARD_HEIGHT, lines.size - 1)  # 20 board rows + status
     lines[0...TetrisMode::BOARD_HEIGHT].each do |line|
       assert_equal(TetrisMode::BOARD_WIDTH * 2, line.length)
     end
-  end
-
-  def test_preview_grid_shows_next_piece
-    @mode.instance_variable_set(:@next_type, 2)  # O piece (yellow)
-    @mode.send(:update_preview_grid)
-    preview = @mode.instance_variable_get(:@preview_grid)
-    # O piece rot 0: cells at (col 1,2) × (row 0,1)
-    assert_equal(2, preview.get_cell(1, 0))
-    assert_equal(2, preview.get_cell(2, 0))
-    assert_equal(2, preview.get_cell(1, 1))
-    assert_equal(2, preview.get_cell(2, 1))
-    assert_equal(0, preview.get_cell(0, 0))
-    assert_equal(0, preview.get_cell(3, 3))
-  end
-
-  def test_preview_offset_is_set_after_render
-    assert(@mode.instance_variable_get(:@preview_offset) > 0)
-  end
-
-  def test_highlight_override_covers_preview
-    on, _off = @buffer[:highlight_override].call
-    # At least some cells in the preview should have color highlights
-    # (the current next piece cells)
-    assert(!on.empty?)
   end
 
   def test_valid_position_false_at_bottom

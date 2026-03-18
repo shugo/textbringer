@@ -83,8 +83,6 @@ module Textbringer
     TETRIS_MODE_MAP.define_key(" ",    :tetris_drop_command)
     TETRIS_MODE_MAP.define_key("p",    :tetris_pause_command)
 
-    PREVIEW_SIZE = 4  # preview grid is 4×4
-
     attr_reader :score, :level, :lines_cleared,
                 :piece_type, :piece_rot, :piece_x, :piece_y,
                 :next_type, :game_over, :paused
@@ -92,11 +90,9 @@ module Textbringer
     def initialize(buffer)
       super
       buffer.keymap = TETRIS_MODE_MAP
-      @game_over      = true
-      @paused         = false
-      @grid           = nil
-      @preview_grid   = nil
-      @preview_offset = 0
+      @game_over = true
+      @paused    = false
+      @grid      = nil
     end
 
     define_local_command(:tetris_new_game, doc: "Start a new Tetris game.") do
@@ -104,20 +100,6 @@ module Textbringer
       @grid = gamegrid_init(BOARD_WIDTH, BOARD_HEIGHT)
       @grid.set_display_option(0, char: "  ")
       PIECE_COLORS.each { |v, f| @grid.set_display_option(v, char: "[]", face: f) }
-
-      @preview_grid = Gamegrid.new(PREVIEW_SIZE, PREVIEW_SIZE)
-      @preview_grid.set_display_option(0, char: "  ")
-      PIECE_COLORS.each { |v, f| @preview_grid.set_display_option(v, char: "[]", face: f) }
-
-      # Merge main + preview face maps, offsetting preview by its position in the buffer
-      @buffer[:highlight_override] = -> {
-        on1, off1 = @grid.face_map
-        on2, off2 = @preview_grid.face_map
-        off = @preview_offset
-        merged_on  = on1.merge(on2.transform_keys  { |k| k + off })
-        merged_off = off1.merge(off2.transform_keys { |k| k + off })
-        [merged_on, merged_off]
-      }
 
       @board         = Array.new(BOARD_HEIGHT) { Array.new(BOARD_WIDTH, 0) }
       @score         = 0
@@ -290,30 +272,12 @@ module Textbringer
 
     def render_board
       update_grid
-      update_preview_grid
       @buffer.read_only_edit do
         @buffer.clear
-        grid_render  = @grid.render
-        status       = status_text
-        next_label   = "Next:\n"
-        @buffer.insert(grid_render)
+        @buffer.insert(@grid.render)
         @buffer.insert("\n")
-        @buffer.insert(status)
-        @buffer.insert(next_label)
-        @preview_offset = grid_render.bytesize + 1 + status.bytesize + next_label.bytesize
-        @buffer.insert(@preview_grid.render)
-        @buffer.insert("\n")
+        @buffer.insert(status_text)
         @buffer.beginning_of_buffer
-      end
-    end
-
-    def update_preview_grid
-      @preview_grid.fill(0)
-      PIECES[@next_type][0].each_with_index do |row, row_i|
-        row.each_with_index do |cell, col_i|
-          next if cell == 0
-          @preview_grid.set_cell(col_i, row_i, @next_type)
-        end
       end
     end
 
@@ -325,7 +289,8 @@ module Textbringer
         "PAUSED  Score: #{@score}  Level: #{@level}  Lines: #{@lines_cleared}" \
           "  [p] resume\n"
       else
-        "Score: #{@score}  Level: #{@level}  Lines: #{@lines_cleared}\n"
+        "Score: #{@score}  Level: #{@level}  Lines: #{@lines_cleared}" \
+          "  Next: #{PIECE_NAMES[@next_type]}\n"
       end
     end
   end
