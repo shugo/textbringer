@@ -246,10 +246,11 @@ module Textbringer
         @buffer.beginning_of_line
         # Line format: "  perms  size  date time  display_name"
         # or:          "D perms  size  date time  display_name"
-        if @buffer.looking_at?(/^[D ] \S+\s+\d+\s+[\d-]+\s+[\d:]+\s+(.+)$/)
-          display = @buffer.match_string(1)
-          # Strip symlink target: "name -> target" -> "name"
-          display = display.sub(/ -> .+$/, "")
+        if @buffer.looking_at?(/^[D ] (\S+)\s+\d+\s+[\d-]+\s+[\d:]+\s+(.+)$/)
+          perms = @buffer.match_string(1)
+          display = @buffer.match_string(2)
+          # Strip symlink target: "name -> target" -> "name" (only for symlinks)
+          display = display.sub(/ -> .+$/, "") if perms.start_with?("l")
           # Strip trailing slash for directories: "name/" -> "name"
           display = display.chomp("/")
           display
@@ -276,9 +277,10 @@ module Textbringer
         @buffer.beginning_of_buffer
         while !@buffer.end_of_buffer?
           @buffer.beginning_of_line
-          if @buffer.looking_at?(/^D \S+\s+\d+\s+[\d-]+\s+[\d:]+\s+(.+)$/)
-            display = @buffer.match_string(1)
-            display = display.sub(/ -> .+$/, "")
+          if @buffer.looking_at?(/^D (\S+)\s+\d+\s+[\d-]+\s+[\d:]+\s+(.+)$/)
+            perms = @buffer.match_string(1)
+            display = @buffer.match_string(2)
+            display = display.sub(/ -> .+$/, "") if perms.start_with?("l")
             display = display.chomp("/")
             files << display
           end
