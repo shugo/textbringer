@@ -205,7 +205,7 @@ module Textbringer
       dir = @buffer[:dired_directory]
       src = File.join(dir, name)
       dest = read_file_name("Rename #{name} to: ", default: dir + "/")
-      dest = File.expand_path(dest)
+      dest = File.expand_path(dest, dir)
       FileUtils.mv(src, dest)
       dired_revert
     end
@@ -216,7 +216,7 @@ module Textbringer
       dir = @buffer[:dired_directory]
       src = File.join(dir, name)
       dest = read_file_name("Copy #{name} to: ", default: dir + "/")
-      dest = File.expand_path(dest)
+      dest = File.expand_path(dest, dir)
       FileUtils.cp_r(src, dest)
       dired_revert
     end
@@ -224,7 +224,7 @@ module Textbringer
     define_local_command(:dired_create_directory, doc: "Create a new directory.") do
       dir = @buffer[:dired_directory]
       name = read_from_minibuffer("Create directory: ", default: dir + "/")
-      name = File.expand_path(name)
+      name = File.expand_path(name, dir)
       FileUtils.mkdir_p(name)
       dired_revert
     end
