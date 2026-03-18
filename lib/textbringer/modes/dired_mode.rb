@@ -103,18 +103,28 @@ module Textbringer
       buffer.keymap = DIRED_MODE_MAP
     end
 
+    define_local_command(:dired_move_to_filename,
+                         doc: "Move point to the filename on the current line.") do
+      @buffer.beginning_of_line
+      if @buffer.looking_at?(/^[D ] \S+\s+\d+\s+[\d-]+\s+[\d:]+\s+/)
+        @buffer.forward_char(@buffer.match_string(0).length)
+      end
+    end
+
     define_local_command(:dired_next_line, doc: "Move to next file line.") do
       @buffer.next_line
+      dired_move_to_filename
     end
 
     define_local_command(:dired_previous_line, doc: "Move to previous file line.") do
-      line = @buffer.save_excursion {
+      first_file_line = @buffer.save_excursion {
         @buffer.beginning_of_buffer
         @buffer.current_line
       }
-      if @buffer.current_line > line + 1
+      if @buffer.current_line > first_file_line
         @buffer.previous_line
       end
+      dired_move_to_filename
     end
 
     define_local_command(:dired_up_directory, doc: "Go up to parent directory.") do
@@ -155,12 +165,12 @@ module Textbringer
     define_local_command(:dired_flag_file_deletion,
                          doc: "Flag file at point for deletion.") do
       set_flag("D")
-      @buffer.next_line
+      dired_next_line
     end
 
     define_local_command(:dired_unmark, doc: "Remove deletion flag from file at point.") do
       set_flag(" ")
-      @buffer.next_line
+      dired_next_line
     end
 
     define_local_command(:dired_unmark_all, doc: "Remove all deletion flags.") do
@@ -255,6 +265,7 @@ module Textbringer
           end
         end
       end
+      dired_move_to_filename
     end
 
     private

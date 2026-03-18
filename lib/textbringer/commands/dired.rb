@@ -20,6 +20,7 @@ module Textbringer
         end
       end
       switch_to_buffer(buffer)
+      dired_move_to_filename_command
     end
   end
 end
