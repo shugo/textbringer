@@ -19,13 +19,13 @@ module Textbringer
     DIRED_MODE_MAP.define_key("q",    :bury_buffer)
 
     # Deletion-flagged lines
-    define_syntax :region,  /^D .+$/
+    define_syntax :dired_flagged,    /^D .+$/
     # Symlinks
-    define_syntax :link,    /^[ D] \S+\s+\d+\s+[\d-]+ [\d:]+ .+ -> .+$/
+    define_syntax :dired_symlink,    /^[ D] \S+\s+\d+\s+[\d-]+ [\d:]+ .+ -> .+$/
     # Directories
-    define_syntax :keyword, /^[ D] d\S+\s+\d+\s+[\d-]+ [\d:]+ .+\/$/
+    define_syntax :dired_directory,  /^[ D] d\S+\s+\d+\s+[\d-]+ [\d:]+ .+\/$/
     # Executables
-    define_syntax :string,  /^[ D] -[r-][w-]x.+$/
+    define_syntax :dired_executable, /^[ D] -[r-][w-]x.+$/
 
     PERM_BITS = [
       ["r", 0400], ["w", 0200], ["x", 0100],
@@ -260,7 +260,7 @@ module Textbringer
       @buffer.read_only_edit do
         @buffer.save_excursion do
           @buffer.beginning_of_line
-          if @buffer.looking_at?(/^[D ])
+          if @buffer.looking_at?(/^[D ]/)
             @buffer.delete_char(1)
             @buffer.insert(char)
           end
