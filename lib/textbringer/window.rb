@@ -142,6 +142,7 @@ module Textbringer
       require_relative "faces/programming"
       require_relative "faces/completion"
       require_relative "faces/dired"
+      require_relative "faces/gamegrid"
     end
 
     def self.start

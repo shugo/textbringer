@@ -2,6 +2,11 @@ module Textbringer
   class GamegridMode < Mode
     @syntax_table = {}
 
+    def self.inherited(child)
+      super
+      child.instance_variable_set(:@syntax_table, {})
+    end
+
     define_keymap :GAMEGRID_MODE_MAP
     GAMEGRID_MODE_MAP.define_key("q", :gamegrid_quit_command)
 
