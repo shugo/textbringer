@@ -260,8 +260,7 @@ module Textbringer
       @buffer.read_only_edit do
         @buffer.save_excursion do
           @buffer.beginning_of_line
-          if @buffer.looking_at?(/^[D ]/)
-            pos = @buffer.point
+          if @buffer.looking_at?(/^[D ])
             @buffer.delete_char(1)
             @buffer.insert(char)
           end
