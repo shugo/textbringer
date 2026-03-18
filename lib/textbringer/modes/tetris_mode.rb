@@ -13,6 +13,8 @@ module Textbringer
       7 => :gamegrid_block_white,
     }.freeze
 
+    PIECE_NAMES = ["", "I", "O", "T", "S", "Z", "J", "L"].freeze
+
     # Pieces[type][rotation][row][col] — 4×4 bounding box, 1-indexed types
     PIECES = [
       nil,
