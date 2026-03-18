@@ -178,8 +178,7 @@ module Textbringer
       files = collect_flagged_files
       return if files.empty?
       list = files.map { |f| "  #{f}" }.join("\n")
-      answer = read_from_minibuffer("Delete these files?\n#{list}\n(yes or no): ")
-      if answer == "yes"
+      if yes_or_no?("Delete these files?")
         files.each do |name|
           next if name == "." || name == ".."
           path = File.join(@buffer[:dired_directory], name)
