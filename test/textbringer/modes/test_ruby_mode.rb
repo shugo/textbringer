@@ -309,6 +309,20 @@ x = /
 EOF
   end
 
+  def test_indent_line_after_regexp_with_flags
+    @buffer.insert(<<EOF.chop)
+def foo
+  x = /abc/x
+bar
+EOF
+    @ruby_mode.indent_line
+    assert_equal(<<EOF.chop, @buffer.to_s)
+def foo
+  x = /abc/x
+  bar
+EOF
+  end
+
   def test_indent_line_comma
     @buffer.insert(<<EOF.chop)
 foo x,

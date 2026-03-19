@@ -1,4 +1,4 @@
-require "ripper"
+require "set"
 require "prism"
 
 module Textbringer
@@ -25,14 +25,18 @@ module Textbringer
     end
 
     def forward_definition(n = number_prefix_arg || 1)
-      tokens = Ripper.lex(@buffer.to_s)
+      tokens = Prism.lex(@buffer.to_s).value.filter_map { |token, _state|
+        type = token.type
+        next if type == :EOF
+        [token.location.start_line, type]
+      }
       @buffer.forward_line
       n.times do |i|
-        tokens = tokens.drop_while { |(l, _), e, t|
+        tokens = tokens.drop_while { |l, type|
           l < @buffer.current_line ||
-            e != :on_kw || /\A(?:class|module|def)\z/ !~ t
+            !DEFINITION_KEYWORDS.include?(type)
         }
-        (line,), = tokens.first
+        line, = tokens.first
         if line.nil?
           @buffer.end_of_buffer
           break
@@ -46,14 +50,18 @@ module Textbringer
     end
 
     def backward_definition(n = number_prefix_arg || 1)
-      tokens = Ripper.lex(@buffer.to_s).reverse
+      tokens = Prism.lex(@buffer.to_s).value.filter_map { |token, _state|
+        type = token.type
+        next if type == :EOF
+        [token.location.start_line, type]
+      }.reverse
       @buffer.beginning_of_line
       n.times do |i|
-        tokens = tokens.drop_while { |(l, _), e, t|
+        tokens = tokens.drop_while { |l, type|
           l >= @buffer.current_line ||
-            e != :on_kw || /\A(?:class|module|def)\z/ !~ t
+            !DEFINITION_KEYWORDS.include?(type)
         }
-        (line,), = tokens.first
+        line, = tokens.first
         if line.nil?
           @buffer.beginning_of_buffer
           break
@@ -192,6 +200,36 @@ module Textbringer
       METHOD_NAME: :function_name,
     }.freeze
 
+    DEFINITION_KEYWORDS = %i[KEYWORD_CLASS KEYWORD_MODULE KEYWORD_DEF].to_set
+
+    LITERAL_BEGIN_TYPES = %i[STRING_BEGIN HEREDOC_START REGEXP_BEGIN EMBDOC_BEGIN].to_set
+    LITERAL_END_TYPES = %i[STRING_END HEREDOC_END REGEXP_END EMBDOC_END].to_set
+
+    CONTINUATION_OPERATOR_TYPES = %i[
+      PLUS MINUS STAR SLASH PERCENT STAR_STAR
+      EQUAL EQUAL_EQUAL BANG_EQUAL
+      LESS GREATER LESS_EQUAL GREATER_EQUAL LESS_EQUAL_GREATER
+      EQUAL_TILDE BANG_TILDE
+      AMPERSAND_AMPERSAND PIPE_PIPE
+      BANG TILDE
+      LESS_LESS GREATER_GREATER
+      AMPERSAND CARET
+      PLUS_EQUAL MINUS_EQUAL STAR_EQUAL SLASH_EQUAL PERCENT_EQUAL
+      STAR_STAR_EQUAL AMPERSAND_EQUAL PIPE_EQUAL CARET_EQUAL
+      AMPERSAND_AMPERSAND_EQUAL PIPE_PIPE_EQUAL
+      LESS_LESS_EQUAL GREATER_GREATER_EQUAL
+      EQUAL_GREATER
+    ].to_set
+
+    BLOCK_END = {
+      EMBEXPR_BEGIN: :EMBEXPR_END,
+      BRACE_LEFT: :BRACE_RIGHT,
+      PARENTHESIS_LEFT: :PARENTHESIS_RIGHT,
+      BRACKET_LEFT: :BRACKET_RIGHT,
+      BRACKET_LEFT_ARRAY: :BRACKET_RIGHT,
+      LAMBDA_BEGIN: :BRACE_RIGHT,
+    }
+
     INDENT_BEG_RE = /^([ \t]*)(class|module|def|if|unless|case|while|until|for|begin)\b/
 
     def space_width(s)
@@ -203,7 +241,7 @@ module Textbringer
         @buffer.re_search_backward(INDENT_BEG_RE)
         space = @buffer.match_string(1)
         s = @buffer.substring(@buffer.point_min, @buffer.point)
-        if PartialLiteralAnalyzer.in_literal?(s)
+        if in_literal?(s)
           next
         end
         return space_width(space)
@@ -214,19 +252,12 @@ module Textbringer
     end
 
     def lex(source)
-      line_count = source.count("\n")
-      s = source
-      lineno = 1
-      tokens = []
-      loop do
-        lexer = Ripper::Lexer.new(s, "-", lineno)
-        tokens.concat(lexer.lex)
-        last_line = tokens.dig(-1, 0, 0)
-        return tokens if last_line.nil? || last_line >= line_count
-        s = source.sub(/(.*\n?){#{last_line}}/, "")
-        return tokens if last_line + 1 <= lineno
-        lineno = last_line + 1
-      end
+      Prism.lex(source).value.filter_map { |token, _state|
+        type = token.type
+        next if type == :EOF
+        loc = token.location
+        [[loc.start_line, loc.start_column], type, token.value]
+      }
     end
 
     def calculate_indentation
@@ -242,19 +273,20 @@ module Textbringer
         start_line = @buffer.current_line
         tokens = lex(@buffer.substring(start_pos, bol_pos))
         _, event, text = tokens.last
-        if event == :on_nl
+        if event == :NEWLINE || event == :IGNORED_NEWLINE
           _, event, text = tokens[-2]
         end
-        if event == :on_tstring_beg ||
-            event == :on_heredoc_beg ||
-            event == :on_regexp_beg ||
-            (event == :on_regexp_end && text.size > 1) ||
-            event == :on_tstring_content
+        if event == :STRING_BEGIN ||
+            event == :HEREDOC_START ||
+            (event == :HEREDOC_END && text.empty?) ||
+            event == :REGEXP_BEGIN ||
+            event == :STRING_CONTENT ||
+            event == :HEREDOC_CONTENT
           return nil
         end
         i, extra_end_count = find_nearest_beginning_token(tokens)
         (line, column), event, = i ? tokens[i] : nil
-        if event == :on_lparen && tokens.dig(i + 1, 1) != :on_ignored_nl
+        if event == :PARENTHESIS_LEFT && tokens.dig(i + 1, 1) != :IGNORED_NEWLINE
           return column + 1
         end
         if line
@@ -283,101 +315,87 @@ module Textbringer
         if @buffer.looking_at?(/[ \t]*([}\])]|(end|else|elsif|when|in|rescue|ensure)\b)/)
           indentation -= @buffer[:indent_level]
         end
-        _, last_event, last_text = tokens.reverse_each.find { |_, e, _|
-          e != :on_sp && e != :on_nl && e != :on_ignored_nl
+        _, last_event, = tokens.reverse_each.find { |_, e, _|
+          e != :NEWLINE && e != :IGNORED_NEWLINE
         }
         if start_with_period ||
-            (last_event == :on_op && last_text != "|") ||
-            (last_event == :on_kw && /\A(and|or)\z/.match?(last_text)) ||
-            last_event == :on_period ||
-            (last_event == :on_comma && event != :on_lbrace &&
-             event != :on_lparen && event != :on_lbracket) ||
-            last_event == :on_label
+            CONTINUATION_OPERATOR_TYPES.include?(last_event) ||
+            last_event == :KEYWORD_AND || last_event == :KEYWORD_OR ||
+            last_event == :DOT ||
+            (last_event == :COMMA && event != :BRACE_LEFT &&
+             event != :PARENTHESIS_LEFT && event != :BRACKET_LEFT &&
+             event != :BRACKET_LEFT_ARRAY) ||
+            last_event == :LABEL
           indentation += @buffer[:indent_level]
         end
         indentation
       end
     end
 
-    BLOCK_END = {
-      '#{' => "}",
-      "{" => "}",
-      "(" => ")",
-      "[" => "]"
-    }
-
     def find_nearest_beginning_token(tokens)
       stack = []
       (tokens.size - 1).downto(0) do |i|
         (line, ), event, text = tokens[i]
         case event
-        when :on_kw
-          _, prev_event, _ = tokens[i - 1]
-          next if prev_event == :on_symbeg
-          case text
-          when "class", "module", "def", "if", "unless", "case",
-            "do", "for", "while", "until", "begin"
-            if /\A(if|unless|while|until)\z/.match?(text) &&
-                modifier?(tokens, i)
-              next
-            end
-            if text == "def" && endless_method_def?(tokens, i)
-              next
-            end
-            if stack.empty?
-              return i
-            end
-            if stack.last != "end"
-              raise EditorError, "#{@buffer.name}:#{line}: Unmatched #{text}"
-            end
-            stack.pop
-          when "end"
-            stack.push(text)
+        when :KEYWORD_CLASS, :KEYWORD_MODULE, :KEYWORD_DEF,
+          :KEYWORD_IF, :KEYWORD_UNLESS, :KEYWORD_CASE,
+          :KEYWORD_DO, :KEYWORD_DO_LOOP, :KEYWORD_FOR,
+          :KEYWORD_WHILE, :KEYWORD_UNTIL, :KEYWORD_BEGIN
+          if i > 0
+            _, prev_event, _ = tokens[i - 1]
+            next if prev_event == :SYMBOL_BEGIN
           end
-        when :on_rbrace, :on_rparen, :on_rbracket, :on_embexpr_end
-          stack.push(text)
-        when :on_lbrace, :on_lparen, :on_lbracket, :on_tlambeg, :on_embexpr_beg
+          if event == :KEYWORD_DEF && endless_method_def?(tokens, i)
+            next
+          end
           if stack.empty?
             return i
           end
-          if stack.last != BLOCK_END[text]
+          if stack.last != :KEYWORD_END
+            raise EditorError, "#{@buffer.name}:#{line}: Unmatched #{text}"
+          end
+          stack.pop
+        when :KEYWORD_END
+          if i > 0
+            _, prev_event, _ = tokens[i - 1]
+            next if prev_event == :SYMBOL_BEGIN
+          end
+          stack.push(:KEYWORD_END)
+        when :BRACE_RIGHT, :PARENTHESIS_RIGHT, :BRACKET_RIGHT, :EMBEXPR_END
+          stack.push(event)
+        when :BRACE_LEFT, :PARENTHESIS_LEFT, :BRACKET_LEFT,
+          :BRACKET_LEFT_ARRAY, :LAMBDA_BEGIN, :EMBEXPR_BEGIN
+          if stack.empty?
+            return i
+          end
+          if stack.last != BLOCK_END[event]
             raise EditorError, "#{@buffer.name}:#{line}: Unmatched #{text}"
           end
           stack.pop
         end
       end
-      return nil, stack.grep_v(/[)\]]/).size
-    end
-
-    def modifier?(tokens, i)
-      (line,), = tokens[i]
-      ts = tokens[0...i].reverse_each.take_while { |(l,_),| l == line }
-      t = ts.find { |_, e| e != :on_sp }
-      t && !(t[1] == :on_op && t[2] == "=")
+      return nil, stack.count { |t| t != :PARENTHESIS_RIGHT && t != :BRACKET_RIGHT }
     end
 
     def endless_method_def?(tokens, i)
       ts = tokens.drop(i + 1)
-      ts.shift while ts[0][1] == :on_sp
       _, event = ts.shift
-      return false if event != :on_ident
-      ts.shift while ts[0][1] == :on_sp
-      if ts[0][1] == :on_lparen
+      return false if event != :IDENTIFIER && event != :METHOD_NAME
+      if ts[0][1] == :PARENTHESIS_LEFT
         ts.shift
         count = 1
         while count > 0
           _, event = ts.shift
           return false if event.nil?
           case event
-          when :on_lparen
-            count +=1
-          when :on_rparen
-            count -=1
+          when :PARENTHESIS_LEFT
+            count += 1
+          when :PARENTHESIS_RIGHT
+            count -= 1
           end
         end
-        ts.shift while ts[0][1] == :on_sp
       end
-      ts[0][1] == :on_op && ts[0][2] == "="
+      ts[0][1] == :EQUAL
     rescue NoMethodError # no token
       return false
     end
@@ -466,31 +484,18 @@ module Textbringer
       [highlight_on, highlight_off]
     end
 
-    class PartialLiteralAnalyzer < Ripper
-      def self.in_literal?(src)
-        new(src).in_literal?
-      end
-
-      def in_literal?
-        @literal_level = 0
-        parse
-        @literal_level > 0
-      end
-
-      private
-
-      %w(embdoc heredoc tstring regexp
-      symbols qsymbols words qwords).each do |name|
-        define_method("on_#{name}_beg") do |token|
-          @literal_level += 1
+    def in_literal?(source)
+      level = 0
+      Prism.lex(source).value.each do |token, _state|
+        type = token.type
+        if LITERAL_BEGIN_TYPES.include?(type)
+          level += 1
+        elsif LITERAL_END_TYPES.include?(type)
+          next if type == :HEREDOC_END && token.value.empty?
+          level -= 1
         end
       end
-
-      %w(embdoc heredoc tstring regexp).each do |name|
-        define_method("on_#{name}_end") do |token|
-          @literal_level -= 1
-        end
-      end
+      level > 0
     end
   end
 end
