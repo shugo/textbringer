@@ -490,7 +490,7 @@ module Textbringer
       nil
     end
 
-    def prism_highlight
+    def prism_highlight(window)
       highlight_on = {}
       highlight_off = {}
       return [highlight_on, highlight_off] if !Window.has_colors? ||
@@ -500,7 +500,6 @@ module Textbringer
         source = @buffer.to_s
       else
         base_pos = @buffer.point
-        window = Window.current
         len = window.columns * (window.lines - 1) / 2 * 3
         source = @buffer.substring(@buffer.point,
                                    @buffer.point + len).scrub("")
