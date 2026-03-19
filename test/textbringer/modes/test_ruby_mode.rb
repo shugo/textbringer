@@ -766,62 +766,6 @@ EOF
     end
   end
 
-  def test_syntax_string_here_document
-    m = @ruby_mode.syntax_table[:string].match(<<~EOF)
-      s = <<EOS
-        hello
-        world
-      EOS
-    EOF
-    assert_equal(<<~EOF.chop, m[0])
-      <<EOS
-        hello
-        world
-      EOS
-    EOF
-  end
-
-  def test_syntax_string_here_document_quoted
-    m = @ruby_mode.syntax_table[:string].match(<<~EOF)
-      s = <<'EOS'
-        hello
-        world
-      EOS
-    EOF
-    assert_equal(<<~EOF.chop, m[0])
-      <<'EOS'
-        hello
-        world
-      EOS
-    EOF
-  end
-
-  def test_syntax_string_here_document_unterminated
-    m = @ruby_mode.syntax_table[:string].match(<<~EOF)
-      s = <<EOS
-        hello
-        world
-      E
-    EOF
-    assert_equal(nil, m)
-
-    m = @ruby_mode.syntax_table[:string].match(<<~EOF)
-      s = <<EOS
-        hello
-        world
-      AEOS
-    EOF
-    assert_equal(nil, m)
-
-    m = @ruby_mode.syntax_table[:string].match(<<~EOF)
-      s = <<EOS
-        hello
-        world
-      EOSA
-    EOF
-    assert_equal(nil, m)
-  end
-
   def test_indent_new_comment_line
     @buffer.insert(<<EOF.chop)
   ### foo
@@ -830,145 +774,152 @@ EOF
     assert_equal("  ### foo\n  ### ", @buffer.to_s)
   end
 
-  if defined?(Prism)
-    def test_prism_highlight_override_set
-      assert_not_nil(@buffer[:highlight_override])
-    end
+  def test_prism_highlight_override_set
+    assert_not_nil(@buffer[:highlight_override])
+  end
 
-    def test_prism_highlight_keywords
-      Window.has_colors = true
-      @buffer.insert("def foo; end")
-      @buffer.beginning_of_buffer
-      highlight_on, highlight_off = @buffer[:highlight_override].call(Window.current)
-      # "def" at position 0
-      assert_equal(Face[:keyword], highlight_on[0])
-      assert_equal(true, highlight_off[3])
-      # "foo" at position 4 (function name after def)
-      assert_equal(Face[:function_name], highlight_on[4])
-      assert_equal(true, highlight_off[7])
-      # "end" at position 9
-      assert_equal(Face[:keyword], highlight_on[9])
-      assert_equal(true, highlight_off[12])
-    end
+  def test_prism_highlight_keywords
+    Window.has_colors = true
+    @buffer.insert("def foo; end")
+    @buffer.beginning_of_buffer
+    highlight_on, highlight_off = @buffer[:highlight_override].call(Window.current)
+    # "def" at position 0
+    assert_equal(Face[:keyword], highlight_on[0])
+    assert_equal(true, highlight_off[3])
+    # "foo" at position 4 (function name after def)
+    assert_equal(Face[:function_name], highlight_on[4])
+    assert_equal(true, highlight_off[7])
+    # "end" at position 9
+    assert_equal(Face[:keyword], highlight_on[9])
+    assert_equal(true, highlight_off[12])
+  end
 
-    def test_prism_highlight_comments
-      Window.has_colors = true
-      @buffer.insert("# comment")
-      @buffer.beginning_of_buffer
-      highlight_on, highlight_off = @buffer[:highlight_override].call(Window.current)
-      assert_equal(Face[:comment], highlight_on[0])
-      assert_equal(true, highlight_off[9])
-    end
+  def test_prism_highlight_comments
+    Window.has_colors = true
+    @buffer.insert("# comment")
+    @buffer.beginning_of_buffer
+    highlight_on, highlight_off = @buffer[:highlight_override].call(Window.current)
+    assert_equal(Face[:comment], highlight_on[0])
+    assert_equal(true, highlight_off[9])
+  end
 
-    def test_prism_highlight_strings
-      Window.has_colors = true
-      @buffer.insert('"hello"')
-      @buffer.beginning_of_buffer
-      highlight_on, highlight_off = @buffer[:highlight_override].call(Window.current)
-      # STRING_BEGIN at 0
-      assert_equal(Face[:string], highlight_on[0])
-      assert_equal(true, highlight_off[1])
-      # STRING_CONTENT at 1
-      assert_equal(Face[:string], highlight_on[1])
-      assert_equal(true, highlight_off[6])
-      # STRING_END at 6
-      assert_equal(Face[:string], highlight_on[6])
-      assert_equal(true, highlight_off[7])
-    end
+  def test_prism_highlight_strings
+    Window.has_colors = true
+    @buffer.insert('"hello"')
+    @buffer.beginning_of_buffer
+    highlight_on, highlight_off = @buffer[:highlight_override].call(Window.current)
+    # STRING_BEGIN at 0
+    assert_equal(Face[:string], highlight_on[0])
+    assert_equal(true, highlight_off[1])
+    # STRING_CONTENT at 1
+    assert_equal(Face[:string], highlight_on[1])
+    assert_equal(true, highlight_off[6])
+    # STRING_END at 6
+    assert_equal(Face[:string], highlight_on[6])
+    assert_equal(true, highlight_off[7])
+  end
 
-    def test_prism_highlight_symbols
-      Window.has_colors = true
-      @buffer.insert(":foo")
-      @buffer.beginning_of_buffer
-      highlight_on, highlight_off = @buffer[:highlight_override].call(Window.current)
-      # SYMBOL_BEGIN ":" at 0
-      assert_equal(Face[:string], highlight_on[0])
-      assert_equal(true, highlight_off[1])
-      # IDENTIFIER "foo" at 1 (carried by in_symbol state)
-      assert_equal(Face[:string], highlight_on[1])
-      assert_equal(true, highlight_off[4])
-    end
+  def test_prism_highlight_symbols
+    Window.has_colors = true
+    @buffer.insert(":foo")
+    @buffer.beginning_of_buffer
+    highlight_on, highlight_off = @buffer[:highlight_override].call(Window.current)
+    # SYMBOL_BEGIN ":" at 0
+    assert_equal(Face[:string], highlight_on[0])
+    assert_equal(true, highlight_off[1])
+    # IDENTIFIER "foo" at 1 (carried by in_symbol state)
+    assert_equal(Face[:string], highlight_on[1])
+    assert_equal(true, highlight_off[4])
+  end
 
-    def test_prism_highlight_numbers
-      Window.has_colors = true
-      @buffer.insert("42 + 3.14")
-      @buffer.beginning_of_buffer
-      highlight_on, _ = @buffer[:highlight_override].call(Window.current)
-      assert_equal(Face[:number], highlight_on[0])   # 42
-      assert_equal(Face[:number], highlight_on[5])   # 3.14
-    end
+  def test_prism_highlight_numbers
+    Window.has_colors = true
+    @buffer.insert("42 + 3.14")
+    @buffer.beginning_of_buffer
+    highlight_on, _ = @buffer[:highlight_override].call(Window.current)
+    assert_equal(Face[:number], highlight_on[0])   # 42
+    assert_equal(Face[:number], highlight_on[5])   # 3.14
+  end
 
-    def test_prism_highlight_constants
-      Window.has_colors = true
-      @buffer.insert("Foo::BAR")
-      @buffer.beginning_of_buffer
-      highlight_on, _ = @buffer[:highlight_override].call(Window.current)
-      assert_equal(Face[:constant], highlight_on[0])  # Foo
-      assert_equal(Face[:constant], highlight_on[5])  # BAR
-    end
+  def test_prism_highlight_constants
+    Window.has_colors = true
+    @buffer.insert("Foo::BAR")
+    @buffer.beginning_of_buffer
+    highlight_on, _ = @buffer[:highlight_override].call(Window.current)
+    assert_equal(Face[:constant], highlight_on[0])  # Foo
+    assert_equal(Face[:constant], highlight_on[5])  # BAR
+  end
 
-    def test_prism_highlight_variables
-      Window.has_colors = true
-      @buffer.insert("@foo + $bar")
-      @buffer.beginning_of_buffer
-      highlight_on, _ = @buffer[:highlight_override].call(Window.current)
-      assert_equal(Face[:variable], highlight_on[0])  # @foo
-      assert_equal(Face[:variable], highlight_on[7])  # $bar
-    end
+  def test_prism_highlight_variables
+    Window.has_colors = true
+    @buffer.insert("@foo + $bar")
+    @buffer.beginning_of_buffer
+    highlight_on, _ = @buffer[:highlight_override].call(Window.current)
+    assert_equal(Face[:variable], highlight_on[0])  # @foo
+    assert_equal(Face[:variable], highlight_on[7])  # $bar
+  end
 
-    def test_prism_highlight_operators
-      Window.has_colors = true
-      @buffer.insert("x + y == z")
-      @buffer.beginning_of_buffer
-      highlight_on, _ = @buffer[:highlight_override].call(Window.current)
-      assert_equal(Face[:operator], highlight_on[2])  # +
-      assert_equal(Face[:operator], highlight_on[6])  # ==
-    end
+  def test_prism_highlight_operators
+    Window.has_colors = true
+    @buffer.insert("x + y == z")
+    @buffer.beginning_of_buffer
+    highlight_on, _ = @buffer[:highlight_override].call(Window.current)
+    assert_equal(Face[:operator], highlight_on[2])  # +
+    assert_equal(Face[:operator], highlight_on[6])  # ==
+  end
 
-    def test_prism_highlight_builtins
-      Window.has_colors = true
-      @buffer.insert("self.nil?; true; false")
-      @buffer.beginning_of_buffer
-      highlight_on, _ = @buffer[:highlight_override].call(Window.current)
-      assert_equal(Face[:builtin], highlight_on[0])   # self
-      assert_equal(Face[:builtin], highlight_on[11])  # true
-      assert_equal(Face[:builtin], highlight_on[17])  # false
-    end
+  def test_prism_highlight_builtins
+    Window.has_colors = true
+    @buffer.insert("self.nil?; true; false")
+    @buffer.beginning_of_buffer
+    highlight_on, _ = @buffer[:highlight_override].call(Window.current)
+    assert_equal(Face[:builtin], highlight_on[0])   # self
+    assert_equal(Face[:builtin], highlight_on[11])  # true
+    assert_equal(Face[:builtin], highlight_on[17])  # false
+  end
 
-    def test_prism_highlight_labels
-      Window.has_colors = true
-      @buffer.insert("{ foo: 1 }")
-      @buffer.beginning_of_buffer
-      highlight_on, _ = @buffer[:highlight_override].call(Window.current)
-      assert_equal(Face[:property], highlight_on[2])  # foo:
-    end
+  def test_prism_highlight_labels
+    Window.has_colors = true
+    @buffer.insert("{ foo: 1 }")
+    @buffer.beginning_of_buffer
+    highlight_on, _ = @buffer[:highlight_override].call(Window.current)
+    assert_equal(Face[:property], highlight_on[2])  # foo:
+  end
 
-    def test_prism_highlight_symbol_with_constant
-      Window.has_colors = true
-      @buffer.insert(":Foo")
-      @buffer.beginning_of_buffer
-      highlight_on, _ = @buffer[:highlight_override].call(Window.current)
-      # Both : and Foo should be :string, not :constant
-      assert_equal(Face[:string], highlight_on[0])
-      assert_equal(Face[:string], highlight_on[1])
-    end
+  def test_prism_highlight_symbol_with_constant
+    Window.has_colors = true
+    @buffer.insert(":Foo")
+    @buffer.beginning_of_buffer
+    highlight_on, _ = @buffer[:highlight_override].call(Window.current)
+    # Both : and Foo should be :string, not :constant
+    assert_equal(Face[:string], highlight_on[0])
+    assert_equal(Face[:string], highlight_on[1])
+  end
 
-    def test_prism_highlight_def_self_method
-      Window.has_colors = true
-      @buffer.insert("def self.bar; end")
-      @buffer.beginning_of_buffer
-      highlight_on, _ = @buffer[:highlight_override].call(Window.current)
-      assert_equal(Face[:keyword], highlight_on[0])        # def
-      assert_equal(Face[:builtin], highlight_on[4])         # self
-      assert_equal(Face[:function_name], highlight_on[9])  # bar
-    end
+  def test_prism_highlight_def_self_method
+    Window.has_colors = true
+    @buffer.insert("def self.bar; end")
+    @buffer.beginning_of_buffer
+    highlight_on, _ = @buffer[:highlight_override].call(Window.current)
+    assert_equal(Face[:keyword], highlight_on[0])        # def
+    assert_equal(Face[:builtin], highlight_on[4])         # self
+    assert_equal(Face[:function_name], highlight_on[9])  # bar
+  end
 
-    def test_prism_highlight_empty_buffer
-      Window.has_colors = true
-      @buffer.beginning_of_buffer
-      highlight_on, highlight_off = @buffer[:highlight_override].call(Window.current)
-      assert_equal({}, highlight_on)
-      assert_equal({}, highlight_off)
-    end
+  def test_prism_highlight_def_with_newline
+    Window.has_colors = true
+    @buffer.insert("def\n  foo\nend")
+    @buffer.beginning_of_buffer
+    highlight_on, _ = @buffer[:highlight_override].call(Window.current)
+    assert_equal(Face[:keyword], highlight_on[0])        # def
+    assert_equal(Face[:function_name], highlight_on[6])  # foo
+  end
+
+  def test_prism_highlight_empty_buffer
+    Window.has_colors = true
+    @buffer.beginning_of_buffer
+    highlight_on, highlight_off = @buffer[:highlight_override].call(Window.current)
+    assert_equal({}, highlight_on)
+    assert_equal({}, highlight_off)
   end
 end

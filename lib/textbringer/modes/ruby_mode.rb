@@ -1,8 +1,5 @@
 require "ripper"
-begin
-  require "prism"
-rescue LoadError
-end
+require "prism"
 
 module Textbringer
   CONFIG[:ruby_indent_level] = 2
@@ -14,81 +11,6 @@ module Textbringer
             (?:Gem|Rake|Cap|Thor|Vagrant|Guard|Pod)file)\z/ix
     self.interpreter_name_pattern = /ruby/i
 
-    define_syntax :comment, /
-      (?: \#.*(?:\\\n.*)*(?:\z|(?<!\\)\n) ) |
-      (?: ^=begin (?:.|\n)* (?> ^=end \b ) )
-    /x
-
-    define_syntax :keyword, /
-      (?<![$@.]) \b (?: (?:
-        class | module | def | undef | begin | rescue | ensure | end |
-        if | unless | then | elsif | else | case | when | while | until |
-        for | break | next | redo | retry | in | do | return | yield |
-        super | self | nil | true | false | and | or | not | alias
-      ) \b (?![!?]) | defined\? )
-    /x
-
-    define_syntax :string, /
-      (?: (?<! [a-zA-Z] ) \?
-              (:?
-                [^\\\s] |
-                \\ [0-7]{1,3} |
-                \\x [0-9a-fA-F]{2} |
-                \\u [0-9a-fA-F]{4} |
-                \\u \{ [0-9a-fA-F]+ \} |
-                \\C - . |
-                \\M - . |
-                \\ .
-              )
-      ) |
-      (?: %[qQrwWsiIx]?\{ (?: [^\\}] | \\ .  )* \} ) |
-      (?: %[qQrwWsiIx]?\( (?: [^\\)] | \\ .  )* \) ) |
-      (?: %[qQrwWsiIx]?\[ (?: [^\\\]] | \\ .  )* \] ) |
-      (?: %[qQrwWsiIx]?< (?: [^\\>] | \\ .  )* > ) |
-      (?:
-         %[qQrwWsiIx]?
-             (?<string_delimiter>[^{(\[<a-zA-Z0-9\s\u{0100}-\u{10ffff}])
-             (?: (?! \k<string_delimiter> ) [^\\] | \\ .  )*
-             \k<string_delimiter>
-      ) |
-      (?:
-        (?<! \$ )
-            " (?: [^\\"] | \\ .  )* "
-      ) |
-      (?:
-        (?<! \$ )
-            ' (?: [^\\'] | \\ .  )* '
-      ) |
-      (?:
-         (?<! [$.] | def | def \s )
-             ` (?: [^\\`] | \\ .  )* `
-      ) |
-      (?:
-        (?<=
-          ^ |
-          \b and | \b or | \b while | \b until | \b unless | \b if |
-          \b elsif | \b when | \b not | \b then | \b else |
-          [;~=!|&(,\[<>?:*+-]
-        ) \s*
-        \/ (?: [^\\\/] | \\ .  )* \/[iomxneus]*
-      ) |
-      (?:
-        (?<! class | class \s | [\]})"'.] | :: | \w )
-            <<[\-~]?(?<heredoc_quote>['"`]?)
-            (?<heredoc_terminator>
-              (?> [_a-zA-Z\u{0100}-\u{10ffff}]
-                  [_a-zA-Z0-9\u{0100}-\u{10ffff}]* )
-            )
-            \k<heredoc_quote>
-            (?> (?:.|\n)*? ^ [\ \t]* \k<heredoc_terminator> $ )
-      ) |
-      (?:
-        (?<! : ) :
-            [_a-zA-Z\u{0100}-\u{10ffff}]
-            [_a-zA-Z0-9\u{0100}-\u{10ffff}]*
-      )
-    /x
-
     def comment_start
       "#"
     end
@@ -97,11 +19,9 @@ module Textbringer
       super(buffer)
       @buffer[:indent_level] = CONFIG[:ruby_indent_level]
       @buffer[:indent_tabs_mode] = CONFIG[:ruby_indent_tabs_mode]
-      if defined?(Prism)
-        @buffer[:highlight_override] = method(:prism_highlight)
-        @prism_cache_source = nil
-        @prism_cache_tokens = nil
-      end
+      @buffer[:highlight_override] = method(:prism_highlight)
+      @prism_cache_source = nil
+      @prism_cache_tokens = nil
     end
 
     def forward_definition(n = number_prefix_arg || 1)
@@ -528,7 +448,9 @@ module Textbringer
         end
         in_symbol = type == :SYMBOL_BEGIN
         after_def = type == :KEYWORD_DEF ||
-          (after_def && (type == :KEYWORD_SELF || type == :DOT))
+          (after_def && (type == :KEYWORD_SELF || type == :DOT ||
+                         type == :NEWLINE || type == :IGNORED_NEWLINE ||
+                         type == :COMMENT))
         next unless face_name
         face = Face[face_name]
         next unless face
