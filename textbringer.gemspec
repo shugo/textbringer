@@ -21,6 +21,7 @@ Gem::Specification.new do |spec|
 
   spec.required_ruby_version = '>= 3.2'
 
+  spec.add_runtime_dependency "prism"
   spec.add_runtime_dependency "rdoc"
   spec.add_runtime_dependency "ostruct"
   spec.add_runtime_dependency "irb"
