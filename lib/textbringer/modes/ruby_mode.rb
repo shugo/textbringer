@@ -1,3 +1,4 @@
+require "set"
 require "prism"
 
 module Textbringer
@@ -340,8 +341,10 @@ module Textbringer
           :KEYWORD_IF, :KEYWORD_UNLESS, :KEYWORD_CASE,
           :KEYWORD_DO, :KEYWORD_DO_LOOP, :KEYWORD_FOR,
           :KEYWORD_WHILE, :KEYWORD_UNTIL, :KEYWORD_BEGIN
-          _, prev_event, _ = tokens[i - 1]
-          next if prev_event == :SYMBOL_BEGIN
+          if i > 0
+            _, prev_event, _ = tokens[i - 1]
+            next if prev_event == :SYMBOL_BEGIN
+          end
           if event == :KEYWORD_DEF && endless_method_def?(tokens, i)
             next
           end
@@ -353,8 +356,10 @@ module Textbringer
           end
           stack.pop
         when :KEYWORD_END
-          _, prev_event, _ = tokens[i - 1]
-          next if prev_event == :SYMBOL_BEGIN
+          if i > 0
+            _, prev_event, _ = tokens[i - 1]
+            next if prev_event == :SYMBOL_BEGIN
+          end
           stack.push(:KEYWORD_END)
         when :BRACE_RIGHT, :PARENTHESIS_RIGHT, :BRACKET_RIGHT, :EMBEXPR_END
           stack.push(event)
@@ -486,6 +491,7 @@ module Textbringer
         if LITERAL_BEGIN_TYPES.include?(type)
           level += 1
         elsif LITERAL_END_TYPES.include?(type)
+          next if type == :HEREDOC_END && token.value.empty?
           level -= 1
         end
       end
