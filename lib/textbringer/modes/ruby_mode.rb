@@ -187,6 +187,7 @@ module Textbringer
     private
 
     PRISM_TOKEN_FACES = {
+      # Keywords
       KEYWORD_ALIAS: :keyword, KEYWORD_AND: :keyword, KEYWORD_BEGIN: :keyword,
       KEYWORD_BEGIN_UPCASE: :keyword, KEYWORD_BREAK: :keyword,
       KEYWORD_CASE: :keyword, KEYWORD_CLASS: :keyword, KEYWORD_DEF: :keyword,
@@ -194,30 +195,81 @@ module Textbringer
       KEYWORD_DO_LOOP: :keyword, KEYWORD_ELSE: :keyword,
       KEYWORD_ELSIF: :keyword, KEYWORD_END: :keyword,
       KEYWORD_END_UPCASE: :keyword, KEYWORD_ENSURE: :keyword,
-      KEYWORD_FALSE: :keyword, KEYWORD_FOR: :keyword, KEYWORD_IF: :keyword,
+      KEYWORD_FALSE: :builtin, KEYWORD_FOR: :keyword, KEYWORD_IF: :keyword,
       KEYWORD_IF_MODIFIER: :keyword, KEYWORD_IN: :keyword,
-      KEYWORD_MODULE: :keyword, KEYWORD_NEXT: :keyword, KEYWORD_NIL: :keyword,
+      KEYWORD_MODULE: :keyword, KEYWORD_NEXT: :keyword,
+      KEYWORD_NIL: :builtin,
       KEYWORD_NOT: :keyword, KEYWORD_OR: :keyword, KEYWORD_REDO: :keyword,
       KEYWORD_RESCUE: :keyword, KEYWORD_RESCUE_MODIFIER: :keyword,
       KEYWORD_RETRY: :keyword, KEYWORD_RETURN: :keyword,
-      KEYWORD_SELF: :keyword, KEYWORD_SUPER: :keyword, KEYWORD_THEN: :keyword,
-      KEYWORD_TRUE: :keyword, KEYWORD_UNDEF: :keyword,
+      KEYWORD_SELF: :builtin, KEYWORD_SUPER: :builtin,
+      KEYWORD_THEN: :keyword, KEYWORD_TRUE: :builtin,
+      KEYWORD_UNDEF: :keyword,
       KEYWORD_UNLESS: :keyword, KEYWORD_UNLESS_MODIFIER: :keyword,
       KEYWORD_UNTIL: :keyword, KEYWORD_UNTIL_MODIFIER: :keyword,
       KEYWORD_WHEN: :keyword, KEYWORD_WHILE: :keyword,
       KEYWORD_WHILE_MODIFIER: :keyword, KEYWORD_YIELD: :keyword,
+      KEYWORD___FILE__: :builtin, KEYWORD___LINE__: :builtin,
+      KEYWORD___ENCODING__: :builtin,
 
+      # Comments
       COMMENT: :comment, EMBDOC_BEGIN: :comment, EMBDOC_LINE: :comment,
       EMBDOC_END: :comment,
 
+      # Strings and string-like
       STRING_BEGIN: :string, STRING_CONTENT: :string, STRING_END: :string,
       SYMBOL_BEGIN: :string, REGEXP_BEGIN: :string, REGEXP_END: :string,
       HEREDOC_START: :string, HEREDOC_END: :string,
-      INTEGER: :string, FLOAT: :string,
-      INTEGER_RATIONAL: :string, FLOAT_RATIONAL: :string,
-      INTEGER_IMAGINARY: :string, FLOAT_IMAGINARY: :string,
-      INTEGER_RATIONAL_IMAGINARY: :string, FLOAT_RATIONAL_IMAGINARY: :string,
-      LABEL: :string,
+      LABEL: :property,
+
+      # Numbers
+      INTEGER: :number, FLOAT: :number,
+      INTEGER_RATIONAL: :number, FLOAT_RATIONAL: :number,
+      INTEGER_IMAGINARY: :number, FLOAT_IMAGINARY: :number,
+      INTEGER_RATIONAL_IMAGINARY: :number, FLOAT_RATIONAL_IMAGINARY: :number,
+
+      # Constants
+      CONSTANT: :constant,
+
+      # Variables
+      INSTANCE_VARIABLE: :variable, CLASS_VARIABLE: :variable,
+      GLOBAL_VARIABLE: :variable,
+
+      # Operators
+      PLUS: :operator, MINUS: :operator, STAR: :operator, SLASH: :operator,
+      PERCENT: :operator, STAR_STAR: :operator,
+      EQUAL: :operator, EQUAL_EQUAL: :operator, BANG_EQUAL: :operator,
+      LESS: :operator, GREATER: :operator,
+      LESS_EQUAL: :operator, GREATER_EQUAL: :operator,
+      LESS_EQUAL_GREATER: :operator, EQUAL_EQUAL_EQUAL: :operator,
+      EQUAL_TILDE: :operator, BANG_TILDE: :operator,
+      AMPERSAND_AMPERSAND: :operator, PIPE_PIPE: :operator,
+      BANG: :operator, TILDE: :operator,
+      LESS_LESS: :operator, GREATER_GREATER: :operator,
+      AMPERSAND: :operator, PIPE: :operator, CARET: :operator,
+      PLUS_EQUAL: :operator, MINUS_EQUAL: :operator,
+      STAR_EQUAL: :operator, SLASH_EQUAL: :operator,
+      PERCENT_EQUAL: :operator, STAR_STAR_EQUAL: :operator,
+      AMPERSAND_EQUAL: :operator, PIPE_EQUAL: :operator,
+      CARET_EQUAL: :operator,
+      AMPERSAND_AMPERSAND_EQUAL: :operator, PIPE_PIPE_EQUAL: :operator,
+      LESS_LESS_EQUAL: :operator, GREATER_GREATER_EQUAL: :operator,
+      DOT_DOT: :operator, DOT_DOT_DOT: :operator,
+      EQUAL_GREATER: :operator, UMINUS: :operator, UPLUS: :operator,
+      USTAR: :operator, USTAR_STAR: :operator, UAMPERSAND: :operator,
+
+      # Punctuation
+      DOT: :punctuation, COLON_COLON: :punctuation,
+      SEMICOLON: :punctuation, COMMA: :punctuation,
+      PARENTHESIS_LEFT: :punctuation, PARENTHESIS_RIGHT: :punctuation,
+      BRACKET_LEFT: :punctuation, BRACKET_LEFT_ARRAY: :punctuation,
+      BRACKET_RIGHT: :punctuation,
+      BRACE_LEFT: :punctuation, BRACE_RIGHT: :punctuation,
+      QUESTION_MARK: :punctuation, COLON: :punctuation,
+      LAMBDA_BEGIN: :punctuation,
+
+      # Method names (e.g. block_given?, is_a?)
+      METHOD_NAME: :function_name,
     }.freeze
 
     INDENT_BEG_RE = /^([ \t]*)(class|module|def|if|unless|case|while|until|for|begin)\b/
@@ -462,13 +514,22 @@ module Textbringer
         @prism_cache_tokens = tokens
       end
       in_symbol = false
+      after_def = false
       tokens.each do |token_info|
         token = token_info[0]
-        face_name = PRISM_TOKEN_FACES[token.type]
-        if face_name.nil? && in_symbol
-          face_name = :string
+        type = token.type
+        face_name = PRISM_TOKEN_FACES[type]
+        if in_symbol
+          face_name = :string if face_name.nil? || face_name == :constant ||
+            face_name == :operator
+        elsif after_def
+          face_name = :function_name if type == :IDENTIFIER ||
+            type == :CONSTANT || type == :METHOD_NAME ||
+            PRISM_TOKEN_FACES[type] == :operator
         end
-        in_symbol = token.type == :SYMBOL_BEGIN
+        in_symbol = type == :SYMBOL_BEGIN
+        after_def = type == :KEYWORD_DEF ||
+          (after_def && (type == :KEYWORD_SELF || type == :DOT))
         next unless face_name
         face = Face[face_name]
         next unless face
