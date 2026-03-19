@@ -1,4 +1,8 @@
 require "ripper"
+begin
+  require "prism"
+rescue LoadError
+end
 
 module Textbringer
   CONFIG[:ruby_indent_level] = 2
@@ -93,6 +97,11 @@ module Textbringer
       super(buffer)
       @buffer[:indent_level] = CONFIG[:ruby_indent_level]
       @buffer[:indent_tabs_mode] = CONFIG[:ruby_indent_tabs_mode]
+      if defined?(Prism)
+        @buffer[:highlight_override] = method(:prism_highlight)
+        @prism_cache_source = nil
+        @prism_cache_tokens = nil
+      end
     end
 
     def forward_definition(n = number_prefix_arg || 1)
@@ -176,6 +185,40 @@ module Textbringer
     end
 
     private
+
+    PRISM_TOKEN_FACES = {
+      KEYWORD_ALIAS: :keyword, KEYWORD_AND: :keyword, KEYWORD_BEGIN: :keyword,
+      KEYWORD_BEGIN_UPCASE: :keyword, KEYWORD_BREAK: :keyword,
+      KEYWORD_CASE: :keyword, KEYWORD_CLASS: :keyword, KEYWORD_DEF: :keyword,
+      KEYWORD_DEFINED: :keyword, KEYWORD_DO: :keyword,
+      KEYWORD_DO_LOOP: :keyword, KEYWORD_ELSE: :keyword,
+      KEYWORD_ELSIF: :keyword, KEYWORD_END: :keyword,
+      KEYWORD_END_UPCASE: :keyword, KEYWORD_ENSURE: :keyword,
+      KEYWORD_FALSE: :keyword, KEYWORD_FOR: :keyword, KEYWORD_IF: :keyword,
+      KEYWORD_IF_MODIFIER: :keyword, KEYWORD_IN: :keyword,
+      KEYWORD_MODULE: :keyword, KEYWORD_NEXT: :keyword, KEYWORD_NIL: :keyword,
+      KEYWORD_NOT: :keyword, KEYWORD_OR: :keyword, KEYWORD_REDO: :keyword,
+      KEYWORD_RESCUE: :keyword, KEYWORD_RESCUE_MODIFIER: :keyword,
+      KEYWORD_RETRY: :keyword, KEYWORD_RETURN: :keyword,
+      KEYWORD_SELF: :keyword, KEYWORD_SUPER: :keyword, KEYWORD_THEN: :keyword,
+      KEYWORD_TRUE: :keyword, KEYWORD_UNDEF: :keyword,
+      KEYWORD_UNLESS: :keyword, KEYWORD_UNLESS_MODIFIER: :keyword,
+      KEYWORD_UNTIL: :keyword, KEYWORD_UNTIL_MODIFIER: :keyword,
+      KEYWORD_WHEN: :keyword, KEYWORD_WHILE: :keyword,
+      KEYWORD_WHILE_MODIFIER: :keyword, KEYWORD_YIELD: :keyword,
+
+      COMMENT: :comment, EMBDOC_BEGIN: :comment, EMBDOC_LINE: :comment,
+      EMBDOC_END: :comment,
+
+      STRING_BEGIN: :string, STRING_CONTENT: :string, STRING_END: :string,
+      SYMBOL_BEGIN: :string, REGEXP_BEGIN: :string, REGEXP_END: :string,
+      HEREDOC_START: :string, HEREDOC_END: :string,
+      INTEGER: :string, FLOAT: :string,
+      INTEGER_RATIONAL: :string, FLOAT_RATIONAL: :string,
+      INTEGER_IMAGINARY: :string, FLOAT_IMAGINARY: :string,
+      INTEGER_RATIONAL_IMAGINARY: :string, FLOAT_RATIONAL_IMAGINARY: :string,
+      LABEL: :string,
+    }.freeze
 
     INDENT_BEG_RE = /^([ \t]*)(class|module|def|if|unless|case|while|until|for|begin)\b/
 
@@ -393,6 +436,52 @@ module Textbringer
         return paths.first if !paths.empty?
       end
       nil
+    end
+
+    def prism_highlight
+      highlight_on = {}
+      highlight_off = {}
+      return [highlight_on, highlight_off] if !Window.has_colors? ||
+        !CONFIG[:syntax_highlight] || @buffer.binary?
+      if @buffer.bytesize < CONFIG[:highlight_buffer_size_limit]
+        base_pos = @buffer.point_min
+        source = @buffer.to_s
+      else
+        base_pos = @buffer.point
+        window = Window.current
+        len = window.columns * (window.lines - 1) / 2 * 3
+        source = @buffer.substring(@buffer.point,
+                                   @buffer.point + len).scrub("")
+      end
+      return [highlight_on, highlight_off] if !source.valid_encoding?
+      if source == @prism_cache_source
+        tokens = @prism_cache_tokens
+      else
+        tokens = Prism.lex(source).value
+        @prism_cache_source = source
+        @prism_cache_tokens = tokens
+      end
+      in_symbol = false
+      tokens.each do |token_info|
+        token = token_info[0]
+        face_name = PRISM_TOKEN_FACES[token.type]
+        if face_name.nil? && in_symbol
+          face_name = :string
+        end
+        in_symbol = token.type == :SYMBOL_BEGIN
+        next unless face_name
+        face = Face[face_name]
+        next unless face
+        offset = token.location.start_offset
+        length = token.location.length
+        pos = base_pos + offset
+        if pos < @buffer.point && @buffer.point < pos + length
+          pos = @buffer.point
+        end
+        highlight_on[pos] = face
+        highlight_off[pos + length] = true
+      end
+      [highlight_on, highlight_off]
     end
 
     class PartialLiteralAnalyzer < Ripper
