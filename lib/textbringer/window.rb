@@ -405,7 +405,7 @@ module Textbringer
       @highlight_on = {}
       @highlight_off = {}
       if (override = @buffer[:highlight_override])
-        @highlight_on, @highlight_off = override.call
+        @highlight_on, @highlight_off = override.call(self)
         return
       end
       return if !@@has_colors || !CONFIG[:syntax_highlight] || @buffer.binary?

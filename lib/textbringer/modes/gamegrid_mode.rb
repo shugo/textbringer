@@ -21,7 +21,7 @@ module Textbringer
       grid = Gamegrid.new(width, height, margin_left: margin_left)
       @buffer[:gamegrid] = grid
       @buffer.read_only = true
-      @buffer[:highlight_override] = -> { grid.face_map }
+      @buffer[:highlight_override] = ->(_window) { grid.face_map }
       grid
     end
 

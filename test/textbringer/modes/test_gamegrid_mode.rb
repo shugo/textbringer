@@ -46,7 +46,7 @@ class TestGamegridMode < Textbringer::TestCase
     @mode.gamegrid_refresh
 
     override = @buffer[:highlight_override]
-    highlight_on, highlight_off = override.call
+    highlight_on, highlight_off = override.call(Window.current)
     assert_equal(Face[:gamegrid_red], highlight_on[0])
     assert_equal(true, highlight_off[1])
   end

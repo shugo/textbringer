@@ -1,4 +1,5 @@
 require "ripper"
+require "prism"
 
 module Textbringer
   CONFIG[:ruby_indent_level] = 2
@@ -10,81 +11,6 @@ module Textbringer
             (?:Gem|Rake|Cap|Thor|Vagrant|Guard|Pod)file)\z/ix
     self.interpreter_name_pattern = /ruby/i
 
-    define_syntax :comment, /
-      (?: \#.*(?:\\\n.*)*(?:\z|(?<!\\)\n) ) |
-      (?: ^=begin (?:.|\n)* (?> ^=end \b ) )
-    /x
-
-    define_syntax :keyword, /
-      (?<![$@.]) \b (?: (?:
-        class | module | def | undef | begin | rescue | ensure | end |
-        if | unless | then | elsif | else | case | when | while | until |
-        for | break | next | redo | retry | in | do | return | yield |
-        super | self | nil | true | false | and | or | not | alias
-      ) \b (?![!?]) | defined\? )
-    /x
-
-    define_syntax :string, /
-      (?: (?<! [a-zA-Z] ) \?
-              (:?
-                [^\\\s] |
-                \\ [0-7]{1,3} |
-                \\x [0-9a-fA-F]{2} |
-                \\u [0-9a-fA-F]{4} |
-                \\u \{ [0-9a-fA-F]+ \} |
-                \\C - . |
-                \\M - . |
-                \\ .
-              )
-      ) |
-      (?: %[qQrwWsiIx]?\{ (?: [^\\}] | \\ .  )* \} ) |
-      (?: %[qQrwWsiIx]?\( (?: [^\\)] | \\ .  )* \) ) |
-      (?: %[qQrwWsiIx]?\[ (?: [^\\\]] | \\ .  )* \] ) |
-      (?: %[qQrwWsiIx]?< (?: [^\\>] | \\ .  )* > ) |
-      (?:
-         %[qQrwWsiIx]?
-             (?<string_delimiter>[^{(\[<a-zA-Z0-9\s\u{0100}-\u{10ffff}])
-             (?: (?! \k<string_delimiter> ) [^\\] | \\ .  )*
-             \k<string_delimiter>
-      ) |
-      (?:
-        (?<! \$ )
-            " (?: [^\\"] | \\ .  )* "
-      ) |
-      (?:
-        (?<! \$ )
-            ' (?: [^\\'] | \\ .  )* '
-      ) |
-      (?:
-         (?<! [$.] | def | def \s )
-             ` (?: [^\\`] | \\ .  )* `
-      ) |
-      (?:
-        (?<=
-          ^ |
-          \b and | \b or | \b while | \b until | \b unless | \b if |
-          \b elsif | \b when | \b not | \b then | \b else |
-          [;~=!|&(,\[<>?:*+-]
-        ) \s*
-        \/ (?: [^\\\/] | \\ .  )* \/[iomxneus]*
-      ) |
-      (?:
-        (?<! class | class \s | [\]})"'.] | :: | \w )
-            <<[\-~]?(?<heredoc_quote>['"`]?)
-            (?<heredoc_terminator>
-              (?> [_a-zA-Z\u{0100}-\u{10ffff}]
-                  [_a-zA-Z0-9\u{0100}-\u{10ffff}]* )
-            )
-            \k<heredoc_quote>
-            (?> (?:.|\n)*? ^ [\ \t]* \k<heredoc_terminator> $ )
-      ) |
-      (?:
-        (?<! : ) :
-            [_a-zA-Z\u{0100}-\u{10ffff}]
-            [_a-zA-Z0-9\u{0100}-\u{10ffff}]*
-      )
-    /x
-
     def comment_start
       "#"
     end
@@ -93,6 +19,9 @@ module Textbringer
       super(buffer)
       @buffer[:indent_level] = CONFIG[:ruby_indent_level]
       @buffer[:indent_tabs_mode] = CONFIG[:ruby_indent_tabs_mode]
+      @buffer[:highlight_override] = method(:prism_highlight)
+      @prism_cache_source = nil
+      @prism_cache_tokens = nil
     end
 
     def forward_definition(n = number_prefix_arg || 1)
@@ -176,6 +105,92 @@ module Textbringer
     end
 
     private
+
+    PRISM_TOKEN_FACES = {
+      # Keywords
+      KEYWORD_ALIAS: :keyword, KEYWORD_AND: :keyword, KEYWORD_BEGIN: :keyword,
+      KEYWORD_BEGIN_UPCASE: :keyword, KEYWORD_BREAK: :keyword,
+      KEYWORD_CASE: :keyword, KEYWORD_CLASS: :keyword, KEYWORD_DEF: :keyword,
+      KEYWORD_DEFINED: :keyword, KEYWORD_DO: :keyword,
+      KEYWORD_DO_LOOP: :keyword, KEYWORD_ELSE: :keyword,
+      KEYWORD_ELSIF: :keyword, KEYWORD_END: :keyword,
+      KEYWORD_END_UPCASE: :keyword, KEYWORD_ENSURE: :keyword,
+      KEYWORD_FALSE: :builtin, KEYWORD_FOR: :keyword, KEYWORD_IF: :keyword,
+      KEYWORD_IF_MODIFIER: :keyword, KEYWORD_IN: :keyword,
+      KEYWORD_MODULE: :keyword, KEYWORD_NEXT: :keyword,
+      KEYWORD_NIL: :builtin,
+      KEYWORD_NOT: :keyword, KEYWORD_OR: :keyword, KEYWORD_REDO: :keyword,
+      KEYWORD_RESCUE: :keyword, KEYWORD_RESCUE_MODIFIER: :keyword,
+      KEYWORD_RETRY: :keyword, KEYWORD_RETURN: :keyword,
+      KEYWORD_SELF: :builtin, KEYWORD_SUPER: :builtin,
+      KEYWORD_THEN: :keyword, KEYWORD_TRUE: :builtin,
+      KEYWORD_UNDEF: :keyword,
+      KEYWORD_UNLESS: :keyword, KEYWORD_UNLESS_MODIFIER: :keyword,
+      KEYWORD_UNTIL: :keyword, KEYWORD_UNTIL_MODIFIER: :keyword,
+      KEYWORD_WHEN: :keyword, KEYWORD_WHILE: :keyword,
+      KEYWORD_WHILE_MODIFIER: :keyword, KEYWORD_YIELD: :keyword,
+      KEYWORD___FILE__: :builtin, KEYWORD___LINE__: :builtin,
+      KEYWORD___ENCODING__: :builtin,
+
+      # Comments
+      COMMENT: :comment, EMBDOC_BEGIN: :comment, EMBDOC_LINE: :comment,
+      EMBDOC_END: :comment,
+
+      # Strings and string-like
+      STRING_BEGIN: :string, STRING_CONTENT: :string, STRING_END: :string,
+      SYMBOL_BEGIN: :string, REGEXP_BEGIN: :string, REGEXP_END: :string,
+      HEREDOC_START: :string, HEREDOC_END: :string,
+      LABEL: :property,
+
+      # Numbers
+      INTEGER: :number, FLOAT: :number,
+      INTEGER_RATIONAL: :number, FLOAT_RATIONAL: :number,
+      INTEGER_IMAGINARY: :number, FLOAT_IMAGINARY: :number,
+      INTEGER_RATIONAL_IMAGINARY: :number, FLOAT_RATIONAL_IMAGINARY: :number,
+
+      # Constants
+      CONSTANT: :constant,
+
+      # Variables
+      INSTANCE_VARIABLE: :variable, CLASS_VARIABLE: :variable,
+      GLOBAL_VARIABLE: :variable,
+
+      # Operators
+      PLUS: :operator, MINUS: :operator, STAR: :operator, SLASH: :operator,
+      PERCENT: :operator, STAR_STAR: :operator,
+      EQUAL: :operator, EQUAL_EQUAL: :operator, BANG_EQUAL: :operator,
+      LESS: :operator, GREATER: :operator,
+      LESS_EQUAL: :operator, GREATER_EQUAL: :operator,
+      LESS_EQUAL_GREATER: :operator, EQUAL_EQUAL_EQUAL: :operator,
+      EQUAL_TILDE: :operator, BANG_TILDE: :operator,
+      AMPERSAND_AMPERSAND: :operator, PIPE_PIPE: :operator,
+      BANG: :operator, TILDE: :operator,
+      LESS_LESS: :operator, GREATER_GREATER: :operator,
+      AMPERSAND: :operator, PIPE: :operator, CARET: :operator,
+      PLUS_EQUAL: :operator, MINUS_EQUAL: :operator,
+      STAR_EQUAL: :operator, SLASH_EQUAL: :operator,
+      PERCENT_EQUAL: :operator, STAR_STAR_EQUAL: :operator,
+      AMPERSAND_EQUAL: :operator, PIPE_EQUAL: :operator,
+      CARET_EQUAL: :operator,
+      AMPERSAND_AMPERSAND_EQUAL: :operator, PIPE_PIPE_EQUAL: :operator,
+      LESS_LESS_EQUAL: :operator, GREATER_GREATER_EQUAL: :operator,
+      DOT_DOT: :operator, DOT_DOT_DOT: :operator,
+      EQUAL_GREATER: :operator, UMINUS: :operator, UPLUS: :operator,
+      USTAR: :operator, USTAR_STAR: :operator, UAMPERSAND: :operator,
+
+      # Punctuation
+      DOT: :punctuation, COLON_COLON: :punctuation,
+      SEMICOLON: :punctuation, COMMA: :punctuation,
+      PARENTHESIS_LEFT: :punctuation, PARENTHESIS_RIGHT: :punctuation,
+      BRACKET_LEFT: :punctuation, BRACKET_LEFT_ARRAY: :punctuation,
+      BRACKET_RIGHT: :punctuation,
+      BRACE_LEFT: :punctuation, BRACE_RIGHT: :punctuation,
+      QUESTION_MARK: :punctuation, COLON: :punctuation,
+      LAMBDA_BEGIN: :punctuation,
+
+      # Method names (e.g. block_given?, is_a?)
+      METHOD_NAME: :function_name,
+    }.freeze
 
     INDENT_BEG_RE = /^([ \t]*)(class|module|def|if|unless|case|while|until|for|begin)\b/
 
@@ -393,6 +408,62 @@ module Textbringer
         return paths.first if !paths.empty?
       end
       nil
+    end
+
+    def prism_highlight(window)
+      highlight_on = {}
+      highlight_off = {}
+      return [highlight_on, highlight_off] if !Window.has_colors? ||
+        !CONFIG[:syntax_highlight] || @buffer.binary?
+      if @buffer.bytesize < CONFIG[:highlight_buffer_size_limit]
+        base_pos = @buffer.point_min
+        source = @buffer.to_s
+      else
+        base_pos = @buffer.point
+        len = window.columns * (window.lines - 1) / 2 * 3
+        source = @buffer.substring(@buffer.point,
+                                   @buffer.point + len).scrub("")
+      end
+      return [highlight_on, highlight_off] if !source.valid_encoding?
+      if source == @prism_cache_source
+        tokens = @prism_cache_tokens
+      else
+        tokens = Prism.lex(source).value
+        @prism_cache_source = source
+        @prism_cache_tokens = tokens
+      end
+      in_symbol = false
+      after_def = false
+      tokens.each do |token_info|
+        token = token_info[0]
+        type = token.type
+        face_name = PRISM_TOKEN_FACES[type]
+        if in_symbol
+          face_name = :string if face_name.nil? || face_name == :constant ||
+            face_name == :operator
+        elsif after_def
+          face_name = :function_name if type == :IDENTIFIER ||
+            type == :CONSTANT || type == :METHOD_NAME ||
+            PRISM_TOKEN_FACES[type] == :operator
+        end
+        in_symbol = type == :SYMBOL_BEGIN
+        after_def = type == :KEYWORD_DEF ||
+          (after_def && (type == :KEYWORD_SELF || type == :DOT ||
+                         type == :NEWLINE || type == :IGNORED_NEWLINE ||
+                         type == :COMMENT))
+        next unless face_name
+        face = Face[face_name]
+        next unless face
+        offset = token.location.start_offset
+        length = token.location.length
+        pos = base_pos + offset
+        if pos < @buffer.point && @buffer.point < pos + length
+          pos = @buffer.point
+        end
+        highlight_on[pos] = face
+        highlight_off[pos + length] = true
+      end
+      [highlight_on, highlight_off]
     end
 
     class PartialLiteralAnalyzer < Ripper
