@@ -6,6 +6,7 @@ module Textbringer
 
     @@face_table = {}
     @@next_color_pair = 1
+    @@color_pair_cache = {}
 
     def self.[](name)
       @@face_table[name]
@@ -27,8 +28,6 @@ module Textbringer
 
     def initialize(name, **opts)
       @name = name
-      @color_pair = @@next_color_pair
-      @@next_color_pair += 1
       update(**opts)
     end
 
@@ -67,8 +66,15 @@ module Textbringer
       @bold = @explicit_bold.nil? ? (parent&.instance_variable_get(:@bold) || false) : @explicit_bold
       @underline = @explicit_underline.nil? ? (parent&.instance_variable_get(:@underline) || false) : @explicit_underline
       @reverse = @explicit_reverse.nil? ? (parent&.instance_variable_get(:@reverse) || false) : @explicit_reverse
-      Curses.init_pair(@color_pair,
-                       Color[@foreground], Color[@background])
+      fg_num = Color[@foreground]
+      bg_num = Color[@background]
+      key = [fg_num, bg_num]
+      unless @@color_pair_cache.key?(key)
+        @@color_pair_cache[key] = @@next_color_pair
+        Curses.init_pair(@@next_color_pair, fg_num, bg_num)
+        @@next_color_pair += 1
+      end
+      @color_pair = @@color_pair_cache[key]
       @text_attrs = 0
       @text_attrs |= Curses::A_BOLD if @bold
       @text_attrs |= Curses::A_UNDERLINE if @underline
