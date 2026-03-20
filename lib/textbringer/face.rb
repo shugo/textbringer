@@ -35,6 +35,10 @@ module Textbringer
     def update(foreground: nil, background: nil,
                bold: nil, underline: nil, reverse: nil,
                inherit: nil)
+      if inherit && self.class.cyclic_inheritance?(@name, inherit)
+        raise EditorError,
+              "Cyclic face inheritance: #{@name} inherits from #{inherit}"
+      end
       @inherit = inherit
       @explicit_foreground = foreground
       @explicit_background = background
@@ -61,6 +65,16 @@ module Textbringer
       @text_attrs |= Curses::A_UNDERLINE if @underline
       @text_attrs |= Curses::A_REVERSE if @reverse
       @attributes = Curses.color_pair(@color_pair) | @text_attrs
+    end
+
+    def self.cyclic_inheritance?(name, inherit)
+      current = inherit
+      while current
+        return true if current == name
+        face = @@face_table[current]
+        current = face&.instance_variable_get(:@inherit)
+      end
+      false
     end
 
     def self.resolve_dependents(name)

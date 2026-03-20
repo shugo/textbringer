@@ -97,6 +97,34 @@ class TestFace < Textbringer::TestCase
     Face.delete(:p_face)
   end
 
+  def test_cyclic_inheritance_raises
+    Face.define(:cycle_a, foreground: "red")
+    Face.define(:cycle_b, inherit: :cycle_a)
+    assert_raise(EditorError) do
+      Face.define(:cycle_a, inherit: :cycle_b)
+    end
+    # Self-referential cycle
+    assert_raise(EditorError) do
+      Face.define(:cycle_a, inherit: :cycle_a)
+    end
+  ensure
+    Face.delete(:cycle_a)
+    Face.delete(:cycle_b)
+  end
+
+  def test_cyclic_inheritance_raises_for_chain
+    Face.define(:chain_a, foreground: "red")
+    Face.define(:chain_b, inherit: :chain_a)
+    Face.define(:chain_c, inherit: :chain_b)
+    assert_raise(EditorError) do
+      Face.define(:chain_a, inherit: :chain_c)
+    end
+  ensure
+    Face.delete(:chain_a)
+    Face.delete(:chain_b)
+    Face.delete(:chain_c)
+  end
+
   def test_parent_update_propagates_to_children
     Face.define(:prop_parent, foreground: "red")
     child = Face.define(:prop_child, inherit: :prop_parent)
