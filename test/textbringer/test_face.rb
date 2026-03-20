@@ -19,4 +19,145 @@ class TestFace < Textbringer::TestCase
     Face.delete(:foo)
     Face.delete(:bar)
   end
+
+  def test_inherit_colors
+    parent = Face.define(:parent_face, foreground: "red", background: "blue")
+    child = Face.define(:child_face, inherit: :parent_face)
+    assert_not_equal(parent.color_pair, child.color_pair)
+    # Child should inherit parent's foreground/background
+    assert_equal("red", child.instance_variable_get(:@foreground))
+    assert_equal("blue", child.instance_variable_get(:@background))
+  ensure
+    Face.delete(:parent_face)
+    Face.delete(:child_face)
+  end
+
+  def test_inherit_styles
+    Face.define(:bold_face, bold: true, underline: true)
+    child = Face.define(:child_bold, inherit: :bold_face)
+    assert_equal(Curses::A_BOLD, child.attributes & Curses::A_BOLD)
+    assert_equal(Curses::A_UNDERLINE, child.attributes & Curses::A_UNDERLINE)
+  ensure
+    Face.delete(:bold_face)
+    Face.delete(:child_bold)
+  end
+
+  def test_override_inherited_attributes
+    Face.define(:base_face, foreground: "red", bold: true)
+    child = Face.define(:override_face, foreground: "green", bold: false, inherit: :base_face)
+    # Foreground should be overridden
+    assert_equal("green", child.instance_variable_get(:@foreground))
+    # Bold should be explicitly set to false
+    assert_equal(0, child.attributes & Curses::A_BOLD)
+    # Background should be inherited as default (-1) since parent has no explicit background
+    assert_equal(-1, child.instance_variable_get(:@background))
+  ensure
+    Face.delete(:base_face)
+    Face.delete(:override_face)
+  end
+
+  def test_inherit_missing_parent
+    # Should not raise when parent face doesn't exist
+    child = Face.define(:orphan_face, foreground: "yellow", inherit: :nonexistent)
+    assert_equal("yellow", child.instance_variable_get(:@foreground))
+    assert_equal(-1, child.instance_variable_get(:@background))
+  ensure
+    Face.delete(:orphan_face)
+  end
+
+  def test_inherit_late_parent
+    # Child defined before parent (e.g., plugin loads before theme)
+    child = Face.define(:early_child, inherit: :late_parent)
+    assert_equal(-1, child.instance_variable_get(:@foreground))
+    assert_equal(0, child.attributes & Curses::A_BOLD)
+
+    # Parent defined later (e.g., theme activates)
+    Face.define(:late_parent, foreground: "red", bold: true)
+
+    # Child should now have inherited attributes
+    assert_equal("red", child.instance_variable_get(:@foreground))
+    assert_equal(Curses::A_BOLD, child.attributes & Curses::A_BOLD)
+  ensure
+    Face.delete(:early_child)
+    Face.delete(:late_parent)
+  end
+
+  def test_inherit_chain_late_resolution
+    # grandchild -> child -> parent, all defined in reverse order
+    grandchild = Face.define(:gc_face, inherit: :c_face)
+    Face.define(:c_face, inherit: :p_face)
+    Face.define(:p_face, foreground: "blue", underline: true)
+
+    # Grandchild should pick up attributes through the chain
+    assert_equal("blue", grandchild.instance_variable_get(:@foreground))
+    assert_equal(Curses::A_UNDERLINE, grandchild.attributes & Curses::A_UNDERLINE)
+  ensure
+    Face.delete(:gc_face)
+    Face.delete(:c_face)
+    Face.delete(:p_face)
+  end
+
+  def test_inherit_non_symbol_raises
+    assert_raise(EditorError) do
+      Face.define(:bad_inherit, inherit: "keyword")
+    end
+  ensure
+    Face.delete(:bad_inherit)
+  end
+
+  def test_cyclic_inheritance_raises
+    Face.define(:cycle_a, foreground: "red")
+    Face.define(:cycle_b, inherit: :cycle_a)
+    assert_raise(EditorError) do
+      Face.define(:cycle_a, inherit: :cycle_b)
+    end
+    # Self-referential cycle
+    assert_raise(EditorError) do
+      Face.define(:cycle_a, inherit: :cycle_a)
+    end
+  ensure
+    Face.delete(:cycle_a)
+    Face.delete(:cycle_b)
+  end
+
+  def test_cyclic_inheritance_raises_for_chain
+    Face.define(:chain_a, foreground: "red")
+    Face.define(:chain_b, inherit: :chain_a)
+    Face.define(:chain_c, inherit: :chain_b)
+    assert_raise(EditorError) do
+      Face.define(:chain_a, inherit: :chain_c)
+    end
+  ensure
+    Face.delete(:chain_a)
+    Face.delete(:chain_b)
+    Face.delete(:chain_c)
+  end
+
+  def test_inherit_persists_when_updating_without_inherit_key
+    Face.define(:persist_parent, foreground: "red")
+    child = Face.define(:persist_child, inherit: :persist_parent)
+    assert_equal("red", child.instance_variable_get(:@foreground))
+
+    # Re-define child without specifying inherit: — should keep its parent
+    Face.define(:persist_child, bold: true)
+    assert_equal(:persist_parent, child.instance_variable_get(:@inherit))
+    assert_equal("red", child.instance_variable_get(:@foreground))
+    assert_equal(Curses::A_BOLD, child.attributes & Curses::A_BOLD)
+  ensure
+    Face.delete(:persist_parent)
+    Face.delete(:persist_child)
+  end
+
+  def test_parent_update_propagates_to_children
+    Face.define(:prop_parent, foreground: "red")
+    child = Face.define(:prop_child, inherit: :prop_parent)
+    assert_equal("red", child.instance_variable_get(:@foreground))
+
+    # Update the parent
+    Face.define(:prop_parent, foreground: "green")
+    assert_equal("green", child.instance_variable_get(:@foreground))
+  ensure
+    Face.delete(:prop_parent)
+    Face.delete(:prop_child)
+  end
 end

@@ -85,6 +85,27 @@ class TestTheme < Textbringer::TestCase
     CONFIG[:background_mode] = old_mode
   end
 
+  def test_activate_with_inherit
+    Theme.define "test_inherit" do |t|
+      t.palette :dark do |p|
+        p.color :mauve, hex: "#cba6f7", ansi: "magenta"
+      end
+      t.face :base_kw, foreground: :mauve, bold: true
+      t.face :derived_kw, inherit: :base_kw
+    end
+    Theme["test_inherit"].activate
+    base = Face[:base_kw]
+    derived = Face[:derived_kw]
+    assert_not_nil(derived)
+    assert_equal(Curses::A_BOLD, derived.attributes & Curses::A_BOLD)
+    # Derived should inherit foreground from base
+    assert_equal(base.instance_variable_get(:@foreground),
+                 derived.instance_variable_get(:@foreground))
+  ensure
+    Face.delete(:base_kw)
+    Face.delete(:derived_kw)
+  end
+
   def test_load_default_activates_faces
     face = Face[:comment]
     assert_not_nil(face)
