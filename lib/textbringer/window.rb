@@ -138,10 +138,6 @@ module Textbringer
     end
 
     def self.load_faces
-      require_relative "faces/basic"
-      require_relative "faces/programming"
-      require_relative "faces/completion"
-      require_relative "faces/dired"
       require_relative "faces/gamegrid"
     end
 
@@ -149,6 +145,7 @@ module Textbringer
       if @@started
         raise EditorError, "Already started"
       end
+      Theme.detect_background
       Curses.init_screen
       Curses.noecho
       Curses.raw

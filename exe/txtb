@@ -33,6 +33,7 @@ begin
       transient_mark_mode(true)
       Window.echo_area.clear_message
       Plugin.load_plugins
+      Theme.load_default if Window.has_colors?
       load_user_config("~/.textbringer.rb")
       ruby_mode
       if ARGV.size > 0
