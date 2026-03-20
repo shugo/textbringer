@@ -23,13 +23,41 @@ class TestFace < Textbringer::TestCase
   def test_inherit_colors
     parent = Face.define(:parent_face, foreground: "red", background: "blue")
     child = Face.define(:child_face, inherit: :parent_face)
-    assert_not_equal(parent.color_pair, child.color_pair)
-    # Child should inherit parent's foreground/background
+    # Child inherits same colors as parent — they share the same color pair slot
+    assert_equal(parent.color_pair, child.color_pair)
     assert_equal("red", child.instance_variable_get(:@foreground))
     assert_equal("blue", child.instance_variable_get(:@background))
   ensure
     Face.delete(:parent_face)
     Face.delete(:child_face)
+  end
+
+  def test_color_pair_cache_shared_for_same_colors
+    a = Face.define(:cache_a, foreground: "cyan", background: "magenta")
+    b = Face.define(:cache_b, foreground: "cyan", background: "magenta")
+    assert_equal(a.color_pair, b.color_pair)
+  ensure
+    Face.delete(:cache_a)
+    Face.delete(:cache_b)
+  end
+
+  def test_color_pair_cache_different_for_different_colors
+    a = Face.define(:diff_a, foreground: "cyan", background: "magenta")
+    b = Face.define(:diff_b, foreground: "yellow", background: "magenta")
+    assert_not_equal(a.color_pair, b.color_pair)
+  ensure
+    Face.delete(:diff_a)
+    Face.delete(:diff_b)
+  end
+
+  def test_color_pair_cache_no_new_slot_for_duplicate
+    Face.define(:dup_a, foreground: "white", background: "black")
+    slot_before = Face.class_variable_get(:@@next_color_pair)
+    Face.define(:dup_b, foreground: "white", background: "black")
+    assert_equal(slot_before, Face.class_variable_get(:@@next_color_pair))
+  ensure
+    Face.delete(:dup_a)
+    Face.delete(:dup_b)
   end
 
   def test_inherit_styles
