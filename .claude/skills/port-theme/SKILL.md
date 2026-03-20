@@ -8,20 +8,33 @@ Port the colorscheme at `$ARGUMENTS` to `lib/textbringer/themes/<name>.rb`.
 
 ## Steps
 
-### 1. Fetch the source
+### 1. Identify the theme type and fetch the source
 
-Fetch the colorscheme source file. For GitHub repos, fetch the raw file directly (e.g. `https://raw.githubusercontent.com/<owner>/<repo>/master/colors/<name>.vim`).
+**Vim themes** (`.vim` files) live in `colors/<name>.vim`. Fetch the raw file:
+```
+https://raw.githubusercontent.com/<owner>/<repo>/master/colors/<name>.vim
+```
 
-### 2. Choose colors: cterm over GUI
+**Neovim themes** (Lua-based) are structured differently. Typical layout:
+```
+lua/<name>/
+  colors/        ← palette definitions (storm.lua, night.lua, …)
+  groups/        ← highlight group tables (base.lua, syntax.lua, treesitter.lua, …)
+  colors/init.lua ← computed/derived colors (blended backgrounds, semantic aliases)
+```
+Fetch `colors/init.lua` (or the main palette file) first to get raw hex values, then `groups/base.lua` and `groups/treesitter.lua` (or equivalent) to see how highlight groups map to palette entries. Also fetch `colors/init.lua` for derived colors computed from blend formulas.
 
-**For Vim themes:** use `ctermfg`/`ctermbg` values (the 256-color terminal values), NOT `guifg`/`guibg` hex values. The theme will run in a terminal and should match what Vim renders there.
+### 2. Choose colors
 
-Convert xterm-256 color numbers to hex using these formulas:
+**Vim themes — use cterm, not GUI:**
+Use `ctermfg`/`ctermbg` values (256-color terminal numbers), NOT `guifg`/`guibg` hex values. Textbringer runs in a terminal.
+
+Convert xterm-256 color numbers to hex:
 - **0–15**: standard ANSI (`#000000`, `#800000`, `#008000`, `#808000`, `#000080`, `#800080`, `#008080`, `#c0c0c0`, `#808080`, `#ff0000`, `#00ff00`, `#ffff00`, `#0000ff`, `#ff00ff`, `#00ffff`, `#ffffff`)
 - **16–231** (color cube): `index = n - 16`, then `r = index/36`, `g = (index%36)/6`, `b = index%6`; ramp = `[0, 95, 135, 175, 215, 255]`; hex = `#RRGGBB`
 - **232–255** (grayscale): `value = 8 + 10*(n - 232)`; hex = `#VVVVVV`
 
-A Ruby snippet to verify:
+Verification snippet:
 ```ruby
 def xterm256_hex(n)
   if n < 16
@@ -37,26 +50,35 @@ def xterm256_hex(n)
 end
 ```
 
-For themes with **no cterm values** (GUI only), use the guifg/guibg hex values directly.
+**Neovim themes — use GUI hex directly:**
+Neovim themes set `termguicolors` and have no cterm values. Use the GUI hex strings from the palette as-is.
+
+For colors computed via blend formulas (e.g. `blend(color, alpha, bg)`), compute them manually:
+```
+result = alpha * color_component + (1 - alpha) * bg_component   (per R, G, B channel)
+```
 
 ### 3. Map highlight groups to Textbringer faces
+
+When a Neovim theme defines both traditional groups (e.g. `Keyword`) and treesitter groups (e.g. `@keyword`), **prefer the treesitter group** — it is what Neovim actually applies by default.
 
 | Source group(s) | Textbringer face |
 |---|---|
 | `Normal` | defines `:bg` / `:fg` palette entries |
-| `Comment` | `:comment` |
-| `String`, `Character` | `:string` |
-| `Number`, `Boolean`, `Float` | `:number` |
-| `Keyword`, `Conditional`, `Repeat`, `Statement` | `:keyword` (preserve `bold:`) |
-| `Constant` | `:constant` (preserve `bold:`) |
-| `Function` | `:function_name` |
-| `Identifier`, `StorageClass` | `:variable` |
-| `Type`, `Typedef`, `Structure` | `:type` |
-| `PreProc`, `Define`, `Include`, `PreCondit`, `Macro` | `:preprocessing_directive` |
-| `Special` | `:builtin` |
-| `Operator` | `:operator` |
-| `Delimiter` | `:punctuation` |
-| `Search` | `:isearch` |
+| `Comment`, `@comment` | `:comment` |
+| `String`, `Character`, `@string` | `:string` |
+| `Number`, `Boolean`, `Float`, `@number`, `@boolean` | `:number` |
+| `Keyword`, `Conditional`, `Repeat`, `Statement`, `@keyword`, `@keyword.conditional` | `:keyword` (preserve `bold:`) |
+| `Constant`, `@constant` | `:constant` (preserve `bold:`) |
+| `Function`, `@function`, `@function.method` | `:function_name` |
+| `Identifier`, `StorageClass`, `@variable` | `:variable` |
+| `Type`, `Typedef`, `Structure`, `@type` | `:type` |
+| `PreProc`, `Define`, `Include`, `PreCondit`, `Macro`, `@keyword.import`, `@keyword.directive` | `:preprocessing_directive` |
+| `Special`, `@constant.builtin`, `@function.builtin` | `:builtin` |
+| `Operator`, `@operator` | `:operator` |
+| `Delimiter`, `@punctuation.delimiter`, `@punctuation.bracket` | `:punctuation` |
+| `@property`, `@variable.member` | `:property` |
+| `Search`, `IncSearch` | `:isearch` |
 | `Visual` | `:region` (background only) |
 | `StatusLine` | `:mode_line` |
 | `Pmenu` | `:completion_popup` |
@@ -130,9 +152,11 @@ end
 ```
 
 - Theme name in `define` must match the filename (without `.rb`).
-- Include cterm source number in a comment after each palette color for traceability.
-- Use `bold: true` where the source specifies `cterm=bold` / `gui=bold`.
+- For Vim themes: include the cterm source number in a comment after each palette color for traceability.
+- For Neovim themes: note the palette variable name (e.g. `c.blue`) in a comment.
+- Use `bold: true` where the source specifies `cterm=bold` / `gui=bold` / `bold = true`.
 - `cterm=reverse` means the terminal's reverse-video attribute (not an fg/bg swap). Only use `reverse: true` when the source group has **no** explicit `ctermfg`/`ctermbg`. If explicit colors are present, use those and omit `reverse:`.
+- Neovim themes often apply `italic` to keywords/functions via `opts.styles`; skip italic since Textbringer does not support it.
 
 ### 6. Verify
 
