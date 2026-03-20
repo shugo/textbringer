@@ -71,7 +71,7 @@ Textbringer::Theme.define "catppuccin" do |t|
   # Programming faces (from catppuccin/nvim syntax.lua)
   t.face :comment,                foreground: :overlay2
   t.face :preprocessing_directive, foreground: :pink
-  t.face :keyword,                foreground: :mauve, bold: true
+  t.face :keyword,                foreground: :mauve
   t.face :string,                 foreground: :green
   t.face :number,                 foreground: :peach
   t.face :constant,               foreground: :peach
@@ -93,7 +93,7 @@ Textbringer::Theme.define "catppuccin" do |t|
 
   # Completion faces
   t.face :completion_popup,          foreground: :overlay2, background: :mantle
-  t.face :completion_popup_selected, background: :surface0, bold: true
+  t.face :completion_popup_selected, background: :surface0
 
   # Dired faces
   t.face :dired_directory,   foreground: :blue

@@ -39,7 +39,7 @@ module Textbringer
       if File.exist?(user_path)
         Kernel.load(user_path)
       else
-        require_relative "themes/#{name}"
+        require "textbringer/themes/#{name}"
       end
       theme = @@themes[name]
       raise EditorError, "Theme '#{name}' not found" unless theme
