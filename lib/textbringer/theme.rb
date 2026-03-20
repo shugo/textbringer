@@ -52,15 +52,12 @@ module Textbringer
     end
 
     def self.background_mode
+      mode = CONFIG[:background_mode]
+      return mode if mode == :dark || mode == :light
       @@background_mode || :dark
     end
 
     def self.detect_background
-      mode = CONFIG[:background_mode]
-      if mode == :dark || mode == :light
-        @@background_mode = mode
-        return
-      end
       @@background_mode = detect_background_via_osc11 ||
                           detect_background_via_colorfgbg ||
                           :dark
