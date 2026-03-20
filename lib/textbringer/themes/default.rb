@@ -1,94 +1,103 @@
+# Catppuccin theme for Textbringer
+# Based on https://github.com/catppuccin/nvim
+#
+# Dark variant: Mocha    Light variant: Latte
+
 Textbringer::Theme.define "default" do |t|
   t.palette :dark do |p|
-    # Programming
-    p.color :comment_color,    hex: "#87875f", term: "red"
-    p.color :preproc_color,    hex: "#5faf5f", term: "green"
-    p.color :keyword_color,    hex: "#af5fff", term: "magenta"
-    p.color :string_color,     hex: "#87d787", term: "green"
-    p.color :number_color,     hex: "#00d7d7", term: "cyan"
-    p.color :constant_color,   hex: "#5fd7ff", term: "cyan"
-    p.color :funcname_color,   hex: "#5fafff", term: "cyan"
-    p.color :type_color,       hex: "#5fd7af", term: "green"
-    p.color :variable_color,   hex: "#d7af5f", term: "yellow"
-    p.color :builtin_color,    hex: "#d75fff", term: "magenta"
-    p.color :property_color,   hex: "#87d7d7", term: "cyan"
+    # Catppuccin Mocha base tones
+    p.color :text,     hex: "#d7d7ff", term: "white"
+    p.color :subtext1, hex: "#afafd7", term: "white"
+    p.color :subtext0, hex: "#afafd7", term: "white"
+    p.color :overlay2, hex: "#8787af", term: "white"
+    p.color :overlay1, hex: "#8787af", term: "white"
+    p.color :overlay0, hex: "#767676", term: "brightblack"
+    p.color :surface2, hex: "#626262", term: "brightblack"
+    p.color :surface1, hex: "#4e4e4e", term: "brightblack"
+    p.color :surface0, hex: "#3a3a3a", term: "brightblack"
+    p.color :base,     hex: "#262626", term: "black"
+    p.color :mantle,   hex: "#1c1c1c", term: "black"
+    p.color :crust,    hex: "#121212", term: "black"
 
-    # UI
-    p.color :link_color,       hex: "#5fafff", term: "cyan"
-    p.color :region_bg,        hex: "#005f87", term: "blue"
-    p.color :region_fg,        hex: nil,       term: "white"
-    p.color :float_bg,         hex: "#1c1c1c", term: "blue"
-    p.color :float_fg,         hex: "#d7d7d7", term: "white"
-    p.color :popup_bg,         hex: "#303030", term: "black"
-    p.color :popup_fg,         hex: "#d0d0d0", term: "white"
-    p.color :popup_sel_bg,     hex: "#005faf", term: "blue"
-    p.color :popup_sel_fg,     hex: "white",   term: "white"
-    p.color :dired_dir_color,  hex: "#5fafff", term: "cyan"
-    p.color :dired_sym_color,  hex: "#d75fff", term: "magenta"
-    p.color :dired_exe_color,  hex: "#5faf5f", term: "green"
-    p.color :dired_flag_color, hex: "#d70000", term: "red"
+    # Catppuccin Mocha accent colors
+    p.color :red,       hex: "#ff87af", term: "red"
+    p.color :maroon,    hex: "#d7afaf", term: "red"
+    p.color :peach,     hex: "#ffaf87", term: "yellow"
+    p.color :yellow,    hex: "#ffd7af", term: "yellow"
+    p.color :green,     hex: "#afd7af", term: "green"
+    p.color :teal,      hex: "#87d7d7", term: "cyan"
+    p.color :sky,       hex: "#87d7d7", term: "cyan"
+    p.color :sapphire,  hex: "#87d7ff", term: "cyan"
+    p.color :blue,      hex: "#87afff", term: "blue"
+    p.color :lavender,  hex: "#afafff", term: "blue"
+    p.color :mauve,     hex: "#d7afff", term: "magenta"
+    p.color :pink,      hex: "#ffafd7", term: "magenta"
+    p.color :flamingo,  hex: "#ffd7d7", term: "red"
+    p.color :rosewater, hex: "#ffd7d7", term: "red"
   end
 
   t.palette :light do |p|
-    # Programming
-    p.color :comment_color,    hex: "#af0000", term: "red"
-    p.color :preproc_color,    hex: "#005f00", term: "green"
-    p.color :keyword_color,    hex: "#8700af", term: "magenta"
-    p.color :string_color,     hex: "#005f00", term: "green"
-    p.color :number_color,     hex: "#005f87", term: "blue"
-    p.color :constant_color,   hex: "#0000af", term: "blue"
-    p.color :funcname_color,   hex: "#0000d7", term: "blue"
-    p.color :type_color,       hex: "#005f5f", term: "green"
-    p.color :variable_color,   hex: "#875f00", term: "magenta"
-    p.color :builtin_color,    hex: "#870087", term: "magenta"
-    p.color :property_color,   hex: "#005f5f", term: "cyan"
+    # Catppuccin Latte base tones
+    p.color :text,     hex: "#585858", term: "black"
+    p.color :subtext1, hex: "#5f5f87", term: "black"
+    p.color :subtext0, hex: "#767676", term: "brightblack"
+    p.color :overlay2, hex: "#878787", term: "brightblack"
+    p.color :overlay1, hex: "#949494", term: "white"
+    p.color :overlay0, hex: "#a8a8a8", term: "white"
+    p.color :surface2, hex: "#b2b2b2", term: "white"
+    p.color :surface1, hex: "#c6c6c6", term: "white"
+    p.color :surface0, hex: "#d0d0d0", term: "white"
+    p.color :base,     hex: "#eeeeee", term: "white"
+    p.color :mantle,   hex: "#eeeeee", term: "white"
+    p.color :crust,    hex: "#e4e4e4", term: "white"
 
-    # UI
-    p.color :link_color,       hex: "#0000d7", term: "blue"
-    p.color :region_bg,        hex: "#afd7ff", term: "blue"
-    p.color :region_fg,        hex: nil,       term: "white"
-    p.color :float_bg,         hex: "#e4e4e4", term: "white"
-    p.color :float_fg,         hex: "#1c1c1c", term: "black"
-    p.color :popup_bg,         hex: "#e4e4e4", term: "white"
-    p.color :popup_fg,         hex: "#1c1c1c", term: "black"
-    p.color :popup_sel_bg,     hex: "#005faf", term: "blue"
-    p.color :popup_sel_fg,     hex: "white",   term: "white"
-    p.color :dired_dir_color,  hex: "#8700af", term: "magenta"
-    p.color :dired_sym_color,  hex: "#005f5f", term: "cyan"
-    p.color :dired_exe_color,  hex: "#005f00", term: "green"
-    p.color :dired_flag_color, hex: "#d70000", term: "red"
+    # Catppuccin Latte accent colors
+    p.color :red,       hex: "#d7005f", term: "red"
+    p.color :maroon,    hex: "#d75f5f", term: "red"
+    p.color :peach,     hex: "#ff5f00", term: "red"
+    p.color :yellow,    hex: "#d78700", term: "yellow"
+    p.color :green,     hex: "#5faf00", term: "green"
+    p.color :teal,      hex: "#008787", term: "cyan"
+    p.color :sky,       hex: "#00afd7", term: "cyan"
+    p.color :sapphire,  hex: "#00afaf", term: "cyan"
+    p.color :blue,      hex: "#005fff", term: "blue"
+    p.color :lavender,  hex: "#5f87ff", term: "blue"
+    p.color :mauve,     hex: "#875fff", term: "magenta"
+    p.color :pink,      hex: "#d787d7", term: "magenta"
+    p.color :flamingo,  hex: "#d78787", term: "red"
+    p.color :rosewater, hex: "#d78787", term: "red"
   end
 
-  # Programming faces
-  t.face :comment,                foreground: :comment_color
-  t.face :preprocessing_directive, foreground: :preproc_color
-  t.face :keyword,                foreground: :keyword_color, bold: true
-  t.face :string,                 foreground: :string_color
-  t.face :number,                 foreground: :number_color
-  t.face :constant,               foreground: :constant_color
-  t.face :function_name,          foreground: :funcname_color, bold: true
-  t.face :type,                   foreground: :type_color
-  t.face :variable,               foreground: :variable_color
-  t.face :operator
+  # Programming faces (from catppuccin/nvim syntax.lua)
+  t.face :comment,                foreground: :overlay2
+  t.face :preprocessing_directive, foreground: :pink
+  t.face :keyword,                foreground: :mauve, bold: true
+  t.face :string,                 foreground: :green
+  t.face :number,                 foreground: :peach
+  t.face :constant,               foreground: :peach
+  t.face :function_name,          foreground: :blue
+  t.face :type,                   foreground: :yellow
+  t.face :variable,               foreground: :flamingo
+  t.face :operator,               foreground: :sky
   t.face :punctuation
-  t.face :builtin,                foreground: :builtin_color
-  t.face :property,               foreground: :property_color
+  t.face :builtin,                foreground: :red
+  t.face :property,               foreground: :lavender
 
-  # Basic faces
-  t.face :mode_line,              reverse: true
-  t.face :link,                   foreground: :link_color, bold: true
+  # Basic faces (from catppuccin/nvim editor.lua)
+  t.face :mode_line,              foreground: :text, background: :mantle
+  t.face :link,                   foreground: :blue, underline: true
   t.face :control
-  t.face :region,                 foreground: :region_fg, background: :region_bg
-  t.face :isearch,                foreground: "black", background: "yellow"
-  t.face :floating_window,        foreground: :float_fg, background: :float_bg
+  t.face :region,                 background: :surface1
+  t.face :isearch,                foreground: :mantle, background: :red
+  t.face :floating_window,        foreground: :text, background: :mantle
 
   # Completion faces
-  t.face :completion_popup,          foreground: :popup_fg, background: :popup_bg
-  t.face :completion_popup_selected, foreground: :popup_sel_fg, background: :popup_sel_bg
+  t.face :completion_popup,          foreground: :overlay2, background: :mantle
+  t.face :completion_popup_selected, background: :surface0, bold: true
 
   # Dired faces
-  t.face :dired_directory,   foreground: :dired_dir_color
-  t.face :dired_symlink,     foreground: :dired_sym_color
-  t.face :dired_executable,  foreground: :dired_exe_color
-  t.face :dired_flagged,     foreground: :dired_flag_color
+  t.face :dired_directory,   foreground: :blue
+  t.face :dired_symlink,     foreground: :teal
+  t.face :dired_executable,  foreground: :green
+  t.face :dired_flagged,     foreground: :red
 end
