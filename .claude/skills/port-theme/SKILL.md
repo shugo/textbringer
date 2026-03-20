@@ -152,6 +152,8 @@ end
 ```
 
 - Theme name in `define` must match the filename (without `.rb`).
+- **Hex values must be lowercase** (`#d7005f`, not `#D7005F`).
+- Always put a space after the comma in `p.color` arguments: `p.color :name, hex: …` (not `p.color :name,hex: …`).
 - For Vim themes: include the cterm source number in a comment after each palette color for traceability.
 - For Neovim themes: note the palette variable name (e.g. `c.blue`) in a comment.
 - Use `bold: true` where the source specifies `cterm=bold` / `gui=bold` / `bold = true`.
