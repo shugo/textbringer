@@ -63,11 +63,11 @@ Textbringer::Theme.define "gruvbox" do |t|
   t.face :property,               foreground: :blue
 
   # Basic faces
-  t.face :mode_line,              foreground: :fg1, background: :bg2, reverse: true
+  t.face :mode_line,              foreground: :fg1, background: :bg2
   t.face :link,                   foreground: :blue, underline: true
   t.face :control
   t.face :region,                 background: :bg3
-  t.face :isearch,                foreground: :yellow, background: :bg0, reverse: true
+  t.face :isearch,                foreground: :yellow, background: :bg0
   t.face :floating_window,        foreground: :fg1, background: :bg1
 
   # Completion faces
