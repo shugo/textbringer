@@ -39,6 +39,10 @@ module Textbringer
                bold: nil, underline: nil, reverse: nil,
                inherit: UNSET)
       unless inherit.equal?(UNSET)
+        if inherit && !inherit.is_a?(Symbol)
+          raise EditorError,
+                "Face inherit: must be a Symbol, got #{inherit.inspect}"
+        end
         if inherit && cyclic_inheritance?(@name, inherit)
           raise EditorError,
                 "Cyclic face inheritance: #{@name} inherits from #{inherit}"

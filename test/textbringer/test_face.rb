@@ -23,7 +23,7 @@ class TestFace < Textbringer::TestCase
   def test_inherit_colors
     parent = Face.define(:parent_face, foreground: "red", background: "blue")
     child = Face.define(:child_face, inherit: :parent_face)
-    assert_equal(parent.color_pair != child.color_pair, true)
+    assert_not_equal(parent.color_pair, child.color_pair)
     # Child should inherit parent's foreground/background
     assert_equal("red", child.instance_variable_get(:@foreground))
     assert_equal("blue", child.instance_variable_get(:@background))
@@ -95,6 +95,14 @@ class TestFace < Textbringer::TestCase
     Face.delete(:gc_face)
     Face.delete(:c_face)
     Face.delete(:p_face)
+  end
+
+  def test_inherit_non_symbol_raises
+    assert_raise(EditorError) do
+      Face.define(:bad_inherit, inherit: "keyword")
+    end
+  ensure
+    Face.delete(:bad_inherit)
   end
 
   def test_cyclic_inheritance_raises
