@@ -125,6 +125,21 @@ class TestFace < Textbringer::TestCase
     Face.delete(:chain_c)
   end
 
+  def test_inherit_persists_when_updating_without_inherit_key
+    Face.define(:persist_parent, foreground: "red")
+    child = Face.define(:persist_child, inherit: :persist_parent)
+    assert_equal("red", child.instance_variable_get(:@foreground))
+
+    # Re-define child without specifying inherit: — should keep its parent
+    Face.define(:persist_child, bold: true)
+    assert_equal(:persist_parent, child.instance_variable_get(:@inherit))
+    assert_equal("red", child.instance_variable_get(:@foreground))
+    assert_equal(Curses::A_BOLD, child.attributes & Curses::A_BOLD)
+  ensure
+    Face.delete(:persist_parent)
+    Face.delete(:persist_child)
+  end
+
   def test_parent_update_propagates_to_children
     Face.define(:prop_parent, foreground: "red")
     child = Face.define(:prop_child, inherit: :prop_parent)

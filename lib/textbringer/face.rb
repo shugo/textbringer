@@ -32,14 +32,19 @@ module Textbringer
       update(**opts)
     end
 
+    UNSET = Object.new.freeze
+    private_constant :UNSET
+
     def update(foreground: nil, background: nil,
                bold: nil, underline: nil, reverse: nil,
-               inherit: nil)
-      if inherit && self.class.cyclic_inheritance?(@name, inherit)
-        raise EditorError,
-              "Cyclic face inheritance: #{@name} inherits from #{inherit}"
+               inherit: UNSET)
+      unless inherit.equal?(UNSET)
+        if inherit && cyclic_inheritance?(@name, inherit)
+          raise EditorError,
+                "Cyclic face inheritance: #{@name} inherits from #{inherit}"
+        end
+        @inherit = inherit
       end
-      @inherit = inherit
       @explicit_foreground = foreground
       @explicit_background = background
       @explicit_bold = bold
@@ -67,23 +72,25 @@ module Textbringer
       @attributes = Curses.color_pair(@color_pair) | @text_attrs
     end
 
-    def self.cyclic_inheritance?(name, inherit)
+    def cyclic_inheritance?(name, inherit)
       current = inherit
       while current
         return true if current == name
-        face = @@face_table[current]
+        face = self.class[current]
         current = face&.instance_variable_get(:@inherit)
       end
       false
     end
 
-    def self.resolve_dependents(name)
+    def self.resolve_dependents(name, visited = {})
+      visited[name] = true
       @@face_table.each_value do |face|
         if face.instance_variable_get(:@inherit) == name
           face.send(:resolve_inheritance)
-          resolve_dependents(face.name)
+          resolve_dependents(face.name, visited) unless visited.key?(face.name)
         end
       end
     end
+    private_class_method :resolve_dependents
   end
 end
