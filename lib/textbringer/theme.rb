@@ -105,7 +105,7 @@ module Textbringer
             resolved[key] = val
           end
         end
-        [:bold, :underline, :reverse].each do |key|
+        [:bold, :underline, :reverse, :inherit].each do |key|
           resolved[key] = attrs[key] if attrs.key?(key)
         end
         Face.define(face_name, **resolved)
