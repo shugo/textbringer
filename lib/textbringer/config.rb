@@ -18,6 +18,7 @@ module Textbringer
     ispell_command: "aspell -a",
     fill_column: 70,
     read_file_name_completion_ignore_case: RUBY_PLATFORM.match?(/darwin/),
-    default_input_method: "t_code"
+    default_input_method: "t_code",
+    background_mode: nil
   }
 end

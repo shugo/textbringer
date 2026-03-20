@@ -131,6 +131,7 @@ class << Curses
 end
 
 Textbringer::Window.load_faces
+Textbringer::Theme.load_default
 
 module Textbringer
   class FakeController < Controller
