@@ -115,8 +115,8 @@ module Textbringer
       return nil unless $stdin.tty? && $stdout.tty?
       require "io/console"
       $stdin.raw(min: 0, time: 1) do |io|
-        io.write("\e]11;?\e\\")
-        io.flush
+        $stdout.write("\e]11;?\e\\")
+        $stdout.flush
         response = +""
         while (c = io.getc)
           response << c
@@ -138,7 +138,7 @@ module Textbringer
       colorfgbg = ENV["COLORFGBG"]
       return nil unless colorfgbg
       bg = colorfgbg.split(";").last.to_i
-      bg <= 6 ? :light : :dark
+      bg <= 6 || bg == 8 ? :dark : :light
     end
   end
 end
