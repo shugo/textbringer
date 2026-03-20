@@ -5,14 +5,14 @@ module Textbringer
         @colors = {}
       end
 
-      def color(name, hex: nil, term: nil)
-        @colors[name] = { hex: hex, term: term }
+      def color(name, hex: nil, ansi: nil)
+        @colors[name] = { hex: hex, ansi: ansi }
       end
 
       def resolve(name, tier)
         c = @colors[name]
         return nil unless c
-        tier == :term ? c[:term] : c[:hex]
+        tier == :ansi ? c[:ansi] : c[:hex]
       end
     end
 
@@ -64,7 +64,7 @@ module Textbringer
     end
 
     def self.color_tier
-      Window.colors > 16 ? :hex : :term
+      Window.colors >= 256 ? :hex : :ansi
     end
 
     def initialize(name)
@@ -95,7 +95,12 @@ module Textbringer
           val = attrs[key]
           if val.is_a?(Symbol)
             color = palette.resolve(val, tier)
-            resolved[key] = color if color
+            if color
+              resolved[key] = color
+            else
+              raise EditorError,
+                    "Unknown palette color :#{val} for #{key} in face #{face_name}"
+            end
           elsif val.is_a?(String)
             resolved[key] = val
           end
