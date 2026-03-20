@@ -48,7 +48,7 @@ module Textbringer
 
     def self.load_default
       return if @@current
-      load("default")
+      load("catppuccin")
     end
 
     def self.background_mode

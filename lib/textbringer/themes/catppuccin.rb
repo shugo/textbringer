@@ -3,7 +3,7 @@
 #
 # Dark variant: Mocha    Light variant: Latte
 
-Textbringer::Theme.define "default" do |t|
+Textbringer::Theme.define "catppuccin" do |t|
   t.palette :dark do |p|
     # Catppuccin Mocha base tones
     p.color :text,     hex: "#d7d7ff", ansi: "white"
