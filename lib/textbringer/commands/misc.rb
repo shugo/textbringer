@@ -376,5 +376,24 @@ module Textbringer
         describe_char
       end
     end
+    define_command(:load_theme,
+                   doc: "Load and activate a theme by name.") do
+      |name = read_theme_name("Load theme: ")|
+      Theme.load(name)
+      Window.redisplay
+      message("Loaded theme: #{name}")
+    end
+
+    def read_theme_name(prompt)
+      builtin = Dir.glob(
+        File.expand_path("../../themes/*.rb", __FILE__)
+      ).map { |f| File.basename(f, ".rb") }
+      user = Dir.glob(
+        File.expand_path("~/.textbringer/themes/*.rb")
+      ).map { |f| File.basename(f, ".rb") }
+      names = (builtin + user).uniq.sort
+      f = ->(s) { complete_for_minibuffer(s, names) }
+      read_from_minibuffer(prompt, completion_proc: f)
+    end
   end
 end
