@@ -1,5 +1,7 @@
 module Textbringer
   class Theme
+    DEFAULT_THEME = "catppuccin"
+
     class Palette
       def initialize
         @colors = {}
@@ -48,7 +50,7 @@ module Textbringer
 
     def self.load_default
       return if @@current
-      load("catppuccin")
+      load(DEFAULT_THEME)
     end
 
     def self.background_mode
