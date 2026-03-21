@@ -1,6 +1,20 @@
 require_relative "../test_helper"
 
 class TestGamegrid < Textbringer::TestCase
+  def call_grid_highlight(grid)
+    highlight_on = {}
+    highlight_off = {}
+    ctx = HighlightContext.new(
+      buffer: nil,
+      highlight_start: 0,
+      highlight_end: 0,
+      highlight_on: highlight_on,
+      highlight_off: highlight_off
+    )
+    grid.apply_highlights(ctx)
+    [highlight_on, highlight_off]
+  end
+
   def test_initialize
     grid = Gamegrid.new(10, 5)
     assert_equal(10, grid.width)
@@ -59,11 +73,11 @@ class TestGamegrid < Textbringer::TestCase
     assert_equal("  ", grid.render)
   end
 
-  def test_face_map_with_display_option_face
+  def test_apply_highlights_with_display_option_face
     grid = Gamegrid.new(2, 1)
     grid.set_display_option(1, char: "#", face: :gamegrid_red)
     grid.set_cell(0, 0, 1)
-    highlight_on, highlight_off = grid.face_map
+    highlight_on, highlight_off = call_grid_highlight(grid)
     assert_equal(Face[:gamegrid_red], highlight_on[0])
     assert_equal(true, highlight_off[1])
   end
@@ -76,29 +90,29 @@ class TestGamegrid < Textbringer::TestCase
     assert_equal("   ..", lines[1])
   end
 
-  def test_face_map_with_margin_left
+  def test_apply_highlights_with_margin_left
     grid = Gamegrid.new(2, 1, margin_left: 3)
     grid.set_display_option(1, char: "#", face: :gamegrid_red)
     grid.set_cell(0, 0, 1)
-    highlight_on, _off = grid.face_map
+    highlight_on, _off = call_grid_highlight(grid)
     # First cell starts at offset 3 (margin), not 0
     assert_equal(Face[:gamegrid_red], highlight_on[3])
     assert_nil(highlight_on[0])
   end
 
-  def test_face_map_explicit_face_overrides_display_option
+  def test_apply_highlights_explicit_face_overrides_display_option
     grid = Gamegrid.new(2, 1)
     grid.set_display_option(1, char: "#", face: :gamegrid_red)
     grid.set_cell(0, 0, 1)
     grid.set_face(0, 0, :gamegrid_blue)
-    highlight_on, _highlight_off = grid.face_map
+    highlight_on, _highlight_off = call_grid_highlight(grid)
     assert_equal(Face[:gamegrid_blue], highlight_on[0])
   end
 
-  def test_face_map_no_face
+  def test_apply_highlights_no_face
     grid = Gamegrid.new(2, 1)
     grid.set_display_option(0, char: ".")
-    highlight_on, highlight_off = grid.face_map
+    highlight_on, highlight_off = call_grid_highlight(grid)
     assert(highlight_on.empty?)
     assert(highlight_off.empty?)
   end

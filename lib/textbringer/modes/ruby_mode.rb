@@ -19,8 +19,7 @@ module Textbringer
       super(buffer)
       @buffer[:indent_level] = CONFIG[:ruby_indent_level]
       @buffer[:indent_tabs_mode] = CONFIG[:ruby_indent_tabs_mode]
-      @buffer[:highlight_override] = method(:prism_highlight)
-      @prism_cache_source = nil
+      @prism_cache_key = nil
       @prism_cache_tokens = nil
     end
 
@@ -109,6 +108,54 @@ module Textbringer
         find_file(path)
       else
         raise EditorError, "Unknown file type"
+      end
+    end
+
+    def highlight(ctx)
+      if ctx.buffer.bytesize < CONFIG[:highlight_buffer_size_limit]
+        base_pos = ctx.buffer.point_min
+        source = ctx.buffer.to_s
+        cache_key = ctx.buffer.version
+      else
+        base_pos = ctx.highlight_start
+        source = ctx.buffer.substring(ctx.highlight_start,
+                                      ctx.highlight_end).scrub("")
+        cache_key = [ctx.buffer.version, ctx.highlight_start, ctx.highlight_end]
+      end
+      return if !source.valid_encoding?
+      if cache_key == @prism_cache_key
+        tokens = @prism_cache_tokens
+      else
+        tokens = Prism.lex(source).value
+        @prism_cache_key = cache_key
+        @prism_cache_tokens = tokens
+      end
+      in_symbol = false
+      after_def = false
+      tokens.each do |token_info|
+        token = token_info[0]
+        type = token.type
+        face_name = PRISM_TOKEN_FACES[type]
+        if in_symbol
+          face_name = :string if face_name.nil? || face_name == :constant ||
+            face_name == :operator
+        elsif after_def
+          face_name = :function_name if type == :IDENTIFIER ||
+            type == :CONSTANT || type == :METHOD_NAME ||
+            PRISM_TOKEN_FACES[type] == :operator
+        end
+        in_symbol = type == :SYMBOL_BEGIN
+        after_def = type == :KEYWORD_DEF ||
+          (after_def && (type == :KEYWORD_SELF || type == :DOT ||
+                         type == :NEWLINE || type == :IGNORED_NEWLINE ||
+                         type == :COMMENT))
+        next unless face_name
+        face = Face[face_name]
+        next unless face
+        offset = token.location.start_offset
+        length = token.location.length
+        pos = base_pos + offset
+        ctx.highlight(pos, pos + length, face)
       end
     end
 
@@ -426,62 +473,6 @@ module Textbringer
         return paths.first if !paths.empty?
       end
       nil
-    end
-
-    def prism_highlight(window)
-      highlight_on = {}
-      highlight_off = {}
-      return [highlight_on, highlight_off] if !Window.has_colors? ||
-        !CONFIG[:syntax_highlight] || @buffer.binary?
-      if @buffer.bytesize < CONFIG[:highlight_buffer_size_limit]
-        base_pos = @buffer.point_min
-        source = @buffer.to_s
-      else
-        base_pos = @buffer.point
-        len = window.columns * (window.lines - 1) / 2 * 3
-        source = @buffer.substring(@buffer.point,
-                                   @buffer.point + len).scrub("")
-      end
-      return [highlight_on, highlight_off] if !source.valid_encoding?
-      if source == @prism_cache_source
-        tokens = @prism_cache_tokens
-      else
-        tokens = Prism.lex(source).value
-        @prism_cache_source = source
-        @prism_cache_tokens = tokens
-      end
-      in_symbol = false
-      after_def = false
-      tokens.each do |token_info|
-        token = token_info[0]
-        type = token.type
-        face_name = PRISM_TOKEN_FACES[type]
-        if in_symbol
-          face_name = :string if face_name.nil? || face_name == :constant ||
-            face_name == :operator
-        elsif after_def
-          face_name = :function_name if type == :IDENTIFIER ||
-            type == :CONSTANT || type == :METHOD_NAME ||
-            PRISM_TOKEN_FACES[type] == :operator
-        end
-        in_symbol = type == :SYMBOL_BEGIN
-        after_def = type == :KEYWORD_DEF ||
-          (after_def && (type == :KEYWORD_SELF || type == :DOT ||
-                         type == :NEWLINE || type == :IGNORED_NEWLINE ||
-                         type == :COMMENT))
-        next unless face_name
-        face = Face[face_name]
-        next unless face
-        offset = token.location.start_offset
-        length = token.location.length
-        pos = base_pos + offset
-        if pos < @buffer.point && @buffer.point < pos + length
-          pos = @buffer.point
-        end
-        highlight_on[pos] = face
-        highlight_off[pos + length] = true
-      end
-      [highlight_on, highlight_off]
     end
 
     def in_literal?(source)

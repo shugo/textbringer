@@ -21,8 +21,13 @@ module Textbringer
       grid = Gamegrid.new(width, height, margin_left: margin_left)
       @buffer[:gamegrid] = grid
       @buffer.read_only = true
-      @buffer[:highlight_override] = ->(_window) { grid.face_map }
       grid
+    end
+
+    def highlight(ctx)
+      grid = @buffer[:gamegrid]
+      return unless grid
+      grid.apply_highlights(ctx)
     end
 
     define_local_command(:gamegrid_refresh,

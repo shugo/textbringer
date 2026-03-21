@@ -15,7 +15,6 @@ class TestGamegridMode < Textbringer::TestCase
     assert_equal(5, grid.height)
     assert_equal(grid, @buffer[:gamegrid])
     assert(@buffer.read_only?)
-    assert_not_nil(@buffer[:highlight_override])
   end
 
   def test_gamegrid_refresh
@@ -39,14 +38,22 @@ class TestGamegridMode < Textbringer::TestCase
     assert_equal({}, @mode.syntax_table)
   end
 
-  def test_highlight_override
+  def test_highlight
     grid = @mode.gamegrid_init(2, 1)
     grid.set_display_option(1, char: "#", face: :gamegrid_red)
     grid.set_cell(0, 0, 1)
     @mode.gamegrid_refresh
 
-    override = @buffer[:highlight_override]
-    highlight_on, highlight_off = override.call(Window.current)
+    highlight_on = {}
+    highlight_off = {}
+    ctx = HighlightContext.new(
+      buffer: @buffer,
+      highlight_start: @buffer.point_min,
+      highlight_end: @buffer.point_max,
+      highlight_on: highlight_on,
+      highlight_off: highlight_off
+    )
+    @mode.highlight(ctx)
     assert_equal(Face[:gamegrid_red], highlight_on[0])
     assert_equal(true, highlight_off[1])
   end
