@@ -19,12 +19,15 @@ module Textbringer
       super(buffer)
       @buffer[:indent_level] = CONFIG[:ruby_indent_level]
       @buffer[:indent_tabs_mode] = CONFIG[:ruby_indent_tabs_mode]
-      @prism_cache_key = nil
-      @prism_cache_tokens = nil
+      @prism_version = nil
+      @prism_tokens = nil
+      @literal_levels = nil
+      @literal_levels_version = nil
     end
 
     def forward_definition(n = number_prefix_arg || 1)
-      tokens = Prism.lex(@buffer.to_s).value.filter_map { |token, _state|
+      ensure_prism_tokens
+      tokens = @prism_tokens.filter_map { |token, _state|
         type = token.type
         next if type == :EOF
         [token.location.start_line, type]
@@ -49,7 +52,8 @@ module Textbringer
     end
 
     def backward_definition(n = number_prefix_arg || 1)
-      tokens = Prism.lex(@buffer.to_s).value.filter_map { |token, _state|
+      ensure_prism_tokens
+      tokens = @prism_tokens.filter_map { |token, _state|
         type = token.type
         next if type == :EOF
         [token.location.start_line, type]
@@ -112,27 +116,12 @@ module Textbringer
     end
 
     def highlight(ctx)
-      if ctx.buffer.bytesize < CONFIG[:highlight_buffer_size_limit]
-        base_pos = ctx.buffer.point_min
-        source = ctx.buffer.to_s
-        cache_key = ctx.buffer.version
-      else
-        base_pos = ctx.highlight_start
-        source = ctx.buffer.substring(ctx.highlight_start,
-                                      ctx.highlight_end).scrub("")
-        cache_key = [ctx.buffer.version, ctx.highlight_start, ctx.highlight_end]
-      end
-      return if !source.valid_encoding?
-      if cache_key == @prism_cache_key
-        tokens = @prism_cache_tokens
-      else
-        tokens = Prism.lex(source).value
-        @prism_cache_key = cache_key
-        @prism_cache_tokens = tokens
-      end
+      ensure_prism_tokens
+      return unless @prism_tokens
+      base_pos = ctx.buffer.point_min
       in_symbol = false
       after_def = false
-      tokens.each do |token_info|
+      @prism_tokens.each do |token_info|
         token = token_info[0]
         type = token.type
         face_name = PRISM_TOKEN_FACES[type]
@@ -287,8 +276,7 @@ module Textbringer
       loop do
         @buffer.re_search_backward(INDENT_BEG_RE)
         space = @buffer.match_string(1)
-        s = @buffer.substring(@buffer.point_min, @buffer.point)
-        if in_literal?(s)
+        if in_literal?(@buffer.point)
           next
         end
         return space_width(space)
@@ -475,9 +463,33 @@ module Textbringer
       nil
     end
 
-    def in_literal?(source)
+    def in_literal?(byte_offset)
+      ensure_prism_tokens
+      ensure_literal_levels
+      return false if @literal_levels.empty?
+      i = @literal_levels.bsearch_index { |offset, _| offset > byte_offset }
+      i = i ? i - 1 : @literal_levels.size - 1
+      return false if i < 0
+      @literal_levels[i][1] > 0
+    end
+
+    def ensure_prism_tokens
+      return if @prism_version == @buffer.version
+      source = @buffer.to_s
+      if source.valid_encoding?
+        @prism_tokens = Prism.lex(source).value
+      else
+        @prism_tokens = []
+      end
+      @prism_version = @buffer.version
+      @literal_levels_version = nil
+    end
+
+    def ensure_literal_levels
+      return if @literal_levels_version == @prism_version
       level = 0
-      Prism.lex(source).value.each do |token, _state|
+      @literal_levels = []
+      @prism_tokens&.each do |token, _state|
         type = token.type
         if LITERAL_BEGIN_TYPES.include?(type)
           level += 1
@@ -485,8 +497,9 @@ module Textbringer
           next if type == :HEREDOC_END && token.value.empty?
           level -= 1
         end
+        @literal_levels << [token.location.start_offset, level]
       end
-      level > 0
+      @literal_levels_version = @prism_version
     end
   end
 end
