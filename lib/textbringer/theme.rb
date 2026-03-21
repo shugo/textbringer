@@ -1,6 +1,6 @@
 module Textbringer
   class Theme
-    DEFAULT_THEME = "catppuccin"
+    DEFAULT_THEME = "github"
 
     class Palette
       def initialize
