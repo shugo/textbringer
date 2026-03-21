@@ -9,7 +9,8 @@ module Textbringer
     extend Enumerable
 
     attr_accessor :mode, :keymap
-    attr_reader :name, :file_name, :file_encoding, :file_format, :point, :marks
+    attr_reader :name, :file_name, :file_encoding, :file_format, :point, :marks,
+      :file_version, :version
     attr_reader :current_line, :current_column, :visible_mark, :isearch_mark, :mark_active
     attr_reader :last_match
     attr_reader :input_method
@@ -225,6 +226,7 @@ module Textbringer
                    file_encoding: CONFIG[:default_file_encoding],
                    file_mtime: nil, new_file: true, undo_limit: UNDO_LIMIT,
                    read_only: false)
+      @version = 0
       set_contents(s, file_encoding)
       @name = name
       @file_name = file_name
@@ -247,7 +249,7 @@ module Textbringer
       @undoing = false
       @composite_edit_level = 0
       @composite_edit_actions = []
-      @version = 0
+      @file_version = 0
       @modified = false
       @mode = FundamentalMode.new(self)
       @minor_modes = []
@@ -454,7 +456,7 @@ module Textbringer
       if file_name != @file_name
         self.file_name = file_name
       end
-      @version += 1
+      @file_version += 1
       @modified = false
       @new_file = false
       @read_only = false
@@ -605,6 +607,7 @@ module Textbringer
         end
       end
       @point = @gap_start += size
+      @version += 1
       update_line_and_column(pos, @point)
       unless @undoing
         if merge_undo && @undo_stack.last.is_a?(InsertAction)
@@ -641,6 +644,7 @@ module Textbringer
 
     def delete_char(n = 1)
       check_read_only_flag
+      @version += 1
       adjust_gap
       s = @point
       pos = get_pos(@point, n)
@@ -1009,6 +1013,7 @@ module Textbringer
 
     def delete_region(s = @point, e = mark)
       check_read_only_flag
+      @version += 1
       old_pos = @point
       s, e = Buffer.region_boundaries(s, e)
       update_line_and_column(old_pos, s)
@@ -1052,6 +1057,7 @@ module Textbringer
 
     def clear
       check_read_only_flag
+      @version += 1
       @contents = String.new
       @point = @gap_start = @gap_end = 0
       @marks.each do |m|
@@ -1309,7 +1315,7 @@ module Textbringer
           @composite_edit_actions.each do |i|
             action.add_action(i)
           end
-          action.version = @composite_edit_actions.first.version
+          action.file_version = @composite_edit_actions.first.file_version
           push_undo(action)
           @composite_edit_actions.clear
         end
@@ -1516,6 +1522,7 @@ module Textbringer
     private
 
     def set_contents(s, enc)
+      @version += 1
       case s.encoding
       when Encoding::UTF_8, Encoding::ASCII_8BIT
         @contents = +s
@@ -1723,7 +1730,7 @@ module Textbringer
     def push_undo(action)
       return if @undoing || @undo_limit == 0
       if !modified?
-        action.version = @version
+        action.file_version = @file_version
       end
       if @composite_edit_level > 0
         @composite_edit_actions.push(action)
@@ -1746,11 +1753,11 @@ module Textbringer
       begin
         was_modified = @modified
         action.send(op)
-        if action.version == @version
+        if action.file_version == @file_version
           @modified = false
-          action.version = nil
+          action.file_version = nil
         elsif !was_modified
-          action.version = @version
+          action.file_version = @file_version
         end
         to_stack.push(action)
       ensure
@@ -1824,11 +1831,11 @@ module Textbringer
   KILL_RING = Ring.new
 
   class UndoableAction
-    attr_accessor :version
+    attr_accessor :file_version
     attr_reader :location
 
     def initialize(buffer, location)
-      @version = nil
+      @file_version = nil
       @buffer = buffer
       @location = location
     end

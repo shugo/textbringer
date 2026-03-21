@@ -81,5 +81,30 @@ module Textbringer
     def syntax_table
       self.class.syntax_table
     end
+
+    def highlight(ctx)
+      syntax_table = self.class.syntax_table || DEFAULT_SYNTAX_TABLE
+      if ctx.buffer.bytesize < CONFIG[:highlight_buffer_size_limit]
+        base_pos = ctx.buffer.point_min
+        s = ctx.buffer.to_s
+      else
+        base_pos = ctx.highlight_start
+        s = ctx.buffer.substring(ctx.highlight_start,
+              ctx.highlight_end).scrub("")
+      end
+      return if !s.valid_encoding?
+      re_str = syntax_table.map { |name, re|
+        "(?<#{name}>#{re})"
+      }.join("|")
+      re = Regexp.new(re_str)
+      names = syntax_table.keys
+      s.scan(re) do
+        b = base_pos + $`.bytesize
+        e = b + $&.bytesize
+        name = names.find { |n| $~[n] }
+        face = Face[name]
+        ctx.highlight(b, e, face) if face
+      end
+    end
   end
 end

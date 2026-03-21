@@ -63,9 +63,7 @@ module Textbringer
       }.join("\n")
     end
 
-    def face_map
-      highlight_on = {}
-      highlight_off = {}
+    def apply_highlights(ctx)
       offset = 0
       @height.times do |y|
         offset += @margin_left
@@ -80,16 +78,14 @@ module Textbringer
           if face_name
             face = Face[face_name]
             if face
-              highlight_on[offset] = face
               char_len = cell_char(value).bytesize
-              highlight_off[offset + char_len] = true
+              ctx.highlight(offset, offset + char_len, face)
             end
           end
           offset += cell_char(value).bytesize
         end
         offset += 1  # newline
       end
-      [highlight_on, highlight_off]
     end
 
     # Timer

@@ -401,39 +401,15 @@ module Textbringer
     def highlight
       @highlight_on = {}
       @highlight_off = {}
-      if (override = @buffer[:highlight_override])
-        @highlight_on, @highlight_off = override.call(self)
-        return
-      end
       return if !@@has_colors || !CONFIG[:syntax_highlight] || @buffer.binary?
-      syntax_table = @buffer.mode.syntax_table || DEFAULT_SYNTAX_TABLE
-      if @buffer.bytesize < CONFIG[:highlight_buffer_size_limit]
-        base_pos = @buffer.point_min
-        s = @buffer.to_s
-      else
-        base_pos = @buffer.point
-        len = columns * (lines - 1) / 2 * 3
-        s = @buffer.substring(@buffer.point, @buffer.point + len).scrub("")
-      end
-      return if !s.valid_encoding?
-      re_str = syntax_table.map { |name, re|
-        "(?<#{name}>#{re})"
-      }.join("|")
-      re = Regexp.new(re_str)
-      names = syntax_table.keys
-      s.scan(re) do
-        b = base_pos + $`.bytesize
-        e = b + $&.bytesize
-        if b < @buffer.point && @buffer.point < e
-          b = @buffer.point
-        end
-        name = names.find { |n| $~[n] }
-        face = Face[name]
-        if face
-          @highlight_on[b] = face
-          @highlight_off[e] = true
-        end
-      end
+      ctx = HighlightContext.new(
+        buffer: @buffer,
+        highlight_start: @buffer.point,
+        highlight_end: @buffer.point + columns * (lines - 1) / 2 * 3,
+        highlight_on: @highlight_on,
+        highlight_off: @highlight_off
+      )
+      @buffer.mode.highlight(ctx)
     end
 
     def redisplay
