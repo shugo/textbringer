@@ -644,11 +644,11 @@ module Textbringer
 
     def delete_char(n = 1)
       check_read_only_flag
-      @version += 1
       adjust_gap
       s = @point
       pos = get_pos(@point, n)
       if n > 0
+        @version += 1
         str = substring(s, pos)
         # fill the gap with NUL to avoid invalid byte sequence in UTF-8
         @contents.bytesplice(@gap_end...user_to_gap(pos), "\0" * (pos - @point))
@@ -664,6 +664,7 @@ module Textbringer
         self.modified = true
         Utils.run_hooks(:after_change_functions, s, s, str) unless @undoing || !current?
       elsif n < 0
+        @version += 1
         str = substring(pos, s)
         update_line_and_column(@point, pos)
         # fill the gap with NUL to avoid invalid byte sequence in UTF-8
@@ -1013,12 +1014,12 @@ module Textbringer
 
     def delete_region(s = @point, e = mark)
       check_read_only_flag
-      @version += 1
       old_pos = @point
       s, e = Buffer.region_boundaries(s, e)
       update_line_and_column(old_pos, s)
       save_point do
         str = substring(s, e)
+        @version += 1
         @point = s
         adjust_gap
         len = e - s
