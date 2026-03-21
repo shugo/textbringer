@@ -476,8 +476,11 @@ module Textbringer
     def ensure_prism_tokens
       return if @prism_version == @buffer.version
       source = @buffer.to_s
-      return unless source.valid_encoding?
-      @prism_tokens = Prism.lex(source).value
+      if source.valid_encoding?
+        @prism_tokens = Prism.lex(source).value
+      else
+        @prism_tokens = []
+      end
       @prism_version = @buffer.version
       @literal_levels_version = nil
     end
