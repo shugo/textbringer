@@ -405,7 +405,10 @@ module Textbringer
       ctx = HighlightContext.new(
         buffer: @buffer,
         highlight_start: @buffer.point,
-        highlight_end: @buffer.point + columns * (lines - 1) / 2 * 3,
+        # Use * 4 (max UTF-8 bytes per character) to ensure multi-byte
+        # characters near the bottom of the window are fully covered.
+        highlight_end: [@buffer.point + columns * (lines - 1) * 4,
+                        @buffer.point_max].min,
         highlight_on: @highlight_on,
         highlight_off: @highlight_off
       )
