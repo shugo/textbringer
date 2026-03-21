@@ -119,11 +119,26 @@ module Textbringer
       ensure_prism_tokens
       return unless @prism_tokens
       base_pos = ctx.buffer.point_min
+      hl_start = ctx.highlight_start
+      hl_end = ctx.highlight_end
       in_symbol = false
       after_def = false
       @prism_tokens.each do |token_info|
         token = token_info[0]
         type = token.type
+        offset = token.location.start_offset
+        length = token.location.length
+        pos = base_pos + offset
+        pos_end = pos + length
+        if pos_end <= hl_start
+          in_symbol = type == :SYMBOL_BEGIN
+          after_def = type == :KEYWORD_DEF ||
+            (after_def && (type == :KEYWORD_SELF || type == :DOT ||
+                           type == :NEWLINE || type == :IGNORED_NEWLINE ||
+                           type == :COMMENT))
+          next
+        end
+        break if pos >= hl_end
         face_name = PRISM_TOKEN_FACES[type]
         if in_symbol
           face_name = :string if face_name.nil? || face_name == :constant ||
@@ -141,10 +156,7 @@ module Textbringer
         next unless face_name
         face = Face[face_name]
         next unless face
-        offset = token.location.start_offset
-        length = token.location.length
-        pos = base_pos + offset
-        ctx.highlight(pos, pos + length, face)
+        ctx.highlight(pos, pos_end, face)
       end
     end
 
