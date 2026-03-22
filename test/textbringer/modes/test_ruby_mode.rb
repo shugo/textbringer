@@ -946,4 +946,45 @@ EOF
     assert_equal({}, highlight_on)
     assert_equal({}, highlight_off)
   end
+
+  def test_prism_highlight_method_call_with_parens
+    Window.has_colors = true
+    @buffer.insert("puts(1)")
+    @buffer.beginning_of_buffer
+    highlight_on, _ = call_highlight
+    assert_equal(Face[:function_name], highlight_on[0])  # puts
+  end
+
+  def test_prism_highlight_method_call_no_parens
+    Window.has_colors = true
+    @buffer.insert("puts 1")
+    @buffer.beginning_of_buffer
+    highlight_on, _ = call_highlight
+    assert_equal(Face[:function_name], highlight_on[0])  # puts
+  end
+
+  def test_prism_highlight_method_call_with_receiver
+    Window.has_colors = true
+    @buffer.insert("foo.bar")
+    @buffer.beginning_of_buffer
+    highlight_on, _ = call_highlight
+    assert_equal(Face[:function_name], highlight_on[4])  # bar
+  end
+
+  def test_prism_highlight_method_call_without_parens_in_def
+    Window.has_colors = true
+    @buffer.insert("def foo\n  bar\nend")
+    @buffer.beginning_of_buffer
+    highlight_on, _ = call_highlight
+    assert_equal(Face[:function_name], highlight_on[4])   # foo (after def)
+    assert_equal(Face[:function_name], highlight_on[10])  # bar (method call)
+  end
+
+  def test_prism_highlight_variable_not_function
+    Window.has_colors = true
+    @buffer.insert("x = 1\nx")
+    @buffer.beginning_of_buffer
+    highlight_on, _ = call_highlight
+    assert_nil(highlight_on[6])  # x on second line is a local variable read
+  end
 end
