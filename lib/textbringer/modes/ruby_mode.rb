@@ -21,6 +21,8 @@ module Textbringer
       @buffer[:indent_tabs_mode] = CONFIG[:ruby_indent_tabs_mode]
       @prism_version = nil
       @prism_tokens = nil
+      @prism_ast = nil
+      @prism_method_call_locs = nil
       @literal_levels = nil
       @literal_levels_version = nil
     end
@@ -118,6 +120,7 @@ module Textbringer
     def highlight(ctx)
       ensure_prism_tokens
       return unless @prism_tokens
+      ensure_method_call_locs
       base_pos = ctx.buffer.point_min
       hl_start = ctx.highlight_start
       hl_end = ctx.highlight_end
@@ -147,6 +150,8 @@ module Textbringer
           face_name = :function_name if type == :IDENTIFIER ||
             type == :CONSTANT || type == :METHOD_NAME ||
             PRISM_TOKEN_FACES[type] == :operator
+        elsif @prism_method_call_locs.key?(offset)
+          face_name = :function_name
         end
         in_symbol = type == :SYMBOL_BEGIN
         after_def = type == :KEYWORD_DEF ||
@@ -489,12 +494,33 @@ module Textbringer
       return if @prism_version == @buffer.version
       source = @buffer.to_s
       if source.valid_encoding?
-        @prism_tokens = Prism.lex(source).value
+        result = Prism.parse_lex(source)
+        @prism_ast, @prism_tokens = result.value
       else
+        @prism_ast = nil
         @prism_tokens = []
       end
+      @prism_method_call_locs = nil
       @prism_version = @buffer.version
       @literal_levels_version = nil
+    end
+
+    def ensure_method_call_locs
+      return if @prism_method_call_locs
+      @prism_method_call_locs = {}
+      return unless @prism_ast
+      collect_method_call_locs(@prism_ast)
+    end
+
+    def collect_method_call_locs(node)
+      if node.is_a?(Prism::CallNode) && node.message_loc
+        name_str = node.name.to_s
+        unless name_str.match?(/\A[^a-zA-Z_]/) || name_str.end_with?("@")
+          loc = node.message_loc
+          @prism_method_call_locs[loc.start_offset] = true
+        end
+      end
+      node.compact_child_nodes.each { |child| collect_method_call_locs(child) }
     end
 
     def ensure_literal_levels
