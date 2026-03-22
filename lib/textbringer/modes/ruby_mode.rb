@@ -517,7 +517,7 @@ module Textbringer
         name_str = node.name.to_s
         unless name_str.match?(/\A[^a-zA-Z_]/) || name_str.end_with?("@")
           loc = node.message_loc
-          @prism_method_call_locs[loc.start_offset] = loc.length
+          @prism_method_call_locs[loc.start_offset] = true
         end
       end
       node.compact_child_nodes.each { |child| collect_method_call_locs(child) }
