@@ -29,6 +29,8 @@ Textbringer::Theme.define "tokyonight" do |t|
     p.color :blue5,   hex: "#89ddff", ansi: "cyan"         # Operator, punctuation delimiters
   end
 
+  t.default_colors foreground: :fg, background: :bg
+
   # Programming faces
   t.face :comment,                  foreground: :comment
   t.face :preprocessing_directive,  foreground: :cyan     # PreProc = c.cyan
