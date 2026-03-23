@@ -33,6 +33,8 @@ module Textbringer
     @@minibuffer_selected = nil
     @@echo_area = nil
     @@has_colors = false
+    @@default_fg = "default"
+    @@default_bg = "default"
 
     def self.list(include_echo_area: false)
       if include_echo_area
@@ -133,7 +135,9 @@ module Textbringer
     end
 
     def self.set_default_colors(fg, bg)
-      Curses.assume_default_colors(Color[fg], Color[bg])
+      @@default_fg = fg if fg
+      @@default_bg = bg if bg
+      Curses.assume_default_colors(Color[@@default_fg], Color[@@default_bg])
       Window.redraw
     end
 

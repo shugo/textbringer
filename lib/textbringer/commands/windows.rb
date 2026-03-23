@@ -84,6 +84,20 @@ module Textbringer
       end
     end
 
+    define_command(:set_foreground_color, doc: <<~EOD) do
+        Set the default foreground color.
+      EOD
+      |color = read_from_minibuffer("Foreground color: ")|
+      Window.set_default_colors(color, nil)
+    end
+
+    define_command(:set_background_color, doc: <<~EOD) do
+        Set the default background color.
+      EOD
+      |color = read_from_minibuffer("Background color: ")|
+      Window.set_default_colors(nil, color)
+    end
+
     define_command(:list_buffers, doc: <<~EOD) do |buffers = Buffer.list|
         List the existing buffers.
       EOD
