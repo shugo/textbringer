@@ -43,7 +43,7 @@ Textbringer::Theme.define "github" do |t|
     p.color :darkred,  hex: "#b31d28", ansi: "red"          # s:colors.darkred (same both modes)
     p.color :purple,   hex: "#a887e6", ansi: "magenta"      # dcolors.purple
     p.color :green,    hex: "#59b36f", ansi: "green"        # dcolors.green
-    p.color :orange,   hex: "#e36209", ansi: "yellow"       # s:colors.orange (same both modes)
+    p.color :orange,   hex: "#ffa657", ansi: "yellow"       # s:colors.orange (same both modes)
     p.color :blue,     hex: "#4dacfd", ansi: "blue"         # dcolors.blue
     p.color :darkblue, hex: "#c1daec", ansi: "blue"         # dcolors.darkblue = blue1
   end
