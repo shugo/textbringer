@@ -126,6 +126,7 @@ module Textbringer
       hl_end = ctx.highlight_end
       in_symbol = false
       after_def = false
+      after_class_or_module = false
       @prism_tokens.each do |token_info|
         token = token_info[0]
         type = token.type
@@ -139,6 +140,7 @@ module Textbringer
             (after_def && (type == :KEYWORD_SELF || type == :DOT ||
                            type == :NEWLINE || type == :IGNORED_NEWLINE ||
                            type == :COMMENT))
+          after_class_or_module = (type == :KEYWORD_CLASS || type == :KEYWORD_MODULE)
           next
         end
         break if pos >= hl_end
@@ -150,7 +152,8 @@ module Textbringer
           face_name = :function_name if type == :IDENTIFIER ||
             type == :CONSTANT || type == :METHOD_NAME ||
             PRISM_TOKEN_FACES[type] == :operator
-        elsif face_name == :constant && token.location.slice.match?(/[a-z]/)
+        elsif face_name == :constant &&
+            (after_class_or_module || token.location.slice.match?(/\p{Lower}/))
           face_name = :type
         elsif @prism_method_call_locs.key?(offset)
           face_name = :function_name
@@ -160,6 +163,7 @@ module Textbringer
           (after_def && (type == :KEYWORD_SELF || type == :DOT ||
                          type == :NEWLINE || type == :IGNORED_NEWLINE ||
                          type == :COMMENT))
+        after_class_or_module = (type == :KEYWORD_CLASS || type == :KEYWORD_MODULE)
         next unless face_name
         face = Face[face_name]
         next unless face
