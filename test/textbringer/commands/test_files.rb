@@ -137,7 +137,7 @@ EOF
       push_keys "yes\n"
       revert_buffer_with_encoding("Windows-31J")
       assert_equal("､｢､､､ｦ､ｨ､ｪ\n", Buffer.current.to_s)
-      assert_equal(Encoding::Windows_31J, Buffer.current.file_encoding)
+      assert_equal(Encoding::WINDOWS_31J, Buffer.current.file_encoding)
     end
   end
 
@@ -189,7 +189,7 @@ EOF
 
   def test_set_buffer_file_encoding
     set_buffer_file_encoding("cp932")
-    assert_equal(Encoding::Windows_31J, Buffer.current.file_encoding)
+    assert_equal(Encoding::WINDOWS_31J, Buffer.current.file_encoding)
   end
 
   def test_set_buffer_file_format
