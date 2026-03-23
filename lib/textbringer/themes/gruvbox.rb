@@ -56,7 +56,7 @@ Textbringer::Theme.define "gruvbox" do |t|
   t.face :string,                 foreground: :green
   t.face :number,                 foreground: :purple
   t.face :constant,               foreground: :purple
-  t.face :function_name,          foreground: :green, bold: true
+  t.face :function_name,          foreground: :green
   t.face :type,                   foreground: :yellow
   t.face :variable,               foreground: :blue
   t.face :operator
