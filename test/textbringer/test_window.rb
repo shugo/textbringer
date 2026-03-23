@@ -449,9 +449,10 @@ EOF
     Window.set_default_colors("red", "blue")
     assert_equal([1, 4], Curses.default_colors)
 
-    # Empty string should be treated as nil (no change)
-    Window.set_default_colors("", "")
-    assert_equal([1, 4], Curses.default_colors)
+    # Empty string should be treated as error
+    assert_raise(EditorError) do
+      Window.set_default_colors("", "")
+    end
   end
 
   private

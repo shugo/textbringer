@@ -135,13 +135,9 @@ module Textbringer
     end
 
     def self.set_default_colors(fg, bg)
-      fg = nil if fg.respond_to?(:empty?) && fg.empty?
-      bg = nil if bg.respond_to?(:empty?) && bg.empty?
       new_fg = fg || @@default_fg
       new_bg = bg || @@default_bg
-      fg_color = Color[new_fg]
-      bg_color = Color[new_bg]
-      Curses.assume_default_colors(fg_color, bg_color)
+      Curses.assume_default_colors(Color[new_fg], Color[new_bg])
       @@default_fg = new_fg
       @@default_bg = new_bg
       Face.define(:default, foreground: new_fg, background: new_bg)
