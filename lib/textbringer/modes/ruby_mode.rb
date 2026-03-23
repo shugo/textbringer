@@ -159,7 +159,8 @@ module Textbringer
           (after_def && (type == :KEYWORD_SELF || type == :DOT ||
                          type == :NEWLINE || type == :IGNORED_NEWLINE ||
                          type == :COMMENT))
-        after_class_or_module = (type == :KEYWORD_CLASS || type == :KEYWORD_MODULE)
+        after_class_or_module = (type == :KEYWORD_CLASS || type == :KEYWORD_MODULE) ||
+          (after_class_or_module && !(type == :NEWLINE || type == :SEMICOLON))
       end
     end
 
