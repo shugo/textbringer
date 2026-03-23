@@ -26,6 +26,8 @@ Textbringer::Theme.define "sonokai" do |t|
     p.color :purple,   hex: "#d787d7", ansi: "magenta"
   end
 
+  t.default_colors foreground: :fg, background: :bg0
+
   # Programming faces (from sonokai highlight groups)
   t.face :comment,                foreground: :grey
   t.face :preprocessing_directive, foreground: :red

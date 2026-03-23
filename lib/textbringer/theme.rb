@@ -73,6 +73,7 @@ module Textbringer
       @name = name
       @palettes = {}
       @face_definitions = []
+      @default_colors = nil
     end
 
     attr_reader :name
@@ -85,6 +86,10 @@ module Textbringer
 
     def face(name, **attrs)
       @face_definitions << [name, attrs]
+    end
+
+    def default_colors(foreground:, background:)
+      @default_colors = { foreground: foreground, background: background }
     end
 
     def activate
@@ -113,6 +118,33 @@ module Textbringer
         Face.define(face_name, **resolved)
       end
       @@current = self
+      apply_default_colors(palette, tier)
+    end
+
+    private
+
+    def apply_default_colors(palette, tier)
+      if @default_colors
+        fg = resolve_default_color(@default_colors[:foreground], palette, tier)
+        bg = resolve_default_color(@default_colors[:background], palette, tier)
+      else
+        fg = "default"
+        bg = "default"
+      end
+      Curses.assume_default_colors(Color[fg], Color[bg])
+    end
+
+    def resolve_default_color(val, palette, tier)
+      if val.is_a?(Symbol)
+        color = palette.resolve(val, tier)
+        unless color
+          raise EditorError,
+                "Unknown palette color :#{val} for default_colors"
+        end
+        color
+      else
+        val || "default"
+      end
     end
 
     private_class_method def self.detect_background_via_osc11

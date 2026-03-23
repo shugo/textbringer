@@ -68,6 +68,8 @@ Textbringer::Theme.define "catppuccin" do |t|
     p.color :rosewater, hex: "#d78787", ansi: "red"
   end
 
+  t.default_colors foreground: :text, background: :base
+
   # Programming faces (from catppuccin/nvim syntax.lua)
   t.face :comment,                foreground: :overlay2
   t.face :preprocessing_directive, foreground: :pink
