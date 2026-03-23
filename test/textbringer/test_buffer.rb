@@ -17,7 +17,7 @@ class TestBuffer < Textbringer::TestCase
                  Buffer::NKF_DETECT_ENCODING.call("あいう"))
     assert_equal(Encoding::EUC_JP,
                  Buffer::NKF_DETECT_ENCODING.call("あいう".encode("EUC-JP")))
-    assert_equal(Encoding::Shift_JIS,
+    assert_equal(Encoding::SHIFT_JIS,
                  Buffer::NKF_DETECT_ENCODING.call("あいう".encode("Shift_JIS")))
     assert_equal(Encoding::ASCII_8BIT,
                  Buffer::NKF_DETECT_ENCODING.call("\xab"))
@@ -799,17 +799,17 @@ EOF
 
   def test_save_windows31j
     Tempfile.create("test_buffer", binmode: true) do |f|
-      f.print(<<EOF.encode(Encoding::Windows_31J))
+      f.print(<<EOF.encode(Encoding::WINDOWS_31J))
 こんにちは
 EOF
       f.close
       buffer = Buffer.open(f.path)
-      assert_equal(Encoding::Windows_31J, buffer.file_encoding)
+      assert_equal(Encoding::WINDOWS_31J, buffer.file_encoding)
       assert_equal("こんにちは\n", buffer.to_s)
       buffer.end_of_buffer
       buffer.insert("さようなら\n")
       buffer.save
-      assert_equal(<<EOF.encode(Encoding::Windows_31J).b, File.binread(f.path))
+      assert_equal(<<EOF.encode(Encoding::WINDOWS_31J).b, File.binread(f.path))
 こんにちは
 さようなら
 EOF
@@ -868,17 +868,17 @@ EOF
 
   def test_save_dos
     Tempfile.create("test_buffer", binmode: true) do |f|
-      f.print(<<EOF.gsub(/\n/, "\r\n").encode(Encoding::Windows_31J))
+      f.print(<<EOF.gsub(/\n/, "\r\n").encode(Encoding::WINDOWS_31J))
 こんにちは
 EOF
       f.close
       buffer = Buffer.open(f.path)
-      assert_equal(Encoding::Windows_31J, buffer.file_encoding)
+      assert_equal(Encoding::WINDOWS_31J, buffer.file_encoding)
       assert_equal("こんにちは\n", buffer.to_s)
       buffer.end_of_buffer
       buffer.insert("さようなら\n")
       buffer.save
-      assert_equal(<<EOF.gsub(/\n/, "\r\n").encode(Encoding::Windows_31J).b, File.binread(f.path))
+      assert_equal(<<EOF.gsub(/\n/, "\r\n").encode(Encoding::WINDOWS_31J).b, File.binread(f.path))
 こんにちは
 さようなら
 EOF
@@ -887,17 +887,17 @@ EOF
 
   def test_save_mac
     Tempfile.create("test_buffer", binmode: true) do |f|
-      f.print(<<EOF.gsub(/\n/, "\r").encode(Encoding::Windows_31J))
+      f.print(<<EOF.gsub(/\n/, "\r").encode(Encoding::WINDOWS_31J))
 こんにちは
 EOF
       f.close
       buffer = Buffer.open(f.path)
-      assert_equal(Encoding::Windows_31J, buffer.file_encoding)
+      assert_equal(Encoding::WINDOWS_31J, buffer.file_encoding)
       assert_equal("こんにちは\n", buffer.to_s)
       buffer.end_of_buffer
       buffer.insert("さようなら\n")
       buffer.save
-      assert_equal(<<EOF.gsub(/\n/, "\r").encode(Encoding::Windows_31J).b, File.binread(f.path))
+      assert_equal(<<EOF.gsub(/\n/, "\r").encode(Encoding::WINDOWS_31J).b, File.binread(f.path))
 こんにちは
 さようなら
 EOF
@@ -1841,7 +1841,7 @@ EOF
 
   def test_dump
     Dir.mktmpdir do |dir|
-      buffer = Buffer.new(<<EOF.gsub(/\n/, "\r\n").encode("Shift_JIS"), name: "hello.txt", file_name: "/foo/bar/hello.txt", file_encoding: Encoding::Shift_JIS)
+      buffer = Buffer.new(<<EOF.gsub(/\n/, "\r\n").encode("Shift_JIS"), name: "hello.txt", file_name: "/foo/bar/hello.txt", file_encoding: Encoding::SHIFT_JIS)
 helloworld
 あいうえお
 EOF

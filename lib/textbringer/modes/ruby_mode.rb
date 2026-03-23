@@ -126,6 +126,7 @@ module Textbringer
       hl_end = ctx.highlight_end
       in_symbol = false
       after_def = false
+      after_class_or_module = false
       @prism_tokens.each do |token_info|
         token = token_info[0]
         type = token.type
@@ -133,35 +134,33 @@ module Textbringer
         length = token.location.length
         pos = base_pos + offset
         pos_end = pos + length
-        if pos_end <= hl_start
-          in_symbol = type == :SYMBOL_BEGIN
-          after_def = type == :KEYWORD_DEF ||
-            (after_def && (type == :KEYWORD_SELF || type == :DOT ||
-                           type == :NEWLINE || type == :IGNORED_NEWLINE ||
-                           type == :COMMENT))
-          next
-        end
         break if pos >= hl_end
-        face_name = PRISM_TOKEN_FACES[type]
-        if in_symbol
-          face_name = :string if face_name.nil? || face_name == :constant ||
-            face_name == :operator
-        elsif after_def
-          face_name = :function_name if type == :IDENTIFIER ||
-            type == :CONSTANT || type == :METHOD_NAME ||
-            PRISM_TOKEN_FACES[type] == :operator
-        elsif @prism_method_call_locs.key?(offset)
-          face_name = :function_name
+        if pos_end > hl_start
+          face_name = PRISM_TOKEN_FACES[type]
+          if in_symbol
+            face_name = :string if face_name.nil? || face_name == :constant ||
+              face_name == :operator
+          elsif after_def
+            face_name = :function_name if type == :IDENTIFIER ||
+              type == :CONSTANT || type == :METHOD_NAME ||
+              PRISM_TOKEN_FACES[type] == :operator
+          elsif face_name == :constant &&
+              (after_class_or_module || token.location.slice.match?(/\p{Lower}/))
+            face_name = :type
+          elsif @prism_method_call_locs.key?(offset)
+            face_name = :function_name
+          end
+          if face_name && (face = Face[face_name])
+            ctx.highlight(pos, pos_end, face)
+          end
         end
         in_symbol = type == :SYMBOL_BEGIN
         after_def = type == :KEYWORD_DEF ||
           (after_def && (type == :KEYWORD_SELF || type == :DOT ||
                          type == :NEWLINE || type == :IGNORED_NEWLINE ||
                          type == :COMMENT))
-        next unless face_name
-        face = Face[face_name]
-        next unless face
-        ctx.highlight(pos, pos_end, face)
+        after_class_or_module = (type == :KEYWORD_CLASS || type == :KEYWORD_MODULE) ||
+          (after_class_or_module && !(type == :NEWLINE || type == :SEMICOLON))
       end
     end
 

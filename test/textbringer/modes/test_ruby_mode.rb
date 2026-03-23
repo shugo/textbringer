@@ -870,8 +870,25 @@ EOF
     @buffer.insert("Foo::BAR")
     @buffer.beginning_of_buffer
     highlight_on, _ = call_highlight
-    assert_equal(Face[:constant], highlight_on[0])  # Foo
+    assert_equal(Face[:type], highlight_on[0])  # Foo
     assert_equal(Face[:constant], highlight_on[5])  # BAR
+  end
+
+  def test_prism_highlight_constants_non_ascii
+    Window.has_colors = true
+    @buffer.insert("Πᾶν::ΦΩ͂Σ")
+    @buffer.beginning_of_buffer
+    highlight_on, _ = call_highlight
+    assert_equal(Face[:type], highlight_on[0])  # Πᾶν
+    assert_equal(Face[:constant], highlight_on[9])  # ΦΩ͂Σ
+  end
+
+  def test_prism_highlight_type_without_lowercase
+    Window.has_colors = true
+    @buffer.insert("class X")
+    @buffer.beginning_of_buffer
+    highlight_on, _ = call_highlight
+    assert_equal(Face[:type], highlight_on[6])  # X
   end
 
   def test_prism_highlight_variables

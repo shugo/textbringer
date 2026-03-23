@@ -56,9 +56,9 @@ Textbringer::Theme.define "github" do |t|
   t.face :keyword,                  foreground: :red       # Statement = red
   t.face :string,                   foreground: :darkblue  # String = darkblue
   t.face :number,                   foreground: :blue      # Number → Constant = blue
-  t.face :constant,                 foreground: :orange    # Constant = orange
+  t.face :constant,                 foreground: :blue      # Constant = blue
   t.face :function_name,            foreground: :purple    # Function = purple
-  t.face :type,                     foreground: :red       # Type = red
+  t.face :type,                     foreground: :orange    # Type = orange
   t.face :variable,                 foreground: :blue      # Identifier = blue
   t.face :operator                                         # no explicit color in source
   t.face :punctuation                                      # Delimiter = fg (ghNormalNoBg)

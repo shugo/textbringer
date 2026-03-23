@@ -32,7 +32,7 @@ module Textbringer
     @@auto_detect_encodings = [
       Encoding::UTF_8,
       Encoding::EUC_JP,
-      Encoding::Windows_31J
+      Encoding::WINDOWS_31J
     ]
 
     DEFAULT_DETECT_ENCODING = ->(s) {
