@@ -157,7 +157,6 @@ end
 - For Vim themes: include the cterm source number in a comment after each palette color for traceability.
 - For Neovim themes: note the palette variable name (e.g. `c.blue`) in a comment.
 - Use `bold: true` where the source specifies `cterm=bold` / `gui=bold` / `bold = true`.
-- `cterm=reverse` means the terminal's reverse-video attribute (not an fg/bg swap). Only use `reverse: true` when the source group has **no** explicit `ctermfg`/`ctermbg`. If explicit colors are present, use those and omit `reverse:`.
 - Neovim themes often apply `italic` to keywords/functions via `opts.styles`; skip italic since Textbringer does not support it.
 
 ### 6. Verify

@@ -65,7 +65,7 @@ Textbringer::Theme.define "gruvbox" do |t|
   t.face :property,               foreground: :blue
 
   # Basic faces
-  t.face :mode_line,              foreground: :fg1, background: :bg2, reverse: true
+  t.face :mode_line,              foreground: :bg2, background: :fg1, reverse: true
   t.face :link,                   foreground: :blue, underline: true
   t.face :control
   t.face :region,                 background: :bg3
