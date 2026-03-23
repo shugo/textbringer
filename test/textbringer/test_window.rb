@@ -432,6 +432,28 @@ EOF
     assert_equal([-1, -1], Curses.default_colors)
   end
 
+  def test_s_set_default_colors_partial_update
+    Window.set_default_colors("red", "blue")
+    assert_equal([1, 4], Curses.default_colors)
+
+    # Update only bg, fg should be preserved
+    Window.set_default_colors(nil, "default")
+    assert_equal([1, -1], Curses.default_colors)
+
+    # Update only fg, bg should be preserved
+    Window.set_default_colors("green", nil)
+    assert_equal([2, -1], Curses.default_colors)
+  end
+
+  def test_s_set_default_colors_empty_string_ignored
+    Window.set_default_colors("red", "blue")
+    assert_equal([1, 4], Curses.default_colors)
+
+    # Empty string should be treated as nil (no change)
+    Window.set_default_colors("", "")
+    assert_equal([1, 4], Curses.default_colors)
+  end
+
   private
 
   def window_string(window)
