@@ -131,7 +131,7 @@ module Textbringer
         fg = "default"
         bg = "default"
       end
-      Curses.assume_default_colors(Color[fg], Color[bg])
+      Window.set_default_colors(fg, bg)
     end
 
     def resolve_default_color(val, palette, tier)
