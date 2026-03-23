@@ -138,7 +138,9 @@ module Textbringer
       @@default_fg = fg if fg
       @@default_bg = bg if bg
       Curses.assume_default_colors(Color[@@default_fg], Color[@@default_bg])
-      Window.redraw
+      Face.define(:default,
+                  foreground: @@default_fg, background: @@default_bg)
+      Window.redraw if @@started
     end
 
     def self.load_faces
@@ -712,7 +714,8 @@ module Textbringer
       @mode_line.addstr(" #{line},#{column}")
       @mode_line.addstr(" (#{@buffer.mode_names.join(' ')})")
       @mode_line.addstr(" " * (columns - @mode_line.curx))
-      @mode_line.attr_set(0, 0)
+      default = Face[:default]
+      @mode_line.attr_set(default&.text_attrs || 0, default&.color_pair || 0)
       @mode_line.noutrefresh
     end
 
@@ -952,6 +955,7 @@ module Textbringer
     end
 
     def apply_face_attrs(win, face)
+      face ||= Face[:default]
       win.attr_set(face&.text_attrs || 0, face&.color_pair || 0)
     end
 
@@ -971,7 +975,8 @@ module Textbringer
         end
         win.attr_set(text_attrs, face.color_pair)
       else
-        win.attr_set(0, 0)
+        default = Face[:default]
+        win.attr_set(default&.text_attrs || 0, default&.color_pair || 0)
       end
     end
   end
@@ -1020,7 +1025,8 @@ module Textbringer
           @window.addstr(@buffer.input_method_status)
         end
         @window.setpos(0, 0)
-        @window.attr_set(0, 0)
+        default = Face[:default]
+        @window.attr_set(default&.text_attrs || 0, default&.color_pair || 0)
         @in_region = false
         @in_isearch = false
         @current_hl_face = nil
