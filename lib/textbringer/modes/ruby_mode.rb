@@ -150,6 +150,8 @@ module Textbringer
           face_name = :function_name if type == :IDENTIFIER ||
             type == :CONSTANT || type == :METHOD_NAME ||
             PRISM_TOKEN_FACES[type] == :operator
+        elsif face_name == :constant && token.location.slice.match?(/[a-z]/)
+          face_name = :type
         elsif @prism_method_call_locs.key?(offset)
           face_name = :function_name
         end

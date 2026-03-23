@@ -870,7 +870,7 @@ EOF
     @buffer.insert("Foo::BAR")
     @buffer.beginning_of_buffer
     highlight_on, _ = call_highlight
-    assert_equal(Face[:constant], highlight_on[0])  # Foo
+    assert_equal(Face[:type], highlight_on[0])  # Foo
     assert_equal(Face[:constant], highlight_on[5])  # BAR
   end
 
