@@ -432,6 +432,34 @@ EOF
     assert_equal([-1, -1], Curses.default_colors)
   end
 
+  def test_s_set_default_colors_partial_update
+    red = Color["red"]
+    blue = Color["blue"]
+    green = Color["green"]
+    Window.set_default_colors("red", "blue")
+    assert_equal([red, blue], Curses.default_colors)
+
+    # Update only bg, fg should be preserved
+    Window.set_default_colors(nil, "default")
+    assert_equal([red, -1], Curses.default_colors)
+
+    # Update only fg, bg should be preserved
+    Window.set_default_colors("green", nil)
+    assert_equal([green, -1], Curses.default_colors)
+  end
+
+  def test_s_set_default_colors_empty_string_ignored
+    red = Color["red"]
+    blue = Color["blue"]
+    Window.set_default_colors("red", "blue")
+    assert_equal([red, blue], Curses.default_colors)
+
+    # Empty string should be treated as error
+    assert_raise(EditorError) do
+      Window.set_default_colors("", "")
+    end
+  end
+
   private
 
   def window_string(window)

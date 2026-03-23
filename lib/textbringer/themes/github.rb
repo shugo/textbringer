@@ -48,6 +48,8 @@ Textbringer::Theme.define "github" do |t|
     p.color :darkblue, hex: "#c1daec", ansi: "blue"         # dcolors.darkblue = blue1
   end
 
+  t.default_colors foreground: :fg, background: :bg
+
   # Programming faces
   t.face :comment,                  foreground: :comment   # Comment = base2
   t.face :preprocessing_directive,  foreground: :red       # PreProc = red

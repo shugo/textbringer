@@ -47,6 +47,8 @@ Textbringer::Theme.define "gruvbox" do |t|
     p.color :orange, hex: "#d75f00", ansi: "red"
   end
 
+  t.default_colors foreground: :fg1, background: :bg0
+
   # Programming faces
   t.face :comment,                foreground: :gray
   t.face :preprocessing_directive, foreground: :aqua

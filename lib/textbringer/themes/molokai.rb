@@ -27,6 +27,8 @@ Textbringer::Theme.define "molokai" do |t|
     p.color :search,  hex: "#ffd787", ansi: "yellow"       # 222  Search bg
   end
 
+  t.default_colors foreground: :fg, background: :bg
+
   # Programming faces
   t.face :comment,                  foreground: :comment
   t.face :preprocessing_directive,  foreground: :green

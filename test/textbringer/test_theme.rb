@@ -106,6 +106,60 @@ class TestTheme < Textbringer::TestCase
     Face.delete(:derived_kw)
   end
 
+  def test_activate_sets_default_colors
+    Theme.define "test_defcol" do |t|
+      t.palette :dark do |p|
+        p.color :fg, hex: "#ffffff", ansi: "white"
+        p.color :bg, hex: "#000000", ansi: "black"
+      end
+      t.default_colors foreground: :fg, background: :bg
+      t.face :test_defcol_face, foreground: :fg
+    end
+    Theme["test_defcol"].activate
+    fg_num = Color["#ffffff"]
+    bg_num = Color["#000000"]
+    assert_equal([fg_num, bg_num], Curses.default_colors)
+  ensure
+    Face.delete(:test_defcol_face)
+  end
+
+  def test_activate_resets_default_colors_when_not_specified
+    Theme.define "test_with_defcol" do |t|
+      t.palette :dark do |p|
+        p.color :fg, hex: "#ffffff", ansi: "white"
+        p.color :bg, hex: "#000000", ansi: "black"
+      end
+      t.default_colors foreground: :fg, background: :bg
+      t.face :test_wdc_face, foreground: :fg
+    end
+    Theme["test_with_defcol"].activate
+    assert_not_equal([-1, -1], Curses.default_colors)
+
+    Theme.define "test_no_defcol" do |t|
+      t.palette :dark do |p|
+        p.color :fg, hex: "#ffffff", ansi: "white"
+      end
+      t.face :test_ndc_face, foreground: :fg
+    end
+    Theme["test_no_defcol"].activate
+    assert_equal([-1, -1], Curses.default_colors)
+  ensure
+    Face.delete(:test_wdc_face)
+    Face.delete(:test_ndc_face)
+  end
+
+  def test_activate_default_colors_raises_on_unknown_palette
+    Theme.define "test_bad_defcol" do |t|
+      t.palette :dark do |p|
+        p.color :fg, hex: "#ffffff", ansi: "white"
+      end
+      t.default_colors foreground: :nonexistent, background: :fg
+    end
+    assert_raise(EditorError) do
+      Theme["test_bad_defcol"].activate
+    end
+  end
+
   def test_load_default_activates_faces
     face = Face[:comment]
     assert_not_nil(face)
