@@ -28,12 +28,7 @@ module Textbringer
     end
 
     def forward_definition(n = number_prefix_arg || 1)
-      ensure_prism_tokens
-      tokens = @prism_tokens.filter_map { |token, _state|
-        type = token.type
-        next if type == :EOF
-        [token.location.start_line, type]
-      }
+      tokens = filter_prism_tokens_line_and_type
       @buffer.forward_line
       n.times do |i|
         tokens = tokens.drop_while { |l, type|
@@ -54,12 +49,7 @@ module Textbringer
     end
 
     def backward_definition(n = number_prefix_arg || 1)
-      ensure_prism_tokens
-      tokens = @prism_tokens.filter_map { |token, _state|
-        type = token.type
-        next if type == :EOF
-        [token.location.start_line, type]
-      }.reverse
+      tokens = filter_prism_tokens_line_and_type.reverse
       @buffer.beginning_of_line
       n.times do |i|
         tokens = tokens.drop_while { |l, type|
@@ -487,6 +477,15 @@ module Textbringer
       i = i ? i - 1 : @literal_levels.size - 1
       return false if i < 0
       @literal_levels[i][1] > 0
+    end
+
+    def filter_prism_tokens_line_and_type
+      ensure_prism_tokens
+      tokens = @prism_tokens.filter_map { |token, _state|
+        type = token.type
+        next if type == :EOF
+        [token.location.start_line, type]
+      }
     end
 
     def ensure_prism_tokens
