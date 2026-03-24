@@ -105,7 +105,7 @@ Add the following line to ~/.screenrc.
 
 ## Themes
 
-Type `M-x load_theme` to load a theme from [textbringer/themes](lib/textbringer/themes) or ~/.textbringer/themes.
+Type `Alt+x load_theme RET` to load a theme from [textbringer/themes](lib/textbringer/themes) or ~/.textbringer/themes.
 
 Themes can also be loaded in ~/.textbringer.rb.
 
