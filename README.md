@@ -103,6 +103,17 @@ Add the following line to ~/.screenrc.
 * [textbringer-presentation](https://github.com/shugo/textbringer-presentation): a presentation tool
 * [textbringer-ghost_text](https://github.com/shugo/textbringer-ghost_text): a [GhostText](https://github.com/fregante/GhostText) plugin
 
+## Themes
+
+Type `Alt+x load_theme RET` to load a theme from [textbringer/themes](lib/textbringer/themes) or ~/.textbringer/themes.
+
+Themes can also be loaded in ~/.textbringer.rb.
+
+```ruby
+load_theme "catppuccin"
+set_background_color "default" # override the background color with the terminal default value
+```
+
 ## Development
 
 After checking out the repo, run `bundle install` to install dependencies. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
