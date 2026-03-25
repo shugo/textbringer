@@ -1004,4 +1004,99 @@ EOF
     highlight_on, _ = call_highlight
     assert_nil(highlight_on[6])  # x on second line is a local variable read
   end
+
+  def test_prism_highlight_op_writer_method_call
+    Window.has_colors = true
+    @buffer.insert("a.foo += 1")
+    @buffer.beginning_of_buffer
+    highlight_on, _ = call_highlight
+    assert_equal(Face[:function_name], highlight_on[0])  # a
+    assert_equal(Face[:function_name], highlight_on[2])  # foo
+  end
+
+  def test_prism_highlight_and_writer_method_call
+    Window.has_colors = true
+    @buffer.insert("a.foo &&= 1")
+    @buffer.beginning_of_buffer
+    highlight_on, _ = call_highlight
+    assert_equal(Face[:function_name], highlight_on[0])  # a
+    assert_equal(Face[:function_name], highlight_on[2])  # foo
+  end
+
+  def test_prism_highlight_or_writer_method_call
+    Window.has_colors = true
+    @buffer.insert("a.foo ||= 1")
+    @buffer.beginning_of_buffer
+    highlight_on, _ = call_highlight
+    assert_equal(Face[:function_name], highlight_on[0])  # a
+    assert_equal(Face[:function_name], highlight_on[2])  # foo
+  end
+
+  def test_prism_highlight_type_method_call
+    Window.has_colors = true
+    @buffer.insert("Foo()")
+    @buffer.beginning_of_buffer
+    highlight_on, _ = call_highlight
+    assert_equal(Face[:type], highlight_on[0])  # Foo
+  end
+
+  def test_prism_highlight_constant_method_call
+    Window.has_colors = true
+    @buffer.insert("FOO()")
+    @buffer.beginning_of_buffer
+    highlight_on, _ = call_highlight
+    assert_equal(Face[:constant], highlight_on[0])  # FOO
+  end
+
+  def test_prism_highlight_type_method_call_with_namespace
+    Window.has_colors = true
+    @buffer.insert("Foo::Bar()")
+    @buffer.beginning_of_buffer
+    highlight_on, _ = call_highlight
+    assert_equal(Face[:type], highlight_on[0])  # Foo
+    assert_equal(Face[:type], highlight_on[5])  # Bar
+  end
+
+  def test_prism_highlight_constant_method_call_with_namespace
+    Window.has_colors = true
+    @buffer.insert("Foo::BAR()")
+    @buffer.beginning_of_buffer
+    highlight_on, _ = call_highlight
+    assert_equal(Face[:type], highlight_on[0])  # Foo
+    assert_equal(Face[:constant], highlight_on[5])  # BAR
+  end
+
+  def test_prism_highlight_type_method_call_with_dot
+    Window.has_colors = true
+    @buffer.insert("Foo.Bar()")
+    @buffer.beginning_of_buffer
+    highlight_on, _ = call_highlight
+    assert_equal(Face[:type], highlight_on[0])  # Foo
+    assert_equal(Face[:function_name], highlight_on[4])  # Bar
+  end
+
+  def test_prism_highlight_constant_method_call_with_dot
+    Window.has_colors = true
+    @buffer.insert("Foo.BAR()")
+    @buffer.beginning_of_buffer
+    highlight_on, _ = call_highlight
+    assert_equal(Face[:type], highlight_on[0])  # Foo
+    assert_equal(Face[:function_name], highlight_on[4])  # BAR
+  end
+
+  def test_prism_highlight_method_call_non_ascii
+    Window.has_colors = true
+    @buffer.insert("てすと")
+    @buffer.beginning_of_buffer
+    highlight_on, _ = call_highlight
+    assert_equal(Face[:function_name], highlight_on[0])  # てすと
+  end
+
+  def test_prism_highlight_method_call_with_operator
+    Window.has_colors = true
+    @buffer.insert("a.+(1)")
+    @buffer.beginning_of_buffer
+    highlight_on, _ = call_highlight
+    assert_equal(Face[:function_name], highlight_on[2])  # +
+  end
 end
