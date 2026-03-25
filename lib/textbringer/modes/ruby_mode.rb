@@ -263,6 +263,8 @@ module Textbringer
       EQUAL_GREATER
     ].to_set
 
+    OPERATORS = %i(!= !~ =~ == === <=> > >= < <= & | ^ >> << - + % / * ** -@ +@ ~ ! [] []=)
+
     BLOCK_END = {
       EMBEXPR_BEGIN: :EMBEXPR_END,
       BRACE_LEFT: :BRACE_RIGHT,
@@ -511,21 +513,15 @@ module Textbringer
     end
 
     def collect_method_call_locs(node)
-      if (node.is_a?(Prism::CallNode) ||
+      if ((node.is_a?(Prism::CallNode) &&
+           !(node.call_operator_loc.nil? && OPERATORS.include?(node.name)) &&          # exclude operators
+           !((node.call_operator_loc.nil? || node.call_operator_loc.slice == "::") &&  # exclude constants
+             /\A\p{Upper}/.match?(node.name))) ||
           node.is_a?(Prism::CallOperatorWriteNode) ||
           node.is_a?(Prism::CallAndWriteNode) ||
-          node.is_a?(Prism::CallOrWriteNode)) && node.message_loc
-        name_str = node.message_loc.slice
-        if (name_str.match?(/\A[^\p{Letter}]/) || name_str.end_with?("@")) &&
-            node.call_operator_loc.nil?
-          # operators
-        elsif name_str.match?(/\A\p{Upper}/) &&
-            (node.call_operator_loc.nil? || node.call_operator_loc.slice == "::")
-          # constants
-        else
-          loc = node.message_loc
-          @prism_method_call_locs[loc.start_offset] = true
-        end
+          node.is_a?(Prism::CallOrWriteNode))
+        loc = node.message_loc
+        @prism_method_call_locs[loc.start_offset] = true
       end
       node.compact_child_nodes.each { |child| collect_method_call_locs(child) }
     end
