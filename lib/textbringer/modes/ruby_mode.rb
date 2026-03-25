@@ -134,11 +134,11 @@ module Textbringer
             face_name = :function_name if type == :IDENTIFIER ||
               type == :CONSTANT || type == :METHOD_NAME ||
               PRISM_TOKEN_FACES[type] == :operator
+          elsif @prism_method_call_locs.key?(offset)
+            face_name = :function_name
           elsif face_name == :constant &&
               (after_class_or_module || token.location.slice.match?(/\p{Lower}/))
             face_name = :type
-          elsif @prism_method_call_locs.key?(offset)
-            face_name = :function_name
           end
           if face_name && (face = Face[face_name])
             ctx.highlight(pos, pos_end, face)
@@ -511,9 +511,18 @@ module Textbringer
     end
 
     def collect_method_call_locs(node)
-      if node.is_a?(Prism::CallNode) && node.message_loc
-        name_str = node.name.to_s
-        unless name_str.match?(/\A[^a-zA-Z_]/) || name_str.end_with?("@")
+      if (node.is_a?(Prism::CallNode) ||
+          node.is_a?(Prism::CallOperatorWriteNode) ||
+          node.is_a?(Prism::CallAndWriteNode) ||
+          node.is_a?(Prism::CallOrWriteNode)) && node.message_loc
+        name_str = node.message_loc.slice
+        if (name_str.match?(/\A[^\p{Letter}]/) || name_str.end_with?("@")) &&
+            node.call_operator_loc.nil?
+          # operators
+        elsif name_str.match?(/\A\p{Upper}/) &&
+            (node.call_operator_loc.nil? || node.call_operator_loc.slice == "::")
+          # constants
+        else
           loc = node.message_loc
           @prism_method_call_locs[loc.start_offset] = true
         end
