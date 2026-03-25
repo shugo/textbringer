@@ -856,6 +856,98 @@ EOF
     assert_equal(true, highlight_off[4])
   end
 
+  def test_prism_highlight_percent_lower_i
+    Window.has_colors = true
+    @buffer.insert('%i(x y)')
+    @buffer.beginning_of_buffer
+    highlight_on, highlight_off = call_highlight
+    # PERCENT_LOWER_I: %i(
+    assert_equal(Face[:string], highlight_on[0])
+    assert_equal(true, highlight_off[3])
+    # STRING_CONTENT: x
+    assert_equal(Face[:string], highlight_on[3])
+    assert_equal(true, highlight_off[4])
+    # STRING_CONTENT: y
+    assert_equal(Face[:string], highlight_on[5])
+    assert_equal(true, highlight_off[6])
+    # STRING_END: )
+    assert_equal(Face[:string], highlight_on[6])
+    assert_equal(true, highlight_off[7])
+  end
+
+  def test_prism_highlight_percent_uppper_i
+    Window.has_colors = true
+    @buffer.insert('%I(x y)')
+    @buffer.beginning_of_buffer
+    highlight_on, highlight_off = call_highlight
+    # PERCENT_UPPER_I: %I(
+    assert_equal(Face[:string], highlight_on[0])
+    assert_equal(true, highlight_off[3])
+    # STRING_CONTENT: x
+    assert_equal(Face[:string], highlight_on[3])
+    assert_equal(true, highlight_off[4])
+    # STRING_CONTENT: y
+    assert_equal(Face[:string], highlight_on[5])
+    assert_equal(true, highlight_off[6])
+    # STRING_END: )
+    assert_equal(Face[:string], highlight_on[6])
+    assert_equal(true, highlight_off[7])
+  end
+
+  def test_prism_highlight_percent_lower_w
+    Window.has_colors = true
+    @buffer.insert('%w(x y)')
+    @buffer.beginning_of_buffer
+    highlight_on, highlight_off = call_highlight
+    # PERCENT_LOWER_W: %w(
+    assert_equal(Face[:string], highlight_on[0])
+    assert_equal(true, highlight_off[3])
+    # STRING_CONTENT: x
+    assert_equal(Face[:string], highlight_on[3])
+    assert_equal(true, highlight_off[4])
+    # STRING_CONTENT: y
+    assert_equal(Face[:string], highlight_on[5])
+    assert_equal(true, highlight_off[6])
+    # STRING_END: )
+    assert_equal(Face[:string], highlight_on[6])
+    assert_equal(true, highlight_off[7])
+  end
+
+  def test_prism_highlight_percent_uppper_w
+    Window.has_colors = true
+    @buffer.insert('%W(x y)')
+    @buffer.beginning_of_buffer
+    highlight_on, highlight_off = call_highlight
+    # PERCENT_UPPER_W: %W(
+    assert_equal(Face[:string], highlight_on[0])
+    assert_equal(true, highlight_off[3])
+    # STRING_CONTENT: x
+    assert_equal(Face[:string], highlight_on[3])
+    assert_equal(true, highlight_off[4])
+    # STRING_CONTENT: y
+    assert_equal(Face[:string], highlight_on[5])
+    assert_equal(true, highlight_off[6])
+    # STRING_END: )
+    assert_equal(Face[:string], highlight_on[6])
+    assert_equal(true, highlight_off[7])
+  end
+
+  def test_prism_highlight_percent_lower_x
+    Window.has_colors = true
+    @buffer.insert('%x(echo hello)')
+    @buffer.beginning_of_buffer
+    highlight_on, highlight_off = call_highlight
+    # PERCENT_LOWER_X: %x(
+    assert_equal(Face[:string], highlight_on[0])
+    assert_equal(true, highlight_off[3])
+    # STRING_CONTENT: echo hello
+    assert_equal(Face[:string], highlight_on[3])
+    assert_equal(true, highlight_off[13])
+    # STRING_END: )
+    assert_equal(Face[:string], highlight_on[13])
+    assert_equal(true, highlight_off[14])
+  end
+
   def test_prism_highlight_numbers
     Window.has_colors = true
     @buffer.insert("42 + 3.14")

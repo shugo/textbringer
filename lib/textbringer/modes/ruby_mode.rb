@@ -189,6 +189,9 @@ module Textbringer
       # Strings and string-like
       STRING_BEGIN: :string, STRING_CONTENT: :string, STRING_END: :string,
       SYMBOL_BEGIN: :string, REGEXP_BEGIN: :string, REGEXP_END: :string,
+      PERCENT_LOWER_I: :string, PERCENT_UPPER_I: :string,
+      PERCENT_LOWER_W: :string, PERCENT_UPPER_W: :string,
+      PERCENT_LOWER_X: :string,
       HEREDOC_START: :string, HEREDOC_END: :string,
       LABEL: :property,
 
