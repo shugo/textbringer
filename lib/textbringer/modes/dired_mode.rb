@@ -188,7 +188,6 @@ module Textbringer
                          doc: "Delete files flagged for deletion.") do
       files = collect_flagged_files
       return if files.empty?
-      list = files.map { |f| "  #{f}" }.join("\n")
       if yes_or_no?("Delete these files?")
         files.each do |name|
           next if name == "." || name == ".."

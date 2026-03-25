@@ -307,7 +307,7 @@ module Textbringer
       when "x"
         prev_candidate
         nil
-      when "\C-m", "\r", "\n"
+      when "\r", "\n"
         confirm_selecting
         nil
       else

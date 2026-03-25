@@ -305,7 +305,6 @@ class TestSKKInputMethod < Textbringer::TestCase
     @im.handle_event(" ")
     first = @buffer.to_s.dup
     @im.handle_event(" ")
-    second = @buffer.to_s.dup
     @im.handle_event("x")
     assert_equal(first, @buffer.to_s)
   end

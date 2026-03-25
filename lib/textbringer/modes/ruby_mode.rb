@@ -486,7 +486,7 @@ module Textbringer
 
     def filter_prism_tokens_line_and_type
       ensure_prism_tokens
-      tokens = @prism_tokens.filter_map { |token, _state|
+      @prism_tokens.filter_map { |token, _state|
         type = token.type
         next if type == :EOF
         [token.location.start_line, type]
