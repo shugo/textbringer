@@ -321,6 +321,18 @@ x = /
 EOF
   end
 
+  def test_indent_line_after_character_literal
+    @buffer.insert(<<EOF.chop)
+if c == ?a
+foo
+EOF
+    @ruby_mode.indent_line
+    assert_equal(<<EOF.chop, @buffer.to_s)
+if c == ?a
+  foo
+EOF
+  end
+
   def test_indent_line_after_regexp_with_flags
     @buffer.insert(<<EOF.chop)
 def foo

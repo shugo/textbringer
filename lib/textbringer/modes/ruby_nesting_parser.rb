@@ -216,6 +216,7 @@ module Textbringer
           heredoc_open(node)
           close_location_start(node.closing_loc) if node.closing_loc && !node.closing.empty?
         elsif node.opening
+          return if node.opening == "?" && node.closing.nil? # Character literal has no closing
           open_location(node.location, type, node.opening)
           if node.closing && node.closing != ""
             close_location_start(node.closing_loc) if node.opening.match?(/\n\z/) || node.closing != "\n"
