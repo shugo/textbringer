@@ -22,7 +22,7 @@ module Textbringer
       @prism_version = nil
       @prism_tokens = nil
       @prism_ast = nil
-      @prism_method_call_locs = nil
+      @prism_method_name_locs = nil
       @literal_levels = nil
       @literal_levels_version = nil
     end
@@ -110,12 +110,11 @@ module Textbringer
     def highlight(ctx)
       ensure_prism_tokens
       return unless @prism_tokens
-      ensure_method_call_locs
+      ensure_method_name_locs
       base_pos = ctx.buffer.point_min
       hl_start = ctx.highlight_start
       hl_end = ctx.highlight_end
       in_symbol = false
-      after_def = false
       after_class_or_module = false
       @prism_tokens.each do |token_info|
         token = token_info[0]
@@ -129,12 +128,8 @@ module Textbringer
           face_name = PRISM_TOKEN_FACES[type]
           if in_symbol
             face_name = :string if face_name.nil? || face_name == :constant ||
-              face_name == :operator
-          elsif after_def
-            face_name = :function_name if type == :IDENTIFIER ||
-              type == :CONSTANT || type == :METHOD_NAME ||
-              PRISM_TOKEN_FACES[type] == :operator
-          elsif @prism_method_call_locs.key?(offset)
+              face_name == :keyword || face_name == :operator
+          elsif @prism_method_name_locs.key?(offset)
             face_name = :function_name
           elsif face_name == :constant &&
               (after_class_or_module || token.location.slice.match?(/\p{Lower}/))
@@ -145,10 +140,6 @@ module Textbringer
           end
         end
         in_symbol = type == :SYMBOL_BEGIN
-        after_def = type == :KEYWORD_DEF ||
-          (after_def && (type == :KEYWORD_SELF || type == :DOT ||
-                         type == :NEWLINE || type == :IGNORED_NEWLINE ||
-                         type == :COMMENT))
         after_class_or_module = (type == :KEYWORD_CLASS || type == :KEYWORD_MODULE) ||
           (after_class_or_module && !(type == :NEWLINE || type == :SEMICOLON))
       end
@@ -503,30 +494,31 @@ module Textbringer
         @prism_ast = nil
         @prism_tokens = []
       end
-      @prism_method_call_locs = nil
+      @prism_method_name_locs = nil
       @prism_version = @buffer.version
       @literal_levels_version = nil
     end
 
-    def ensure_method_call_locs
-      return if @prism_method_call_locs
-      @prism_method_call_locs = {}
+    def ensure_method_name_locs
+      return if @prism_method_name_locs
+      @prism_method_name_locs = {}
       return unless @prism_ast
-      collect_method_call_locs(@prism_ast)
+      collect_method_name_locs(@prism_ast)
     end
 
-    def collect_method_call_locs(node)
-      if ((node.is_a?(Prism::CallNode) &&
+    def collect_method_name_locs(node)
+      if node.is_a?(Prism::DefNode)
+        @prism_method_name_locs[node.name_loc.start_offset] = true
+      elsif ((node.is_a?(Prism::CallNode) &&
            !(node.call_operator_loc.nil? && OPERATORS.include?(node.name)) &&          # exclude operators
            !((node.call_operator_loc.nil? || node.call_operator_loc.slice == "::") &&  # exclude constants
              /\A\p{Upper}/.match?(node.name))) ||
           node.is_a?(Prism::CallOperatorWriteNode) ||
           node.is_a?(Prism::CallAndWriteNode) ||
           node.is_a?(Prism::CallOrWriteNode))
-        loc = node.message_loc
-        @prism_method_call_locs[loc.start_offset] = true
+        @prism_method_name_locs[node.message_loc.start_offset] = true
       end
-      node.compact_child_nodes.each { |child| collect_method_call_locs(child) }
+      node.compact_child_nodes.each { |child| collect_method_name_locs(child) }
     end
 
     def ensure_literal_levels

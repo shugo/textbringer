@@ -1191,4 +1191,21 @@ EOF
     highlight_on, _ = call_highlight
     assert_equal(Face[:function_name], highlight_on[2])  # +
   end
+
+  def test_prism_keyword_method
+    Window.has_colors = true
+    @buffer.insert("def self.redo")
+    @buffer.beginning_of_buffer
+    highlight_on, _ = call_highlight
+    assert_equal(Face[:function_name], highlight_on[9])  # redo
+  end
+
+  def test_prism_keyword_symbol
+    Window.has_colors = true
+    @buffer.insert(":redo")
+    @buffer.beginning_of_buffer
+    highlight_on, _ = call_highlight
+    assert_equal(Face[:string], highlight_on[0])  # :
+    assert_equal(Face[:string], highlight_on[1])  # redo
+  end
 end
