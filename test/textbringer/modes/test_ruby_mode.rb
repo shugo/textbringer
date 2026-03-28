@@ -1192,7 +1192,7 @@ EOF
     assert_equal(Face[:function_name], highlight_on[2])  # +
   end
 
-  def test_prism_keyword_method
+  def test_prism_highlight_keyword_method
     Window.has_colors = true
     @buffer.insert("def self.redo")
     @buffer.beginning_of_buffer
@@ -1200,12 +1200,32 @@ EOF
     assert_equal(Face[:function_name], highlight_on[9])  # redo
   end
 
-  def test_prism_keyword_symbol
+  def test_prism_highlight_keyword_symbol
     Window.has_colors = true
     @buffer.insert(":redo")
     @buffer.beginning_of_buffer
     highlight_on, _ = call_highlight
     assert_equal(Face[:string], highlight_on[0])  # :
     assert_equal(Face[:string], highlight_on[1])  # redo
+  end
+
+  def test_prism_highlight_alias
+    Window.has_colors = true
+    @buffer.insert("alias foo bar")
+    @buffer.beginning_of_buffer
+    highlight_on, _ = call_highlight
+    assert_equal(Face[:function_name], highlight_on[6])   # foo
+    assert_equal(Face[:function_name], highlight_on[10])  # bar
+  end
+
+  def test_prism_highlight_alias_with_symbols
+    Window.has_colors = true
+    @buffer.insert("alias :foo :bar")
+    @buffer.beginning_of_buffer
+    highlight_on, _ = call_highlight
+    assert_equal(Face[:string], highlight_on[6])   # :
+    assert_equal(Face[:string], highlight_on[7])   # foo
+    assert_equal(Face[:string], highlight_on[11])  # :
+    assert_equal(Face[:string], highlight_on[12])  # bar
   end
 end

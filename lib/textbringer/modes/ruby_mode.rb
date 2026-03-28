@@ -507,18 +507,27 @@ module Textbringer
     end
 
     def collect_method_name_locs(node)
-      if node.is_a?(Prism::DefNode)
+      if node.type == :def_node
         @prism_method_name_locs[node.name_loc.start_offset] = true
-      elsif ((node.is_a?(Prism::CallNode) &&
-           !(node.call_operator_loc.nil? && OPERATORS.include?(node.name)) &&          # exclude operators
-           !((node.call_operator_loc.nil? || node.call_operator_loc.slice == "::") &&  # exclude constants
-             /\A\p{Upper}/.match?(node.name))) ||
-          node.is_a?(Prism::CallOperatorWriteNode) ||
-          node.is_a?(Prism::CallAndWriteNode) ||
-          node.is_a?(Prism::CallOrWriteNode))
+      elsif node.type == :alias_method_node
+        add_alias_method_name_locs(node.new_name)
+        add_alias_method_name_locs(node.old_name)
+      elsif (node.type == :call_node &&
+             !(node.call_operator_loc.nil? && OPERATORS.include?(node.name)) &&          # exclude operators
+             !((node.call_operator_loc.nil? || node.call_operator_loc.slice == "::") &&  # exclude constants
+               /\A\p{Upper}/.match?(node.name))) ||
+          node.type == :call_operator_write_node ||
+          node.type == :call_and_write_node ||
+          node.type == :call_or_write_node
         @prism_method_name_locs[node.message_loc.start_offset] = true
       end
       node.compact_child_nodes.each { |child| collect_method_name_locs(child) }
+    end
+
+    def add_alias_method_name_locs(node)
+      if node.type == :symbol_node && node.opening_loc.nil?
+        @prism_method_name_locs[node.value_loc.start_offset] = true
+      end
     end
 
     def ensure_literal_levels
