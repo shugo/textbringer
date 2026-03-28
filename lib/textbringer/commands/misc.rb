@@ -291,46 +291,48 @@ module Textbringer
         if CONFIG[:shell_file_name]
           cmd = [CONFIG[:shell_file_name], CONFIG[:shell_command_switch], cmd]
         end
-        Open3.popen3(*cmd, opts) do |input, output, error, wait_thread|
-          input.close
-          catch(:finish) do
-            loop do
-              rs, = IO.select([output, error], nil, nil, 0.5)
-              Window.redisplay
-              rs&.each do |r|
-                begin
-                  s = r.read_nonblock(1024).force_encoding("utf-8").
-                    scrub("\u{3013}").gsub(/\r\n/, "\n")
-                  buffer.insert(s)
-                  Window.redisplay
-                rescue EOFError
-                  throw(:finish) if output.eof? && error.eof?
-                rescue Errno::EAGAIN, Errno::EWOULDBLOCK
-                  Window.redisplay
-                  next
+        with_clean_env do |env|
+          Open3.popen3(env, *cmd, opts) do |input, output, error, wait_thread|
+            input.close
+            catch(:finish) do
+              loop do
+                rs, = IO.select([output, error], nil, nil, 0.5)
+                Window.redisplay
+                rs&.each do |r|
+                  begin
+                    s = r.read_nonblock(1024).force_encoding("utf-8").
+                      scrub("\u{3013}").gsub(/\r\n/, "\n")
+                    buffer.insert(s)
+                    Window.redisplay
+                  rescue EOFError
+                    throw(:finish) if output.eof? && error.eof?
+                  rescue Errno::EAGAIN, Errno::EWOULDBLOCK
+                    Window.redisplay
+                    next
+                  end
                 end
-              end
-              if received_keyboard_quit?
-                if signals.empty?
-                  keyboard_quit
-                else
-                  sig = signals.shift
-                  pid = wait_thread.pid
-                  pid = -pid if /mswin32|mingw32/ !~ RUBY_PLATFORM
-                  message("Send #{sig} to #{pid}")
-                  Process.kill(sig, pid)
+                if received_keyboard_quit?
+                  if signals.empty?
+                    keyboard_quit
+                  else
+                    sig = signals.shift
+                    pid = wait_thread.pid
+                    pid = -pid if /mswin32|mingw32/ !~ RUBY_PLATFORM
+                    message("Send #{sig} to #{pid}")
+                    Process.kill(sig, pid)
+                  end
                 end
               end
             end
-          end
-          status = wait_thread.value
-          pid = status.pid
-          if status.exited?
-            code = status.exitstatus
-            message("Process #{pid} exited with status code #{code}")
-          elsif status.signaled?
-            signame = Signal.signame(status.termsig)
-            message("Process #{pid} was killed by #{signame}")
+            status = wait_thread.value
+            pid = status.pid
+            if status.exited?
+              code = status.exitstatus
+              message("Process #{pid} exited with status code #{code}")
+            elsif status.signaled?
+              signame = Signal.signame(status.termsig)
+              message("Process #{pid} was killed by #{signame}")
+            end
           end
         end
       ensure

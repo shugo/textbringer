@@ -418,6 +418,22 @@ module Textbringer
       RbConfig::CONFIG["ruby_install_name"]
     end
 
+    def with_clean_env(&block)
+      env = ENV.to_h.reject { |k, _| k.start_with?("RBENV_") }
+      unless Gem.win_platform?
+        env["PATH"] = env["PATH"].split(File::PATH_SEPARATOR).reject { |path|
+          /.rbenv\/(versions|libexec)/.match?(path)
+        }.join(File::PATH_SEPARATOR)
+      end
+      if defined?(Bundler)
+        Bundler.with_unbundled_env do
+          block.call(env)
+        end
+      else
+        block.call(env)
+      end
+    end
+
     [
       :beginning_of_buffer?,
       :end_of_buffer?,
