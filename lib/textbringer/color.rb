@@ -22,6 +22,30 @@ module Textbringer
       "brightwhite" => 15
     }
 
+    DIRECT_COLOR_THRESHOLD = 256 * 256 * 256
+
+    # Canonical RGB values for basic ANSI colors (xterm defaults),
+    # packed as 0xRRGGBB for use in direct color mode.
+    BASIC_COLORS_RGB = {
+      "default"       => -1,
+      "black"         => 0x000000,
+      "red"           => 0xCD0000,
+      "green"         => 0x00CD00,
+      "yellow"        => 0xCDCD00,
+      "blue"          => 0x0000EE,
+      "magenta"       => 0xCD00CD,
+      "cyan"          => 0x00CDCD,
+      "white"         => 0xE5E5E5,
+      "brightblack"   => 0x7F7F7F,
+      "brightred"     => 0xFF0000,
+      "brightgreen"   => 0x00FF00,
+      "brightyellow"  => 0xFFFF00,
+      "brightblue"    => 0x5C5CFF,
+      "brightmagenta" => 0xFF00FF,
+      "brightcyan"    => 0x00FFFF,
+      "brightwhite"   => 0xFFFFFF
+    }
+
     RGBColor = Struct.new(:r, :g, :b, :number)
 
     ADDITIONAL_COLORS = []
@@ -46,9 +70,16 @@ module Textbringer
       end
     end
 
+    def self.direct_color?
+      Window.colors >= DIRECT_COLOR_THRESHOLD
+    end
+
     def self.find_color_number(name)
       if name.is_a?(Integer)
         return name
+      end
+      if direct_color?
+        return find_direct_color(name)
       end
       case name
       when /\A\#([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})\z/
@@ -63,6 +94,21 @@ module Textbringer
           raise EditorError, "No such color: #{name}"
         end
         BASIC_COLORS[name]
+      end
+    end
+
+    def self.find_direct_color(name)
+      case name
+      when /\A\#([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})\z/
+        r = $1.to_i(16)
+        g = $2.to_i(16)
+        b = $3.to_i(16)
+        (r << 16) | (g << 8) | b
+      else
+        unless BASIC_COLORS_RGB.key?(name)
+          raise EditorError, "No such color: #{name}"
+        end
+        BASIC_COLORS_RGB[name]
       end
     end
   end

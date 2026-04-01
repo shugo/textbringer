@@ -68,6 +68,14 @@ class TestTheme < Textbringer::TestCase
     Curses.colors = old_colors
   end
 
+  def test_color_tier_hex_for_direct_color
+    old_colors = Curses.colors
+    Curses.colors = 16_777_216
+    assert_equal(:hex, Theme.color_tier)
+  ensure
+    Curses.colors = old_colors
+  end
+
   def test_background_mode_defaults_to_dark
     old_mode = CONFIG[:background_mode]
     CONFIG[:background_mode] = nil
