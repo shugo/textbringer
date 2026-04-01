@@ -60,6 +60,14 @@ Add the following lines to ~/.mlterm/main.
     mod_meta_key = alt
     mod_meta_mode = esc
 
+### True color (24-bit color)
+
+If your terminal emulator supports true color, set `TERM` to `xterm-direct` to enable 24-bit color.
+
+    $ TERM=xterm-direct txtb
+
+This allows themes to display their exact hex colors instead of approximating to the 256-color palette.
+
 ### East asian ambiguous width
 
 Add the following line to ~/.textbringer.rb to treat

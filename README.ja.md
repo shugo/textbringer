@@ -58,6 +58,14 @@ Textbringerが依存するcurses.gemをインストールする前に、ncursesw
     mod_meta_key = alt
     mod_meta_mode = esc
 
+### True color (24ビットカラー)
+
+端末エミュレータがtrue colorに対応している場合、`TERM`に`xterm-direct`を設定すると24ビットカラーが有効になります。
+
+    $ TERM=xterm-direct txtb
+
+テーマで指定されたhex色が256色パレットに近似されず、そのまま表示されるようになります。
+
 ### 東アジアの曖昧な文字幅
 
 [曖昧な文字](http://unicode.org/reports/tr11/#Ambiguous)を全角扱いするには、以下の設定を~/.textbringer.rbに記述してください。
