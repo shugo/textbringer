@@ -119,7 +119,12 @@ Themes can also be loaded in ~/.textbringer.rb.
 
 ```ruby
 load_theme "catppuccin"
-set_background_color "default" # override the background color with the terminal default value
+```
+
+If a theme sets its own background color but you prefer to use the terminal's default background, add the following after `load_theme`:
+
+```ruby
+set_background_color "default"
 ```
 
 ## Development
