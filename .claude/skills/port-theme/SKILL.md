@@ -29,7 +29,7 @@ Fetch `colors/init.lua` (or the main palette file) first to get raw hex values, 
 **Always use GUI hex values** (`guifg`/`guibg` for Vim, hex strings for Neovim) as the `hex:` value in the palette. Textbringer supports true color via `TERM=xterm-direct` and uses these hex values directly in that mode. For 256-color terminals, the `Color` module automatically finds the closest 256-color palette match.
 
 **Vim themes:**
-Use the `guifg`/`guibg` hex values (e.g. `#F92672`), NOT `ctermfg`/`ctermbg` numbers. If a Vim theme only provides cterm values without GUI values, convert them to hex using the xterm-256 color table:
+Use the `guifg`/`guibg` hex values (e.g. `#f92672`), NOT `ctermfg`/`ctermbg` numbers. If a Vim theme only provides cterm values without GUI values, convert them to hex using the xterm-256 color table:
 - **0–15**: standard ANSI (`#000000`, `#800000`, `#008000`, `#808000`, `#000080`, `#800080`, `#008080`, `#c0c0c0`, `#808080`, `#ff0000`, `#00ff00`, `#ffff00`, `#0000ff`, `#ff00ff`, `#00ffff`, `#ffffff`)
 - **16–231** (color cube): `index = n - 16`, then `r = index/36`, `g = (index%36)/6`, `b = index%6`; ramp = `[0, 95, 135, 175, 215, 255]`; hex = `#RRGGBB`
 - **232–255** (grayscale): `value = 8 + 10*(n - 232)`; hex = `#VVVVVV`

@@ -52,7 +52,7 @@ Textbringer::Theme.define "sonokai" do |t|
   t.face :link,                   foreground: :blue, underline: true
   t.face :control
   t.face :region,                 background: :bg4
-  t.face :isearch,                foreground: :bg0, background: :green, reverse: true
+  t.face :isearch,                foreground: :green, background: :bg0, reverse: true
   t.face :floating_window,        foreground: :fg, background: :bg_dim
 
   # Completion faces
