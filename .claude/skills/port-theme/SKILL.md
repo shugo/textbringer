@@ -24,34 +24,18 @@ lua/<name>/
 ```
 Fetch `colors/init.lua` (or the main palette file) first to get raw hex values, then `groups/base.lua` and `groups/treesitter.lua` (or equivalent) to see how highlight groups map to palette entries. Also fetch `colors/init.lua` for derived colors computed from blend formulas.
 
-### 2. Choose colors
+### 2. Choose colors — always use GUI hex values
 
-**Vim themes — use cterm, not GUI:**
-Use `ctermfg`/`ctermbg` values (256-color terminal numbers), NOT `guifg`/`guibg` hex values. Textbringer runs in a terminal.
+**Always use GUI hex values** (`guifg`/`guibg` for Vim, hex strings for Neovim) as the `hex:` value in the palette. Textbringer supports true color via `TERM=xterm-direct` and uses these hex values directly in that mode. For 256-color terminals, the `Color` module automatically finds the closest 256-color palette match.
 
-Convert xterm-256 color numbers to hex:
+**Vim themes:**
+Use the `guifg`/`guibg` hex values (e.g. `#f92672`), NOT `ctermfg`/`ctermbg` numbers. If a Vim theme only provides cterm values without GUI values, convert them to hex using the xterm-256 color table:
 - **0–15**: standard ANSI (`#000000`, `#800000`, `#008000`, `#808000`, `#000080`, `#800080`, `#008080`, `#c0c0c0`, `#808080`, `#ff0000`, `#00ff00`, `#ffff00`, `#0000ff`, `#ff00ff`, `#00ffff`, `#ffffff`)
 - **16–231** (color cube): `index = n - 16`, then `r = index/36`, `g = (index%36)/6`, `b = index%6`; ramp = `[0, 95, 135, 175, 215, 255]`; hex = `#RRGGBB`
 - **232–255** (grayscale): `value = 8 + 10*(n - 232)`; hex = `#VVVVVV`
 
-Verification snippet:
-```ruby
-def xterm256_hex(n)
-  if n < 16
-    %w[#000000 #800000 #008000 #808000 #000080 #800080 #008080 #c0c0c0
-       #808080 #ff0000 #00ff00 #ffff00 #0000ff #ff00ff #00ffff #ffffff][n]
-  elsif n < 232
-    n -= 16; b = n%6; n /= 6; g = n%6; r = n/6
-    ramp = [0,95,135,175,215,255]
-    "#%02X%02X%02X" % [ramp[r],ramp[g],ramp[b]]
-  else
-    v = 8 + 10*(n-232); "#%02X%02X%02X" % [v,v,v]
-  end
-end
-```
-
-**Neovim themes — use GUI hex directly:**
-Neovim themes set `termguicolors` and have no cterm values. Use the GUI hex strings from the palette as-is.
+**Neovim themes:**
+Use the GUI hex strings from the palette as-is.
 
 For colors computed via blend formulas (e.g. `blend(color, alpha, bg)`), compute them manually:
 ```
@@ -112,6 +96,8 @@ Follow this structure exactly:
 # <ThemeName> theme for Textbringer
 # Based on <source URL>
 # <one-line description if useful>
+#
+# GUI hex values from the source's guifg/guibg definitions.
 
 Textbringer::Theme.define "<theme-name>" do |t|
   t.palette :dark do |p|
@@ -126,6 +112,8 @@ Textbringer::Theme.define "<theme-name>" do |t|
   end
 
   # Include a :light palette only if the source theme has a light variant.
+
+  t.default_colors foreground: :fg, background: :bg
 
   # Programming faces
   t.face :comment,                 foreground: :comment
@@ -154,8 +142,7 @@ end
 - Theme name in `define` must match the filename (without `.rb`).
 - **Hex values must be lowercase** (`#d7005f`, not `#D7005F`).
 - Always put a space after the comma in `p.color` arguments: `p.color :name, hex: …` (not `p.color :name,hex: …`).
-- For Vim themes: include the cterm source number in a comment after each palette color for traceability.
-- For Neovim themes: note the palette variable name (e.g. `c.blue`) in a comment.
+- Include a comment after each palette color noting the source variable name (e.g. `# Normal guifg`, `# c.blue`, `# bright_red`).
 - Use `bold: true` where the source specifies `cterm=bold` / `gui=bold` / `bold = true`.
 - Neovim themes often apply `italic` to keywords/functions via `opts.styles`; skip italic since Textbringer does not support it.
 

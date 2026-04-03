@@ -1,7 +1,7 @@
 # Tokyo Night theme for Textbringer
 # Based on https://github.com/folke/tokyonight.nvim
-# Night variant (dark only). GUI hex colors — no cterm values in source.
-# Computed colors derived from tokyonight's blend formulas.
+# Night variant (dark only).
+# GUI hex values from the source palette definitions.
 
 Textbringer::Theme.define "tokyonight" do |t|
   t.palette :dark do |p|
@@ -9,7 +9,7 @@ Textbringer::Theme.define "tokyonight" do |t|
     p.color :bg,      hex: "#1a1b26", ansi: "black"        # bg
     p.color :bg_dark, hex: "#16161e", ansi: "black"        # bg_dark → popups, statusline
     p.color :bg_hl,   hex: "#292e42", ansi: "brightblack"  # bg_highlight → floating windows
-    p.color :bg_vis,  hex: "#283457", ansi: "brightblack"  # bg_visual = blend(blue0, 0.4, bg)
+    p.color :bg_vis,  hex: "#283357", ansi: "brightblack"  # bg_visual = blend(blue0, 0.4, bg)
     p.color :sel_bg,  hex: "#343a55", ansi: "brightblack"  # PmenuSel bg = blend(fg_gutter, 0.8, bg)
     p.color :search,  hex: "#3d59a1", ansi: "blue"         # bg_search = blue0
     p.color :fg,      hex: "#c0caf5", ansi: "white"        # fg
