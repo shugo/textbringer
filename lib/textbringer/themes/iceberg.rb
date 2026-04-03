@@ -47,7 +47,7 @@ Textbringer::Theme.define "iceberg" do |t|
     p.color :green,    hex: "#668e3d", ansi: "green"        # PreProc/Special guifg
     p.color :purple,   hex: "#7759b4", ansi: "magenta"      # Constant guifg
     p.color :orange,   hex: "#eac6ad", ansi: "yellow"       # Search guibg
-    p.color :search_fg, hex: "#85512c", ansi: "yellow"      # Search guifg
+    p.color :search_fg, hex: "#85512c", ansi: "black"       # Search guifg
     p.color :red,      hex: "#cc517a", ansi: "red"          # terminal color1
   end
 
