@@ -2,29 +2,30 @@
 # Based on https://github.com/tomasr/molokai
 # Original Monokai theme by Wimer Hazenberg; darker variant by Hamish Stuart Macpherson
 #
-# Colors derived from molokai's 256-color (cterm) values.
-# Dark only.
+# GUI hex values from the source's guifg/guibg definitions.
+# Dark only (default darker variant, s:molokai_original = 0).
 
 Textbringer::Theme.define "molokai" do |t|
   t.palette :dark do |p|
-    # Background / foreground  (cterm numbers in comments)
-    p.color :bg,      hex: "#121212", ansi: "black"        # 233  Normal bg
-    p.color :bg1,     hex: "#262626", ansi: "brightblack"  # 235  Visual, region
-    p.color :bg2,     hex: "#303030", ansi: "brightblack"  # 236  LineNr bg, floating windows
-    p.color :fg,      hex: "#d0d0d0", ansi: "white"        # 252  Normal fg
-    p.color :comment, hex: "#5f5f5f", ansi: "brightblack"  #  59  Comment
-    p.color :gray,    hex: "#444444", ansi: "brightblack"  # 238  StatusLine fg
-    p.color :silver,  hex: "#dadada", ansi: "white"        # 253  StatusLine bg
-    p.color :mid_gray, hex: "#6c6c6c", ansi: "brightblack" # 242  PmenuSel bg
+    # Background / foreground
+    p.color :bg,      hex: "#1b1d1e", ansi: "black"        # Normal guibg
+    p.color :bg1,     hex: "#403d3d", ansi: "brightblack"   # Visual guibg
+    p.color :bg2,     hex: "#1b1d1e", ansi: "black"         # floating window bg (same as bg)
+    p.color :fg,      hex: "#f8f8f2", ansi: "white"         # Normal guifg
+    p.color :comment, hex: "#7e8e91", ansi: "brightblack"   # Comment guifg
+    p.color :gray,    hex: "#455354", ansi: "brightblack"    # StatusLine guifg
+    p.color :silver,  hex: "#f8f8f2", ansi: "white"         # StatusLine guibg = fg
+    p.color :mid_gray, hex: "#808080", ansi: "brightblack"  # PmenuSel guibg
+    p.color :delim,   hex: "#8f8f8f", ansi: "white"         # Delimiter guifg
 
     # Accent colors
-    p.color :pink,    hex: "#d7005f", ansi: "red"          # 161  Keyword, Operator
-    p.color :green,   hex: "#87ff00", ansi: "green"        # 118  Function, PreProc
-    p.color :yellow,  hex: "#afaf87", ansi: "yellow"       # 144  String, Character
-    p.color :purple,  hex: "#af5fff", ansi: "magenta"      # 135  Number, Boolean, Constant
-    p.color :orange,  hex: "#ff8700", ansi: "yellow"       # 208  Identifier, StorageClass
-    p.color :cyan,    hex: "#5fd7ff", ansi: "cyan"         #  81  Type, Define, Structure
-    p.color :search,  hex: "#ffd787", ansi: "yellow"       # 222  Search bg
+    p.color :pink,    hex: "#f92672", ansi: "red"           # Keyword guifg
+    p.color :green,   hex: "#a6e22e", ansi: "green"         # Function guifg
+    p.color :yellow,  hex: "#e6db74", ansi: "yellow"        # String guifg
+    p.color :purple,  hex: "#ae81ff", ansi: "magenta"       # Number guifg
+    p.color :orange,  hex: "#fd971f", ansi: "yellow"        # Identifier guifg
+    p.color :cyan,    hex: "#66d9ef", ansi: "cyan"          # Type guifg
+    p.color :search,  hex: "#ffe792", ansi: "yellow"        # Search guibg
   end
 
   t.default_colors foreground: :fg, background: :bg
@@ -40,22 +41,19 @@ Textbringer::Theme.define "molokai" do |t|
   t.face :type,                     foreground: :cyan
   t.face :variable,                 foreground: :orange
   t.face :operator,                 foreground: :pink
-  t.face :punctuation
+  t.face :punctuation,              foreground: :delim
   t.face :builtin,                  foreground: :cyan
   t.face :property,                 foreground: :orange
 
   # Basic faces
-  # StatusLine: ctermfg=238 (#444444) on ctermbg=253 (#DADADA)
   t.face :mode_line,                foreground: :gray,     background: :silver
   t.face :link,                     foreground: :cyan,     underline: true
   t.face :control
   t.face :region,                   background: :bg1
-  # Search: ctermfg=0 ctermbg=222
   t.face :isearch,                  foreground: :bg,       background: :search
   t.face :floating_window,          foreground: :fg,       background: :bg2
 
   # Completion faces
-  # Pmenu: ctermfg=81 ctermbg=16;  PmenuSel: ctermfg=252 ctermbg=242
   t.face :completion_popup,          foreground: :cyan,    background: :bg
   t.face :completion_popup_selected, foreground: :fg,      background: :mid_gray
 
