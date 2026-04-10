@@ -8,7 +8,7 @@ module Textbringer
   class RubyMode < ProgrammingMode
     self.file_name_pattern =
       /\A(?:.*\.(?:rb|ru|rake|thor|jbuilder|gemspec|podspec)|
-            (?:Gem|Rake|Cap|Thor|Vagrant|Guard|Pod)file)\z/ix
+            (?:Gem|Rake|Cap|Thor|Vagrant|Guard|Pod)file|.irbrc)\z/ix
     self.interpreter_name_pattern = /ruby/i
 
     def comment_start
