@@ -178,12 +178,13 @@ module Textbringer
       EMBDOC_END: :comment,
 
       # Strings and string-like
-      STRING_BEGIN: :string, STRING_CONTENT: :string, STRING_END: :string,
-      SYMBOL_BEGIN: :string, REGEXP_BEGIN: :string, REGEXP_END: :string,
-      PERCENT_LOWER_I: :string, PERCENT_UPPER_I: :string,
-      PERCENT_LOWER_W: :string, PERCENT_UPPER_W: :string,
-      PERCENT_LOWER_X: :string,
-      HEREDOC_START: :string, HEREDOC_END: :string,
+      STRING_BEGIN: :string_edge, STRING_CONTENT: :string, STRING_END: :string_edge,
+      SYMBOL_BEGIN: :string, REGEXP_BEGIN: :string_edge, REGEXP_END: :string_edge,
+      PERCENT_LOWER_I: :string_edge, PERCENT_UPPER_I: :string_edge,
+      PERCENT_LOWER_W: :string_edge, PERCENT_UPPER_W: :string_edge,
+      PERCENT_LOWER_X: :string_edge,
+      HEREDOC_START: :string_edge, HEREDOC_END: :string_edge,
+      BACKTICK: :string_edge,
       LABEL: :property,
 
       # Numbers

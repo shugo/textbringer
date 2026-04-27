@@ -146,6 +146,7 @@ module Textbringer
 
     def self.load_faces
       require_relative "faces/gamegrid"
+      require_relative "faces/programming"
     end
 
     def self.start

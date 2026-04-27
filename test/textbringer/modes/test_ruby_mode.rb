@@ -833,13 +833,13 @@ EOF
     @buffer.beginning_of_buffer
     highlight_on, highlight_off = call_highlight
     # STRING_BEGIN at 0
-    assert_equal(Face[:string], highlight_on[0])
+    assert_equal(Face[:string_edge], highlight_on[0])
     assert_equal(true, highlight_off[1])
     # STRING_CONTENT at 1
     assert_equal(Face[:string], highlight_on[1])
     assert_equal(true, highlight_off[6])
     # STRING_END at 6
-    assert_equal(Face[:string], highlight_on[6])
+    assert_equal(Face[:string_edge], highlight_on[6])
     assert_equal(true, highlight_off[7])
   end
 
@@ -862,7 +862,7 @@ EOF
     @buffer.beginning_of_buffer
     highlight_on, highlight_off = call_highlight
     # PERCENT_LOWER_I: %i(
-    assert_equal(Face[:string], highlight_on[0])
+    assert_equal(Face[:string_edge], highlight_on[0])
     assert_equal(true, highlight_off[3])
     # STRING_CONTENT: x
     assert_equal(Face[:string], highlight_on[3])
@@ -871,7 +871,7 @@ EOF
     assert_equal(Face[:string], highlight_on[5])
     assert_equal(true, highlight_off[6])
     # STRING_END: )
-    assert_equal(Face[:string], highlight_on[6])
+    assert_equal(Face[:string_edge], highlight_on[6])
     assert_equal(true, highlight_off[7])
   end
 
@@ -881,7 +881,7 @@ EOF
     @buffer.beginning_of_buffer
     highlight_on, highlight_off = call_highlight
     # PERCENT_UPPER_I: %I(
-    assert_equal(Face[:string], highlight_on[0])
+    assert_equal(Face[:string_edge], highlight_on[0])
     assert_equal(true, highlight_off[3])
     # STRING_CONTENT: x
     assert_equal(Face[:string], highlight_on[3])
@@ -890,7 +890,7 @@ EOF
     assert_equal(Face[:string], highlight_on[5])
     assert_equal(true, highlight_off[6])
     # STRING_END: )
-    assert_equal(Face[:string], highlight_on[6])
+    assert_equal(Face[:string_edge], highlight_on[6])
     assert_equal(true, highlight_off[7])
   end
 
@@ -900,7 +900,7 @@ EOF
     @buffer.beginning_of_buffer
     highlight_on, highlight_off = call_highlight
     # PERCENT_LOWER_W: %w(
-    assert_equal(Face[:string], highlight_on[0])
+    assert_equal(Face[:string_edge], highlight_on[0])
     assert_equal(true, highlight_off[3])
     # STRING_CONTENT: x
     assert_equal(Face[:string], highlight_on[3])
@@ -909,7 +909,7 @@ EOF
     assert_equal(Face[:string], highlight_on[5])
     assert_equal(true, highlight_off[6])
     # STRING_END: )
-    assert_equal(Face[:string], highlight_on[6])
+    assert_equal(Face[:string_edge], highlight_on[6])
     assert_equal(true, highlight_off[7])
   end
 
@@ -919,7 +919,7 @@ EOF
     @buffer.beginning_of_buffer
     highlight_on, highlight_off = call_highlight
     # PERCENT_UPPER_W: %W(
-    assert_equal(Face[:string], highlight_on[0])
+    assert_equal(Face[:string_edge], highlight_on[0])
     assert_equal(true, highlight_off[3])
     # STRING_CONTENT: x
     assert_equal(Face[:string], highlight_on[3])
@@ -928,7 +928,7 @@ EOF
     assert_equal(Face[:string], highlight_on[5])
     assert_equal(true, highlight_off[6])
     # STRING_END: )
-    assert_equal(Face[:string], highlight_on[6])
+    assert_equal(Face[:string_edge], highlight_on[6])
     assert_equal(true, highlight_off[7])
   end
 
@@ -938,14 +938,30 @@ EOF
     @buffer.beginning_of_buffer
     highlight_on, highlight_off = call_highlight
     # PERCENT_LOWER_X: %x(
-    assert_equal(Face[:string], highlight_on[0])
+    assert_equal(Face[:string_edge], highlight_on[0])
     assert_equal(true, highlight_off[3])
     # STRING_CONTENT: echo hello
     assert_equal(Face[:string], highlight_on[3])
     assert_equal(true, highlight_off[13])
     # STRING_END: )
-    assert_equal(Face[:string], highlight_on[13])
+    assert_equal(Face[:string_edge], highlight_on[13])
     assert_equal(true, highlight_off[14])
+  end
+
+  def test_prism_highlight_backtick
+    Window.has_colors = true
+    @buffer.insert('`echo hello`')
+    @buffer.beginning_of_buffer
+    highlight_on, highlight_off = call_highlight
+    # PERCENT_LOWER_X: `
+    assert_equal(Face[:string_edge], highlight_on[0])
+    assert_equal(true, highlight_off[1])
+    # STRING_CONTENT: echo hello
+    assert_equal(Face[:string], highlight_on[1])
+    assert_equal(true, highlight_off[11])
+    # STRING_END: `
+    assert_equal(Face[:string_edge], highlight_on[11])
+    assert_equal(true, highlight_off[12])
   end
 
   def test_prism_highlight_numbers
