@@ -44,7 +44,8 @@
   "mounts": [
     "source=claude-code-bashhistory-${devcontainerId},target=/commandhistory,type=volume",
     "source=claude-code-config,target=/home/node/.claude,type=volume",
-    "source=claude-code-gh-config,target=/home/node/.config/gh,type=volume"
+    "source=claude-code-gh-config,target=/home/node/.config/gh,type=volume",
+    "source=${localEnv:HOME}/.devcontainer/ruby/firewall-domains.conf,target=/etc/firewall-domains.conf,type=bind,readonly"
   ],
   "containerEnv": {
     "NODE_OPTIONS": "--max-old-space-size=4096",
