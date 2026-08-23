@@ -354,6 +354,36 @@ module Textbringer
       RubyVM::MJIT.resume
     end
 
+    define_command(:forward_page,
+                   doc: "Move forward to page boundary.") do
+      |n = number_prefix_arg|
+      buffer = Buffer.current
+      n.times do
+        unless buffer.re_search_forward(/^\f/, raise_error: false)
+          buffer.end_of_buffer
+          break
+        end
+      end
+    end
+
+    define_command(:backward_page,
+                   doc: "Move backward to page boundary.") do
+      |n = number_prefix_arg|
+      buffer = Buffer.current
+      n.times do
+        if buffer.point == 0
+          break
+        end
+        buffer.backward_char
+        if buffer.re_search_backward(/^\f/, raise_error: false)
+          buffer.forward_char
+        else
+          buffer.beginning_of_buffer
+          break
+        end
+      end
+    end
+
     define_command(:what_cursor_position,
                    doc: "Print info on cursor position.") do
       |arg = current_prefix_arg|

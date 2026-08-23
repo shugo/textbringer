@@ -206,6 +206,56 @@ class TestMisc < Textbringer::TestCase
     assert_equal("Backtrace", Buffer.current.mode.name)
   end
 
+  def test_forward_page
+    insert("page1\n\fpage2\n\fpage3\n")
+    beginning_of_buffer
+    forward_page
+    assert_equal(7, Buffer.current.point)  # after first \f
+    forward_page
+    assert_equal(14, Buffer.current.point) # after second \f
+    forward_page
+    assert_equal(Buffer.current.bytesize, Buffer.current.point) # end of buffer
+  end
+
+  def test_forward_page_no_delimiter
+    insert("no page delimiter here\n")
+    beginning_of_buffer
+    forward_page
+    assert_equal(Buffer.current.bytesize, Buffer.current.point)
+  end
+
+  def test_forward_page_with_count
+    insert("page1\n\fpage2\n\fpage3\n")
+    beginning_of_buffer
+    forward_page(2)
+    assert_equal(14, Buffer.current.point) # after second \f
+  end
+
+  def test_backward_page
+    insert("page1\n\fpage2\n\fpage3\n")
+    end_of_buffer
+    backward_page
+    assert_equal(14, Buffer.current.point) # just after second \f
+    backward_page
+    assert_equal(7, Buffer.current.point)  # just after first \f
+    backward_page
+    assert_equal(0, Buffer.current.point)  # beginning of buffer
+  end
+
+  def test_backward_page_no_delimiter
+    insert("no page delimiter here\n")
+    end_of_buffer
+    backward_page
+    assert_equal(0, Buffer.current.point)
+  end
+
+  def test_backward_page_with_count
+    insert("page1\n\fpage2\n\fpage3\n")
+    end_of_buffer
+    backward_page(2)
+    assert_equal(7, Buffer.current.point)  # just after first \f
+  end
+
   def test_what_cursor_position
     insert(" \t\C-lあ")
     beginning_of_buffer
