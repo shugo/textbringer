@@ -1,5 +1,6 @@
 require "set"
 require "prism"
+require_relative "ruby_nesting_parser"
 
 module Textbringer
   CONFIG[:ruby_indent_level] = 2
@@ -22,9 +23,11 @@ module Textbringer
       @prism_version = nil
       @prism_tokens = nil
       @prism_ast = nil
+      @prism_parse_lex_result = nil
       @prism_method_name_locs = nil
       @literal_levels = nil
       @literal_levels_version = nil
+      @nesting_by_line = nil
     end
 
     def forward_definition(n = number_prefix_arg || 1)
@@ -259,182 +262,272 @@ module Textbringer
 
     OPERATORS = %i(!= !~ =~ == === <=> > >= < <= & | ^ >> << - + % / * ** -@ +@ ~ ! [] []=)
 
-    BLOCK_END = {
-      EMBEXPR_BEGIN: :EMBEXPR_END,
-      BRACE_LEFT: :BRACE_RIGHT,
-      PARENTHESIS_LEFT: :PARENTHESIS_RIGHT,
-      BRACKET_LEFT: :BRACKET_RIGHT,
-      BRACKET_LEFT_ARRAY: :BRACKET_RIGHT,
-      LAMBDA_BEGIN: :BRACE_RIGHT,
-    }
-
-    INDENT_BEG_RE = /^([ \t]*)(class|module|def|if|unless|case|while|until|for|begin)\b/
+    FREE_INDENT_EVENTS = %i[on_tstring_beg on_backtick on_regexp_beg on_symbeg].to_set
 
     def space_width(s)
       s.gsub(/\t/, " " * @buffer[:tab_width]).size
     end
 
-    def beginning_of_indentation
-      loop do
-        @buffer.re_search_backward(INDENT_BEG_RE)
-        space = @buffer.match_string(1)
-        if in_literal?(@buffer.point)
-          next
-        end
-        return space_width(space)
+    def calculate_indentation
+      return 0 if @buffer.current_line == 1
+      ensure_nesting_by_line
+      return 0 if @nesting_by_line.nil? || @nesting_by_line.empty?
+
+      target_line = @buffer.current_line
+      line_index = target_line - 1
+
+      if line_index >= @nesting_by_line.size
+        # After the last parsed line - use last line's next_opens
+        _, last_next_opens, _ = @nesting_by_line.last
+        prev_opens = next_opens = last_next_opens
+        min_depth = prev_opens.size
+      else
+        prev_opens, next_opens, min_depth = @nesting_by_line[line_index]
       end
-    rescue SearchError
-      @buffer.beginning_of_buffer
+
+      prev_open_elem = prev_opens&.last
+
+      # Inside string/regexp/heredoc → no auto-indent
+      if FREE_INDENT_EVENTS.include?(prev_open_elem&.event)
+        return nil
+      end
+      if prev_open_elem&.event == :on_heredoc_beg
+        return nil
+      end
+
+      # Parenthesis alignment: foo(123,\n    456)
+      if prev_open_elem&.event == :on_lparen
+        paren_line = prev_open_elem.pos[0]
+        paren_col = prev_open_elem.pos[1]
+        if paren_has_args_on_same_line?(paren_line, paren_col)
+          return paren_col + 1
+        end
+      end
+
+      # Base indent from stable nesting depth
+      indent_level = calc_indent_level(prev_opens.take(min_depth))
+      indent = indent_level * @buffer[:indent_level]
+
+      # Compute base_indent (cosmetic offset from actual code indentation)
+      base_indent = compute_base_indent(prev_open_elem, line_index)
+
+      indentation = base_indent + indent
+
+      # Handle extra unmatched closers (end/}/]/))
+      if prev_opens.empty?
+        extra_count = count_extra_closers_before(target_line)
+        if extra_count > 0
+          indentation -= extra_count * @buffer[:indent_level]
+        end
+      end
+
+      # Continuation lines
+      if continuation_line?(target_line, prev_open_elem)
+        indentation += @buffer[:indent_level]
+      end
+
+      indentation
+    end
+
+    def calc_indent_level(opens)
+      indent_level = 0
+      opens&.each do |elem|
+        case elem.event
+        when :on_heredoc_beg
+          # skip
+        when :on_tstring_beg, :on_regexp_beg, :on_symbeg, :on_backtick
+          indent_level += 1 if elem.tok.start_with?("%")
+        when :on_embdoc_beg
+          indent_level = 0
+        else
+          indent_level += 1
+        end
+      end
+      indent_level
+    end
+
+    def indent_difference(line_index)
+      loop do
+        return 0 if line_index < 0 || line_index >= @nesting_by_line.size
+        prev_opens, _next_opens, min_depth = @nesting_by_line[line_index]
+        open_elem = prev_opens&.last
+        if !open_elem || (open_elem.event != :on_heredoc_beg &&
+                          !FREE_INDENT_EVENTS.include?(open_elem.event))
+          il = calc_indent_level(prev_opens.take(min_depth))
+          calculated_indent = il * @buffer[:indent_level]
+          actual_indent = actual_indentation_at_line(line_index + 1)
+          return actual_indent - calculated_indent
+        elsif open_elem.event == :on_heredoc_beg && !open_elem.tok.match?(/^<<[-~]/)
+          return 0
+        end
+        line_index = open_elem.pos[0] - 1
+      end
+    end
+
+    def compute_base_indent(prev_open_elem, line_index)
+      if prev_open_elem
+        # Start at the opener's line, trace back through continuations
+        li = trace_back_through_continuations(prev_open_elem.pos[0])
+        # Then trace back through nesting chain
+        while li >= 0 && li < @nesting_by_line.size
+          po, _, _ = @nesting_by_line[li]
+          outer = po&.last
+          if outer.nil?
+            return [0, indent_difference(li)].max
+          end
+          outer_line = outer.pos[0] - 1
+          if outer_line < li
+            li = outer_line
+          else
+            return [0, indent_difference(li)].max
+          end
+        end
+        0
+      else
+        find_base_indent_at_toplevel(line_index)
+      end
+    end
+
+    def trace_back_through_continuations(line_number)
+      li = line_number - 1  # convert to 0-indexed
+      while li > 0
+        prev_line = li  # 1-indexed line number of previous line
+        if line_ends_with_comma?(prev_line)
+          li -= 1
+        else
+          break
+        end
+      end
+      li
+    end
+
+    def line_ends_with_comma?(line_number)
+      ensure_prism_tokens
+      last_event = nil
+      @prism_tokens.each do |token, _state|
+        loc = token.location
+        next if loc.start_line != line_number
+        type = token.type
+        next if type == :NEWLINE || type == :IGNORED_NEWLINE ||
+          type == :COMMENT || type == :EOF
+        last_event = type
+      end
+      last_event == :COMMA
+    end
+
+    def find_base_indent_at_toplevel(line_index)
+      # First, search for a line with nesting context
+      (line_index - 1).downto(0) do |i|
+        prev_opens, next_opens, _ = @nesting_by_line[i]
+        if !prev_opens.empty?
+          origin_elem = prev_opens.first
+          return [0, indent_difference(origin_elem.pos[0] - 1)].max
+        elsif !next_opens.empty?
+          origin_elem = next_opens.first
+          return [0, indent_difference(origin_elem.pos[0] - 1)].max
+        end
+      end
+      # Fall back: use nearest non-empty line's actual indentation
+      (line_index - 1).downto(0) do |i|
+        if line_has_content?(i + 1)
+          return actual_indentation_at_line(i + 1)
+        end
+      end
       0
     end
 
-    def lex(source)
-      Prism.lex(source).value.filter_map { |token, _state|
-        type = token.type
-        next if type == :EOF
-        loc = token.location
-        [[loc.start_line, loc.start_column], type, token.value]
+    def line_has_content?(line_number)
+      @buffer.save_excursion do
+        @buffer.goto_line(line_number)
+        @buffer.looking_at?(/[ \t]*\S/)
+      end
+    end
+
+    def count_extra_closers_before(target_line)
+      return 0 unless @prism_parse_lex_result
+      @prism_parse_lex_result.errors.count { |e|
+        e.type == :unexpected_token_ignore &&
+          e.location.start_line <= target_line
       }
     end
 
-    def calculate_indentation
-      if @buffer.current_line == 1
-        return 0
-      end
+    def actual_indentation_at_line(line_number)
       @buffer.save_excursion do
+        @buffer.goto_line(line_number)
+        @buffer.looking_at?(/[ \t]*/)
+        space_width(@buffer.match_string(0))
+      end
+    end
+
+    def paren_has_args_on_same_line?(paren_line, paren_col)
+      ensure_prism_tokens
+      found_paren = false
+      @prism_tokens.each do |token, _state|
+        loc = token.location
+        if !found_paren
+          if loc.start_line == paren_line &&
+              loc.start_column == paren_col &&
+              token.type == :PARENTHESIS_LEFT
+            found_paren = true
+          end
+          next
+        end
+        next if token.type == :EOF
+        return token.type != :IGNORED_NEWLINE && token.type != :NEWLINE &&
+          loc.start_line == paren_line
+      end
+      false
+    end
+
+    def continuation_line?(target_line, prev_open_elem)
+      start_with_period = @buffer.save_excursion {
         @buffer.beginning_of_line
-        start_with_period = @buffer.looking_at?(/[ \t]*\./)
-        bol_pos = @buffer.point
-        base_indentation = beginning_of_indentation
-        start_pos = @buffer.point
-        start_line = @buffer.current_line
-        tokens = lex(@buffer.substring(start_pos, bol_pos))
-        _, event, text = tokens.last
-        if event == :NEWLINE || event == :IGNORED_NEWLINE
-          _, event, text = tokens[-2]
-        end
-        if event == :STRING_BEGIN ||
-            event == :HEREDOC_START ||
-            (event == :HEREDOC_END && text.empty?) ||
-            event == :REGEXP_BEGIN ||
-            event == :STRING_CONTENT ||
-            event == :HEREDOC_CONTENT
-          return nil
-        end
-        i, extra_end_count = find_nearest_beginning_token(tokens)
-        (line, column), event, = i ? tokens[i] : nil
-        if event == :PARENTHESIS_LEFT && tokens.dig(i + 1, 1) != :IGNORED_NEWLINE
-          return column + 1
-        end
-        if line
-          @buffer.goto_line(start_line - 1 + line)
-          while !@buffer.beginning_of_buffer?
-            if @buffer.save_excursion {
-              @buffer.backward_char
-              @buffer.skip_re_backward(/\s/)
-              @buffer.char_before == ?,
-            }
-              @buffer.backward_line
-            else
-              break
-            end
-          end
-          @buffer.looking_at?(/[ \t]*/)
-          base_indentation = space_width(@buffer.match_string(0))
-        end
-        @buffer.goto_char(bol_pos)
-        if line.nil?
-          indentation =
-            base_indentation - extra_end_count * @buffer[:indent_level]
-        else
-          indentation = base_indentation + @buffer[:indent_level]
-        end
-        if @buffer.looking_at?(/[ \t]*([}\])]|(end|else|elsif|when|in|rescue|ensure)\b)/)
-          indentation -= @buffer[:indent_level]
-        end
-        _, last_event, = tokens.reverse_each.find { |_, e, _|
-          e != :NEWLINE && e != :IGNORED_NEWLINE
-        }
-        if start_with_period ||
-            CONTINUATION_OPERATOR_TYPES.include?(last_event) ||
-            last_event == :KEYWORD_AND || last_event == :KEYWORD_OR ||
-            last_event == :DOT ||
-            (last_event == :COMMA && event != :BRACE_LEFT &&
-             event != :PARENTHESIS_LEFT && event != :BRACKET_LEFT &&
-             event != :BRACKET_LEFT_ARRAY) ||
-            last_event == :LABEL
-          indentation += @buffer[:indent_level]
-        end
-        indentation
+        @buffer.looking_at?(/[ \t]*\./)
+      }
+      return true if start_with_period
+
+      prev_line = target_line - 1
+      return false if prev_line < 1
+
+      ensure_prism_tokens
+      last_event = nil
+      @prism_tokens.each do |token, _state|
+        loc = token.location
+        next if loc.start_line > prev_line
+        next if loc.start_line < prev_line
+        type = token.type
+        next if type == :NEWLINE || type == :IGNORED_NEWLINE ||
+          type == :COMMENT || type == :EOF
+        last_event = type
       end
+
+      return false if last_event.nil?
+
+      if CONTINUATION_OPERATOR_TYPES.include?(last_event) ||
+          last_event == :KEYWORD_AND || last_event == :KEYWORD_OR ||
+          last_event == :DOT || last_event == :LABEL
+        return true
+      end
+
+      if last_event == :COMMA
+        if prev_open_elem.nil? ||
+            !%i[on_lbrace on_lparen bracket on_lbracket].include?(prev_open_elem.event)
+          return true
+        end
+      end
+
+      false
     end
 
-    def find_nearest_beginning_token(tokens)
-      stack = []
-      (tokens.size - 1).downto(0) do |i|
-        (line, ), event, text = tokens[i]
-        case event
-        when :KEYWORD_CLASS, :KEYWORD_MODULE, :KEYWORD_DEF,
-          :KEYWORD_IF, :KEYWORD_UNLESS, :KEYWORD_CASE,
-          :KEYWORD_DO, :KEYWORD_DO_LOOP, :KEYWORD_FOR,
-          :KEYWORD_WHILE, :KEYWORD_UNTIL, :KEYWORD_BEGIN
-          if i > 0
-            _, prev_event, _ = tokens[i - 1]
-            next if prev_event == :SYMBOL_BEGIN
-          end
-          if event == :KEYWORD_DEF && endless_method_def?(tokens, i)
-            next
-          end
-          if stack.empty?
-            return i
-          end
-          if stack.last != :KEYWORD_END
-            raise EditorError, "#{@buffer.name}:#{line}: Unmatched #{text}"
-          end
-          stack.pop
-        when :KEYWORD_END
-          if i > 0
-            _, prev_event, _ = tokens[i - 1]
-            next if prev_event == :SYMBOL_BEGIN
-          end
-          stack.push(:KEYWORD_END)
-        when :BRACE_RIGHT, :PARENTHESIS_RIGHT, :BRACKET_RIGHT, :EMBEXPR_END
-          stack.push(event)
-        when :BRACE_LEFT, :PARENTHESIS_LEFT, :BRACKET_LEFT,
-          :BRACKET_LEFT_ARRAY, :LAMBDA_BEGIN, :EMBEXPR_BEGIN
-          if stack.empty?
-            return i
-          end
-          if stack.last != BLOCK_END[event]
-            raise EditorError, "#{@buffer.name}:#{line}: Unmatched #{text}"
-          end
-          stack.pop
-        end
+    def ensure_nesting_by_line
+      ensure_prism_tokens
+      return if @nesting_by_line && @nesting_version == @prism_version
+      if @prism_parse_lex_result
+        @nesting_by_line = RubyNestingParser.parse_by_line(@prism_parse_lex_result)
+      else
+        @nesting_by_line = nil
       end
-      return nil, stack.count { |t| t != :PARENTHESIS_RIGHT && t != :BRACKET_RIGHT }
-    end
-
-    def endless_method_def?(tokens, i)
-      ts = tokens.drop(i + 1)
-      _, event = ts.shift
-      return false if event != :IDENTIFIER && event != :METHOD_NAME
-      if ts[0][1] == :PARENTHESIS_LEFT
-        ts.shift
-        count = 1
-        while count > 0
-          _, event = ts.shift
-          return false if event.nil?
-          case event
-          when :PARENTHESIS_LEFT
-            count += 1
-          when :PARENTHESIS_RIGHT
-            count -= 1
-          end
-        end
-      end
-      ts[0][1] == :EQUAL
-    rescue NoMethodError # no token
-      return false
+      @nesting_version = @prism_version
     end
 
     def find_test_target_path(base, namespace, name)
@@ -488,15 +581,17 @@ module Textbringer
       return if @prism_version == @buffer.version
       source = @buffer.to_s
       if source.valid_encoding?
-        result = Prism.parse_lex(source)
-        @prism_ast, @prism_tokens = result.value
+        @prism_parse_lex_result = Prism.parse_lex(source)
+        @prism_ast, @prism_tokens = @prism_parse_lex_result.value
       else
+        @prism_parse_lex_result = nil
         @prism_ast = nil
         @prism_tokens = []
       end
       @prism_method_name_locs = nil
       @prism_version = @buffer.version
       @literal_levels_version = nil
+      @nesting_by_line = nil
     end
 
     def ensure_method_name_locs
