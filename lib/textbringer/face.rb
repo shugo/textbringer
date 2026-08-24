@@ -7,6 +7,8 @@ module Textbringer
     @@face_table = {}
     @@next_color_pair = 1
     @@color_pair_cache = {}
+    @@default_foreground = -1
+    @@default_background = -1
 
     def self.[](name)
       @@face_table[name]
@@ -24,6 +26,20 @@ module Textbringer
 
     def self.delete(name)
       @@face_table.delete(name)
+    end
+
+    # Set the concrete color numbers substituted for -1 (default color).
+    # PDCurses resolves -1 when init_pair is called and
+    # assume_default_colors only affects color pair 0, so faces must be
+    # re-resolved with concrete colors to get the new default colors.
+    def self.set_default_color_numbers(fg_num, bg_num)
+      return if fg_num == @@default_foreground &&
+        bg_num == @@default_background
+      @@default_foreground = fg_num
+      @@default_background = bg_num
+      @@face_table.each_value do |face|
+        face.send(:resolve_inheritance)
+      end
     end
 
     def initialize(name, **opts)
@@ -68,6 +84,8 @@ module Textbringer
       @reverse = @explicit_reverse.nil? ? (parent&.instance_variable_get(:@reverse) || false) : @explicit_reverse
       fg_num = Color[@foreground]
       bg_num = Color[@background]
+      fg_num = @@default_foreground if fg_num == -1
+      bg_num = @@default_background if bg_num == -1
       key = [fg_num, bg_num]
       unless @@color_pair_cache.key?(key)
         @@color_pair_cache[key] = @@next_color_pair

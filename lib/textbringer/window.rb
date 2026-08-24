@@ -137,9 +137,12 @@ module Textbringer
     def self.set_default_colors(fg, bg)
       new_fg = fg || @@default_fg
       new_bg = bg || @@default_bg
-      Curses.assume_default_colors(Color[new_fg], Color[new_bg])
+      fg_num = Color[new_fg]
+      bg_num = Color[new_bg]
+      Curses.assume_default_colors(fg_num, bg_num)
       @@default_fg = new_fg
       @@default_bg = new_bg
+      Face.set_default_color_numbers(fg_num, bg_num)
       Face.define(:default, foreground: new_fg, background: new_bg)
       Window.redraw if @@started
     end
