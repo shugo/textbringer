@@ -176,6 +176,33 @@ class TestFace < Textbringer::TestCase
     Face.delete(:persist_child)
   end
 
+  def test_default_colors_substituted_for_faces
+    # PDCurses resolves -1 at init_pair time and assume_default_colors
+    # only affects color pair 0, so faces without explicit colors must
+    # use concrete default colors instead of -1.
+    Window.set_default_colors("white", "blue")
+    face = Face.define(:sub_face, foreground: "yellow")
+    explicit = Face.define(:sub_explicit,
+                           foreground: "yellow", background: "blue")
+    assert_equal(explicit.color_pair, face.color_pair)
+  ensure
+    Face.delete(:sub_face)
+    Face.delete(:sub_explicit)
+    Window.set_default_colors("default", "default")
+  end
+
+  def test_faces_reresolved_when_default_colors_change
+    face = Face.define(:re_face, foreground: "yellow")
+    Window.set_default_colors("white", "blue")
+    explicit = Face.define(:re_explicit,
+                           foreground: "yellow", background: "blue")
+    assert_equal(explicit.color_pair, face.color_pair)
+  ensure
+    Face.delete(:re_face)
+    Face.delete(:re_explicit)
+    Window.set_default_colors("default", "default")
+  end
+
   def test_parent_update_propagates_to_children
     Face.define(:prop_parent, foreground: "red")
     child = Face.define(:prop_child, inherit: :prop_parent)
