@@ -31,6 +31,10 @@ Install ncursesw before installing curses.gem, on which textbringer depends.
     $ sudo apt-get install libncursesw5-dev
     $ gem install curses
 
+You need ffi to use clipboard commands on Windows.
+
+    $ gem install ffi
+
 ## Usage
 
     $ txtb

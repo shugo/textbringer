@@ -2,12 +2,15 @@ module Clipboard
   @implementation = nil
 end
 
-require "clipboard"
-
 module Textbringer
   module Commands
-    CLIPBOARD_AVAILABLE =
-      Clipboard.implementation.name != "Clipboard::File"
+    begin
+      require "clipboard"
+      CLIPBOARD_AVAILABLE =
+        Clipboard.implementation.name != "Clipboard::File"
+    rescue LoadError
+      CLIPBOARD_AVAILABLE = false
+    end
 
     if CLIPBOARD_AVAILABLE
       GLOBAL_MAP.define_key("\M-w", :clipboard_copy_region)
