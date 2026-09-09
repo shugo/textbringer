@@ -230,7 +230,7 @@ EOF
     assert_equal(__FILE__, Buffer.current.file_name)
     
     assert_raise(EditorError) do
-      find_source(Object.new)
+      find_source(Class.new.new)
     end
 
     eval("class FindSourceTarget; def foo; end; end", TOPLEVEL_BINDING)
