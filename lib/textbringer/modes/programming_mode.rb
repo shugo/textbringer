@@ -98,23 +98,20 @@ module Textbringer
     end
 
     def indent_new_comment_line
-      if comment_start.nil?
+      re = comment_prefix_regexp
+      if re.nil?
         @buffer.newline
         return
       end
       s = @buffer.save_excursion {
         @buffer.beginning_of_line
-        if @buffer.looking_at?(/[ \t]*#{comment_start}+[ \t]*/)
+        if @buffer.looking_at?(re)
           @buffer.match_string(0)
         else
           ""
         end
       }
       @buffer.insert("\n" + s)
-    end
-
-    def comment_start
-      nil
     end
 
     private

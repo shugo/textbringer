@@ -11,23 +11,26 @@ module Textbringer
         @prefix_width = Buffer.display_width(prefix)
         @fill_column = CONFIG[:fill_column]
         @output = +""
+        @line_start = 0
         @prev_c = nil
         @bol = column == 0
       end
 
-      def fill(str)
-        input = StringIO.new(str)
-        if @bol && (indent = str[/\A[ \t]+/])
-          @output << indent
-          @column = Buffer.display_width(indent)
+      # head is kept as it is at the start of the first line; body is the
+      # text to fill, with the prefix already removed from each line.
+      def fill(head, body)
+        if !head.empty?
+          @output << head
+          @line_start = head.size
+          @column += Buffer.display_width(head)
           @bol = false
-          input.seek(indent.bytesize)
         end
+        input = StringIO.new(body)
         while c = input.getc
           if c == "\n"
             skip_blanks(input)
             if input.eof?
-              insert_newline("")
+              insert_final_newline
             elsif @column < @fill_column
               if GRAPH.match?(@prev_c)
                 insert_space_between_words(input)
@@ -73,10 +76,11 @@ module Textbringer
       end
 
       def insert_newline_before_word
-        m = @output.match(/(?:([^\w \t\n])|(\w)[ \t]+)(\w*)\z/)
+        m = @output.match(/(?:([^\w \t\n])|(\w)[ \t]+)(\w*)\z/, @line_start)
         return if m.nil?
         word = m[3]
         @output[m.begin(0)..] = "#{m[1]}#{m[2]}\n#{@prefix}#{word}"
+        @line_start = @output.size - word.size
         @column = @prefix_width + Buffer.display_width(word)
         @bol = false
       end
@@ -85,7 +89,18 @@ module Textbringer
         return if @bol
         @output.sub!(/[ \t]+\z/, "")
         @output << "\n" << prefix
+        @line_start = @output.size
         @column = Buffer.display_width(prefix)
+        @bol = true
+      end
+
+      # The newline that ends the text is kept even on an otherwise empty
+      # line, and no prefix follows it.
+      def insert_final_newline
+        @output.sub!(/[ \t]+\z/, "")
+        @output << "\n"
+        @line_start = @output.size
+        @column = 0
         @bol = true
       end
 
@@ -103,29 +118,35 @@ module Textbringer
       def fill_region(s = Buffer.current.point, e = Buffer.current.mark)
         s, e = Buffer.region_boundaries(s, e)
         save_excursion do
-          str = substring(s, e)
           goto_char(s)
           pos = point
           beginning_of_line
           column = Buffer.display_width(substring(point, pos))
-          prefix = fill_prefix(substring(point, e))
-          replace(Filler.new(column, prefix).fill(str), start: s, end: e)
+          prefix_re = fill_prefix_regexp(comment_line?)
+          prefix = fill_prefix(substring(point, e), prefix_re)
+          lines = substring(s, e).lines
+          head = column == 0 && lines[0] ? lines[0][prefix_re] : ""
+          body = lines.each_with_index.map { |line, i|
+            i == 0 ? line[head.size..] : line.sub(prefix_re, "")
+          }.join
+          replace(Filler.new(column, prefix).fill(head, body),
+                  start: s, end: e)
         end
       end
 
       def fill_paragraph
         beginning_of_line
-        while !beginning_of_buffer? &&
-            !looking_at?(/^[ \t]*$/)
+        separator = fill_paragraph_separator(comment_line?)
+        while !beginning_of_buffer? && !looking_at?(separator)
           backward_line
         end
-        while looking_at?(/^[ \t]*$/)
+        while !end_of_buffer? && looking_at?(separator)
           forward_line
         end
         s = point
         begin
           forward_line
-        end while !end_of_buffer? && !looking_at?(/^[ \t]*$/)
+        end while !end_of_buffer? && !looking_at?(separator)
         if beginning_of_line?
           backward_char
         end
@@ -134,14 +155,43 @@ module Textbringer
 
       private
 
-      # The indentation of the second line, or of the first line when
-      # there is no second line, is the prefix of every line after the
-      # first, as with adaptive-fill-mode in Emacs.  The first line keeps
-      # its own indentation.
-      def fill_prefix(str)
+      # Whether the current line is a comment line of the buffer's mode.
+      # Point must be at the beginning of the line.
+      def comment_line?
+        re = mode&.comment_prefix_regexp
+        !re.nil? && looking_at?(re)
+      end
+
+      # A line that ends the paragraph: a blank line, or, when filling a
+      # comment, any line that is not a comment with something in it.
+      def fill_paragraph_separator(comment)
+        if comment
+          /^(?!#{mode.comment_prefix_regexp}[^ \t\n])/
+        else
+          /^[ \t]*$/
+        end
+      end
+
+      # What is stripped from the start of each line before filling and
+      # put back by the prefix: indentation, and the comment leader when
+      # filling a comment.
+      def fill_prefix_regexp(comment)
+        if comment
+          /\A(?:#{mode.comment_prefix_regexp}|[ \t]*)/
+        else
+          /\A[ \t]*/
+        end
+      end
+
+      # The prefix of the second line, or of the first line when there is
+      # no second line, is the prefix of every line after the first, as
+      # with adaptive-fill-mode in Emacs.  The first line keeps its own
+      # prefix.
+      def fill_prefix(str, prefix_re)
         first, second = str.lines
-        line = second && !second.match?(/\A[ \t]*\n?\z/) ? second : first
-        line ? line[/\A[ \t]*/] : ""
+        line = second && !second.sub(prefix_re, "").match?(/\A\n?\z/) ?
+          second : first
+        line ? line[prefix_re] : ""
       end
     end
   end
