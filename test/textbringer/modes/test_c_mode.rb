@@ -468,4 +468,21 @@ EOF
   def test_default_compile_command
     assert_equal("make", @c_mode.default_compile_command)
   end
+
+  def test_indent_new_comment_line
+    @buffer.insert(<<EOF.chop)
+  // foo
+EOF
+    @c_mode.indent_new_comment_line
+    assert_equal("  // foo\n  // ", @buffer.to_s)
+  end
+
+  def test_indent_new_comment_line_block_comment
+    @buffer.insert(<<EOF.chop)
+/*
+ * foo
+EOF
+    @c_mode.indent_new_comment_line
+    assert_equal("/*\n * foo\n * ", @buffer.to_s)
+  end
 end

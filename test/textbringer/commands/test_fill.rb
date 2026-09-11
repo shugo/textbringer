@@ -312,4 +312,72 @@ EOF
     fill_paragraph
     assert_equal("foo\n\n", buffer.to_s)
   end
+
+  def test_fill_paragraph_c_block_comment
+    buffer.apply_mode(CMode)
+    buffer.insert(<<EOF)
+/*
+ * Textbringer is beta software, and you may lose your text.  Unsaved buffers will be dumped in ~/.textbringer/buffer_dump on crash.
+ * APIs are undocumented and unstable.
+ */
+int x;
+EOF
+    buffer.beginning_of_buffer
+    buffer.forward_line(1)
+    fill_paragraph
+    assert_equal(<<EOF, buffer.to_s)
+/*
+ * Textbringer is beta software, and you may lose your text.  Unsaved
+ * buffers will be dumped in ~/.textbringer/buffer_dump on crash. APIs
+ * are undocumented and unstable.
+ */
+int x;
+EOF
+  end
+
+  def test_fill_paragraph_c_block_comment_single_line
+    buffer.apply_mode(CMode)
+    buffer.insert(<<EOF)
+/* 
+ * foo bar foo barfoo barfoo barfoo barfoo barfoo barfoo barfoo barfoo barfoo barfoo barfoo barfoo barfoo barfoo barfoo barfoo barfoo barfoo barfoo barfoo barfoo barfoo barfoo barfoo barfoo barfoo barfoo barfoo barfoo barfoo barfoo barfoo barfoo barfoo barfoo barfoo barfoo barfoo barfoo barfoo barfoo barfoo barfoo barfoo barfoo barfoo barfoo barfoo barfoo bar
+ */
+EOF
+    buffer.beginning_of_buffer
+    buffer.forward_line(1)
+    fill_paragraph
+    assert_equal(<<EOF, buffer.to_s)
+/* 
+ * foo bar foo barfoo barfoo barfoo barfoo barfoo barfoo barfoo barfoo
+ * barfoo barfoo barfoo barfoo barfoo barfoo barfoo barfoo barfoo
+ * barfoo barfoo barfoo barfoo barfoo barfoo barfoo barfoo barfoo
+ * barfoo barfoo barfoo barfoo barfoo barfoo barfoo barfoo barfoo
+ * barfoo barfoo barfoo barfoo barfoo barfoo barfoo barfoo barfoo
+ * barfoo barfoo barfoo barfoo barfoo bar
+ */
+EOF
+  end
+
+  def test_fill_paragraph_c_block_comment_separated_by_empty_line
+    buffer.apply_mode(CMode)
+    buffer.insert(<<EOF)
+/**
+ * Textbringer
+ *
+ * Textbringer is beta software, and you may lose your text.  Unsaved buffers will be dumped in ~/.textbringer/buffer_dump on crash.
+ * APIs are undocumented and unstable.
+ **/
+EOF
+    buffer.beginning_of_buffer
+    buffer.forward_line(3)
+    fill_paragraph
+    assert_equal(<<EOF, buffer.to_s)
+/**
+ * Textbringer
+ *
+ * Textbringer is beta software, and you may lose your text.  Unsaved
+ * buffers will be dumped in ~/.textbringer/buffer_dump on crash. APIs
+ * are undocumented and unstable.
+ **/
+EOF
+  end
 end

@@ -79,10 +79,22 @@ module Textbringer
     end
 
     # The string that starts a line comment in this mode, or nil if the
-    # mode has no line comments.  Used to continue comments in
-    # indent_new_comment_line and to keep comment leaders in fill_paragraph.
+    # mode has no line comments.
     def comment_start
       nil
+    end
+
+    # A regexp matching what begins a comment line: the indentation, the
+    # comment leader, and the blanks after it.  indent_new_comment_line
+    # repeats the match on the new line, and fill_paragraph uses it to
+    # tell comment lines from code and to keep the leader on each filled
+    # line.  nil if the mode has no comment lines.  Modes whose block
+    # comments continue with a leader of their own, as C's do with " * ",
+    # override this.
+    def comment_prefix_regexp
+      if comment_start
+        /[ \t]*#{Regexp.quote(comment_start)}+[ \t]*/
+      end
     end
 
     def syntax_table

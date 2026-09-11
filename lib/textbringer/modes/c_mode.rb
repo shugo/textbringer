@@ -38,6 +38,12 @@ module Textbringer
       "//"
     end
 
+    # "//" comments, and the " * " lines of a block comment.  The "/*"
+    # and " */" lines are not matched, so they bound the paragraph.
+    def comment_prefix_regexp
+      /[ \t]*(?:\/\/+|\*+(?![*\/]))[ \t]*/
+    end
+
     def initialize(buffer)
       super(buffer)
       @buffer[:indent_level] = CONFIG[:c_indent_level]

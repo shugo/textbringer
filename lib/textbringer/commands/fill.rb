@@ -155,23 +155,18 @@ module Textbringer
 
       private
 
-      # Whether the current line is a line comment of the buffer's mode.
+      # Whether the current line is a comment line of the buffer's mode.
       # Point must be at the beginning of the line.
       def comment_line?
-        leader = fill_comment_leader
-        !leader.nil? && looking_at?(/[ \t]*#{leader}/)
-      end
-
-      def fill_comment_leader
-        comment_start = mode&.comment_start
-        comment_start && Regexp.quote(comment_start)
+        re = mode&.comment_prefix_regexp
+        !re.nil? && looking_at?(re)
       end
 
       # A line that ends the paragraph: a blank line, or, when filling a
       # comment, any line that is not a comment with something in it.
       def fill_paragraph_separator(comment)
         if comment
-          /^(?![ \t]*#{fill_comment_leader}+[ \t]*[^ \t\n])/
+          /^(?!#{mode.comment_prefix_regexp}[^ \t\n])/
         else
           /^[ \t]*$/
         end
@@ -182,7 +177,7 @@ module Textbringer
       # filling a comment.
       def fill_prefix_regexp(comment)
         if comment
-          /\A[ \t]*(?:#{fill_comment_leader}+[ \t]*)?/
+          /\A(?:#{mode.comment_prefix_regexp}|[ \t]*)/
         else
           /\A[ \t]*/
         end
