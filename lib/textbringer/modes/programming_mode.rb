@@ -113,10 +113,6 @@ module Textbringer
       @buffer.insert("\n" + s)
     end
 
-    def comment_start
-      nil
-    end
-
     private
 
     def calculate_indentation

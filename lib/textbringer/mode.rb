@@ -78,6 +78,13 @@ module Textbringer
       self.class.mode_name
     end
 
+    # The string that starts a line comment in this mode, or nil if the
+    # mode has no line comments.  Used to continue comments in
+    # indent_new_comment_line and to keep comment leaders in fill_paragraph.
+    def comment_start
+      nil
+    end
+
     def syntax_table
       self.class.syntax_table
     end

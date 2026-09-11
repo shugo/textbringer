@@ -212,4 +212,104 @@ EOF
   foo bar baz
 EOF
   end
+
+  def test_fill_paragraph_ruby_comment
+    buffer.apply_mode(RubyMode)
+    buffer.insert(<<EOF)
+def foo
+  # Textbringer is beta software, and you may lose your text.  Unsaved buffers will be dumped in ~/.textbringer/buffer_dump on crash.
+  # APIs are undocumented and unstable.
+  bar
+end
+EOF
+    buffer.beginning_of_buffer
+    buffer.forward_line(2)
+    fill_paragraph
+    assert_equal(<<EOF, buffer.to_s)
+def foo
+  # Textbringer is beta software, and you may lose your text.  Unsaved
+  # buffers will be dumped in ~/.textbringer/buffer_dump on crash. APIs
+  # are undocumented and unstable.
+  bar
+end
+EOF
+  end
+
+  def test_fill_paragraph_ruby_comment_separated_by_empty_comment
+    buffer.apply_mode(RubyMode)
+    buffer.insert(<<EOF)
+# Textbringer
+#
+# Textbringer is beta software, and you may lose your text.  Unsaved buffers will be dumped in ~/.textbringer/buffer_dump on crash.
+# APIs are undocumented and unstable.
+#
+# There is no compatibility even in the same minor versions.
+EOF
+    buffer.beginning_of_buffer
+    buffer.forward_line(3)
+    fill_paragraph
+    assert_equal(<<EOF, buffer.to_s)
+# Textbringer
+#
+# Textbringer is beta software, and you may lose your text.  Unsaved
+# buffers will be dumped in ~/.textbringer/buffer_dump on crash. APIs
+# are undocumented and unstable.
+#
+# There is no compatibility even in the same minor versions.
+EOF
+  end
+
+  def test_fill_paragraph_c_comment
+    buffer.apply_mode(CMode)
+    buffer.insert(<<EOF)
+int x;
+// Textbringer is beta software, and you may lose your text.  Unsaved buffers will be dumped in ~/.textbringer/buffer_dump on crash.
+// APIs are undocumented and unstable.
+int y;
+EOF
+    buffer.beginning_of_buffer
+    buffer.forward_line(1)
+    fill_paragraph
+    assert_equal(<<EOF, buffer.to_s)
+int x;
+// Textbringer is beta software, and you may lose your text.  Unsaved
+// buffers will be dumped in ~/.textbringer/buffer_dump on crash. APIs
+// are undocumented and unstable.
+int y;
+EOF
+  end
+
+  def test_fill_paragraph_code_line_in_ruby_mode
+    buffer.apply_mode(RubyMode)
+    buffer.insert(<<EOF)
+  x = 1 # trailing comment
+  y = 2
+EOF
+    buffer.beginning_of_buffer
+    fill_paragraph
+    assert_equal(<<EOF, buffer.to_s)
+  x = 1 # trailing comment y = 2
+EOF
+  end
+
+  def test_fill_paragraph_hash_in_fundamental_mode
+    buffer.insert(<<EOF)
+# Textbringer is beta software, and you may lose your text.  Unsaved buffers will be dumped in ~/.textbringer/buffer_dump on crash.
+# APIs are undocumented and unstable.
+EOF
+    buffer.beginning_of_buffer
+    fill_paragraph
+    assert_equal(<<EOF, buffer.to_s)
+# Textbringer is beta software, and you may lose your text.  Unsaved
+buffers will be dumped in ~/.textbringer/buffer_dump on crash. # APIs
+are undocumented and unstable.
+EOF
+  end
+
+  def test_fill_paragraph_on_trailing_empty_line
+    buffer.insert("foo\n\n")
+    buffer.end_of_buffer
+    fill_paragraph
+    assert_equal("foo\n\n", buffer.to_s)
+  end
 end
