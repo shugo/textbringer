@@ -2,6 +2,103 @@ require "stringio"
 
 module Textbringer
   module FillExtension
+    class Filler
+      GRAPH = /(?=[\u{0000}-\u{00FF}])[[:graph:]]/
+
+      def initialize(column, prefix)
+        @column = column
+        @prefix = prefix
+        @prefix_width = Buffer.display_width(prefix)
+        @fill_column = CONFIG[:fill_column]
+        @output = +""
+        @prev_c = nil
+        @bol = column == 0
+      end
+
+      def fill(str)
+        input = StringIO.new(str)
+        if @bol && (indent = str[/\A[ \t]+/])
+          @output << indent
+          @column = Buffer.display_width(indent)
+          @bol = false
+          input.seek(indent.bytesize)
+        end
+        while c = input.getc
+          if c == "\n"
+            skip_blanks(input)
+            if input.eof?
+              insert_newline("")
+            elsif @column < @fill_column
+              if GRAPH.match?(@prev_c)
+                insert_space_between_words(input)
+              end
+              next
+            else
+              insert_newline(@prefix)
+            end
+          else
+            w = Buffer.display_width(c)
+            if @column + w > @fill_column || @column >= @fill_column
+              if /\w/.match?(@prev_c) && /\w/.match?(c)
+                insert_newline_before_word
+              else
+                insert_newline(@prefix)
+              end
+            end
+            insert_char(c, w)
+          end
+          @prev_c = c
+        end
+        @output
+      end
+
+      private
+
+      def skip_blanks(input)
+        while c = input.getc
+          if !/[ \t]/.match?(c)
+            input.ungetc(c)
+            break
+          end
+        end
+      end
+
+      def insert_space_between_words(input)
+        c = input.getc
+        input.ungetc(c)
+        if GRAPH.match?(c)
+          @output << " "
+          @column += 1
+        end
+      end
+
+      def insert_newline_before_word
+        m = @output.match(/(?:([^\w \t\n])|(\w)[ \t]+)(\w*)\z/)
+        return if m.nil?
+        word = m[3]
+        @output[m.begin(0)..] = "#{m[1]}#{m[2]}\n#{@prefix}#{word}"
+        @column = @prefix_width + Buffer.display_width(word)
+        @bol = false
+      end
+
+      def insert_newline(prefix)
+        return if @bol
+        @output.sub!(/[ \t]+\z/, "")
+        @output << "\n" << prefix
+        @column = Buffer.display_width(prefix)
+        @bol = true
+      end
+
+      def insert_char(c, w)
+        if @bol && /[ \t]/.match?(c)
+          return
+        end
+        @output << c
+        @column += w
+        @bol = false
+      end
+    end
+
     refine Buffer do
       def fill_region(s = Buffer.current.point, e = Buffer.current.mark)
         s, e = Buffer.region_boundaries(s, e)
@@ -11,7 +108,8 @@ module Textbringer
           pos = point
           beginning_of_line
           column = Buffer.display_width(substring(point, pos))
-          replace(fill_string(str, column), start: s, end: e)
+          prefix = fill_prefix(substring(point, e))
+          replace(Filler.new(column, prefix).fill(str), start: s, end: e)
         end
       end
 
@@ -36,69 +134,14 @@ module Textbringer
 
       private
 
-      def fill_string(str, column)
-        input = StringIO.new(str)
-        output = +""
-        fill_column = CONFIG[:fill_column]
-        prev_c = nil
-        while c = input.getc
-          if c == "\n"
-            if column < fill_column && !input.eof?
-              if /(?=[\u{0000}-\u{00FF}])[[:graph:]]/.match?(prev_c)
-                column = insert_space_between_words(input, output, column)
-              end
-              next
-            end
-            column = insert_newline(output)
-          else
-            w = Buffer.display_width(c)
-            if column + w > fill_column || column >= fill_column
-              if /\w/.match?(prev_c) && /\w/.match?(c)
-                column = insert_newline_before_word(output, column)
-              else
-                column = insert_newline(output)
-              end
-            end
-            column = insert_char(output, column, c, w)
-          end
-          prev_c = c
-        end
-        output
-      end
-
-      def insert_space_between_words(input, output, column)
-        c = input.getc
-        input.ungetc(c)
-        if /(?=[\u{0000}-\u{00FF}])[[:graph:]]/.match?(c)
-          output << " "
-          column + 1
-        else
-          column
-        end
-      end
-
-      def insert_newline_before_word(output, column)
-        if output.sub!(/(?:([^\w \t\n])|(\w)[ \t]+)(\w*)\z/, "\\1\\2\n")
-          output << $3
-          Buffer.display_width($3)
-        else
-          column
-        end
-      end
-
-      def insert_newline(output)
-        output.sub!(/[ \t]\z/, "")
-        output << "\n"
-        0
-      end
-
-      def insert_char(output, column, c, w)
-        if column == 0 && /[ \t]/.match?(c)
-          column
-        else
-          output << c
-          column + w
-        end
+      # The indentation of the second line, or of the first line when
+      # there is no second line, is the prefix of every line after the
+      # first, as with adaptive-fill-mode in Emacs.  The first line keeps
+      # its own indentation.
+      def fill_prefix(str)
+        first, second = str.lines
+        line = second && !second.match?(/\A[ \t]*\n?\z/) ? second : first
+        line ? line[/\A[ \t]*/] : ""
       end
     end
   end
