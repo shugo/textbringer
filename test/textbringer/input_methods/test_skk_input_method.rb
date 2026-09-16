@@ -194,7 +194,7 @@ class TestSKKInputMethod < Textbringer::TestCase
   def test_converting_starts_with_uppercase
     @im.handle_event("K")
     assert_equal("かな", @im.status)
-    assert_equal("▽", @buffer.to_s)
+    assert_equal("▽k", @buffer.to_s)
   end
 
   def test_converting_accumulates_yomi
@@ -226,6 +226,52 @@ class TestSKKInputMethod < Textbringer::TestCase
     @im.handle_event("\C-j")
     assert_equal("か", @buffer.to_s)
     assert_equal("かな", @im.status)
+  end
+
+  # --- Unconfirmed romaji preview during converting phase ---
+
+  def test_converting_shows_unconfirmed_romaji_prefix
+    @im.handle_event("T")
+    assert_equal("▽t", @buffer.to_s)
+    @im.handle_event("o")
+    assert_equal("▽と", @buffer.to_s)
+  end
+
+  def test_converting_multi_char_prefix_preview
+    @im.handle_event("K")
+    @im.handle_event("y")
+    assert_equal("▽ky", @buffer.to_s)
+    @im.handle_event("o")
+    assert_equal("▽きょ", @buffer.to_s)
+  end
+
+  def test_converting_geminate_keeps_preview_of_second_consonant
+    @im.handle_event("K")
+    @im.handle_event("k")
+    assert_equal("▽っk", @buffer.to_s)
+    @im.handle_event("a")
+    assert_equal("▽っか", @buffer.to_s)
+  end
+
+  def test_cancel_converting_discards_unconfirmed_romaji_preview
+    @im.handle_event("T")
+    @im.handle_event("\C-g")
+    assert_equal("", @buffer.to_s)
+  end
+
+  def test_confirm_with_ctrl_j_discards_unconfirmed_romaji_preview
+    @im.handle_event("K")
+    @im.handle_event("a")
+    @im.handle_event("k")
+    @im.handle_event("\C-j")
+    assert_equal("か", @buffer.to_s)
+  end
+
+  def test_okurigana_shows_unconfirmed_romaji_preview
+    @im.handle_event("K")
+    @im.handle_event("a")
+    @im.handle_event("K")
+    assert_equal("▽かk", @buffer.to_s)
   end
 
   def test_non_string_event_commits_converting

@@ -258,6 +258,7 @@ module Textbringer
 
     def handle_converting(event)
       unless event.is_a?(String)
+        discard_roman_preview
         commit_converting
         return event
       end
@@ -265,22 +266,27 @@ module Textbringer
       # Control characters not handled below: commit conversion and pass through
       if event.bytesize == 1 && (event.ord < 0x20 || event.ord == 0x7f) &&
           event != "\C-g" && event != "\C-j"
+        discard_roman_preview
         commit_converting
         return event
       end
 
       case event
       when "\C-g"
+        discard_roman_preview
         cancel_converting
         nil
       when "\C-j"
+        discard_roman_preview
         commit_converting
         nil
       when " "
+        discard_roman_preview
         start_selecting
         nil
       when /\A[A-Z]\z/
         if @okuri_roman.nil?
+          discard_roman_preview
           start_okurigana(event.downcase)
         else
           process_converting_romaji(event.downcase)
@@ -395,6 +401,9 @@ module Textbringer
     end
 
     def process_converting_romaji(event)
+      # Remove the preview of the previously buffered, unconfirmed romaji
+      delete_roman_preview
+
       # Special "n" handling: flush "ん" before appending if next char won't extend "n"
       if @roman_buffer == "n" && !%w[n y a i u e o].include?(event)
         @roman_buffer = +""
@@ -424,6 +433,7 @@ module Textbringer
       end
 
       if prefixes.include?(@roman_buffer)
+        insert_roman_preview(@roman_buffer)
         return
       end
 
@@ -434,6 +444,7 @@ module Textbringer
         if first == rest[0] && first =~ /[bcdfghjklmnpqrstvwxyz]/
           append_yomi_kana("っ")
           @roman_buffer = +rest  # Keep the second consonant buffered
+          insert_roman_preview(@roman_buffer)
           return
         end
       end
@@ -498,7 +509,27 @@ module Textbringer
         start_selecting
       else
         @roman_buffer = c.dup
+        insert_roman_preview(@roman_buffer)
       end
+    end
+
+    def insert_roman_preview(s)
+      with_target_buffer do |buffer|
+        buffer.insert(s)
+      end
+      Window.redisplay
+    end
+
+    def delete_roman_preview
+      return if @roman_buffer.empty?
+      with_target_buffer do |buffer|
+        buffer.delete_region(buffer.point - @roman_buffer.bytesize, buffer.point)
+      end
+    end
+
+    def discard_roman_preview
+      delete_roman_preview
+      @roman_buffer = +""
     end
 
     def cancel_converting
