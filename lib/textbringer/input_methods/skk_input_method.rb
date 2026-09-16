@@ -257,6 +257,11 @@ module Textbringer
     end
 
     def handle_converting(event)
+      if backspace_event?(event)
+        backspace_converting
+        return nil
+      end
+
       unless event.is_a?(String)
         discard_roman_preview
         commit_converting
@@ -530,6 +535,44 @@ module Textbringer
     def discard_roman_preview
       delete_roman_preview
       @roman_buffer = +""
+    end
+
+    def backspace_event?(event)
+      event == :backspace ||
+        (event.is_a?(String) && (event == "\C-h" || event.ord == 0x7f))
+    end
+
+    # Mirrors ddskk, where the headword being composed is ordinary
+    # buffer text, so backspace just deletes its last character one
+    # step at a time: unconfirmed romaji first, then okurigana, then
+    # the confirmed yomi, cancelling the conversion once everything is
+    # gone.
+    def backspace_converting
+      unless @roman_buffer.empty?
+        delete_roman_preview
+        @roman_buffer = @roman_buffer[0..-2]
+        if @roman_buffer.empty?
+          # The whole (single-consonant) okurigana romaji was just erased;
+          # there is nothing left to be okurigana for.
+          @okuri_roman = nil
+          @okuri_kana = nil
+          Window.redisplay
+        else
+          insert_roman_preview(@roman_buffer)
+        end
+        return
+      end
+
+      if @yomi.empty?
+        cancel_converting
+        return
+      end
+
+      with_target_buffer do |buffer|
+        buffer.delete_region(buffer.point - @yomi[-1].bytesize, buffer.point)
+      end
+      @yomi = @yomi[0..-2]
+      Window.redisplay
     end
 
     def cancel_converting

@@ -167,13 +167,14 @@ class TestSKKInputMethod < Textbringer::TestCase
     assert_equal("", @buffer.to_s)
   end
 
-  def test_ctrl_h_passes_through_converting
+  def test_ctrl_h_during_converting_erases_last_yomi_char_instead_of_committing
     @im.handle_event("K")
     @im.handle_event("a")
     result = @im.handle_event("\C-h")
-    # C-h commits the conversion (removes ▽, keeps kana) and passes through
-    assert_equal("\C-h", result)
-    assert_equal("か", @buffer.to_s)
+    # ddskk-like: the headword is composed one character at a time, so
+    # backspace steps it back instead of committing the conversion.
+    assert_nil(result)
+    assert_equal("▽", @buffer.to_s)
     assert_equal("かな", @im.status)
   end
 
@@ -281,6 +282,61 @@ class TestSKKInputMethod < Textbringer::TestCase
     assert_equal(:right, result)
     # ▽ is removed, kana remains
     assert_equal("か", @buffer.to_s)
+  end
+
+  # --- Backspace during converting phase (ddskk-like step-back) ---
+
+  def test_backspace_erases_unconfirmed_romaji_preview_first
+    @im.handle_event("T")
+    @im.handle_event("o")
+    @im.handle_event("u")
+    @im.handle_event("k")
+    @im.handle_event("y")
+    assert_equal("▽とうky", @buffer.to_s)
+    @im.handle_event("\C-h")
+    assert_equal("▽とうk", @buffer.to_s)
+    @im.handle_event("\C-h")
+    assert_equal("▽とう", @buffer.to_s)
+  end
+
+  def test_backspace_erases_yomi_one_kana_at_a_time
+    @im.handle_event("T")
+    @im.handle_event("o")
+    @im.handle_event("u")
+    @im.handle_event("\C-h")
+    assert_equal("▽と", @buffer.to_s)
+    @im.handle_event("\C-h")
+    assert_equal("▽", @buffer.to_s)
+  end
+
+  def test_backspace_cancels_converting_once_yomi_is_empty
+    @im.handle_event("K")
+    @im.handle_event("a")
+    @im.handle_event("\C-h")
+    assert_equal("▽", @buffer.to_s)
+    result = @im.handle_event("\C-h")
+    assert_nil(result)
+    assert_equal("", @buffer.to_s)
+    assert_equal("かな", @im.status)
+  end
+
+  def test_backspace_cancels_okurigana_consonant_before_touching_yomi
+    @im.handle_event("K")
+    @im.handle_event("a")
+    @im.handle_event("K") # starts okurigana with consonant "k"
+    assert_equal("▽かk", @buffer.to_s)
+    @im.handle_event("\C-h")
+    # Okurigana is dropped, but the headword "か" is untouched
+    assert_equal("▽か", @buffer.to_s)
+    @im.handle_event("\C-h")
+    assert_equal("▽", @buffer.to_s)
+  end
+
+  def test_backspace_symbol_behaves_like_ctrl_h_during_converting
+    @im.handle_event("K")
+    @im.handle_event("a")
+    @im.handle_event(:backspace)
+    assert_equal("▽", @buffer.to_s)
   end
 
   # --- Selecting phase ---
