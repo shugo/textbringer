@@ -272,7 +272,9 @@ class TestSKKInputMethod < Textbringer::TestCase
     @im.handle_event("K")
     @im.handle_event("a")
     @im.handle_event("K")
-    assert_equal("▽かk", @buffer.to_s)
+    # ddskk-like: entering okurigana inserts a "*" marker before the
+    # in-progress romaji.
+    assert_equal("▽か*k", @buffer.to_s)
   end
 
   def test_non_string_event_commits_converting
@@ -324,12 +326,30 @@ class TestSKKInputMethod < Textbringer::TestCase
     @im.handle_event("K")
     @im.handle_event("a")
     @im.handle_event("K") # starts okurigana with consonant "k"
-    assert_equal("▽かk", @buffer.to_s)
+    assert_equal("▽か*k", @buffer.to_s)
     @im.handle_event("\C-h")
-    # Okurigana is dropped, but the headword "か" is untouched
+    # Okurigana (and its "*" marker) is dropped, but the headword "か" is untouched
     assert_equal("▽か", @buffer.to_s)
     @im.handle_event("\C-h")
     assert_equal("▽", @buffer.to_s)
+  end
+
+  def test_backspace_after_confirmed_geminate_only_erases_preview
+    # "KaTt": T starts okurigana with "t", the second "t" confirms the
+    # geminate "っ" and re-buffers "t" as the next consonant preview.
+    # Backspace here must drop only the "t" preview, not the already
+    # confirmed "っ" or the okurigana marker itself.
+    @im.handle_event("K")
+    @im.handle_event("a")
+    @im.handle_event("T")
+    @im.handle_event("t")
+    assert_equal("▽か*っt", @buffer.to_s)
+    @im.handle_event("\C-h")
+    assert_equal("▽か*っ", @buffer.to_s)
+    @im.handle_event("\C-h")
+    assert_equal("▽か*", @buffer.to_s)
+    @im.handle_event("\C-h")
+    assert_equal("▽か", @buffer.to_s)
   end
 
   def test_backspace_symbol_behaves_like_ctrl_h_during_converting
@@ -480,6 +500,63 @@ class TestSKKInputMethod < Textbringer::TestCase
     @im.handle_event("r")
     @im.handle_event("u")
     assert_equal("変える", @buffer.to_s)
+  end
+
+  def test_okurigana_geminate_consonant_does_not_leak_into_yomi
+    # "KaTta": okurigana "った" (small tsu + ta) starts with consonant "t".
+    # The geminate "っ" must land in the okurigana, not the yomi, or the
+    # dictionary lookup key ("か" + "t") gets corrupted.
+    @im.handle_event("K")
+    @im.handle_event("a")
+    @im.handle_event("T") # starts okurigana with consonant "t"
+    @im.handle_event("t")
+    @im.handle_event("a")
+    # start_selecting has already fired (kana confirmed while okurigana was
+    # active) and snapshotted these into @yomi/@okuri_kana before replacing
+    # the buffer text with the "▼" candidate.
+    assert_equal("か", @im.instance_variable_get(:@yomi))
+    assert_equal("った", @im.instance_variable_get(:@okuri_kana))
+    assert_match(/\A▼/, @buffer.to_s)
+    assert_match(/った\z/, @buffer.to_s)
+  end
+
+  def test_okurigana_geminate_consonant_confirm
+    @im.handle_event("K")
+    @im.handle_event("a")
+    @im.handle_event("T")
+    @im.handle_event("t")
+    @im.handle_event("a")
+    @im.handle_event("\r")
+    assert_equal("勝った", @buffer.to_s)
+  end
+
+  def test_okurigana_n_flush_does_not_leak_into_yomi
+    # "N" starts okurigana with consonant "n"; a following consonant that
+    # isn't n/y/a/i/u/e/o flushes "ん" into the okurigana, not the yomi.
+    @im.handle_event("K")
+    @im.handle_event("a")
+    @im.handle_event("N")
+    @im.handle_event("d")
+    assert_equal("か", @im.send(:current_yomi))
+    assert_equal("んd", @im.send(:current_okuri_kana))
+  end
+
+  def test_cancel_selecting_drops_okurigana_distinction
+    # Mirrors ddskk's skk-previous-candidate: cancelling out of the
+    # candidate list (▼) does not restore the "*" marker -- the okurigana
+    # text rejoins the yomi as plain, un-marked headword text.
+    @im.handle_event("K")
+    @im.handle_event("a")
+    @im.handle_event("T")
+    @im.handle_event("t")
+    @im.handle_event("a") # confirms "った", triggers lookup -> selecting
+    assert_match(/\A▼/, @buffer.to_s)
+    @im.handle_event("\C-g") # cancel selecting, back to converting
+    assert_equal("▽かった", @buffer.to_s)
+    assert_equal("かな", @im.status)
+    # Backspace now treats "た" as ordinary headword text, not okurigana.
+    @im.handle_event("\C-h")
+    assert_equal("▽かっ", @buffer.to_s)
   end
 
   # --- Hankaku katakana mode ---
