@@ -128,8 +128,12 @@ module Textbringer
       @mode = :hiragana  # :hiragana | :katakana | :hankaku_katakana | :zenkaku_ascii | :ascii
       @phase = :normal   # :normal | :converting | :selecting
       @roman_buffer = +""
+      @okuri_roman = nil       # the consonant that started okurigana (dictionary fallback)
+      @okuri_start_pos = nil   # buffer position of the "*" marker; nil = no okurigana
+      # @yomi/@okuri_kana are snapshots taken when entering the selecting
+      # phase (see start_selecting); during converting they are derived
+      # from the buffer via current_yomi/current_okuri_kana instead.
       @yomi = +""
-      @okuri_roman = nil
       @okuri_kana = nil
       @candidates = []
       @candidate_index = 0
@@ -290,7 +294,7 @@ module Textbringer
         start_selecting
         nil
       when /\A[A-Z]\z/
-        if @okuri_roman.nil?
+        if @okuri_start_pos.nil?
           discard_roman_preview
           start_okurigana(event.downcase)
         else
@@ -405,6 +409,11 @@ module Textbringer
       nil
     end
 
+    # Mirrors ddskk: the headword and okurigana being composed are just
+    # ordinary buffer text between markers ("▽"/"*"), so a confirmed kana
+    # is always simply inserted here -- there is no need to decide whether
+    # it belongs to the yomi or the okurigana, unlike a design that tracks
+    # them in separate string variables.
     def process_converting_romaji(event)
       # Remove the preview of the previously buffered, unconfirmed romaji
       delete_roman_preview
@@ -412,28 +421,19 @@ module Textbringer
       # Special "n" handling: flush "ん" before appending if next char won't extend "n"
       if @roman_buffer == "n" && !%w[n y a i u e o].include?(event)
         @roman_buffer = +""
-        append_yomi_kana("ん")
+        insert_kana("ん")
       end
 
       @roman_buffer << event
 
-      table = hiragana_table_for_converting
-      prefixes = hiragana_prefixes_for_converting
+      table = HIRAGANA_TABLE
+      prefixes = HIRAGANA_PREFIXES
 
       kana = table[@roman_buffer]
       if kana
         @roman_buffer = +""
-        if @okuri_roman
-          # Completing okurigana (accumulate in case a vowel kana was already prepended)
-          @okuri_kana = (@okuri_kana || "") + kana
-          with_target_buffer do |buffer|
-            buffer.insert(kana)
-          end
-          Window.redisplay
-          start_selecting
-        else
-          append_yomi_kana(kana)
-        end
+        insert_kana(kana)
+        start_selecting if @okuri_start_pos
         return
       end
 
@@ -447,7 +447,7 @@ module Textbringer
         first = @roman_buffer[0]
         rest = @roman_buffer[1..]
         if first == rest[0] && first =~ /[bcdfghjklmnpqrstvwxyz]/
-          append_yomi_kana("っ")
+          insert_kana("っ")
           @roman_buffer = +rest  # Keep the second consonant buffered
           insert_roman_preview(@roman_buffer)
           return
@@ -458,7 +458,7 @@ module Textbringer
       if @roman_buffer.size == 1
         char = @roman_buffer
         @roman_buffer = +""
-        append_yomi_kana(char)
+        insert_kana(char)
         return
       end
 
@@ -466,30 +466,14 @@ module Textbringer
       first_char = @roman_buffer[0]
       last_char = @roman_buffer[-1]
       @roman_buffer = +""
-      if @okuri_roman && (kana = HIRAGANA_TABLE[first_char])
-        # Vowel starts okurigana: accumulate kana and continue buffering the rest
-        @okuri_kana = (@okuri_kana || "") + kana
-        with_target_buffer { |b| b.insert(kana) }
-        Window.redisplay
-      else
-        append_yomi_kana(first_char)
-      end
+      insert_kana(first_char)
       process_converting_romaji(last_char)
-    end
-
-    def append_yomi_kana(kana)
-      @yomi << kana
-      with_target_buffer do |buffer|
-        buffer.insert(kana)
-      end
-      Window.redisplay
     end
 
     def start_converting(first_char)
       @phase = :converting
-      @yomi = +""
       @okuri_roman = nil
-      @okuri_kana = nil
+      @okuri_start_pos = nil
       @roman_buffer = +""
       with_target_buffer do |buffer|
         @marker_pos = buffer.point
@@ -503,14 +487,17 @@ module Textbringer
 
     def start_okurigana(c)
       @okuri_roman = c.dup
+      with_target_buffer do |buffer|
+        @okuri_start_pos = buffer.point
+        buffer.insert("*")
+      end
+      Window.redisplay
       kana = HIRAGANA_TABLE[c]
       if kana
-        # Vowel okurigana: insert the kana immediately and record it in @okuri_kana.
+        # Vowel okurigana: insert the kana immediately.
         # (A vowel is never a prefix of a longer romaji sequence, so it's always complete.)
-        @okuri_kana = kana
         @roman_buffer = +""
-        with_target_buffer { |b| b.insert(kana) }
-        Window.redisplay
+        insert_kana(kana)
         start_selecting
       else
         @roman_buffer = c.dup
@@ -552,10 +539,15 @@ module Textbringer
         delete_roman_preview
         @roman_buffer = @roman_buffer[0..-2]
         if @roman_buffer.empty?
-          # The whole (single-consonant) okurigana romaji was just erased;
-          # there is nothing left to be okurigana for.
-          @okuri_roman = nil
-          @okuri_kana = nil
+          # Only undo entering okurigana entirely (removing the "*" marker)
+          # if no okurigana kana has been confirmed yet -- e.g. after a
+          # geminate consonant already confirmed "っ", erasing the preview
+          # of the following consonant must not discard that "っ" along
+          # with the okurigana marker.
+          if @okuri_start_pos &&
+              with_target_buffer(&:point) == @okuri_start_pos + "*".bytesize
+            undo_okurigana_start
+          end
           Window.redisplay
         else
           insert_roman_preview(@roman_buffer)
@@ -563,16 +555,35 @@ module Textbringer
         return
       end
 
-      if @yomi.empty?
-        cancel_converting
+      point = with_target_buffer(&:point)
+      boundary = @okuri_start_pos ? @okuri_start_pos + "*".bytesize :
+        @marker_pos + "▽".bytesize
+
+      if point == boundary
+        if @okuri_start_pos
+          undo_okurigana_start
+          Window.redisplay
+        else
+          cancel_converting
+        end
         return
       end
 
       with_target_buffer do |buffer|
-        buffer.delete_region(buffer.point - @yomi[-1].bytesize, buffer.point)
+        last = buffer.char_before(buffer.point)
+        buffer.delete_region(buffer.point - last.bytesize, buffer.point)
       end
-      @yomi = @yomi[0..-2]
       Window.redisplay
+    end
+
+    # Undoes entering okurigana (removes the "*" marker), as if the
+    # uppercase key that started it had never been pressed.
+    def undo_okurigana_start
+      with_target_buffer do |buffer|
+        buffer.delete_region(@okuri_start_pos, @okuri_start_pos + "*".bytesize)
+      end
+      @okuri_roman = nil
+      @okuri_start_pos = nil
     end
 
     def cancel_converting
@@ -580,10 +591,9 @@ module Textbringer
         buffer.delete_region(@marker_pos, buffer.point)
       end
       @phase = :normal
-      @yomi = +""
       @roman_buffer = +""
       @okuri_roman = nil
-      @okuri_kana = nil
+      @okuri_start_pos = nil
       @marker_pos = nil
       Window.redisplay
       update_cursor_color
@@ -591,6 +601,9 @@ module Textbringer
 
     def commit_converting
       with_target_buffer do |buffer|
+        if @okuri_start_pos
+          buffer.delete_region(@okuri_start_pos, @okuri_start_pos + "*".bytesize)
+        end
         # Remove the ▽ marker (3 bytes for ▽ in UTF-8)
         marker_end = @marker_pos + "▽".bytesize
         buffer.delete_region(@marker_pos, marker_end)
@@ -598,18 +611,36 @@ module Textbringer
       @phase = :normal
       @roman_buffer = +""
       @okuri_roman = nil
-      @okuri_kana = nil
+      @okuri_start_pos = nil
       @marker_pos = nil
       Window.redisplay
       update_cursor_color
     end
 
-    def start_selecting
-      lookup_key = if @okuri_roman
-        @yomi + @okuri_roman
-      else
-        @yomi
+    # Reads the yomi/okurigana straight out of the buffer, the way ddskk's
+    # skk-set-okurigana slices skk-henkan-key out of the region between its
+    # markers, instead of accumulating them in separate variables while
+    # converting.
+    def current_yomi
+      with_target_buffer do |buffer|
+        buffer.substring(@marker_pos + "▽".bytesize, @okuri_start_pos || buffer.point)
       end
+    end
+
+    def current_okuri_kana
+      return nil unless @okuri_start_pos
+      with_target_buffer do |buffer|
+        buffer.substring(@okuri_start_pos + "*".bytesize, buffer.point)
+      end
+    end
+
+    def start_selecting
+      # Snapshot the yomi/okurigana now: once selecting replaces the
+      # buffer text with a "▼" candidate, the markers no longer delimit them.
+      @yomi = current_yomi
+      @okuri_kana = current_okuri_kana
+
+      lookup_key = @okuri_roman ? (@yomi + @okuri_roman) : @yomi
 
       candidates = if CONFIG[:skk_server_host]
         skk_server_lookup(lookup_key)
@@ -664,6 +695,7 @@ module Textbringer
       @yomi = +""
       @roman_buffer = +""
       @okuri_roman = nil
+      @okuri_start_pos = nil
       @okuri_kana = nil
       @candidates = []
       @candidate_index = 0
@@ -672,6 +704,10 @@ module Textbringer
       update_cursor_color
     end
 
+    # Mirrors ddskk's skk-previous-candidate: cancelling out of the
+    # candidate list drops the okurigana distinction entirely (the "*"
+    # marker is not restored), so the okurigana text rejoins the yomi as
+    # plain, un-marked headword text.
     def cancel_selecting
       with_target_buffer do |buffer|
         buffer.delete_region(@marker_pos, buffer.point)
@@ -679,6 +715,8 @@ module Textbringer
       end
       @phase = :converting
       @roman_buffer = +""
+      @okuri_roman = nil
+      @okuri_start_pos = nil
       @candidates = []
       @candidate_index = 0
       Window.redisplay
@@ -838,15 +876,6 @@ module Textbringer
       when :hankaku_katakana then HANKAKU_KATAKANA_PREFIXES
       else HIRAGANA_PREFIXES
       end
-    end
-
-    # During converting phase, always use hiragana for yomi tracking
-    def hiragana_table_for_converting
-      HIRAGANA_TABLE
-    end
-
-    def hiragana_prefixes_for_converting
-      HIRAGANA_PREFIXES
     end
 
     def update_cursor_color
