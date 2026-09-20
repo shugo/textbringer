@@ -293,6 +293,9 @@ module Textbringer
         discard_roman_preview
         start_selecting
         nil
+      when "q"
+        toggle_yomi_katakana
+        nil
       when /\A[A-Z]\z/
         if @okuri_start_pos.nil?
           discard_roman_preview
@@ -421,12 +424,15 @@ module Textbringer
       # Special "n" handling: flush "ん" before appending if next char won't extend "n"
       if @roman_buffer == "n" && !%w[n y a i u e o].include?(event)
         @roman_buffer = +""
-        insert_kana("ん")
+        insert_kana(converting_kana_for_mode("ん"))
       end
 
       @roman_buffer << event
 
-      table = HIRAGANA_TABLE
+      # ddskk's romaji rules pair each kana with its katakana form and pick
+      # one by the current mode (skk-katakana), so a katakana-mode headword
+      # is katakana from the first kana onward, not converted afterward.
+      table = converting_table
       prefixes = HIRAGANA_PREFIXES
 
       kana = table[@roman_buffer]
@@ -447,7 +453,7 @@ module Textbringer
         first = @roman_buffer[0]
         rest = @roman_buffer[1..]
         if first == rest[0] && first =~ /[bcdfghjklmnpqrstvwxyz]/
-          insert_kana("っ")
+          insert_kana(converting_kana_for_mode("っ"))
           @roman_buffer = +rest  # Keep the second consonant buffered
           insert_roman_preview(@roman_buffer)
           return
@@ -492,7 +498,7 @@ module Textbringer
         buffer.insert("*")
       end
       Window.redisplay
-      kana = HIRAGANA_TABLE[c]
+      kana = converting_table[c]
       if kana
         # Vowel okurigana: insert the kana immediately.
         # (A vowel is never a prefix of a longer romaji sequence, so it's always complete.)
@@ -634,13 +640,41 @@ module Textbringer
       end
     end
 
+    # Mirrors ddskk's skk-toggle-characters in the "on" (▽) branch: it
+    # converts the yomi to the opposite kana and commits, refusing (as
+    # ddskk's skk-error does) while unconfirmed romaji remains. Since
+    # okurigana always leaves unconfirmed romaji buffered until its first
+    # kana is confirmed (at which point converting phase is left via
+    # start_selecting), this naturally also covers -- by refusing -- the
+    # only okurigana case reachable here.
+    def toggle_yomi_katakana
+      unless @roman_buffer.empty?
+        message("There remains a kana prefix")
+        return
+      end
+
+      yomi = current_yomi
+      return if yomi.empty?
+
+      converted = katakana?(yomi[0]) ? katakana_to_hiragana(yomi) : hiragana_to_katakana(yomi)
+      with_target_buffer do |buffer|
+        buffer.delete_region(@marker_pos + "▽".bytesize, buffer.point)
+        buffer.insert(converted)
+      end
+      commit_converting
+    end
+
     def start_selecting
       # Snapshot the yomi/okurigana now: once selecting replaces the
       # buffer text with a "▼" candidate, the markers no longer delimit them.
       @yomi = current_yomi
       @okuri_kana = current_okuri_kana
 
-      lookup_key = @okuri_roman ? (@yomi + @okuri_roman) : @yomi
+      # Dictionary keys are always hiragana, even when composing in
+      # katakana mode (mirrors ddskk's skk-katakana-to-hiragana call in
+      # skk-set-okurigana).
+      yomi_key = @mode == :katakana ? katakana_to_hiragana(@yomi) : @yomi
+      lookup_key = @okuri_roman ? (yomi_key + @okuri_roman) : yomi_key
 
       candidates = if CONFIG[:skk_server_host]
         skk_server_lookup(lookup_key)
@@ -772,6 +806,16 @@ module Textbringer
       }.join
     end
 
+    def katakana_to_hiragana(kana)
+      kana.chars.map { |c|
+        c.ord.between?(0x30A1, 0x30F6) ? (c.ord - 0x60).chr("UTF-8") : c
+      }.join
+    end
+
+    def katakana?(char)
+      char.ord.between?(0x30A1, 0x30F6)
+    end
+
     def hiragana_to_hankaku_katakana(kana)
       kana.chars.map { |c|
         case c.ord
@@ -876,6 +920,20 @@ module Textbringer
       when :hankaku_katakana then HANKAKU_KATAKANA_PREFIXES
       else HIRAGANA_PREFIXES
       end
+    end
+
+    # Unlike current_table/current_prefixes (used by process_romaji for
+    # ordinary input), converting only switches to katakana, not hankaku
+    # katakana: half-width katakana isn't hiragana-convertible for the
+    # dictionary lookup key the way full-width katakana is (see
+    # start_selecting), and ddskk's half-width kana input is a separate
+    # mode with its own conversion path, not part of skk-katakana.
+    def converting_table
+      @mode == :katakana ? KATAKANA_TABLE : HIRAGANA_TABLE
+    end
+
+    def converting_kana_for_mode(hiragana_kana)
+      @mode == :katakana ? hiragana_to_katakana(hiragana_kana) : hiragana_kana
     end
 
     def update_cursor_color

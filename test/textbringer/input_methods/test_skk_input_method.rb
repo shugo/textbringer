@@ -109,6 +109,60 @@ class TestSKKInputMethod < Textbringer::TestCase
     assert_equal("ン", @buffer.to_s)
   end
 
+  # --- Converting phase in katakana mode ---
+  #
+  # Mirrors ddskk: skk-rom-kana-base-rule-list pairs each kana with its
+  # katakana form and skk-kana-input picks one by skk-katakana, so a
+  # katakana-mode headword is katakana from the first kana onward --
+  # it is not hiragana that gets converted to katakana afterward.
+
+  def test_katakana_mode_converting_shows_katakana_while_composing
+    @im.handle_event("q") # switch to katakana mode
+    @im.handle_event("T")
+    @im.handle_event("e")
+    assert_equal("▽テ", @buffer.to_s)
+  end
+
+  def test_katakana_mode_dictionary_lookup_uses_hiragana_key
+    # The headword is displayed as katakana, but the dictionary (keyed in
+    # hiragana) must still be searched correctly.
+    @im.handle_event("q") # switch to katakana mode
+    @im.handle_event("K")
+    @im.handle_event("a")
+    @im.handle_event("n")
+    @im.handle_event("j")
+    @im.handle_event("i")
+    assert_equal("▽カンジ", @buffer.to_s)
+    @im.handle_event(" ")
+    assert_equal("▼漢字", @buffer.to_s)
+  end
+
+  def test_katakana_mode_okurigana_kana_stays_katakana
+    # Mirrors ddskk section 6.3.4: okurigana in a katakana-mode conversion
+    # stays katakana even though the dictionary lookup itself uses hiragana.
+    @im.handle_event("q") # switch to katakana mode
+    @im.handle_event("K")
+    @im.handle_event("a")
+    @im.handle_event("U") # okurigana vowel "u" -> lookup key "かu"
+    assert_equal("▼買ウ", @buffer.to_s)
+  end
+
+  def test_hankaku_katakana_mode_converting_is_unaffected
+    # Half-width katakana mode is intentionally left out of this: it isn't
+    # hiragana-convertible for the dictionary lookup key the way full-width
+    # katakana is, and ddskk's half-width kana input is a separate mode
+    # with its own conversion path, not part of skk-katakana.
+    @im.handle_event("\C-q") # switch to hankaku katakana mode
+    @im.handle_event("K")
+    @im.handle_event("a")
+    @im.handle_event("n")
+    @im.handle_event("j")
+    @im.handle_event("i")
+    assert_equal("▽かんじ", @buffer.to_s)
+    @im.handle_event(" ")
+    assert_equal("▼漢字", @buffer.to_s)
+  end
+
   # --- ASCII mode ---
 
   def test_ascii_passthrough
@@ -557,6 +611,59 @@ class TestSKKInputMethod < Textbringer::TestCase
     # Backspace now treats "た" as ordinary headword text, not okurigana.
     @im.handle_event("\C-h")
     assert_equal("▽かっ", @buffer.to_s)
+  end
+
+  # --- Toggling yomi to katakana with "q" (ddskk's skk-toggle-characters) ---
+
+  def test_q_converts_yomi_to_katakana_and_commits
+    %w[T e k i s u t o q].each { |c| @im.handle_event(c) }
+    assert_equal("テキスト", @buffer.to_s)
+    assert_equal("かな", @im.status)
+  end
+
+  def test_q_converts_katakana_yomi_back_to_hiragana
+    %w[T e k i s u t o q].each { |c| @im.handle_event(c) }
+    @im.handle_event("K")
+    @im.handle_event("a")
+    @im.handle_event("t")
+    @im.handle_event("a")
+    @im.handle_event("k")
+    @im.handle_event("a")
+    @im.handle_event("n")
+    @im.handle_event("a")
+    @im.handle_event("q")
+    assert_equal("テキストカタカナ", @buffer.to_s)
+  end
+
+  def test_q_does_nothing_with_unconfirmed_romaji
+    # Mirrors ddskk's skk-error "There remains a kana prefix": q refuses to
+    # convert while a romaji prefix is still buffered.
+    @im.handle_event("T")
+    @im.handle_event("k") # buffered romaji prefix, no kana confirmed yet
+    @im.handle_event("q")
+    assert_equal("▽tk", @buffer.to_s)
+    assert_equal("かな", @im.status)
+  end
+
+  def test_q_does_nothing_while_starting_okurigana_consonant
+    # Entering okurigana always leaves an unconfirmed romaji consonant
+    # buffered until its first kana confirms, so q is refused here too.
+    @im.handle_event("K")
+    @im.handle_event("a")
+    @im.handle_event("K") # starts okurigana with consonant "k"
+    @im.handle_event("q")
+    assert_equal("▽か*k", @buffer.to_s)
+  end
+
+  def test_q_in_katakana_mode_converts_yomi_to_hiragana_and_commits
+    # The headword is already katakana while composing in katakana mode
+    # (see "Converting phase in katakana mode" above), so toggling with q
+    # here converts it to hiragana, not katakana.
+    @im.handle_event("q") # switch to katakana mode
+    %w[T e k i s u t o].each { |c| @im.handle_event(c) }
+    assert_equal("▽テキスト", @buffer.to_s)
+    @im.handle_event("q")
+    assert_equal("てきすと", @buffer.to_s)
   end
 
   # --- Hankaku katakana mode ---
