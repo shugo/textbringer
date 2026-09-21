@@ -5,6 +5,7 @@ require "timeout"
 
 module Textbringer
   CONFIG[:skk_dictionary_path] = File.expand_path("~/.textbringer/skk/SKK-JISYO.L")
+  CONFIG[:skk_user_dictionary_path] = File.expand_path("~/.textbringer/skk/skk-jisyo.utf8")
   CONFIG[:skk_server_host] = nil   # nil = disabled (default)
   CONFIG[:skk_server_port] = 1178
 
@@ -138,8 +139,11 @@ module Textbringer
       @candidates = []
       @candidate_index = 0
       @marker_pos = nil
+      @lookup_key = nil
       @okuriiari = nil
       @okurinasi = nil
+      @user_okuriiari = nil
+      @user_okurinasi = nil
       @skk_server_socket = nil
     end
 
@@ -674,18 +678,28 @@ module Textbringer
       # katakana mode (mirrors ddskk's skk-katakana-to-hiragana call in
       # skk-set-okurigana).
       yomi_key = @mode == :katakana ? katakana_to_hiragana(@yomi) : @yomi
-      lookup_key = @okuri_roman ? (yomi_key + @okuri_roman) : yomi_key
+      @lookup_key = @okuri_roman ? (yomi_key + @okuri_roman) : yomi_key
 
-      candidates = if CONFIG[:skk_server_host]
-        skk_server_lookup(lookup_key)
+      ensure_user_dictionary_loaded
+      user_dict = @okuri_roman ? @user_okuriiari : @user_okurinasi
+      user_candidates = user_dict[@lookup_key] || []
+
+      base_candidates = if CONFIG[:skk_server_host]
+        skk_server_lookup(@lookup_key) || []
       else
         ensure_dictionary_loaded
         dict = @okuri_roman ? @okuriiari : @okurinasi
-        dict[lookup_key]
+        dict[@lookup_key] || []
       end
 
-      if candidates.nil? || candidates.empty?
-        message("No conversion: #{@yomi}")
+      # User dictionary candidates are ordered by recency (see
+      # learn_candidate) and take priority, mirroring ddskk's
+      # skk-search-prog-list ordering the private dictionary before the
+      # system one.
+      candidates = (user_candidates + base_candidates).uniq
+
+      if candidates.empty?
+        register_new_word
         return
       end
 
@@ -720,11 +734,18 @@ module Textbringer
     end
 
     def confirm_selecting
-      candidate = @candidates[@candidate_index]
+      confirm_word(@candidates[@candidate_index])
+    end
+
+    # Shared by confirm_selecting and register_new_word: insert the final
+    # word, learn it into the user dictionary, and leave converting/
+    # selecting entirely.
+    def confirm_word(word)
       with_target_buffer do |buffer|
         buffer.delete_region(@marker_pos, buffer.point)
-        buffer.insert(candidate + (@okuri_kana || ""))
+        buffer.insert(word + (@okuri_kana || ""))
       end
+      learn_candidate(word)
       @phase = :normal
       @yomi = +""
       @roman_buffer = +""
@@ -736,6 +757,30 @@ module Textbringer
       @marker_pos = nil
       Window.redisplay
       update_cursor_color
+    end
+
+    # Mirrors ddskk's skk-henkan-in-minibuff: when no candidate is found,
+    # read a new word for skk-henkan-key from the minibuffer and register
+    # it. Unlike ddskk, the minibuffer here is not switched into SKK
+    # itself, so entering kanji requires switching input method by hand
+    # (e.g. C-\); nested registration (ddskk lets an unresolved word typed
+    # inside the registration prompt itself trigger another registration)
+    # is left for a follow-up.
+    def register_new_word
+      prompt = "SKK register #{@yomi}#{@okuri_roman ? "*#{@okuri_roman}" : ""}: "
+      new_word =
+        begin
+          read_from_minibuffer(prompt)
+        rescue Quit
+          +""
+        end
+
+      if new_word.empty?
+        message("No conversion: #{@yomi}")
+        return
+      end
+
+      confirm_word(new_word)
     end
 
     # Mirrors ddskk's skk-previous-candidate: cancelling out of the
@@ -760,12 +805,28 @@ module Textbringer
     def ensure_dictionary_loaded
       return if @okuriiari
 
-      path = CONFIG[:skk_dictionary_path]
-      @okuriiari = {}
-      @okurinasi = {}
+      @okuriiari, @okurinasi =
+        parse_skk_dictionary(CONFIG[:skk_dictionary_path], encoding: "EUC-JP:UTF-8")
+    end
+
+    def ensure_user_dictionary_loaded
+      return if @user_okuriiari
+
+      path = CONFIG[:skk_user_dictionary_path]
+      if path && File.exist?(path)
+        @user_okuriiari, @user_okurinasi = parse_skk_dictionary(path, encoding: "UTF-8")
+      else
+        @user_okuriiari = {}
+        @user_okurinasi = {}
+      end
+    end
+
+    def parse_skk_dictionary(path, encoding:)
+      okuriiari = {}
+      okurinasi = {}
       section = :okuriiari
 
-      File.foreach(path, encoding: "EUC-JP:UTF-8") do |line|
+      File.foreach(path, encoding: encoding) do |line|
         line.chomp!
         if line == ";; okuri-nasi entries."
           section = :okurinasi
@@ -780,9 +841,39 @@ module Textbringer
         next if candidates.empty?
 
         if section == :okuriiari
-          @okuriiari[key] = candidates
+          okuriiari[key] = candidates
         else
-          @okurinasi[key] = candidates
+          okurinasi[key] = candidates
+        end
+      end
+
+      [okuriiari, okurinasi]
+    end
+
+    # Mirrors ddskk's skk-update-jisyo-1: move the confirmed candidate to
+    # the front of its entry (most-recently-used order) and persist
+    # immediately, since this SKK implementation has no explicit save
+    # command or autosave-count setting yet.
+    def learn_candidate(candidate)
+      dict = @okuri_roman ? @user_okuriiari : @user_okurinasi
+      entries = dict[@lookup_key] || []
+      dict[@lookup_key] = [candidate] + entries.reject { |c| c == candidate }
+      save_user_dictionary
+    end
+
+    def save_user_dictionary
+      path = CONFIG[:skk_user_dictionary_path]
+      return unless path
+
+      FileUtils.mkdir_p(File.dirname(path))
+      File.open(path, "w:UTF-8") do |f|
+        f.puts ";; okuri-ari entries."
+        @user_okuriiari.each do |key, candidates|
+          f.puts "#{key} /#{candidates.join('/')}/"
+        end
+        f.puts ";; okuri-nasi entries."
+        @user_okurinasi.each do |key, candidates|
+          f.puts "#{key} /#{candidates.join('/')}/"
         end
       end
     end

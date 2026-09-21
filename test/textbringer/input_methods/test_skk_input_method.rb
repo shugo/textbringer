@@ -5,6 +5,10 @@ class TestSKKInputMethod < Textbringer::TestCase
 
   setup do
     CONFIG[:skk_dictionary_path] = SKK_TEST_DICT
+    # Point at a fresh temp path so tests never read or write the real
+    # user dictionary in the developer's home directory.
+    @user_dict_dir = Dir.mktmpdir
+    CONFIG[:skk_user_dictionary_path] = File.join(@user_dict_dir, "skk-jisyo.utf8")
     @buffer = Buffer.new_buffer("test")
     @buffer.toggle_input_method("skk")
     @im = @buffer.input_method
@@ -13,6 +17,7 @@ class TestSKKInputMethod < Textbringer::TestCase
 
   teardown do
     CONFIG.delete(:skk_dictionary)
+    FileUtils.remove_entry(@user_dict_dir) if @user_dict_dir
   end
 
   # --- Hiragana mode ---
@@ -611,6 +616,131 @@ class TestSKKInputMethod < Textbringer::TestCase
     # Backspace now treats "た" as ordinary headword text, not okurigana.
     @im.handle_event("\C-h")
     assert_equal("▽かっ", @buffer.to_s)
+  end
+
+  # --- User dictionary (learning and persistence, mirrors ddskk's
+  # skk-update-jisyo-1: confirmed candidates move to the front of their
+  # entry and are saved immediately) ---
+
+  def test_confirming_a_non_first_candidate_learns_it
+    @im.handle_event("K")
+    @im.handle_event("a")
+    @im.handle_event(" ") # candidates: 加/可/化/課/廊 (see SKK-JISYO.test)
+    @im.handle_event(" ")
+    @im.handle_event(" ") # advance to the 3rd candidate, "化"
+    @im.handle_event("\r")
+    assert_equal("化", @buffer.to_s)
+    assert_equal(
+      ";; okuri-ari entries.\n;; okuri-nasi entries.\nか /化/\n",
+      File.read(CONFIG[:skk_user_dictionary_path])
+    )
+  end
+
+  def test_learned_candidate_is_offered_first_on_next_lookup
+    @im.handle_event("K")
+    @im.handle_event("a")
+    @im.handle_event(" ")
+    @im.handle_event(" ")
+    @im.handle_event(" ")
+    @im.handle_event("\r") # learn "化" for "か"
+
+    @im.handle_event("K")
+    @im.handle_event("a")
+    @im.handle_event(" ")
+    assert_equal(["化", "加", "可", "課", "廊"], @im.instance_variable_get(:@candidates))
+  end
+
+  def test_reconfirming_a_different_candidate_reorders_learning
+    @im.handle_event("K")
+    @im.handle_event("a")
+    @im.handle_event(" ")
+    @im.handle_event(" ")
+    @im.handle_event(" ")
+    @im.handle_event("\r") # learn "化" first
+
+    @im.handle_event("K")
+    @im.handle_event("a")
+    @im.handle_event(" ") # candidates now start with "化"
+    @im.handle_event(" ")
+    @im.handle_event("\r") # pick the 2nd one, "加", learn it instead
+    assert_equal("化加", @buffer.to_s)
+
+    @im.handle_event("K")
+    @im.handle_event("a")
+    @im.handle_event(" ")
+    assert_equal(["加", "化", "可", "課", "廊"], @im.instance_variable_get(:@candidates))
+  end
+
+  def test_okuri_ari_candidate_is_learned_and_persisted
+    @im.handle_event("K")
+    @im.handle_event("a")
+    @im.handle_event("U") # okurigana vowel "u" -> lookup key "かu" -> 買
+    @im.handle_event("\r")
+    assert_equal("買う", @buffer.to_s)
+    assert_equal(
+      ";; okuri-ari entries.\nかu /買/\n;; okuri-nasi entries.\n",
+      File.read(CONFIG[:skk_user_dictionary_path])
+    )
+  end
+
+  def test_missing_user_dictionary_file_is_ignored
+    CONFIG[:skk_user_dictionary_path] = File.join(@user_dict_dir, "does-not-exist", "skk-jisyo.utf8")
+    @im.handle_event("K")
+    @im.handle_event("a")
+    @im.handle_event(" ")
+    assert_equal(["加", "可", "化", "課", "廊"], @im.instance_variable_get(:@candidates))
+  end
+
+  # --- Registering a new word when no candidate is found (mirrors ddskk's
+  # skk-henkan-in-minibuff) ---
+
+  def test_no_candidate_prompts_registration_and_saves_it
+    @im.define_singleton_method(:read_from_minibuffer) { |prompt| "しんご" }
+    %w[T e s u t o].each { |c| @im.handle_event(c) } # "てすと" has no dictionary entry
+    @im.handle_event(" ")
+    assert_equal("しんご", @buffer.to_s)
+    assert_equal("かな", @im.status)
+    assert_equal(
+      ";; okuri-ari entries.\n;; okuri-nasi entries.\nてすと /しんご/\n",
+      File.read(CONFIG[:skk_user_dictionary_path])
+    )
+  end
+
+  def test_registration_prompt_includes_okuri_roman
+    seen_prompt = nil
+    @im.define_singleton_method(:read_from_minibuffer) do |prompt|
+      seen_prompt = prompt
+      "しんぱい"
+    end
+    @im.handle_event("K")
+    @im.handle_event("a")
+    @im.handle_event("Z") # okurigana consonant "z", not in the test dict
+    @im.handle_event("a") # confirms okurigana kana "ざ"; lookup key "かz" not found
+    assert_equal("SKK register か*z: ", seen_prompt)
+    assert_equal("しんぱいざ", @buffer.to_s)
+    assert_equal(
+      ";; okuri-ari entries.\nかz /しんぱい/\n;; okuri-nasi entries.\n",
+      File.read(CONFIG[:skk_user_dictionary_path])
+    )
+  end
+
+  def test_empty_registration_cancels_without_saving
+    @im.define_singleton_method(:read_from_minibuffer) { |prompt| "" }
+    %w[T e s u t o].each { |c| @im.handle_event(c) }
+    @im.handle_event(" ")
+    assert_equal("▽てすと", @buffer.to_s)
+    assert_equal(:converting, @im.instance_variable_get(:@phase))
+    refute(File.exist?(CONFIG[:skk_user_dictionary_path]))
+  end
+
+  def test_registered_word_is_offered_first_on_next_lookup
+    @im.define_singleton_method(:read_from_minibuffer) { |prompt| "しんご" }
+    %w[T e s u t o].each { |c| @im.handle_event(c) }
+    @im.handle_event(" ")
+
+    %w[T e s u t o].each { |c| @im.handle_event(c) }
+    @im.handle_event(" ")
+    assert_equal(["しんご"], @im.instance_variable_get(:@candidates))
   end
 
   # --- Toggling yomi to katakana with "q" (ddskk's skk-toggle-characters) ---
