@@ -605,6 +605,7 @@ module Textbringer
       @okuri_roman = nil
       @okuri_start_pos = nil
       @marker_pos = nil
+      Window.echo_area.clear_message
       Window.redisplay
       update_cursor_color
     end
@@ -654,6 +655,7 @@ module Textbringer
     def toggle_yomi_katakana
       unless @roman_buffer.empty?
         message("There remains a kana prefix")
+        Window.redisplay
         return
       end
 

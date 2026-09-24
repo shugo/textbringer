@@ -280,6 +280,22 @@ class TestSKKInputMethod < Textbringer::TestCase
     assert_equal("かな", @im.status)
   end
 
+  def test_ctrl_g_clears_a_lingering_message
+    # "q" with unconfirmed romaji paints "There remains a kana prefix"
+    # (see test_q_with_unconfirmed_romaji_paints_the_message_immediately).
+    # cancel_converting already calls Window.redisplay to reflect the
+    # cancelled conversion, but that redisplay would otherwise repaint the
+    # echo area with this now-stale message too, since nothing cleared it.
+    @im.handle_event("T")
+    @im.handle_event("k")
+    @im.handle_event("q")
+    assert_equal(["There remains a kana prefix"], Window.echo_area.window.contents)
+
+    @im.handle_event("\C-g")
+    assert_nil(Window.echo_area.message)
+    assert_equal([""], Window.echo_area.window.contents)
+  end
+
   def test_confirm_kana_with_ctrl_j
     @im.handle_event("K")
     @im.handle_event("a")
@@ -773,6 +789,22 @@ class TestSKKInputMethod < Textbringer::TestCase
     @im.handle_event("q")
     assert_equal("▽tk", @buffer.to_s)
     assert_equal("かな", @im.status)
+  end
+
+  def test_q_with_unconfirmed_romaji_paints_the_message_immediately
+    # message() only updates the echo area's in-memory content; actually
+    # painting it depends on Window.redisplay being called explicitly,
+    # the same way other places in the codebase already do.
+    #
+    # message() alone can't tell whether the screen was actually redrawn
+    # -- it sets Window.echo_area.message the same way either way -- so
+    # this checks what actually reached the echo area's screen contents
+    # instead.
+    @im.handle_event("T")
+    @im.handle_event("k")
+    @im.handle_event("q")
+    assert_equal("There remains a kana prefix", Window.echo_area.message)
+    assert_equal(["There remains a kana prefix"], Window.echo_area.window.contents)
   end
 
   def test_q_does_nothing_while_starting_okurigana_consonant
