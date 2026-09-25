@@ -769,6 +769,12 @@ module Textbringer
     # inside the registration prompt itself trigger another registration)
     # is left for a follow-up.
     def register_new_word
+      # EchoArea#redisplay only ever draws @prompt when @message is nil --
+      # otherwise it draws @message instead. A "No conversion: ..." message
+      # left over from a previous registration attempt would otherwise
+      # blank out this new prompt on screen even though @prompt itself
+      # gets set correctly underneath it.
+      Window.echo_area.clear_message
       prompt = "SKK register #{@yomi}#{@okuri_roman ? "*#{@okuri_roman}" : ""}: "
       new_word =
         begin
@@ -779,6 +785,7 @@ module Textbringer
 
       if new_word.empty?
         message("No conversion: #{@yomi}")
+        Window.redisplay
         return
       end
 
