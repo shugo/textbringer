@@ -749,6 +749,33 @@ class TestSKKInputMethod < Textbringer::TestCase
     refute(File.exist?(CONFIG[:skk_user_dictionary_path]))
   end
 
+  def test_empty_registration_paints_the_message_immediately
+    # Same pattern as toggle_yomi_katakana's "There remains a kana prefix"
+    # (PR #270): message() only updates the echo area's in-memory content,
+    # so an explicit Window.redisplay is needed to actually paint it.
+    @im.define_singleton_method(:read_from_minibuffer) { |prompt| "" }
+    %w[T e s u t o].each { |c| @im.handle_event(c) }
+    @im.handle_event(" ")
+    assert_equal("No conversion: てすと", Window.echo_area.message)
+    assert_equal(["No conversion: てすと"], Window.echo_area.window.contents)
+  end
+
+  def test_registration_clears_a_lingering_message_before_prompting
+    # register_new_word must clear a lingering message before showing its
+    # prompt, or EchoArea#redisplay would draw the stale message instead
+    # of the prompt (it only draws @prompt when @message is nil).
+    message("No conversion: dummy") # simulate a message left over from earlier
+
+    message_when_prompting = :not_captured
+    @im.define_singleton_method(:read_from_minibuffer) do |prompt|
+      message_when_prompting = Window.echo_area.message
+      ""
+    end
+    %w[T e s u t o].each { |c| @im.handle_event(c) }
+    @im.handle_event(" ")
+    assert_nil(message_when_prompting)
+  end
+
   def test_registered_word_is_offered_first_on_next_lookup
     @im.define_singleton_method(:read_from_minibuffer) { |prompt| "しんご" }
     %w[T e s u t o].each { |c| @im.handle_event(c) }
