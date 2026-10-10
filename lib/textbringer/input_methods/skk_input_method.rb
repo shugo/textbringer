@@ -124,6 +124,16 @@ module Textbringer
       ascii:            nil,    # nil = reset to terminal default
     }
 
+    # Mirrors ddskk's skk-kakutei-history: the okuri-nasi yomi confirmed in
+    # this session, most recent first, shared by all buffers, and used to
+    # complete an empty yomi (skk-comp-by-history).
+    KAKUTEI_HISTORY_LIMIT = 100 # skk-kakutei-history-limit
+    @@kakutei_history = []
+
+    def self.kakutei_history
+      @@kakutei_history
+    end
+
     def initialize
       super
       @mode = :hiragana  # :hiragana | :katakana | :hankaku_katakana | :zenkaku_ascii | :ascii
@@ -140,6 +150,15 @@ module Textbringer
       @candidate_index = 0
       @marker_pos = nil
       @lookup_key = nil
+      # Yomi completion state: the yomi it started from, the matching
+      # user-dictionary keys, and the index of the one currently shown.
+      @comp_prefix = nil
+      @comp_candidates = nil
+      @comp_index = nil
+      @comp_message_shown = false
+      # Whether the previous key was TAB/Shift-TAB, standing in for ddskk's
+      # (eq last-command 'skk-comp-do).
+      @last_key_completed = false
       @okuriiari = nil
       @okurinasi = nil
       @user_okuriiari = nil
@@ -265,8 +284,34 @@ module Textbringer
     end
 
     def handle_converting(event)
+      # Like ddskk, any key clears the message a completion left behind.
+      if @comp_message_shown
+        Window.echo_area.clear_message
+        @comp_message_shown = false
+      end
+
+      # Like ddskk's skk-comp-do setting this-command, only TAB/Shift-TAB
+      # keep the flag up for the next key; any other key drops it.
+      after_completion = @last_key_completed
+      @last_key_completed = false
+
       if backspace_event?(event)
         backspace_converting
+        return nil
+      end
+
+      # Like skk-insert, "." and "," (skk-next-completion-char and
+      # skk-previous-completion-char) move through the candidates only
+      # right after a completion, and are typed as "。" and "、" otherwise.
+      if event == "\t" || (after_completion && event == ".")
+        complete_yomi(after_completion)
+        @last_key_completed = true
+        return nil
+      end
+
+      if event == :btab || (after_completion && event == ",")
+        complete_yomi_backward(after_completion)
+        @last_key_completed = true
         return nil
       end
 
@@ -287,7 +332,11 @@ module Textbringer
       case event
       when "\C-g"
         discard_roman_preview
-        cancel_converting
+        if after_completion && @comp_prefix
+          cancel_completion
+        else
+          cancel_converting
+        end
         nil
       when "\C-j"
         discard_roman_preview
@@ -485,6 +534,8 @@ module Textbringer
       @okuri_roman = nil
       @okuri_start_pos = nil
       @roman_buffer = +""
+      reset_completion
+      @last_key_completed = false
       with_target_buffer do |buffer|
         @marker_pos = buffer.point
         buffer.insert("▽")
@@ -611,6 +662,10 @@ module Textbringer
     end
 
     def commit_converting
+      # skk-kakutei records a yomi confirmed as-is in the ▽ mode.
+      if @okuri_start_pos.nil? && starts_with_hiragana?(current_yomi)
+        record_kakutei_history(current_yomi)
+      end
       with_target_buffer do |buffer|
         if @okuri_start_pos
           buffer.delete_region(@okuri_start_pos, @okuri_start_pos + "*".bytesize)
@@ -662,6 +717,9 @@ module Textbringer
       yomi = current_yomi
       return if yomi.empty?
 
+      # skk-henkan-skk-region-by-func records the yomi before toggling it
+      # (and commit_converting records it after, like its skk-kakutei).
+      record_kakutei_history(yomi) if starts_with_hiragana?(yomi)
       converted = katakana?(yomi[0]) ? katakana_to_hiragana(yomi) : hiragana_to_katakana(yomi)
       with_target_buffer do |buffer|
         buffer.delete_region(@marker_pos + "▽".bytesize, buffer.point)
@@ -670,7 +728,118 @@ module Textbringer
       commit_converting
     end
 
+    # Mirrors ddskk's skk-comp (SKK manual section 6.4): completes the yomi
+    # from the user dictionary's okuri-nasi keys only, most recently
+    # confirmed first. Like skk-insert's
+    # (skk-comp (not (eq last-command 'skk-comp-do))), TAB right after
+    # TAB/Shift-TAB advances the completion, and otherwise starts a new one.
+    def complete_yomi(after_completion)
+      return unless @okuri_start_pos.nil?
+
+      # Like skk-comp-do's (skk-kana-cleanup 'force): unconfirmed romaji
+      # that is a kana by itself ("n") is confirmed, and anything else is
+      # dropped. Typing the romaji already broke any run of completions.
+      unless @roman_buffer.empty?
+        pending = @roman_buffer
+        discard_roman_preview
+        insert_kana(converting_kana_for_mode("ん")) if pending == "n"
+      end
+
+      if after_completion && @comp_candidates
+        advance_completion(1, first: false)
+      else
+        @comp_prefix = current_yomi
+        ensure_user_dictionary_loaded
+        # Dictionary keys are always hiragana; like skk-comp-do, search with
+        # the yomi in hiragana and show the candidates back in katakana.
+        key = @mode == :katakana ? katakana_to_hiragana(@comp_prefix) : @comp_prefix
+        candidates =
+          if key.empty?
+            # skk-comp-from-jisyo gives nothing for an empty yomi; only
+            # skk-comp-by-history completes it, from the kakutei history.
+            @@kakutei_history.uniq
+          else
+            # Like skk-comp-search-current-buffer, skip the yomi's own
+            # entry: completing to what is already there would change
+            # nothing.
+            @user_okurinasi.keys.select { |k| k.start_with?(key) && k != key }
+          end
+        @comp_candidates =
+          @mode == :katakana ? candidates.map { |k| hiragana_to_katakana(k) } : candidates
+        @comp_index = -1
+        advance_completion(1, first: true)
+      end
+    end
+
+    def complete_yomi_backward(after_completion)
+      if after_completion && @comp_candidates
+        advance_completion(-1, first: false)
+      else
+        # Drop any completion from before the yomi was edited, so a TAB
+        # right after this starts afresh instead of resuming it.
+        reset_completion
+        Window.beep
+        show_completion_message(
+          "No more previous completions for \"#{current_yomi}\""
+        )
+      end
+    end
+
+    # Mirrors ddskk's skk-henkan-off-by-quit taking the skk-comp-do branch:
+    # C-g right after a completion, even a failed one, only restores the
+    # yomi it started from.
+    def cancel_completion
+      with_target_buffer do |buffer|
+        buffer.delete_region(@marker_pos + "▽".bytesize, buffer.point)
+        buffer.insert(@comp_prefix)
+      end
+      reset_completion
+      Window.redisplay
+    end
+
+    def show_completion_message(text)
+      message(text)
+      @comp_message_shown = true
+      Window.redisplay
+    end
+
+    # Like ddskk's skk-comp-circulate (nil by default), stops at either end
+    # instead of wrapping around. FIRST is skk-comp-do's argument of the
+    # same name, which picks "No completions" over "No more completions".
+    def advance_completion(direction, first:)
+      new_index = @comp_index + direction
+      if new_index < 0 || new_index >= @comp_candidates.size
+        Window.beep
+        show_completion_message(
+          if direction < 0
+            "No more previous completions for \"#{@comp_prefix}\""
+          elsif @comp_prefix.empty?
+            "No more words in history"
+          elsif first
+            "No completions for \"#{@comp_prefix}\""
+          else
+            "No more completions for \"#{@comp_prefix}\""
+          end
+        )
+        return
+      end
+      @comp_index = new_index
+      with_target_buffer do |buffer|
+        buffer.delete_region(@marker_pos + "▽".bytesize, buffer.point)
+        buffer.insert(@comp_candidates[@comp_index])
+      end
+      Window.redisplay
+    end
+
+    def reset_completion
+      @comp_prefix = nil
+      @comp_candidates = nil
+      @comp_index = nil
+    end
+
     def start_selecting
+      reset_completion
+
       # Snapshot the yomi/okurigana now: once selecting replaces the
       # buffer text with a "▼" candidate, the markers no longer delimit them.
       @yomi = current_yomi
@@ -860,14 +1029,31 @@ module Textbringer
     end
 
     # Mirrors ddskk's skk-update-jisyo-1: move the confirmed candidate to
-    # the front of its entry (most-recently-used order) and persist
+    # the front of its entry, and the entry itself to the front of the
+    # dictionary (completion walks the keys in that order), then persist
     # immediately, since this SKK implementation has no explicit save
     # command or autosave-count setting yet.
     def learn_candidate(candidate)
       dict = @okuri_roman ? @user_okuriiari : @user_okurinasi
-      entries = dict[@lookup_key] || []
-      dict[@lookup_key] = [candidate] + entries.reject { |c| c == candidate }
+      entries = dict.delete(@lookup_key) || []
+      candidates = [candidate] + entries.reject { |c| c == candidate }
+      dict.replace({ @lookup_key => candidates }.merge(dict))
       save_user_dictionary
+      # skk-update-jisyo records only okuri-nasi conversions in the history.
+      record_kakutei_history(@lookup_key) unless @okuri_roman
+    end
+
+    # Like skk-update-kakutei-history, keeping only the newest
+    # KAKUTEI_HISTORY_LIMIT entries.
+    def record_kakutei_history(yomi)
+      @@kakutei_history.unshift(yomi)
+      @@kakutei_history.slice!(KAKUTEI_HISTORY_LIMIT..)
+    end
+
+    # The check skk-kakutei and skk-henkan-skk-region-by-func make with
+    # skk-what-char-type at the ▽ point before recording a yomi.
+    def starts_with_hiragana?(yomi)
+      yomi.match?(/\A[ぁ-ん]/)
     end
 
     def save_user_dictionary
