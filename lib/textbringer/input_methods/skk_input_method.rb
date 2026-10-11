@@ -886,13 +886,26 @@ module Textbringer
       update_cursor_color
     end
 
+    # Like ddskk, SPC past the last candidate does not wrap around:
+    # skk-henkan-1 finds no more candidates, so skk-henkan goes on to
+    # skk-henkan-in-minibuff and asks for a new word.
     def next_candidate
-      @candidate_index = (@candidate_index + 1) % @candidates.size
+      if @candidate_index + 1 >= @candidates.size
+        register_new_word
+        return
+      end
+      @candidate_index += 1
       replace_candidate
     end
 
+    # Like skk-previous-candidate with skk-henkan-count 0, "x" on the first
+    # candidate goes back to the yomi instead of wrapping around.
     def prev_candidate
-      @candidate_index = (@candidate_index - 1 + @candidates.size) % @candidates.size
+      if @candidate_index == 0
+        cancel_selecting
+        return
+      end
+      @candidate_index -= 1
       replace_candidate
     end
 
@@ -931,7 +944,7 @@ module Textbringer
     end
 
     # Mirrors ddskk's skk-henkan-in-minibuff: when no candidate is found,
-    # read a new word for skk-henkan-key from the minibuffer and register
+    # or SPC runs past the last one, read a new word for skk-henkan-key from the minibuffer and register
     # it. Unlike ddskk, the minibuffer here is not switched into SKK
     # itself, so entering kanji requires switching input method by hand
     # (e.g. C-\); nested registration (ddskk lets an unresolved word typed
@@ -953,7 +966,10 @@ module Textbringer
         end
 
       if new_word.empty?
-        message("No conversion: #{@yomi}")
+        # Registering after the candidates ran out leaves the last one
+        # shown, as skk-henkan-in-minibuff puts it back when given an empty
+        # string; with no candidates at all there is nothing to go back to.
+        message("No conversion: #{@yomi}") unless @phase == :selecting
         Window.redisplay
         return
       end

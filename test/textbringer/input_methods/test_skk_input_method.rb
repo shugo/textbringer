@@ -490,7 +490,7 @@ class TestSKKInputMethod < Textbringer::TestCase
     first = @buffer.to_s.dup
     @im.handle_event(" ")
     second = @buffer.to_s.dup
-    # Either we wrapped around (only 1 candidate) or got a different candidate
+    # "か" has several candidates, so the second SPC shows the next one.
     assert_match(/\A▼/, first)
     assert_match(/\A▼/, second)
   end
@@ -506,6 +506,52 @@ class TestSKKInputMethod < Textbringer::TestCase
     @im.handle_event(" ")
     @im.handle_event("x")
     assert_equal(first, @buffer.to_s)
+  end
+
+  def test_space_past_the_last_candidate_prompts_registration
+    # skk-henkan-1 finds no more candidates, so skk-henkan calls
+    # skk-henkan-in-minibuff instead of wrapping around.
+    seen_prompt = nil
+    @im.define_singleton_method(:read_from_minibuffer) do |prompt|
+      seen_prompt = prompt
+      "感字"
+    end
+    %w[K a n j i].each { |c| @im.handle_event(c) }
+    @im.handle_event(" ") # "漢字"
+    @im.handle_event(" ") # "巣語", the last candidate
+    assert_nil(seen_prompt)
+    @im.handle_event(" ")
+    assert_equal("SKK register かんじ: ", seen_prompt)
+    assert_equal("感字", @buffer.to_s)
+    assert_equal(:normal, @im.instance_variable_get(:@phase))
+    assert_equal(
+      ";; okuri-ari entries.\n;; okuri-nasi entries.\nかんじ /感字/\n",
+      File.read(CONFIG[:skk_user_dictionary_path])
+    )
+  end
+
+  def test_empty_registration_after_the_last_candidate_goes_back_to_it
+    # skk-henkan-in-minibuff puts the last candidate back when given an
+    # empty string, without a "No conversion" message.
+    @im.define_singleton_method(:read_from_minibuffer) { |prompt| "" }
+    %w[K a n j i].each { |c| @im.handle_event(c) }
+    3.times { @im.handle_event(" ") }
+    assert_equal("▼巣語", @buffer.to_s)
+    assert_equal(:selecting, @im.instance_variable_get(:@phase))
+    assert_nil(Window.echo_area.message)
+    refute(File.exist?(CONFIG[:skk_user_dictionary_path]))
+    @im.handle_event("x")
+    assert_equal("▼漢字", @buffer.to_s)
+  end
+
+  def test_x_on_the_first_candidate_goes_back_to_the_yomi
+    # skk-previous-candidate with skk-henkan-count 0 leaves the ▼ mode
+    # instead of wrapping around to the last candidate.
+    %w[K a n j i].each { |c| @im.handle_event(c) }
+    @im.handle_event(" ")
+    @im.handle_event("x")
+    assert_equal("▽かんじ", @buffer.to_s)
+    assert_equal(:converting, @im.instance_variable_get(:@phase))
   end
 
   def test_cancel_selecting_restores_converting
