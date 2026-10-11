@@ -134,6 +134,11 @@ module Textbringer
       @@kakutei_history
     end
 
+    # A user dictionary candidate like (skk-ignore-dic-word "留守電"),
+    # which ddskk evaluates to hide the quoted words of the system
+    # dictionary (see purge_candidate).
+    IGNORE_DIC_WORD_RE = /\A\(skk-ignore-dic-word((?: +"[^"]*")+)\)\z/
+
     def initialize
       super
       @mode = :hiragana  # :hiragana | :katakana | :hankaku_katakana | :zenkaku_ascii | :ascii
@@ -148,6 +153,7 @@ module Textbringer
       @okuri_kana = nil
       @candidates = []
       @candidate_index = 0
+      @base_candidates = []  # the system dictionary's candidates for @lookup_key
       @marker_pos = nil
       @lookup_key = nil
       # Yomi completion state: the yomi it started from, the matching
@@ -377,6 +383,9 @@ module Textbringer
         nil
       when "x"
         prev_candidate
+        nil
+      when "X"
+        purge_candidate
         nil
       when "\r", "\n"
         confirm_selecting
@@ -863,11 +872,14 @@ module Textbringer
         dict[@lookup_key] || []
       end
 
+      @base_candidates = base_candidates
       # User dictionary candidates are ordered by recency (see
       # learn_candidate) and take priority, mirroring ddskk's
       # skk-search-prog-list ordering the private dictionary before the
-      # system one.
-      candidates = (user_candidates + base_candidates).uniq
+      # system one. Words an skk-ignore-dic-word candidate lists are left
+      # out of the system dictionary's candidates.
+      user_words = user_candidates.grep_v(IGNORE_DIC_WORD_RE)
+      candidates = (user_words + (base_candidates - ignored_words(user_candidates))).uniq
 
       if candidates.empty?
         register_new_word
@@ -930,6 +942,33 @@ module Textbringer
         buffer.insert(word + (@okuri_kana || ""))
       end
       learn_candidate(word)
+      leave_conversion
+    end
+
+    # Mirrors ddskk's skk-purge-from-jisyo: once confirmed with yes-or-no-p,
+    # remove the current candidate from the user dictionary and delete the
+    # ▼ text from the buffer without inserting anything.
+    def purge_candidate
+      word = @candidates[@candidate_index]
+      purge =
+        begin
+          yes_or_no?("Really purge \"#{@lookup_key} /#{word}/ \"?")
+        rescue Quit
+          false
+        end
+      unless purge
+        Window.redisplay
+        return
+      end
+
+      purge_from_user_dictionary(word)
+      with_target_buffer do |buffer|
+        buffer.delete_region(@marker_pos, buffer.point)
+      end
+      leave_conversion
+    end
+
+    def leave_conversion
       @phase = :normal
       @yomi = +""
       @roman_buffer = +""
@@ -1057,6 +1096,32 @@ module Textbringer
       save_user_dictionary
       # skk-update-jisyo records only okuri-nasi conversions in the history.
       record_kakutei_history(@lookup_key) unless @okuri_roman
+    end
+
+    # Mirrors the purge branch of ddskk's skk-update-jisyo-1: a word the
+    # system dictionary (or SKK server) also has is quoted with
+    # skk-ignore-dic-word, folded into one candidate as
+    # skk-compose-ignore-word does, so that later conversions hide it;
+    # any other word is just deleted. Unlike ddskk's skk-update-jisyo,
+    # the yomi is not recorded in the kakutei history.
+    def purge_from_user_dictionary(word)
+      dict = @okuri_roman ? @user_okuriiari : @user_okurinasi
+      entries = (dict.delete(@lookup_key) || []) - [word]
+      if @base_candidates.include?(word)
+        ignored = ignored_words(entries) + [word]
+        quoted = ignored.map { |w| "\"#{w}\"" }.join(" ")
+        entries = ["(skk-ignore-dic-word #{quoted})"] + entries.grep_v(IGNORE_DIC_WORD_RE)
+      end
+      # skk-update-jisyo-1 writes nothing back for an entry left empty.
+      dict.replace({ @lookup_key => entries }.merge(dict)) unless entries.empty?
+      save_user_dictionary
+    end
+
+    def ignored_words(candidates)
+      candidates.flat_map { |c|
+        m = IGNORE_DIC_WORD_RE.match(c)
+        m ? m[1].scan(/"([^"]*)"/).flatten : []
+      }
     end
 
     # Like skk-update-kakutei-history, keeping only the newest
