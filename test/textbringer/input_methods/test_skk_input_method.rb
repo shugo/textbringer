@@ -834,6 +834,151 @@ class TestSKKInputMethod < Textbringer::TestCase
     assert_equal(["しんご"], @im.instance_variable_get(:@candidates))
   end
 
+  # --- Purging a candidate with X (mirrors ddskk's skk-purge-from-jisyo) ---
+
+  def purge_after(keys, answer: true)
+    seen_prompt = nil
+    @im.define_singleton_method(:yes_or_no?) do |prompt|
+      seen_prompt = prompt
+      answer
+    end
+    keys.each { |c| @im.handle_event(c) }
+    @im.handle_event("X")
+    seen_prompt
+  end
+
+  def test_purging_a_user_only_word_removes_its_entry
+    @im.define_singleton_method(:read_from_minibuffer) { |prompt| "しんご" }
+    %w[T e s u t o].each { |c| @im.handle_event(c) }
+    @im.handle_event(" ") # registers "しんご"
+
+    prompt = purge_after(%w[T e s u t o] + [" "])
+    assert_equal("Really purge \"てすと /しんご/ \"?", prompt)
+    # The ▼ candidate is deleted from the buffer and nothing is inserted.
+    assert_equal("しんご", @buffer.to_s)
+    assert_equal(:normal, @im.instance_variable_get(:@phase))
+    # With no candidate left, skk-update-jisyo-1 writes nothing back, so
+    # the yomi drops out of completion too.
+    assert_equal(
+      ";; okuri-ari entries.\n;; okuri-nasi entries.\n",
+      File.read(CONFIG[:skk_user_dictionary_path])
+    )
+  end
+
+  def test_purging_a_system_word_ignores_it
+    purge_after(%w[K a n j i] + [" "]) # "漢字"
+    assert_equal("", @buffer.to_s)
+    assert_equal(:normal, @im.instance_variable_get(:@phase))
+    assert_equal(
+      ";; okuri-ari entries.\n;; okuri-nasi entries.\nかんじ /(skk-ignore-dic-word \"漢字\")/\n",
+      File.read(CONFIG[:skk_user_dictionary_path])
+    )
+
+    %w[K a n j i].each { |c| @im.handle_event(c) }
+    @im.handle_event(" ")
+    assert_equal(["巣語"], @im.instance_variable_get(:@candidates))
+  end
+
+  def test_purging_a_learned_system_word_ignores_it
+    confirm_first_candidate(%w[K a n j i]) # learns "漢字"
+    purge_after(%w[K a n j i] + [" "])
+    assert_equal("漢字", @buffer.to_s)
+    assert_equal(
+      ";; okuri-ari entries.\n;; okuri-nasi entries.\nかんじ /(skk-ignore-dic-word \"漢字\")/\n",
+      File.read(CONFIG[:skk_user_dictionary_path])
+    )
+  end
+
+  def test_purging_twice_composes_one_ignore_word
+    # skk-compose-ignore-word folds the ignored words into one candidate.
+    purge_after(%w[K a] + [" "]) # "加"
+    purge_after(%w[K a] + [" "]) # "可"
+    assert_equal(
+      ";; okuri-ari entries.\n;; okuri-nasi entries.\nか /(skk-ignore-dic-word \"加\" \"可\")/\n",
+      File.read(CONFIG[:skk_user_dictionary_path])
+    )
+
+    %w[K a].each { |c| @im.handle_event(c) }
+    @im.handle_event(" ")
+    assert_equal(["化", "課", "廊"], @im.instance_variable_get(:@candidates))
+  end
+
+  def test_purging_an_okuri_ari_word
+    prompt = purge_after(%w[K a U]) # "▼買う"
+    assert_equal("Really purge \"かu /買/ \"?", prompt)
+    assert_equal("", @buffer.to_s)
+    assert_equal(
+      ";; okuri-ari entries.\nかu /(skk-ignore-dic-word \"買\")/\n;; okuri-nasi entries.\n",
+      File.read(CONFIG[:skk_user_dictionary_path])
+    )
+  end
+
+  def test_answering_no_keeps_selecting
+    purge_after(%w[K a n j i] + [" "], answer: false)
+    assert_equal("▼漢字", @buffer.to_s)
+    assert_equal(:selecting, @im.instance_variable_get(:@phase))
+    refute(File.exist?(CONFIG[:skk_user_dictionary_path]))
+    @im.handle_event(" ")
+    assert_equal("▼巣語", @buffer.to_s)
+  end
+
+  def test_quitting_the_prompt_keeps_selecting
+    @im.define_singleton_method(:yes_or_no?) { |prompt| raise Quit }
+    %w[K a n j i].each { |c| @im.handle_event(c) }
+    @im.handle_event(" ")
+    @im.handle_event("X")
+    assert_equal("▼漢字", @buffer.to_s)
+    assert_equal(:selecting, @im.instance_variable_get(:@phase))
+    refute(File.exist?(CONFIG[:skk_user_dictionary_path]))
+  end
+
+  def test_purging_does_not_record_kakutei_history
+    purge_after(%w[K a n j i] + [" "])
+    assert_equal([], SkkInputMethod.kakutei_history)
+  end
+
+  def test_purging_every_candidate_prompts_registration
+    purge_after(%w[A] + [" "]) # "亞", the only candidate for "あ"
+    seen_prompt = nil
+    @im.define_singleton_method(:read_from_minibuffer) do |prompt|
+      seen_prompt = prompt
+      ""
+    end
+    %w[A].each { |c| @im.handle_event(c) }
+    @im.handle_event(" ")
+    assert_equal("SKK register あ: ", seen_prompt)
+  end
+
+  def test_registering_a_purged_word_again_offers_it
+    purge_after(%w[K a n j i] + [" "])
+    @im.define_singleton_method(:read_from_minibuffer) { |prompt| "漢字" }
+    %w[K a n j i].each { |c| @im.handle_event(c) }
+    @im.handle_event(" ") # "巣語"
+    @im.handle_event(" ") # past the last one: registers "漢字"
+
+    %w[K a n j i].each { |c| @im.handle_event(c) }
+    @im.handle_event(" ")
+    assert_equal(["漢字", "巣語"], @im.instance_variable_get(:@candidates))
+  end
+
+  def test_purging_a_word_from_the_skk_server_ignores_it
+    CONFIG[:skk_server_host] = "localhost"
+    @im.define_singleton_method(:skk_server_lookup) do |key|
+      key == "かんじ" ? ["漢字", "巣語"] : nil
+    end
+    purge_after(%w[K a n j i] + [" "])
+    assert_equal(
+      ";; okuri-ari entries.\n;; okuri-nasi entries.\nかんじ /(skk-ignore-dic-word \"漢字\")/\n",
+      File.read(CONFIG[:skk_user_dictionary_path])
+    )
+
+    %w[K a n j i].each { |c| @im.handle_event(c) }
+    @im.handle_event(" ")
+    assert_equal(["巣語"], @im.instance_variable_get(:@candidates))
+  ensure
+    CONFIG.delete(:skk_server_host)
+  end
+
   # --- Completing the yomi with TAB (mirrors ddskk's skk-comp, SKK manual
   # section 6.4): only the user dictionary's okuri-nasi keys are searched,
   # most recently confirmed first. ---
