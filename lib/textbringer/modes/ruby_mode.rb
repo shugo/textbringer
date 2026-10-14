@@ -153,6 +153,7 @@ module Textbringer
       KEYWORD_BEGIN_UPCASE: :keyword, KEYWORD_BREAK: :keyword,
       KEYWORD_CASE: :keyword, KEYWORD_CLASS: :keyword, KEYWORD_DEF: :keyword,
       KEYWORD_DEFINED: :keyword, KEYWORD_DO: :keyword,
+      KEYWORD_DO_BLOCK: :keyword, KEYWORD_DO_LAMBDA: :keyword,
       KEYWORD_DO_LOOP: :keyword, KEYWORD_ELSE: :keyword,
       KEYWORD_ELSIF: :keyword, KEYWORD_END: :keyword,
       KEYWORD_END_UPCASE: :keyword, KEYWORD_ENSURE: :keyword,
@@ -182,7 +183,7 @@ module Textbringer
       SYMBOL_BEGIN: :string, REGEXP_BEGIN: :string, REGEXP_END: :string,
       PERCENT_LOWER_I: :string, PERCENT_UPPER_I: :string,
       PERCENT_LOWER_W: :string, PERCENT_UPPER_W: :string,
-      PERCENT_LOWER_X: :string,
+      PERCENT_LOWER_X: :string, XSTRING_BEGIN: :string,
       HEREDOC_START: :string, HEREDOC_END: :string,
       LABEL: :property,
 
@@ -225,10 +226,12 @@ module Textbringer
       # Punctuation
       DOT: :punctuation, COLON_COLON: :punctuation,
       SEMICOLON: :punctuation, COMMA: :punctuation,
-      PARENTHESIS_LEFT: :punctuation, PARENTHESIS_RIGHT: :punctuation,
+      PARENTHESIS_LEFT: :punctuation, PARENTHESIS_LEFT_GROUPING: :punctuation,
+      PARENTHESIS_RIGHT: :punctuation,
       BRACKET_LEFT: :punctuation, BRACKET_LEFT_ARRAY: :punctuation,
       BRACKET_RIGHT: :punctuation,
-      BRACE_LEFT: :punctuation, BRACE_RIGHT: :punctuation,
+      BRACE_LEFT: :punctuation, BRACE_LEFT_HASH: :punctuation,
+      BRACE_LEFT_ARGUMENT: :punctuation, BRACE_RIGHT: :punctuation,
       QUESTION_MARK: :punctuation, COLON: :punctuation,
       LAMBDA_BEGIN: :punctuation,
 
@@ -268,6 +271,17 @@ module Textbringer
       LAMBDA_BEGIN: :BRACE_RIGHT,
     }
 
+    # Newer versions of Prism split some token types.  Map them to the
+    # original types for indentation.
+    NORMALIZED_TOKEN_TYPES = {
+      BRACE_LEFT_HASH: :BRACE_LEFT,
+      BRACE_LEFT_ARGUMENT: :BRACE_LEFT,
+      PARENTHESIS_LEFT_GROUPING: :PARENTHESIS_LEFT,
+      KEYWORD_DO_BLOCK: :KEYWORD_DO,
+      KEYWORD_DO_LAMBDA: :KEYWORD_DO,
+      NEWLINE_TERMINATOR: :NEWLINE,
+    }.freeze
+
     INDENT_BEG_RE = /^([ \t]*)(class|module|def|if|unless|case|while|until|for|begin)\b/
 
     def space_width(s)
@@ -292,6 +306,7 @@ module Textbringer
       Prism.lex(source).value.filter_map { |token, _state|
         type = token.type
         next if type == :EOF
+        type = NORMALIZED_TOKEN_TYPES.fetch(type, type)
         loc = token.location
         [[loc.start_line, loc.start_column], type, token.value]
       }
