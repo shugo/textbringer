@@ -755,6 +755,42 @@ class TestSKKInputMethod < Textbringer::TestCase
     assert_equal(["加", "可", "化", "課", "廊"], @im.instance_variable_get(:@candidates))
   end
 
+  def test_user_dictionary_is_shared_by_buffers
+    # Like ddskk's skk-get-jisyo-buffer, every buffer using SKK reads and
+    # writes the same user dictionary, so a buffer that loaded it earlier
+    # does not overwrite what another one learned since.
+    other = Buffer.new_buffer("other")
+    other.toggle_input_method("skk")
+    other_im = other.input_method
+    switch_to_buffer(other)
+    %w[K a].each { |c| other_im.handle_event(c) }
+    other_im.handle_event(" ") # loads the user dictionary
+    other_im.handle_event("\C-g") # back to ▽か
+    other_im.handle_event("\C-g") # and out of the conversion
+
+    switch_to_buffer(@buffer)
+    %w[K a].each { |c| @im.handle_event(c) }
+    3.times { @im.handle_event(" ") }
+    @im.handle_event("\r") # learns "化" for "か"
+
+    switch_to_buffer(other)
+    confirm_first_candidate_with(other_im, %w[K a n j i]) # learns "漢字"
+    assert_equal(
+      ";; okuri-ari entries.\n;; okuri-nasi entries.\nかんじ /漢字/\nか /化/\n",
+      File.read(CONFIG[:skk_user_dictionary_path])
+    )
+
+    %w[K a].each { |c| other_im.handle_event(c) }
+    other_im.handle_event(" ")
+    assert_equal("化", other_im.instance_variable_get(:@candidates).first)
+  end
+
+  def confirm_first_candidate_with(im, yomi_keys)
+    yomi_keys.each { |c| im.handle_event(c) }
+    im.handle_event(" ")
+    im.handle_event("\r")
+  end
+
   # --- Registering a new word when no candidate is found (mirrors ddskk's
   # skk-henkan-in-minibuff) ---
 

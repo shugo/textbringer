@@ -134,6 +134,12 @@ module Textbringer
       @@kakutei_history
     end
 
+    # Mirrors ddskk's skk-get-jisyo-buffer, which reads a dictionary file
+    # into a single buffer shared by every buffer using SKK: the user
+    # dictionary is loaded once per path and shared by all instances, so
+    # that saving from one buffer does not drop what another one learned.
+    @@user_dictionaries = {}
+
     # A user dictionary candidate like (skk-ignore-dic-word "留守電"),
     # which ddskk evaluates to hide the quoted words of the system
     # dictionary (see purge_candidate).
@@ -1043,15 +1049,14 @@ module Textbringer
     end
 
     def ensure_user_dictionary_loaded
-      return if @user_okuriiari
-
       path = CONFIG[:skk_user_dictionary_path]
-      if path && File.exist?(path)
-        @user_okuriiari, @user_okurinasi = parse_skk_dictionary(path, encoding: "UTF-8")
-      else
-        @user_okuriiari = {}
-        @user_okurinasi = {}
-      end
+      @user_okuriiari, @user_okurinasi =
+        @@user_dictionaries[path] ||=
+          if path && File.exist?(path)
+            parse_skk_dictionary(path, encoding: "UTF-8")
+          else
+            [{}, {}]
+          end
     end
 
     def parse_skk_dictionary(path, encoding:)
