@@ -366,11 +366,37 @@ class TestSKKInputMethod < Textbringer::TestCase
     assert_equal("", @buffer.to_s)
   end
 
+  # Like ddskk's skk-delete-backward-char, backspace erases only the
+  # unconfirmed romaji, leaving the character before it.
   def test_ctrl_h_clears_roman_buffer
     @im.handle_event("k")  # buffered prefix
     result = @im.handle_event("\C-h")
-    assert_equal("\C-h", result)
+    assert_nil(result)
     assert_equal("", @buffer.to_s)
+  end
+
+  def test_backspace_erases_only_unconfirmed_romaji
+    @buffer.insert("あ")
+    @im.handle_event("k")
+    assert_nil(@im.handle_event("\x7f"))
+    assert_equal("あ", @buffer.to_s)
+    assert_equal([], prefix_windows)
+    @im.handle_event("a")
+    assert_equal("ああ", @buffer.to_s)
+  end
+
+  def test_backspace_erases_whole_unconfirmed_romaji
+    @im.handle_event("k")
+    @im.handle_event("y")
+    assert_nil(@im.handle_event(:backspace))
+    @im.handle_event("a")
+    assert_equal("あ", @buffer.to_s)
+  end
+
+  def test_backspace_without_unconfirmed_romaji_passes_through
+    @buffer.insert("あ")
+    assert_equal("\x7f", @im.handle_event("\x7f"))
+    assert_equal(:backspace, @im.handle_event(:backspace))
   end
 
   def test_ctrl_h_during_converting_erases_last_yomi_char_instead_of_committing

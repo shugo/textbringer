@@ -313,6 +313,13 @@ module Textbringer
     end
 
     def handle_normal(event)
+      # Like ddskk's skk-delete-backward-char, backspace erases the
+      # unconfirmed romaji as a whole, leaving the character before it.
+      if backspace_event?(event) && !@roman_buffer.empty?
+        @roman_buffer = +""
+        return nil
+      end
+
       unless event.is_a?(String)
         @roman_buffer = +""
         return event
