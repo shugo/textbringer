@@ -176,6 +176,8 @@ module Textbringer
       @user_okuriiari = nil
       @user_okurinasi = nil
       @skk_server_socket = nil
+      @prefix_window = nil
+      @prefix_buffer = nil
     end
 
     def toggle
@@ -185,6 +187,7 @@ module Textbringer
       else
         reset_cursor_color
         close_skk_server
+        close_prefix_window
       end
     end
 
@@ -192,6 +195,7 @@ module Textbringer
       super
       reset_cursor_color
       close_skk_server
+      close_prefix_window
     end
 
     def on_activate
@@ -200,6 +204,7 @@ module Textbringer
 
     def on_deactivate
       reset_cursor_color if @enabled
+      close_prefix_window
     end
 
     def status
@@ -207,16 +212,114 @@ module Textbringer
     end
 
     def handle_event(event)
-      case @phase
-      when :normal     then handle_normal(event)
-      when :converting then handle_converting(event)
-      when :selecting  then handle_selecting(event)
-      end
+      # Hidden first, not to be drawn over what the event inserts: cut in
+      # two by it, a wide character would not be shown properly.
+      @prefix_window.hide if @prefix_window&.visible?
+      result =
+        case @phase
+        when :normal     then handle_normal(event)
+        when :converting then handle_converting(event)
+        when :selecting  then handle_selecting(event)
+        end
+      update_prefix_window
+      result
     end
 
     private
 
+    # Mirrors ddskk's skk-insert-prefix, which shows the unconfirmed
+    # romaji at point with an overlay when skk-echo is non-nil (the
+    # default).  Textbringer has no overlays, so it is shown in a
+    # floating window over point instead, which leaves the buffer and
+    # its undo history untouched.  During conversion the romaji is
+    # already in the buffer (see insert_roman_preview).
+    def update_prefix_window
+      if @enabled && @phase == :normal && !@roman_buffer.empty? &&
+          !isearch_mode?
+        show_prefix_window
+      else
+        close_prefix_window
+      end
+    end
+
+    def show_prefix_window
+      window = Window.current
+      width = prefix_window_width(window.buffer)
+      y, x = prefix_window_position(window, width)
+      @prefix_buffer ||= Buffer.new(name: " *skk-prefix*", undo_limit: 0)
+      @prefix_buffer.replace(
+        @roman_buffer + " " * (width - Buffer.display_width(@roman_buffer))
+      )
+      if @prefix_window.nil? || @prefix_window.deleted?
+        # Like ddskk's skk-prefix-*-face; defined here, after the colors
+        # are set up, unless the user has defined it.
+        Face.define(:skk_prefix, underline: true) unless Face[:skk_prefix]
+        @prefix_window = FloatingWindow.new(1, width, y, x,
+                                            buffer: @prefix_buffer,
+                                            face: :skk_prefix)
+      else
+        @prefix_window.resize(1, width) if @prefix_window.columns != width
+        @prefix_window.move_to(y: y, x: x)
+      end
+      @prefix_window.show
+      Window.redisplay
+      # Put the cursor after the romaji, as after characters typed; the
+      # next redisplay puts it back at point.
+      cursor_x = [x - window.x + Buffer.display_width(@roman_buffer),
+                  window.columns - 1].min
+      window.window.setpos(y - window.y, cursor_x)
+      window.window.noutrefresh
+      Window.update
+    end
+
+    # Wide enough to cover the characters after point as a whole: a wide
+    # character cut in two by the window would not be shown properly
+    # again when the window is gone.
+    def prefix_window_width(buffer)
+      width = Buffer.display_width(@roman_buffer)
+      covered = 0
+      buffer.save_excursion do
+        while covered < width && !buffer.end_of_buffer? &&
+            buffer.char_after != "\n"
+          covered += Buffer.display_width(buffer.char_after)
+          buffer.forward_char
+        end
+      end
+      [width, covered].max
+    end
+
+    # A window sticking out of the screen is not drawn at all, so romaji
+    # that does not fit in the rest of the line goes to the beginning of
+    # the next line, where the kana will go.  The echo area has no next
+    # line, so it is moved to the left there instead.
+    def prefix_window_position(window, width)
+      y = window.cursor.y
+      x = window.cursor.x
+      if x + width > window.columns
+        if window.echo_area?
+          x = [window.columns - width, 0].max
+        else
+          y += 1
+          x = 0
+        end
+      end
+      [window.y + y, window.x + x]
+    end
+
+    def close_prefix_window
+      return if @prefix_window.nil?
+      @prefix_window.close
+      @prefix_window = nil
+    end
+
     def handle_normal(event)
+      # Like ddskk's skk-delete-backward-char, backspace erases the
+      # unconfirmed romaji as a whole, leaving the character before it.
+      if backspace_event?(event) && !@roman_buffer.empty?
+        @roman_buffer = +""
+        return nil
+      end
+
       unless event.is_a?(String)
         @roman_buffer = +""
         return event

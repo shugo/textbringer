@@ -18,6 +18,7 @@ class TestSKKInputMethod < Textbringer::TestCase
   end
 
   teardown do
+    FloatingWindow.close_all_floating
     CONFIG.delete(:skk_dictionary)
     FileUtils.remove_entry(@user_dict_dir) if @user_dict_dir
   end
@@ -98,6 +99,150 @@ class TestSKKInputMethod < Textbringer::TestCase
   def test_L_switches_to_zenkaku_ascii
     @im.handle_event("L")
     assert_equal("全英", @im.status)
+  end
+
+  # --- Unconfirmed romaji at point ---
+
+  def prefix_windows
+    FloatingWindow.floating_windows.select(&:visible?)
+  end
+
+  def test_unconfirmed_romaji_is_shown_at_point
+    @buffer.insert("abc")
+    Window.redisplay
+    @im.handle_event("k")
+    assert_equal("abc", @buffer.to_s)
+    assert_equal(1, prefix_windows.size)
+    window = prefix_windows.first
+    assert_equal("k", window.buffer.to_s)
+    assert_equal(["k"], window.window.contents)
+    assert_equal([Window.current.y + Window.current.cursor.y,
+                  Window.current.x + Window.current.cursor.x],
+                 [window.y, window.x])
+    assert_equal(3, window.x)
+  end
+
+  def test_unconfirmed_romaji_is_hidden_when_kana_is_confirmed
+    @im.handle_event("k")
+    @im.handle_event("a")
+    assert_equal("か", @buffer.to_s)
+    assert_equal([], prefix_windows)
+  end
+
+  # Drawn over the kana that replaces it, the window would cut a wide
+  # character in two, and the terminal would not show the rest of it.
+  def test_unconfirmed_romaji_is_hidden_before_kana_is_drawn
+    @im.handle_event("f")
+    visible_on_redisplay = []
+    original = Window.method(:redisplay)
+    Window.define_singleton_method(:redisplay) do
+      visible_on_redisplay << FloatingWindow.floating_windows.any?(&:visible?)
+      original.call
+    end
+    begin
+      @im.handle_event("e")
+    ensure
+      Window.define_singleton_method(:redisplay, original)
+    end
+    assert_equal("ふぇ", @buffer.to_s)
+    assert_not_include(visible_on_redisplay, true)
+  end
+
+  # Likewise, the window covers whole wide characters, so that they are
+  # shown properly again when it is gone.
+  def test_unconfirmed_romaji_covers_whole_wide_characters
+    @buffer.insert("あい")
+    @buffer.beginning_of_buffer
+    Window.redisplay
+    @im.handle_event("k")
+    assert_equal(2, prefix_windows.first.columns)
+    assert_equal("k ", prefix_windows.first.buffer.to_s)
+    @im.handle_event("y")
+    assert_equal(2, prefix_windows.first.columns)
+    assert_equal("ky", prefix_windows.first.buffer.to_s)
+  end
+
+  # A window sticking out of the screen is not drawn at all, so romaji
+  # that does not fit in the rest of the line goes to the beginning of
+  # the next line, where the kana will go.
+  def test_unconfirmed_romaji_not_fitting_in_line_goes_to_next_line
+    window = Window.current
+    @buffer.insert("x" * (window.columns - 1))
+    Window.redisplay
+    @im.handle_event("k")
+    assert_equal([window.y + window.cursor.y, window.x + window.columns - 1],
+                 [prefix_windows.first.y, prefix_windows.first.x])
+    @im.handle_event("y")
+    assert_equal([window.y + window.cursor.y + 1, window.x],
+                 [prefix_windows.first.y, prefix_windows.first.x])
+  end
+
+  def test_cursor_is_put_after_unconfirmed_romaji
+    window = Window.current
+    @buffer.insert("abc")
+    Window.redisplay
+    @im.handle_event("k")
+    assert_equal([window.cursor.y, 4],
+                 [window.window.cury, window.window.curx])
+    @im.handle_event("y")
+    assert_equal([window.cursor.y, 5],
+                 [window.window.cury, window.window.curx])
+    @im.handle_event("a")
+    assert_equal("abcきゃ", @buffer.to_s)
+    assert_equal([window.cursor.y, window.cursor.x],
+                 [window.window.cury, window.window.curx])
+  end
+
+  def test_cursor_is_put_after_unconfirmed_romaji_on_next_line
+    window = Window.current
+    @buffer.insert("x" * (window.columns - 1))
+    Window.redisplay
+    @im.handle_event("k")
+    @im.handle_event("y")
+    assert_equal([window.cursor.y + 1, 2],
+                 [window.window.cury, window.window.curx])
+  end
+
+  def test_unconfirmed_romaji_of_multi_char_sequence_is_shown
+    @im.handle_event("s")
+    @im.handle_event("h")
+    assert_equal(1, prefix_windows.size)
+    assert_equal("sh", prefix_windows.first.buffer.to_s)
+    assert_equal(2, prefix_windows.first.columns)
+  end
+
+  def test_romaji_kept_after_double_consonant_is_shown
+    @im.handle_event("k")
+    @im.handle_event("k")
+    assert_equal("っ", @buffer.to_s)
+    assert_equal(["k"], prefix_windows.map { |w| w.buffer.to_s })
+    # Shown after "っ", which is two columns wide.
+    assert_equal(2, prefix_windows.first.x)
+  end
+
+  def test_romaji_shown_in_conversion_is_not_shown_at_point
+    @im.handle_event("K")
+    assert_equal("▽k", @buffer.to_s)
+    assert_equal([], prefix_windows)
+  end
+
+  def test_unconfirmed_romaji_is_hidden_by_other_keys
+    @im.handle_event("k")
+    assert_equal(:right, @im.handle_event(:right))
+    assert_equal([], prefix_windows)
+  end
+
+  def test_unconfirmed_romaji_is_hidden_when_skk_is_turned_off
+    @im.handle_event("k")
+    @im.toggle
+    assert_equal([], prefix_windows)
+  end
+
+  def test_unconfirmed_romaji_does_not_leave_buffers
+    buffers = Buffer.list.size
+    @im.handle_event("k")
+    @im.handle_event("a")
+    assert_equal(buffers, Buffer.list.size)
   end
 
   # --- Katakana mode ---
@@ -221,11 +366,37 @@ class TestSKKInputMethod < Textbringer::TestCase
     assert_equal("", @buffer.to_s)
   end
 
+  # Like ddskk's skk-delete-backward-char, backspace erases only the
+  # unconfirmed romaji, leaving the character before it.
   def test_ctrl_h_clears_roman_buffer
     @im.handle_event("k")  # buffered prefix
     result = @im.handle_event("\C-h")
-    assert_equal("\C-h", result)
+    assert_nil(result)
     assert_equal("", @buffer.to_s)
+  end
+
+  def test_backspace_erases_only_unconfirmed_romaji
+    @buffer.insert("あ")
+    @im.handle_event("k")
+    assert_nil(@im.handle_event("\x7f"))
+    assert_equal("あ", @buffer.to_s)
+    assert_equal([], prefix_windows)
+    @im.handle_event("a")
+    assert_equal("ああ", @buffer.to_s)
+  end
+
+  def test_backspace_erases_whole_unconfirmed_romaji
+    @im.handle_event("k")
+    @im.handle_event("y")
+    assert_nil(@im.handle_event(:backspace))
+    @im.handle_event("a")
+    assert_equal("あ", @buffer.to_s)
+  end
+
+  def test_backspace_without_unconfirmed_romaji_passes_through
+    @buffer.insert("あ")
+    assert_equal("\x7f", @im.handle_event("\x7f"))
+    assert_equal(:backspace, @im.handle_event(:backspace))
   end
 
   def test_ctrl_h_during_converting_erases_last_yomi_char_instead_of_committing
